@@ -1,6 +1,6 @@
 {
   "name": "hmc-win32",
-  "version": "1.0.71",
+  "version": "1.0.8",
   "description": "HMC Connection System api",
   "license": "MIT License",
   "main": "./index.js",

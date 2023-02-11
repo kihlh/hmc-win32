@@ -2303,6 +2303,13 @@ class hmc_win32 {
     }
     return native.setClipboardFilePaths(filePaths);
   }
+  /**
+   * 获取所有usb驱动器(不包含HUD)
+   * @returns 
+   */
+  getUsbDevsInfo(){
+    return native.getUsbDevsInfo();
+  }
 }
 /**
  * 获取窗口的标题
@@ -2810,6 +2817,10 @@ interface native {
    * 获取剪贴板中的文件路径
    */
   getClipboardFilePaths():string[]
+  /**
+   * 获取所有usb驱动器(不包含HUD)
+   */
+  getUsbDevsInfo():string[]
 }
 
 export declare interface Rect {

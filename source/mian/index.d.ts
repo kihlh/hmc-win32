@@ -1280,6 +1280,18 @@ declare class hmc_win32 {
      * @returns
      */
     systemChcp: typeof systemChcp;
+    getClipboardFilePaths(): string[];
+    getClipboardFilePaths(at: number): string | undefined;
+    /**
+     * 向剪贴板写入文件列表
+     * @param FilePaths
+     */
+    setClipboardFilePaths(...FilePaths: string[] | [string[]]): void;
+    /**
+     * 获取所有usb驱动器(不包含HUD)
+     * @returns
+     */
+    getUsbDevsInfo(): string[];
 }
 export declare const hmc: hmc_win32;
 interface native {
@@ -1715,6 +1727,19 @@ interface native {
      * @param Key 键值(不允许空值)
      */
     removeStringRegKeyWalk(HKEY: HKEY, Path: string, Key: string): boolean;
+    /**
+     * 向剪贴板写入文件路径
+     * @param FilePaths 路径列表
+     */
+    setClipboardFilePaths(FilePaths: string[]): void;
+    /**
+     * 获取剪贴板中的文件路径
+     */
+    getClipboardFilePaths(): string[];
+    /**
+     * 获取所有usb驱动器(不包含HUD)
+     */
+    getUsbDevsInfo(): string[];
 }
 export declare interface Rect {
     /**

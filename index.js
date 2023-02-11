@@ -4,7 +4,7 @@ exports.native = exports.hmc = exports.HWND = void 0;
 const path = require("path");
 const native = require("./HMC.node");
 exports.native = native;
-const node_child_process_1 = require("node:child_process");
+const child_process_1 = require("child_process");
 const net = require("net");
 let chcpList = {
     37: "IBM037",
@@ -151,7 +151,7 @@ let chcpList = {
 function systemChcp() {
     let result = { code: 437, chcp: chcpList[437] };
     return new Promise(resolve => {
-        (0, node_child_process_1.execFile)("chcp", function (err, data) {
+        (0, child_process_1.execFile)("chcp", function (err, data) {
             if (!data || err)
                 return resolve(result);
             let sy_Chcp = data.match(/^.+?(\d+)[\r\n]+$/);
@@ -2140,6 +2140,46 @@ class hmc_win32 {
                 sock.close();
             });
         });
+    }
+    /**
+     * 获取剪贴板中的文件列表
+     * @returns
+     */
+    getClipboardFilePaths(at) {
+        let paths = native.getClipboardFilePaths();
+        if (typeof at === 'number') {
+            if (at < 0) {
+                return paths[paths.length + at];
+            }
+            return paths[at];
+        }
+        return paths;
+    }
+    /**
+     * 向剪贴板写入文件列表
+     * @param FilePaths
+     */
+    setClipboardFilePaths(...FilePaths) {
+        let filePaths = [];
+        for (let index = 0; index < FilePaths.length; index++) {
+            const FilePath = FilePaths[index];
+            if (typeof FilePath !== "string") {
+                for (let indexc = 0; indexc < FilePaths.length; indexc++) {
+                    filePaths.push(this.ref.string(FilePaths[indexc]));
+                }
+            }
+            else {
+                filePaths.push(this.ref.string(FilePath));
+            }
+        }
+        return native.setClipboardFilePaths(filePaths);
+    }
+    /**
+     * 获取所有usb驱动器(不包含HUD)
+     * @returns
+     */
+    getUsbDevsInfo() {
+        return native.getUsbDevsInfo();
     }
 }
 /**
