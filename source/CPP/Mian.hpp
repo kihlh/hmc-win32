@@ -83,5 +83,5 @@ napi_value setRegistrQword(napi_env env, napi_callback_info info);
 // usb.cpp
 
 napi_value getHidUsbList(napi_env env, napi_callback_info info);
-napi_value usbDevsInfo(napi_env env, napi_callback_info info);
-napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
+napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
+// napi_value getDeviceUsbList(napi_env env, napi_callback_info info);

@@ -2638,8 +2638,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardFilePaths",getClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHODRM("setClipboardFilePaths",setClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHOD("getHidUsbList",getHidUsbList),
-        DECLARE_NAPI_METHOD("getusbDevsInfo",usbDevsInfo), //=>2-11ADD
-        DECLARE_NAPI_METHOD("getDeviceUsbList",getDeviceUsbList), //=>2-11ADD
+        DECLARE_NAPI_METHOD("getUsbDevsInfo",getUsbDevsInfo), //=>2-11ADD
 
     };
 
