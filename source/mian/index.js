@@ -1,4 +1,16 @@
 "use strict";
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var _hmc_win32_thenConsole;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.native = exports.hmc = exports.HWND = void 0;
 const path = require("path");
@@ -467,6 +479,14 @@ class hmc_win32 {
         this.platform = native.platform;
         this.ref = {
             /**
+            * 将内容格式化为文本路径
+            * @param Str
+            * @returns
+            */
+            path(Str) {
+                return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
+            },
+            /**
              * 格式化为bool
              * @param bool
              * @returns
@@ -831,6 +851,7 @@ class hmc_win32 {
          * @returns
          */
         this.systemChcp = systemChcp;
+        _hmc_win32_thenConsole.set(this, void 0);
     }
     get hmc() { return this; }
     get default() { return this; }
@@ -2181,7 +2202,78 @@ class hmc_win32 {
     getUsbDevsInfo() {
         return native.getUsbDevsInfo();
     }
+    /**
+     * 枚举句柄的子窗口
+     * @param Handle 句柄
+     * @returns
+     */
+    enumChildWindows(Handle) {
+        return native.enumChildWindows(this.ref.int(Handle));
+    }
+    /**
+     * 隐藏当前控制台窗口(node)
+     */
+    hideConsole() {
+        var _a;
+        if (!__classPrivateFieldGet(this, _hmc_win32_thenConsole, "f")) {
+            __classPrivateFieldSet(this, _hmc_win32_thenConsole, this.getProcessHandle(process.pid), "f");
+        }
+        if (!__classPrivateFieldGet(this, _hmc_win32_thenConsole, "f"))
+            return false;
+        return ((_a = __classPrivateFieldGet(this, _hmc_win32_thenConsole, "f")) === null || _a === void 0 ? void 0 : _a.hide()) || false;
+    }
+    /**
+     * 显示当前控制台窗口(node)
+     */
+    showConsole() {
+        var _a;
+        if (!__classPrivateFieldGet(this, _hmc_win32_thenConsole, "f")) {
+            __classPrivateFieldSet(this, _hmc_win32_thenConsole, this.getProcessHandle(process.pid), "f");
+        }
+        if (!__classPrivateFieldGet(this, _hmc_win32_thenConsole, "f"))
+            return false;
+        return ((_a = __classPrivateFieldGet(this, _hmc_win32_thenConsole, "f")) === null || _a === void 0 ? void 0 : _a.show()) || false;
+    }
+    /**
+     * 获取当前控制台窗口的句柄(node)
+     * @returns
+     */
+    getConsoleHandle() {
+        if (!__classPrivateFieldGet(this, _hmc_win32_thenConsole, "f")) {
+            __classPrivateFieldSet(this, _hmc_win32_thenConsole, this.getProcessHandle(process.pid), "f");
+        }
+        return __classPrivateFieldGet(this, _hmc_win32_thenConsole, "f");
+    }
+    /**
+    * 将文件/文件夹  移除到系统回收站中
+    * @param Path 处理的路径(\n结尾)
+    * @param Recycle 是否保留撤销权(回收站)
+    * @param isShow 是否显示确认窗口
+    * @returns 返回操作状态 请参考：
+    * @link https://learn.microsoft.com/zh-CN/windows/win32/api/shellapi/nf-shellapi-shfileoperationa
+    * @default 默认配置
+    * * Recycle true
+    * * isShow false
+    */
+    deleteFile(Path, Recycle, isShow) {
+        return native.deleteFile(this.ref.path(Path), typeof Recycle == "boolean" ? this.ref.bool(Recycle) : true, typeof isShow == "boolean" ? this.ref.bool(isShow) : false);
+    }
+    /**
+    * 将文件/文件夹  移除到系统回收站中
+    * @param Path 处理的路径(\n结尾)
+    * @param Recycle 是否保留撤销权(回收站)
+    * @param isShow 是否显示确认窗口
+    * @returns 返回操作状态 请参考：
+    * @link https://learn.microsoft.com/zh-CN/windows/win32/api/shellapi/nf-shellapi-shfileoperationa
+    * @default 默认配置
+    * * Recycle true
+    * * isShow false
+    */
+    get trash() {
+        return this.deleteFile;
+    }
 }
+_hmc_win32_thenConsole = new WeakMap();
 /**
  * 获取窗口的标题
  * @returns

@@ -38,11 +38,60 @@ typedef LPCSTR LPCTSTR;
 
 BOOL EnableShutDownPriv();
 
+// 判断所有传入参数都为 
+#define hmc_is_argv_type(argv, start, size,type, Results)                         \
+    for (int i = start; i < size; i++)                                          \
+    {                                                                           \
+        napi_valuetype value_type;                                              \
+        napi_typeof(env, argv[i], &value_type);                                 \
+        if (value_type != type)                                          \
+        {                                                                       \
+            napi_throw_error(env, "EINVAL",                                     \
+                             string("\nThe [")                                    \
+                                 .append(to_string(argc))                       \
+                                 .append("] parameter passed in should read [") \
+                                 .append(_NAPI_Call_Type(value_type))           \
+                                 .append("] This parameter should read: ")      \
+                                 .append(_NAPI_Call_Type(type))                              \
+                                 .append("\n")                              \
+                                 .c_str());                                     \
+            return Results;                                                     \
+        };                                                                      \
+    }
 
+// 判断传入的参数是否大于此要求
+#define hmc_is_argc_size(argc, size, Results)                                                                                           \
+    if (argc < size)                                                                                                                    \
+    {                                                                                                                                   \
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str()); \
+        return Results;                                                                                                                 \
+    }
 
+// 开始暴露模块
 
+// 导出一个其他cpp中的模块
+#define DECLARE_NAPI_METHODRM(name, func)                       \
+    {                                                           \
+        name, 0, (napi_callback)&func, 0, 0, 0, napi_default, 0 \
+    }
 
+// 导出一个模块
+#define DECLARE_NAPI_METHOD(name, func)         \
+    {                                           \
+        name, 0, func, 0, 0, 0, napi_default, 0 \
+    }
 
+// 导出一个js支持的内容
+#define ADD_NAPI_METHOD_VALUE(name, value)       \
+    {                                            \
+        name, 0, 0, 0, 0, value, napi_default, 0 \
+    }
+
+// 导出一个文本内容
+#define ADD_NAPI_METHOD_Str_VALUE(name, value)                        \
+    {                                                                 \
+        name, 0, 0, 0, 0, _create_String(env, value), napi_default, 0 \
+    }
 
 // clip.cpp
 napi_value setClipboardText(napi_env env, napi_callback_info info);

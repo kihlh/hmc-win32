@@ -65,6 +65,11 @@
         "xmemory": "cpp",
         "xstddef": "cpp",
         "xtree": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "stack": "cpp",
+        "unordered_map": "cpp",
+        "xhash": "cpp"
     }
 }

@@ -10,7 +10,11 @@
 ##   Why do I need to use this module ?
 
 
+- **Zero Dependency**
+
 - **There are requirements for execution speed (e.g. cmd runs require an extra 100ms for calls, and compatibility is poor, requiring extra processes to handle)**
+
+- **Low consumption e.g.  [ffi](https://github.com/node-ffi/node-ffi)  requires a lot of conversion and coding callbacks and is complex to write compared to hmc which is smaller and can implement hundreds of functions in just a few hundred K without third party support**
 
 - **Need for assistance with window automation**
 
@@ -28,13 +32,9 @@
 ## What functions can be achieved
 
 - **C++ easily implements functions like closing processes, getting the clipboard, but node doesn't support them.**
-
 - **Window Processing**
-
 - **Process Handling**
-
 - **System api calls**
-
 - **Disable user actions**
 
 
@@ -140,6 +140,7 @@ import  HMC = require("hmc-win32");
   - **setTopOrCancel**  取消顶设 / 设置顶设
   - **setOpacity**  设置 不透明度 0-100  / 0.0-1.0
   - **setTransparent** 设置 不透明度
+- **enumChildWindows** 枚举句柄的子窗口
 
 
 ### 进程控制
@@ -189,6 +190,8 @@ import  HMC = require("hmc-win32");
 - **MessageError** 方法用于显示带有一条指定消息和一个 确认 按钮的错误框 附带有❗ 感叹号。
 - **freePort** 获取一个空闲可用的端口号
 - **systemChcp** 当前系统shell的chcp信息
+- **deleteFile** 将文件放入回收站
+- **trash**  将文件放入回收站
 ### 电源控制
 - **systemStartTime** 系统启动到现在的时间
 - **shutMonitors** 关闭显示器

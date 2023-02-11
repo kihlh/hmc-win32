@@ -1,7 +1,7 @@
 {
   "name": "hmc-win32",
   "version": "1.0.8",
-  "description": "HMC Connection System api",
+  "description": "Connect to the system api in the easiest way (win-api)",
   "license": "MIT License",
   "main": "./index.js",
   "types": "index.d.ts",
@@ -62,12 +62,21 @@
     "handle",
     "set-title",
     "visible",
-    "process-list"
+    "enum-child-windows",
+    "process-list",
+    "win-api",
+    "clipboard",
+    "clip",
+    "usb",
+    "delete-file",
+    "trash",
+    "recycle"
   ],
   "scripts": {
     "build": "cd CPP&&node-gyp rebuild",
-    "type":"tsc -d HMC.ts&&del  HMC.js",
-    "copyBin":"node -e \"require('fs').copyFileSync('./CPP/build/Release/HMC.node','./index.node')\"",
+    "ts":"tsc -d -w",
+    "publish": "npm publish",
+    "pull":"git push origin master -f",
     "copyBin-w":"node -e \"let fs= require('fs');function Copy(){try {fs.copyFileSync('./CPP/build/Release/HMC.node','./index.node')} catch (error) {}};fs.watchFile('./CPP/build/Release/HMC.node',()=>setTimeout(Copy,8000));\""
   },
   "engines": {

@@ -1682,7 +1682,6 @@ static napi_value hasWindowTop(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, GetWindowLong(Handle, GWL_EXSTYLE) & WS_EX_TOPMOST);
 }
 
-
 // 判断该句柄是否有效
 static napi_value isHandle(napi_env env, napi_callback_info info)
 {
@@ -2234,7 +2233,6 @@ static napi_value SetSystemHOOK(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, lockSystemInteraction(Set_Block));
 }
 
-
 static napi_value hasProcess(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -2414,7 +2412,6 @@ napi_value openPath(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, long long(hResult) >= 31);
 }
 
-
 //? 软链接/硬链接 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value createDirSymlink(napi_env env, napi_callback_info info)
@@ -2519,25 +2516,138 @@ static napi_value createHardLink(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, mk_OK);
 }
 
+vector<HWND> enumChildWindowsList;
+
+static BOOL CALLBACK enumchildWindowCallback(HWND hWnd, LPARAM lparam)
+{
+    enumChildWindowsList.push_back(hWnd);
+    // cout << hWnd <<endl;
+    return TRUE;
+}
+
+static napi_value enumChildWindows(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value ResultsHandleList;
+    status = napi_create_array(env, &ResultsHandleList);
+    if (status != napi_ok)
+        return ResultsHandleList;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    if (status != napi_ok)
+        return ResultsHandleList;
+    if (!argc)
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+    }
+    // get HWND
+    int64_t NumHandle;
+    status = napi_get_value_int64(env, args[0], &NumHandle);
+    if (status != napi_ok)
+        return ResultsHandleList;
+    HWND Handle = (HWND)NumHandle;
+
+    // is the handle
+    if (!(GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
+        return ResultsHandleList;
+    // enum
+    enumChildWindowsList.clear();
+
+    // LPARAM lm = (LPARAM)&parm; //获取结构体地址
+
+    EnumChildWindows(Handle, enumchildWindowCallback, NULL);
+    int oidSize = enumChildWindowsList.size();
+    switch (true)
+    {
+        int sizes = enumChildWindowsList.size();
+        Sleep(2);
+        if (oidSize == sizes)
+        {
+            oidSize = sizes;
+            Sleep(3);
+            if (oidSize == enumChildWindowsList.size())
+                break;
+        }
+        oidSize = sizes;
+    }
+    for (size_t i = 0; i < enumChildWindowsList.size(); i++)
+    {
+        status = napi_set_element(env, ResultsHandleList, i, _create_int64_Number(env, (int64_t)enumChildWindowsList[i]));
+        if (status != napi_ok)
+        {
+            enumChildWindowsList.clear();
+            return ResultsHandleList;
+        }
+    }
+    enumChildWindowsList.clear();
+    return ResultsHandleList;
+}
+
+/**
+ * @brief 调用系统回收站api
+ *
+ * @param FromPath 处理的文件名称
+ * @param bRecycle 允许放回回收站
+ * @param isShow 取消静默
+ * @return int
+ */
+static int API_DeleteFile(string FromPath, bool bRecycle, bool isShow)
+{
+    SHFILEOPSTRUCTA FileOp = {0};
+    if (bRecycle)
+    {
+        if (isShow)
+        {
+            FileOp.fFlags |= FOF_ALLOWUNDO ;
+        }
+        else
+        {
+            FileOp.fFlags |= FOF_ALLOWUNDO | FOF_NOCONFIRMATION ;
+        }
+    }
+    FileOp.pFrom = FromPath.c_str();
+    FileOp.pTo = NULL;        // 一定要是NULL
+    FileOp.wFunc = FO_DELETE; // 删除操作
+    return SHFileOperationA(&FileOp);
+}
+
+static napi_value deleteFile(napi_env env, napi_callback_info info)
+{
+    napi_value Results = _create_int32_Number(env, 0x10000);
+    napi_status status;
+    size_t argc = 3;
+    napi_value argv[3];
+    bool isShow = false;
+    bool bRecycle = true;
+    status = $napi_get_cb_info(argc, argv);
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    hmc_is_argc_size(argc, 1, Results);
+    hmc_is_argv_type(argv, 0, 1, napi_string, Results);
+    // 检索3个参数合法性
+    switch (argc)
+    {
+    case 2:
+        hmc_is_argv_type(argv, 1, 2, napi_boolean, Results);
+        napi_get_value_bool(env, argv[1], &bRecycle);
+        break;
+    case 3:
+        hmc_is_argv_type(argv, 1, 3, napi_boolean, Results);
+        napi_get_value_bool(env, argv[1], &bRecycle);
+        napi_get_value_bool(env,argv[2], &isShow);
+        break;
+    }
+    string Paths = call_String_NAPI_WINAPI_A(env,argv[0]);
+    int Info = API_DeleteFile(Paths,bRecycle,isShow);
+    Results = _create_int32_Number(env, Info);
+    return Results;
+}
+
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// 开始暴露模块
-#define DECLARE_NAPI_METHODRM(name, func)         \
-    {                                           \
-        name, 0, (napi_callback)&func, 0, 0, 0, napi_default, 0 \
-    }
-#define DECLARE_NAPI_METHOD(name, func)         \
-    {                                           \
-        name, 0, func, 0, 0, 0, napi_default, 0 \
-    }
-#define ADD_NAPI_METHOD_VALUE(name, value)       \
-    {                                            \
-        name, 0, 0, 0, 0, value, napi_default, 0 \
-    }
-#define ADD_NAPI_METHOD_Str_VALUE(name, value)                        \
-    {                                                                 \
-        name, 0, 0, 0, 0, _create_String(env, value), napi_default, 0 \
-    }
 static napi_value Init(napi_env env, napi_value exports)
 {
     // napi_value exportsMessage;
@@ -2635,10 +2745,12 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardText", getClipboardText),
         DECLARE_NAPI_METHODRM("setClipboardText", setClipboardText),
         DECLARE_NAPI_METHODRM("clearClipboard", clearClipboard),
-        DECLARE_NAPI_METHODRM("getClipboardFilePaths",getClipboardFilePaths), //=>2-11ADD
-        DECLARE_NAPI_METHODRM("setClipboardFilePaths",setClipboardFilePaths), //=>2-11ADD
-        DECLARE_NAPI_METHOD("getHidUsbList",getHidUsbList),
-        DECLARE_NAPI_METHOD("getUsbDevsInfo",getUsbDevsInfo), //=>2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2-11ADD
+        DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2-11ADD
+        DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
+        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),     //=>2-11ADD
+        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows), //=>2-11ADD
+        DECLARE_NAPI_METHOD("deleteFile", deleteFile),             //=>2-11ADD
 
     };
 
