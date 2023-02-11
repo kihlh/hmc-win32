@@ -15,7 +15,7 @@
     // "jsx": "preserve",                     /* 指定jsx代码用于的开发环境: 'preserve', 'react-native', or 'react'. */
     // "declaration": true,                   /* declaration的值为true或false，用来指定是否在编译的时候生成相应的".d.ts"声明文件。如果设为true，编译每个ts文件之后会生成一个js文件和一个声明文件。但是declaration和allowJs不能同时设为true */
     // "declarationMap": true,                /* 值为true或false，指定是否为声明文件.d.ts生成map文件 */
-    "sourceMap": true /* sourceMap的值为true或false，用来指定编译时是否生成.map文件 */,
+    "sourceMap": false /* sourceMap的值为true或false，用来指定编译时是否生成.map文件 */,
     // "outFile": "./",                       /* outFile用于指定将输出文件合并为一个文件，它的值为一个文件路径名。比如设置为"./dist/main.js"，则输出的文件为一个main.js文件。但是要注意，只有设置module的值为amd和system模块时才支持这个配置 */
     // "outDir": "",
     /* outDir用来指定输出文件夹，值为一个文件夹路径字符串，输出的文件都将放置在这个文件夹 */

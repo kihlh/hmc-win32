@@ -2200,4 +2200,3 @@ function getDefaultTitele() {
 exports.hmc = new hmc_win32();
 exports.default = exports.hmc;
 module.exports = exports.hmc;
-//# sourceMappingURL=index.js.map
