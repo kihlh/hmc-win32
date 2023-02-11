@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "*.hm": "json",
+        "*.javascript": "javascript",
+        "chrono": "cpp",
+        "functional": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp",
+        "type_traits": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xtr1common": "cpp",
+        "vector": "cpp",
+        "string": "cpp",
+        "xstring": "cpp"
+    }
+}
