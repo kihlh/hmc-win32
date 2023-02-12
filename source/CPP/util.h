@@ -50,3 +50,11 @@ wstring call_String_NAPI_WINAPI_W(napi_env env, napi_value value);
 string call_String_NAPI_WINAPI_A(napi_env env, napi_value value);
 
 string call_String_NAPI_UTF8(napi_env env, napi_value value);
+
+
+
+struct hmcRect;
+bool rectInRect(hmcRect inRect, hmcRect mian);
+hmcRect RECT2Rect(RECT inputRect);
+bool RECTinRECT(RECT inRect, RECT mian);
+bool pointInRect(POINT pt, hmcRect rect);

@@ -1,4 +1,4 @@
-import { HKEY, HidUsb, mouse_event, UINT, ProcessID, Rect, HandleTransparent } from "./index";
+import { cRECT, HKEY, HidUsb, mouse_event, UINT, ProcessID, Rect, HandleTransparent, HWND } from './index';
 
 export type Native = {
     /**版本号 */
@@ -517,6 +517,28 @@ export type Native = {
      * 获取所有HID设备的id
      */
     getHidUsbIdList():string[];
+    /**
+     * 获取所有屏幕
+     */
+    getDeviceCapsAll():cRECT[];
+    /**
+     * 判断句柄的窗口是否在所有窗口的范围中(无论他是否被其他窗口挡住)
+     * @param Handle 
+     */
+    isInMonitorWindow(Handle:number):boolean;
+    /**
+     * 判断句柄的窗口是否在鼠标所在的窗口
+     * @param Handle 
+     */
+    isMouseMonitorWindow(Handle:number):boolean;
+    /**
+     * 获取鼠标所在的屏幕信息
+     */
+    getCurrentMonitorRect():cRECT;
+    /**
+     * 当前电脑存在几个屏幕
+     */
+    getSystemMetricsLen():number;
 }
 export type chcpList = {
     37: "IBM037",

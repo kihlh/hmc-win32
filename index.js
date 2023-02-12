@@ -10,9 +10,9 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _hmc_win32_thenConsole;
+var _hmc_win32_instances, _hmc_win32_thenConsole, _hmc_win32_window_get, _hmc_win32_watch_get, _hmc_win32_shell_get, _hmc_win32_usb_get, _hmc_win32_clipboard_get, _hmc_win32_process_get, _hmc_win32_auto_get;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.native = exports.hmc = exports.HWND = void 0;
+exports.native = exports.hmc = exports.HWND = exports.RECT2Rect = exports.pointInRect = exports.RectInRect = void 0;
 const path = require("path");
 const native = require("./HMC.node");
 exports.native = native;
@@ -176,6 +176,81 @@ function systemChcp() {
         });
     });
 }
+function iscRECT(cRECT) {
+    return typeof cRECT.left == "number" && typeof cRECT.right == "number" && typeof cRECT.bottom == "number" && typeof cRECT.top == "number";
+}
+function iscPOINT(cPOINT) {
+    return typeof cPOINT.x == "number" && typeof cPOINT.y == "number" && typeof cPOINT.height == "undefined" && typeof cPOINT.width == "undefined";
+}
+/**
+ * 矩形是否在矩形范围中
+ * @param inRect
+ * @param mian
+ * @returns
+ */
+function RectInRect(mian, InRect) {
+    if (iscRECT(mian)) {
+        mian = RECT2Rect(mian);
+    }
+    if (iscRECT(InRect)) {
+        InRect = RECT2Rect(InRect);
+    }
+    if (iscPOINT(InRect)) {
+        return pointInRect(InRect, mian);
+    }
+    let inRect = InRect;
+    let isInRet = true;
+    // 得出对比传入的边界
+    let in_x = inRect.x;
+    let in_y = inRect.y;
+    let in_xw = inRect.x + inRect.width;
+    let in_hy = inRect.y + inRect.height;
+    if (!inRect.x)
+        in_x = 1;
+    if (!inRect.y)
+        in_y = 1;
+    // 得出mian的边界
+    let mian_x = mian.x;
+    let mian_y = mian.y;
+    let mian_xw = mian.x + mian.width;
+    let mian_hy = mian.y + mian.height;
+    isInRet = (((in_x >= mian_x && in_x < mian_xw) || (mian_x >= in_x && mian_x <= in_xw)) &&
+        ((in_y >= mian_y && in_y < mian_hy) || (mian_y >= in_y && mian_y <= in_hy)))
+        ? false
+        : true;
+    if (isInRet == false) {
+        if (mian.x > inRect.x && mian.y > inRect.y &&
+            mian.x + mian.width < inRect.x + inRect.width &&
+            mian.y + mian.height < inRect.x + inRect.height) {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+exports.RectInRect = RectInRect;
+/**
+ * 点是否在矩形范围中
+ * @param pt
+ * @param rect
+ * @returns
+ */
+function pointInRect(pt, rect) {
+    if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height))) {
+        return true;
+    }
+    return false;
+}
+exports.pointInRect = pointInRect;
+function RECT2Rect(inputRect) {
+    return {
+        height: inputRect.top - inputRect.bottom,
+        width: inputRect.right - inputRect.left,
+        x: inputRect.left,
+        y: inputRect.top
+    };
+}
+exports.RECT2Rect = RECT2Rect;
 /**
  * 句柄 可以视为是一个数字也可以视为是一个功能 {0}
  * 继承了 Number 的构建类
@@ -467,6 +542,7 @@ function hasregArgs(HKEY, Path, funName) {
 }
 class hmc_win32 {
     constructor() {
+        _hmc_win32_instances.add(this);
         /**原生HMC */
         this.native = native;
         /**一个可以快速操作的句柄类对象 */
@@ -553,6 +629,9 @@ class hmc_win32 {
          * @deprecated 该功能有概率使进程奔溃 请使用 getAllWindowsHandle 代替该功能
          **/
         this.getAllWindows = native.getAllWindows;
+        this.pointInRect = pointInRect;
+        this.RectInRect = RectInRect;
+        this.RECT2Rect = RECT2Rect;
         /**
          * 注册表编辑
          */
@@ -852,6 +931,24 @@ class hmc_win32 {
          */
         this.systemChcp = systemChcp;
         _hmc_win32_thenConsole.set(this, void 0);
+        /**
+         * 所有窗口操作方法的归类合集 (拥有统一化名称)
+         */
+        this.window = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_window_get);
+        /**
+        * 所有监听函数的合集 (拥有统一化名称)
+        */
+        this.watch = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_watch_get);
+        /**剪贴板工具集  (拥有统一化名称) */
+        this.clipboard = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_clipboard_get);
+        /**自动化工具集   (拥有统一化名称) */
+        this.auto = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_auto_get);
+        /**USB 控制的归档   (拥有统一化名称) */
+        this.usb = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_usb_get);
+        /**实用工具集   (拥有统一化名称)*/
+        this.shell = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_shell_get);
+        /**进程操作合集   (拥有统一化名称) */
+        this.process = __classPrivateFieldGet(this, _hmc_win32_instances, "a", _hmc_win32_process_get);
     }
     get hmc() { return this; }
     get default() { return this; }
@@ -2383,16 +2480,161 @@ class hmc_win32 {
             }
         };
     }
+    /**
+     * 获取所有屏幕
+     * @returns
+     */
+    getDeviceCapsAll() {
+        return native.getDeviceCapsAll();
+    }
+    /**
+     * 判断句柄的窗口是否在所有窗口的范围中(无论他是否被其他窗口挡住)
+     * @param Handle
+     */
+    isInMonitorWindow(Handle) {
+        return native.isInMonitorWindow(this.ref.int(Handle));
+    }
+    /**
+     * 判断句柄的窗口是否在鼠标所在的窗口
+     * @param Handle
+     */
+    isMouseMonitorWindow(Handle) {
+        return native.isMouseMonitorWindow(this.ref.int(Handle));
+    }
+    /**
+     * 获取鼠标所在的屏幕信息
+     */
+    getCurrentMonitorRect() {
+        return native.getCurrentMonitorRect();
+    }
+    /**
+     * 当前电脑存在几个屏幕
+     */
+    getSystemMetricsLen() {
+        return native.getSystemMetricsLen();
+    }
 }
-_hmc_win32_thenConsole = new WeakMap();
+_hmc_win32_thenConsole = new WeakMap(), _hmc_win32_instances = new WeakSet(), _hmc_win32_window_get = function _hmc_win32_window_get() {
+    return (() => {
+        return {
+            isInMonitor: this.isInMonitorWindow,
+            isMouseMonitor: this.isMouseMonitorWindow,
+            HWND: this.HWND,
+            setMode: this.setWindowMode,
+            getAllWindows: this.getAllWindows,
+            getAllHandle: this.getAllWindowsHandle,
+            watchPoint: this.WatchWindowPoint,
+            watchtFocus: this.WatchWindowForeground,
+            getFocus: this.getForegroundWindow,
+            getMain: this.getMainWindow,
+            getPoint: this.getPointWindow,
+            getProcessHandle: this.getProcessHandle,
+            getPointMain: this.getPointWindowMain,
+            setTaskbarVisible: this.SetWindowInTaskbarVisible,
+            getProcessID: this.getHandleProcessID,
+            getRect: this.getWindowRect,
+            isEnabled: this.isEnabled,
+            isHandle: this.isHandle,
+            hasHandle: this.isHandle,
+            isVisible: this.isHandleWindowVisible,
+            close: this.lookHandleCloseWindow,
+            getTitle: this.lookHandleGetTitle,
+            setTitle: this.lookHandleSetTitle,
+            setShowWindow: this.lookHandleShowWindow,
+            setTransparent: this.setHandleTransparent,
+            setEnabled: this.setWindowEnabled,
+            setFocus: this.setWindowFocus,
+            setTop: this.setWindowTop,
+            update: this.updateWindow,
+            jitter: this.windowJitter,
+            hasTop: this.hasWindowTop,
+            closed: this.closedHandle,
+            getFocusProcessID: this.getForegroundWindowProcessID,
+            getPointName: this.getPointWindowName,
+            getPointProcessId: this.getPointWindowProcessId,
+            enumChild: this.enumChildWindows,
+            console: {
+                hide: this.hideConsole,
+                show: this.showConsole,
+                get: this.getConsoleHandle,
+                blockInput: this.SetBlockInput,
+            }
+        };
+    })();
+}, _hmc_win32_watch_get = function _hmc_win32_watch_get() {
+    return (() => {
+        return {
+            clipboard: this.watchClipboard,
+            usb: this.watchUSB,
+            windowFocus: this.WatchWindowForeground,
+            windowPoint: this.WatchWindowPoint,
+            process: this.processWatchdog
+        };
+    })();
+}, _hmc_win32_shell_get = function _hmc_win32_shell_get() {
+    return (() => {
+        return {
+            trash: this.deleteFile,
+            delete: this.deleteFile,
+            openApp: this.openApp,
+            getShortcutLink: this.getShortcutLink,
+            setShortcutLink: this.setShortcutLink,
+            freePort: this.freePort,
+            createSymlink: this.createSymlink,
+            createDirSymlink: this.createDirSymlink,
+            createHardLink: this.createHardLink,
+        };
+    })();
+}, _hmc_win32_usb_get = function _hmc_win32_usb_get() {
+    return (() => {
+        return {
+            getHub: this.getHidUsbList,
+            getDevsInfo: this.getUsbDevsInfo,
+            watch: this.watchUSB,
+        };
+    })();
+}, _hmc_win32_clipboard_get = function _hmc_win32_clipboard_get() {
+    return (() => {
+        return {
+            clear: this.clearClipboard,
+            readText: this.getClipboardText,
+            readFilePaths: this.getClipboardFilePaths,
+            writeText: this.setClipboardText,
+            writeFilePaths: this.setClipboardFilePaths,
+            sequence: this.getClipboardSequenceNumber,
+            watch: this.watchClipboard,
+        };
+    })();
+}, _hmc_win32_process_get = function _hmc_win32_process_get() {
+    return (() => {
+        return {
+            watch: this.processWatchdog,
+            kill: this.killProcess,
+            killMatch: this.killProcessName,
+            getList: this.getProcessList,
+            getHandle: this.getProcessHandle,
+            getName: this.getProcessName,
+            getPath: this.getProcessidFilePath,
+            getFocus: this.getForegroundWindowProcessID,
+            has: this.hasProcess,
+            match: this.getProcessNameList,
+            matchDetails: this.getDetailsProcessNameList,
+            getDetailsList: this.getDetailsProcessList,
+        };
+    })();
+}, _hmc_win32_auto_get = function _hmc_win32_auto_get() {
+    return (() => {
+        return {};
+    })();
+};
 /**
  * 获取窗口的标题
  * @returns
  */
 function getDefaultTitele() {
     try {
-        // @ts-nocheck
-        return window.document.title;
+        // @ts-expect-error
+        return exports.window.document.title;
     }
     catch (error) {
         return (native.lookHandleGetTitle(native.getProcessHandle(process.pid) || 0) ||

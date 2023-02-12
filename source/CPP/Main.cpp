@@ -1526,8 +1526,6 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
     napi_set_property(env, Results, _create_char_string(env, "width"), DefaultValue);
     napi_set_property(env, Results, _create_char_string(env, "height"), DefaultValue);
 
-    int DeviceCapsWidth = GetSystemMetrics(SM_CXSCREEN);
-    int DeviceCapsHeight = GetSystemMetrics(SM_CYSCREEN);
     HWND hHWND = (HWND)Process_Handle;
     if (hHWND)
     {
@@ -1540,8 +1538,8 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
         napi_set_property(env, Results, _create_char_string(env, "right"), _create_int32_Number(env, lpRect.right));
         napi_set_property(env, Results, _create_char_string(env, "y"), _create_int32_Number(env, lpRect.top));
         napi_set_property(env, Results, _create_char_string(env, "x"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, Results, _create_char_string(env, "width"), _create_int32_Number(env, (DeviceCapsWidth - lpRect.left) - (DeviceCapsWidth - lpRect.right)));
-        napi_set_property(env, Results, _create_char_string(env, "height"), _create_int32_Number(env, (DeviceCapsHeight - lpRect.top) - (DeviceCapsHeight - lpRect.bottom)));
+        napi_set_property(env, Results, _create_char_string(env, "width"), _create_int32_Number(env, lpRect.right - lpRect.left));
+        napi_set_property(env, Results, _create_char_string(env, "height"), _create_int32_Number(env, lpRect.top - lpRect.bottom));
     }
     return Results;
 }
@@ -2646,8 +2644,275 @@ static napi_value deleteFile(napi_env env, napi_callback_info info)
     return Results;
 }
 
-//? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 获取屏幕个数
+int GetSystemMetricsLen()
+{
 
+    return (int)GetSystemMetrics(SM_CMONITORS);
+}
+
+// 获取所有屏幕的位置
+vector<RECT> GetDeviceCapsAll()
+{
+    vector<RECT> CrectList;
+    DISPLAY_DEVICE displayDevice;
+    ZeroMemory(&displayDevice, sizeof(displayDevice));
+    displayDevice.cb = sizeof(displayDevice);
+    DEVMODE devMode;
+    ZeroMemory(&devMode, sizeof(devMode));
+    devMode.dmSize = sizeof(devMode);
+
+    for (int i = 0; EnumDisplayDevices(NULL, i, &displayDevice, 0); ++i)
+    {
+        if (EnumDisplaySettings(displayDevice.DeviceName, ENUM_CURRENT_SETTINGS, &devMode))
+        {
+            int left = devMode.dmPosition.x;
+            int top = devMode.dmPosition.y;
+            int right = devMode.dmPosition.x + devMode.dmPelsWidth;
+            int bottom = devMode.dmPosition.y + devMode.dmPelsHeight;
+            RECT rect;
+            rect.bottom = bottom;
+            rect.left = left;
+            rect.top = top;
+            rect.right = right;
+            CrectList.push_back(rect);
+        }
+    }
+    return CrectList;
+}
+
+// 获取鼠标所在的屏幕的位置信息
+RECT GetCurrentMonitorRect()
+{
+    RECT rcRet;
+    rcRet.bottom = 0;
+    rcRet.left = 0;
+    rcRet.right = 0;
+    rcRet.top = 0;
+    POINT point;
+    GetCursorPos(&point);
+    static vector<RECT> DeviceCapsRectList = GetDeviceCapsAll();
+    for (const RECT &DeviceCapsRectItme : DeviceCapsRectList)
+    {
+
+        if (::PtInRect(&DeviceCapsRectItme, point))
+        {
+            rcRet = DeviceCapsRectItme;
+            break;
+        }
+    }
+    return rcRet;
+}
+
+static napi_value getSystemMetricsLen(napi_env env, napi_callback_info info)
+{
+    napi_value Results;
+    Results = _create_int32_Number(env, GetSystemMetricsLen());
+    return Results;
+}
+
+static napi_value getCurrentMonitorRect(napi_env env, napi_callback_info info)
+{
+    napi_value Results;
+    napi_status status;
+    status = napi_create_object(env, &Results);
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    RECT rect = GetCurrentMonitorRect();
+    status = napi_set_property(env, Results, _create_char_string(env, "left"), _create_int32_Number(env, (int)rect.left));
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    status = napi_set_property(env, Results, _create_char_string(env, "top"), _create_int32_Number(env, (int)rect.top));
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    status = napi_set_property(env, Results, _create_char_string(env, "right"), _create_int32_Number(env, (int)rect.right));
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    status = napi_set_property(env, Results, _create_char_string(env, "bottom"), _create_int32_Number(env, (int)rect.bottom));
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+
+    return Results;
+}
+
+static napi_value getDeviceCapsAll(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value Results;
+    status = napi_create_array(env, &Results);
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    static vector<RECT> DeviceCapsRectList = GetDeviceCapsAll();
+    int NextIndex = 0;
+    for (const RECT &rect : DeviceCapsRectList)
+    {
+        napi_value NextRect;
+        status = napi_create_object(env, &NextRect);
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        status = napi_set_property(env, NextRect, _create_char_string(env, "left"), _create_int32_Number(env, (int)rect.left));
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        status = napi_set_property(env, NextRect, _create_char_string(env, "top"), _create_int32_Number(env, (int)rect.top));
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        status = napi_set_property(env, NextRect, _create_char_string(env, "right"), _create_int32_Number(env, (int)rect.right));
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        status = napi_set_property(env, NextRect, _create_char_string(env, "bottom"), _create_int32_Number(env, (int)rect.bottom));
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        status = napi_set_element(env, Results, NextIndex, NextRect);
+        if (status != napi_ok)
+        {
+            return Results;
+        };
+        NextIndex += 1;
+    }
+
+    return Results;
+}
+bool pointInRECT(POINT pt, RECT inputRect);
+static napi_value isMouseMonitorWindow(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1], is_OKs;
+    is_OKs = _create_bool_Boolean(env, false);
+    status = $napi_get_cb_info(argc, args);
+    if (status != napi_ok)
+        return is_OKs;
+    if (!argc)
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+    }
+    // get HWND
+    int64_t NumHandle;
+    status = napi_get_value_int64(env, args[0], &NumHandle);
+    if (status != napi_ok)
+    {
+        return is_OKs;
+    }
+    HWND Handle = (HWND)NumHandle;
+    bool okk = false;
+    if ((GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
+    {
+        RECT winRect;
+        GetWindowRect(Handle, &winRect);
+        RECT rect = GetCurrentMonitorRect();
+        POINT point;
+        // 位置 左和上
+        point.x = (int)winRect.left;
+        point.y = (int)winRect.top;
+
+        if (::PtInRect(&rect, point))
+        {
+            okk = true;
+        }
+
+        // 最边缘
+        point.x = (int)winRect.left + winRect.right - 1;
+        point.y = (int)winRect.top + winRect.bottom - 1;
+
+        if (::PtInRect(&rect, point))
+        {
+            okk = true;
+        }
+
+        is_OKs = _create_bool_Boolean(env, okk);
+    }
+
+    return is_OKs;
+}
+
+static napi_value isInMonitorWindow(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1], is_OKs;
+    is_OKs = _create_bool_Boolean(env, false);
+    status = $napi_get_cb_info(argc, args);
+    if (status != napi_ok)
+        return is_OKs;
+    if (!argc)
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+    }
+    // get HWND
+    int64_t NumHandle;
+    status = napi_get_value_int64(env, args[0], &NumHandle);
+    if (status != napi_ok)
+    {
+        return is_OKs;
+    }
+    HWND Handle = (HWND)NumHandle;
+    if ((GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
+    {
+        bool okk = false;
+        RECT winRect;
+        GetWindowRect(Handle, &winRect);
+        static vector<RECT> DeviceCapsRectList = GetDeviceCapsAll();
+        for (const RECT &rect : DeviceCapsRectList)
+        {
+            POINT point;
+            // 位置 左和上
+            point.x = (int)winRect.left;
+            point.y = (int)winRect.top;
+
+            if (::PtInRect(&rect, point))
+            {
+                okk = true;
+            }
+
+            // 最边缘
+            point.x = (int)winRect.left + winRect.right;
+            point.y = (int)winRect.top + winRect.bottom;
+
+            if (::PtInRect(&rect, point))
+            {
+                okk = true;
+            }
+
+           // 中间点匹配
+            point.x = (int)winRect.left + winRect.right-1;
+            point.y = (int)winRect.top + winRect.bottom-1;
+            point.x=point.x/2;
+            point.y =point.y /2;
+
+            if (::PtInRect(&rect, point))
+            {
+                okk = true;
+            }
+        }
+        is_OKs = _create_bool_Boolean(env, okk);
+    }
+
+    return is_OKs;
+}
+
+//? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -2749,12 +3014,17 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
-        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                         //=>2-11ADD
-        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                     //=>2-11ADD
-        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                 //=>2-11ADD
+        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2-11ADD
+        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2-11ADD
+        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2-11ADD
         DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2-12ADD
-        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats), //=>2-12ADD
-        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList), //=>2-12ADD
+        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2-12ADD
+        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2-12ADD
+        DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),               //=>2-12ADD
+        DECLARE_NAPI_METHODRM("getCurrentMonitorRect", getCurrentMonitorRect),           //=>2-12ADD
+        DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),                     //=>2-12ADD
+        DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
+        DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
 
     };
 

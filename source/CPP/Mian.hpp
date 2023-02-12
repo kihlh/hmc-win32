@@ -141,3 +141,5 @@ napi_value getHidUsbIdList(napi_env env, napi_callback_info info);
 napi_value getHidUsbList(napi_env env, napi_callback_info info);
 napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
 // napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
+
+

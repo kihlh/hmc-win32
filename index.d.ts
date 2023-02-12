@@ -9,6 +9,46 @@ declare function systemChcp(): Promise<{
     code: SystemDecoderKey;
 }>;
 /**
+ * C++中的坐标
+ */
+export declare type cPOINT = {
+    x: number;
+    y: number;
+};
+/**
+ * C++ 中的 位置定义
+ */
+export declare type cRECT = {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+};
+/**
+ * C++中的位置定义
+ */
+export interface cRect {
+    x: number;
+    y: number;
+    height: number;
+    width: number;
+}
+/**
+ * 矩形是否在矩形范围中
+ * @param inRect
+ * @param mian
+ * @returns
+ */
+export declare function RectInRect(mian: cRect | cRECT, InRect: cRect | cRECT | cPOINT): boolean;
+/**
+ * 点是否在矩形范围中
+ * @param pt
+ * @param rect
+ * @returns
+ */
+export declare function pointInRect(pt: cPOINT, rect: cRect): boolean;
+export declare function RECT2Rect(inputRect: cRECT): cRect;
+/**
  * 句柄 可以视为是一个数字也可以视为是一个功能 {0}
  * 继承了 Number 的构建类
  */
@@ -448,6 +488,11 @@ declare class hmc_win32 {
     getAllWindows: () => {
         className: string;
         handle: number;
+        /**
+         * 禁用窗口
+         * @param enabled
+         * @returns
+         */
         rect: {
             bottom: number;
             height: number;
@@ -528,6 +573,9 @@ declare class hmc_win32 {
         /**设置每次延迟事件 */
         setAwaitMs(ms: number): void;
     };
+    pointInRect: typeof pointInRect;
+    RectInRect: typeof RectInRect;
+    RECT2Rect: typeof RECT2Rect;
     /**
     * 监听焦点窗口变化并返回句柄
     * @param callback 回调函数
@@ -763,7 +811,6 @@ declare class hmc_win32 {
      */
     getMouseMovePoints(): {
         x: number;
-        /**管理系统当前的用户信息 */
         y: number;
         time: number;
         dwExtraInfo: number;
@@ -1371,6 +1418,262 @@ declare class hmc_win32 {
          * @param nextAwaitMs
          */
         setNextAwaitMs(nextAwaitMs: number): void;
+    };
+    /**
+     * 获取所有屏幕
+     * @returns
+     */
+    getDeviceCapsAll(): cRECT[];
+    /**
+     * 判断句柄的窗口是否在所有窗口的范围中(无论他是否被其他窗口挡住)
+     * @param Handle
+     */
+    isInMonitorWindow(Handle: number | HWND): boolean;
+    /**
+     * 判断句柄的窗口是否在鼠标所在的窗口
+     * @param Handle
+     */
+    isMouseMonitorWindow(Handle: number): boolean;
+    /**
+     * 获取鼠标所在的屏幕信息
+     */
+    getCurrentMonitorRect(): cRECT;
+    /**
+     * 当前电脑存在几个屏幕
+     */
+    getSystemMetricsLen(): number;
+    /**
+     * 所有窗口操作方法的归类合集 (拥有统一化名称)
+     */
+    window: {
+        isInMonitor: (Handle: number | HWND) => boolean;
+        isMouseMonitor: (Handle: number) => boolean;
+        HWND: typeof HWND;
+        setMode: (HWND: number | HWND, x: number | null | 0 | SetWindowRect, y?: number | null | 0, width?: number | null | 0, height?: number | null | 0) => boolean;
+        getAllWindows: () => {
+            className: string;
+            handle: number;
+            /**
+             * 禁用窗口
+             * @param enabled
+             * @returns
+             */
+            rect: {
+                bottom: number;
+                height: number;
+                left: number;
+                right: number;
+                top: number;
+                width: number;
+                x: number;
+                y: number;
+            };
+            style: number;
+            title: string;
+        }[];
+        getAllHandle: () => HWND[];
+        watchPoint: (callback: (newPoint: number, oidPoint: number, HWND: HWND) => void, awaitMs?: number) => {
+            /**结束监听 */
+            quit: () => void;
+            /**设置每次延迟事件 */
+            setAwaitMs(ms: number): void;
+        };
+        watchtFocus: (callback: (newForeg: number, oidForeg: number, HWND: HWND) => void, awaitMs?: number) => {
+            /**结束监听 */
+            quit: () => void;
+            /**设置每次延迟事件 */
+            setAwaitMs(ms: number): void;
+        };
+        getFocus: () => HWND | null;
+        getMain: (Handle: number | HWND) => HWND | null;
+        getPoint: () => HWND | null;
+        getProcessHandle: (ProcessID: number) => HWND | null;
+        getPointMain: () => HWND | null;
+        setTaskbarVisible: (Handle: number | HWND, Visible: boolean) => boolean;
+        getProcessID: (Handle: number | HWND) => number | null;
+        getRect: (Handle: number | HWND) => Rect;
+        isEnabled: (Handle: number | HWND) => boolean;
+        isHandle: (Handle: number | HWND) => boolean;
+        hasHandle: (Handle: number | HWND) => boolean;
+        isVisible: (Handle: number | HWND) => boolean;
+        close: (Handle: number | HWND) => boolean;
+        getTitle: (Handle: number | HWND) => string | null;
+        setTitle: (Handle: number | HWND, title: string) => boolean;
+        setShowWindow: (Handle: number | HWND, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11) => boolean;
+        setTransparent: (Handle: number | HWND, Transparent: number) => void;
+        setEnabled: (Handle: number | HWND, Enabled: boolean) => boolean;
+        setFocus: (Handle: number | HWND) => boolean;
+        setTop: (Handle: number | HWND) => boolean;
+        update: (Handle: number | HWND) => boolean;
+        jitter: (Handle: number | HWND) => void;
+        hasTop: (Handle: number | HWND) => boolean;
+        closed: (Handle: number | HWND) => undefined;
+        getFocusProcessID: () => number | null;
+        getPointName: () => string;
+        getPointProcessId: () => number;
+        enumChild: (Handle: number | HWND) => number[];
+        console: {
+            hide: () => boolean;
+            show: () => boolean;
+            get: () => HWND | null;
+            blockInput: (Block: boolean) => boolean;
+        };
+    };
+    /**
+    * 所有监听函数的合集 (拥有统一化名称)
+    */
+    watch: {
+        clipboard: (CallBack: () => void, nextAwaitMs?: number) => {
+            /**
+             * 取消继续监听
+             */
+            unwatcher(): void;
+            /**
+             * 每次判断内容变化用时 默认 `150` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs: number): void;
+        };
+        usb: (CallBack: (env: "add" | "remove" | "start", id: string) => void, nextAwaitMs?: number, watchType?: "hub" | "drive" | Array<"hub" | "drive">) => {
+            readonly idList: Set<string>;
+            /**
+             * 取消继续监听
+             */
+            unwatcher(): void;
+            /**
+             * 每次判断内容变化用时 默认 `800` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs: number): void;
+        };
+        windowFocus: (callback: (newForeg: number, oidForeg: number, HWND: HWND) => void, awaitMs?: number) => {
+            /**结束监听 */
+            quit: () => void;
+            /**设置每次延迟事件 */
+            setAwaitMs(ms: number): void;
+        };
+        windowPoint: (callback: (newPoint: number, oidPoint: number, HWND: HWND) => void, awaitMs?: number) => {
+            /**结束监听 */
+            quit: () => void;
+            /**设置每次延迟事件 */
+            setAwaitMs(ms: number): void;
+        };
+        process: (ProcessID: number, callback?: (() => void) | number, awaitMs?: number) => (Promise<void> & {
+            quit: () => void;
+        }) | {
+            quit: () => void;
+        };
+    };
+    /**剪贴板工具集  (拥有统一化名称) */
+    clipboard: {
+        clear: () => boolean;
+        readText: () => string;
+        readFilePaths: {
+            (): string[];
+            (at: number): string | undefined;
+        };
+        writeText: (text: string) => void;
+        writeFilePaths: (...FilePaths: string[] | [string[]]) => void;
+        sequence: () => number;
+        watch: (CallBack: () => void, nextAwaitMs?: number) => {
+            /**
+             * 取消继续监听
+             */
+            unwatcher(): void;
+            /**
+             * 每次判断内容变化用时 默认 `150` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs: number): void;
+        };
+    };
+    /**自动化工具集   (拥有统一化名称) */
+    auto: {};
+    /**USB 控制的归档   (拥有统一化名称) */
+    usb: {
+        getHub: () => HidUsb[];
+        getDevsInfo: () => string[];
+        watch: (CallBack: (env: "add" | "remove" | "start", id: string) => void, nextAwaitMs?: number, watchType?: "hub" | "drive" | Array<"hub" | "drive">) => {
+            readonly idList: Set<string>;
+            /**
+             * 取消继续监听
+             */
+            unwatcher(): void;
+            /**
+             * 每次判断内容变化用时 默认 `800` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs: number): void;
+        };
+    };
+    /**实用工具集   (拥有统一化名称)*/
+    shell: {
+        trash: (Path: string, Recycle?: boolean, isShow?: boolean) => number;
+        delete: (Path: string, Recycle?: boolean, isShow?: boolean) => number;
+        openApp: (AppPath: string, Command?: string | string[], cwd?: string, hide?: boolean, UAC?: boolean) => boolean;
+        getShortcutLink: (LnkPath: string) => {
+            cwd: string;
+            icon: string;
+            iconIndex: number;
+            desc: string;
+            args: string;
+            showCmd: number;
+            hotkey: number;
+            path: string;
+        };
+        setShortcutLink: {
+            (LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string | string[], iShowCmd: number, icon: string, iconIndex: number): boolean;
+            (LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string | string[], iShowCmd?: number): boolean;
+            (LnkPath: string, FilePath: string): boolean;
+        };
+        freePort: () => Promise<number>;
+        createSymlink: (LinkPath: string, sourcePath: string) => boolean;
+        createDirSymlink: (LinkPath: string, sourcePath: string) => boolean;
+        createHardLink: (LinkPath: string, sourcePath: string) => boolean;
+    };
+    /**进程操作合集   (拥有统一化名称) */
+    process: {
+        watch: (ProcessID: number, callback?: (() => void) | number, awaitMs?: number) => (Promise<void> & {
+            quit: () => void;
+        }) | {
+            quit: () => void;
+        };
+        kill: {
+            (ProcessID: number): boolean;
+            (ProcessID: string): {
+                pid: number;
+                kill: boolean;
+                name: string;
+            }[];
+        };
+        killMatch: (...Name: Array<string | RegExp>) => {
+            pid: number;
+            kill: boolean;
+            name: string;
+        }[];
+        getList: () => {
+            name: string;
+            pid: number;
+        }[];
+        getHandle: (ProcessID: number) => HWND | null;
+        getName: (ProcessID: number) => string | null;
+        getPath: (ProcessID: number) => string | null;
+        getFocus: () => number | null;
+        has: (ProcessID: number) => boolean;
+        match: (...Name: Array<string | RegExp>) => {
+            pid: number;
+            name: string;
+        }[];
+        matchDetails: (...Name: Array<string | RegExp>) => {
+            pid: number;
+            name: string;
+            path: string;
+        }[];
+        getDetailsList: () => {
+            name: string;
+            pid: number;
+            path: string;
+        }[];
     };
 }
 export declare const hmc: hmc_win32;
@@ -2330,6 +2633,12 @@ export declare const watchClipboard: hmc_win32["watchClipboard"];
     * @returns
     */
 export declare const watchUSB: hmc_win32["watchUSB"];
+/**
+ * 所有窗口操作方法的归类合集 (拥有统一化名称)
+ */
+export declare const window: hmc_win32["window"];
+/**所有监听函数的合集 (拥有统一化名称)  */
+export declare const watch: hmc_win32["watch"];
 export { native };
 export default hmc;
 declare type SystemDecoderKey = keyof chcpList;

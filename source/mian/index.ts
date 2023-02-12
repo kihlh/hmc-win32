@@ -163,6 +163,111 @@ function systemChcp() {
     });
   });
 }
+/**
+ * C++中的坐标
+ */
+export type cPOINT = {
+  x: number;
+  y: number;
+}
+
+/**
+ * C++ 中的 位置定义
+ */
+export type cRECT = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+/**
+ * C++中的位置定义
+ */
+export interface cRect {
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+}
+function iscRECT(cRECT: any): cRECT is cRECT {
+  return typeof cRECT.left == "number" && typeof cRECT.right == "number" && typeof cRECT.bottom == "number" && typeof cRECT.top == "number"
+}
+function iscPOINT(cPOINT: any): cPOINT is cPOINT {
+  return typeof cPOINT.x == "number" && typeof cPOINT.y == "number" && typeof cPOINT.height == "undefined" && typeof cPOINT.width == "undefined"
+}
+/**
+ * 矩形是否在矩形范围中
+ * @param inRect 
+ * @param mian 
+ * @returns 
+ */
+export function RectInRect(mian: cRect | cRECT, InRect: cRect | cRECT | cPOINT) {
+
+  if (iscRECT(mian)) {
+    mian = RECT2Rect(mian);
+  }
+  if (iscRECT(InRect)) {
+    InRect = RECT2Rect(InRect);
+  }
+  if (iscPOINT(InRect)) {
+    return pointInRect(InRect, mian);
+  }
+
+  let inRect: cRect = InRect;
+  let isInRet = true;
+  // 得出对比传入的边界
+  let in_x = inRect.x;
+  let in_y = inRect.y;
+  let in_xw = inRect.x + inRect.width;
+  let in_hy = inRect.y + inRect.height;
+  if (!inRect.x) in_x = 1;
+  if (!inRect.y) in_y = 1;
+
+  // 得出mian的边界
+  let mian_x = mian.x;
+  let mian_y = mian.y;
+  let mian_xw = mian.x + mian.width;
+  let mian_hy = mian.y + mian.height;
+
+  isInRet = (((in_x >= mian_x && in_x < mian_xw) || (mian_x >= in_x && mian_x <= in_xw)) &&
+    ((in_y >= mian_y && in_y < mian_hy) || (mian_y >= in_y && mian_y <= in_hy)))
+    ? false
+    : true;
+
+  if (isInRet == false) {
+    if (mian.x > inRect.x && mian.y > inRect.y &&
+      mian.x + mian.width < inRect.x + inRect.width &&
+      mian.y + mian.height < inRect.x + inRect.height) {
+      return true;
+    }
+
+    return false;
+  }
+  return false;
+}
+/**
+ * 点是否在矩形范围中
+ * @param pt 
+ * @param rect 
+ * @returns 
+ */
+export function pointInRect(pt: cPOINT, rect: cRect) {
+  if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height))) {
+    return true;
+  }
+  return false;
+}
+
+export function RECT2Rect(inputRect: cRECT): cRect {
+  return {
+    height: inputRect.top - inputRect.bottom,
+    width: inputRect.right - inputRect.left,
+    x: inputRect.left,
+    y: inputRect.top
+  } as Rect;
+}
+
 
 /**
  * 句柄 可以视为是一个数字也可以视为是一个功能 {0}
@@ -446,6 +551,7 @@ function hasregArgs(HKEY: HKEY, Path: string, funName: string) {
       `);
   }
 }
+
 
 class hmc_win32 {
 
@@ -1147,6 +1253,9 @@ class hmc_win32 {
       },
     };
   }
+  pointInRect = pointInRect;
+  RectInRect = RectInRect;
+  RECT2Rect = RECT2Rect;
   /**
   * 监听焦点窗口变化并返回句柄
   * @param callback 回调函数
@@ -2442,20 +2551,20 @@ class hmc_win32 {
     * @param watchType 监听的设备类型 默认 `["HUB","drive"]`
     * @returns 
     */
-  watchUSB(CallBack: (env: "add" | "remove" | "start", id: string) => void, nextAwaitMs?: number,watchType?:"hub"|"drive"|Array<"hub"|"drive">) {
+  watchUSB(CallBack: (env: "add" | "remove" | "start", id: string) => void, nextAwaitMs?: number, watchType?: "hub" | "drive" | Array<"hub" | "drive">) {
     let _this = this;
     let NextAwaitMs = nextAwaitMs || 800;
     let Next = true;
     let OID_ID_LIST: Set<string> = new Set();
     let start = true;
-    if(typeof watchType =="string") watchType=[watchType];
+    if (typeof watchType == "string") watchType = [watchType];
     (async function () {
       while (Next) {
         await _this.Sleep(NextAwaitMs);
-        let GET_ID_List = new Set(watchType?[
-        ...(watchType.includes("hub")?native.getHidUsbIdList():[]),
-        ...(watchType.includes("drive")?native.getUsbDevsInfo():[]),
-        ]:[...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
+        let GET_ID_List = new Set(watchType ? [
+          ...(watchType.includes("hub") ? native.getHidUsbIdList() : []),
+          ...(watchType.includes("drive") ? native.getUsbDevsInfo() : []),
+        ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
         if (start) {
           for (const NEW_ID of GET_ID_List) {
             OID_ID_LIST.add(NEW_ID);
@@ -2485,7 +2594,7 @@ class hmc_win32 {
       }
     })();
     return {
-      get idList(){
+      get idList() {
         return OID_ID_LIST
       },
       /**
@@ -2503,6 +2612,185 @@ class hmc_win32 {
       }
     }
   }
+  /**
+   * 获取所有屏幕
+   * @returns 
+   */
+  getDeviceCapsAll(): cRECT[] {
+    return native.getDeviceCapsAll();
+  }
+  /**
+   * 判断句柄的窗口是否在所有窗口的范围中(无论他是否被其他窗口挡住)
+   * @param Handle 
+   */
+  isInMonitorWindow(Handle: number | HWND): boolean {
+    return native.isInMonitorWindow(this.ref.int(Handle));
+  }
+  /**
+   * 判断句柄的窗口是否在鼠标所在的窗口
+   * @param Handle 
+   */
+  isMouseMonitorWindow(Handle: number): boolean {
+    return native.isMouseMonitorWindow(this.ref.int(Handle));
+  }
+  /**
+   * 获取鼠标所在的屏幕信息
+   */
+  getCurrentMonitorRect(): cRECT {
+    return native.getCurrentMonitorRect();
+  }
+  /**
+   * 当前电脑存在几个屏幕
+   */
+  getSystemMetricsLen(): number {
+    return native.getSystemMetricsLen();
+  }
+  /**
+   * 由于编写时间过长，想法不同，模块过于庞大复杂 名称混乱 重新对模块进行分类 分配统一化的名称
+   */
+  get #window() {
+    return (() => {
+      return {
+        isInMonitor: this.isInMonitorWindow,
+        isMouseMonitor: this.isMouseMonitorWindow,
+        HWND: this.HWND,
+        setMode: this.setWindowMode,
+        getAllWindows: this.getAllWindows,
+        getAllHandle: this.getAllWindowsHandle,
+        watchPoint: this.WatchWindowPoint,
+        watchtFocus: this.WatchWindowForeground,
+        getFocus: this.getForegroundWindow,
+        getMain: this.getMainWindow,
+        getPoint: this.getPointWindow,
+        getProcessHandle: this.getProcessHandle,
+        getPointMain: this.getPointWindowMain,
+        setTaskbarVisible: this.SetWindowInTaskbarVisible,
+        getProcessID: this.getHandleProcessID,
+        getRect: this.getWindowRect,
+        isEnabled: this.isEnabled,
+        isHandle: this.isHandle,
+        hasHandle: this.isHandle,
+        isVisible: this.isHandleWindowVisible,
+        close: this.lookHandleCloseWindow,
+        getTitle: this.lookHandleGetTitle,
+        setTitle: this.lookHandleSetTitle,
+        setShowWindow: this.lookHandleShowWindow,
+        setTransparent: this.setHandleTransparent,
+        setEnabled: this.setWindowEnabled,
+        setFocus: this.setWindowFocus,
+        setTop: this.setWindowTop,
+        update: this.updateWindow,
+        jitter: this.windowJitter,
+        hasTop: this.hasWindowTop,
+        closed: this.closedHandle,
+        getFocusProcessID: this.getForegroundWindowProcessID,
+        getPointName: this.getPointWindowName,
+        getPointProcessId: this.getPointWindowProcessId,
+        enumChild: this.enumChildWindows,
+        console: {
+          hide: this.hideConsole,
+          show: this.showConsole,
+          get: this.getConsoleHandle,
+          blockInput:this.SetBlockInput,
+        }
+      }
+    })();
+  }
+  /**
+   * 所有窗口操作方法的归类合集 (拥有统一化名称) 
+   */
+  window = this.#window;
+  get #watch() {
+    return (() => {
+      return {
+        clipboard: this.watchClipboard,
+        usb: this.watchUSB,
+        windowFocus: this.WatchWindowForeground,
+        windowPoint: this.WatchWindowPoint,
+        process: this.processWatchdog
+      }
+    })();
+  }
+  /**
+  * 所有监听函数的合集 (拥有统一化名称) 
+  */
+  watch = this.#watch;
+  get #shell(){
+    return (() => {
+      return {
+        trash:this.deleteFile,
+        delete:this.deleteFile,
+        openApp:this.openApp,
+        getShortcutLink:this.getShortcutLink,
+        setShortcutLink:this.setShortcutLink,
+        freePort:this.freePort,
+        createSymlink:this.createSymlink,
+        createDirSymlink:this.createDirSymlink,
+        createHardLink:this.createHardLink,
+        
+      }
+    })();
+  }
+  get #usb(){
+    return (() => {
+      return {
+        getHub:this.getHidUsbList,
+        getDevsInfo:this.getUsbDevsInfo,
+        watch:this.watchUSB,
+        
+      }
+    })();
+  }
+  get #clipboard(){
+    return (() => {
+      return {
+        clear:this.clearClipboard,
+        readText:this.getClipboardText,
+        readFilePaths:this.getClipboardFilePaths,
+        writeText:this.setClipboardText,
+        writeFilePaths:this.setClipboardFilePaths,
+        sequence:this.getClipboardSequenceNumber,
+        watch:this.watchClipboard,
+      }
+    })();
+  }
+  get #process(){
+    return (() => {
+      return {
+        watch:this.processWatchdog,
+        kill:this.killProcess,
+        killMatch:this.killProcessName,
+        getList:this.getProcessList,
+        getHandle:this.getProcessHandle,
+        getName:this.getProcessName,
+        getPath:this.getProcessidFilePath,
+        getFocus:this.getForegroundWindowProcessID,
+        has:this.hasProcess,
+        match:this.getProcessNameList,
+        matchDetails:this.getDetailsProcessNameList ,
+        getDetailsList:this.getDetailsProcessList,
+        
+      }
+    })();
+  }
+  get #auto(){
+    return (() => {
+      return {
+     
+      }
+    })();
+  }
+  /**剪贴板工具集  (拥有统一化名称) */ 
+  clipboard=this.#clipboard;
+  /**自动化工具集   (拥有统一化名称) */
+  auto=this.#auto;
+  /**USB 控制的归档   (拥有统一化名称) */
+  usb=this.#usb;
+  /**实用工具集   (拥有统一化名称)*/
+  shell=this.#shell;
+  /**进程操作合集   (拥有统一化名称) */
+  process=this.#process;
+
 }
 /**
  * 获取窗口的标题
@@ -2510,7 +2798,7 @@ class hmc_win32 {
  */
 function getDefaultTitele(): string {
   try {
-    // @ts-nocheck
+    // @ts-expect-error
     return window.document.title;
   } catch (error) {
     return (
@@ -3505,6 +3793,14 @@ export declare const watchClipboard: hmc_win32["watchClipboard"];
     * @returns 
     */
 export declare const watchUSB: hmc_win32["watchUSB"];
+
+/**
+ * 所有窗口操作方法的归类合集 (拥有统一化名称) 
+ */
+export declare const window: hmc_win32["window"];
+
+/**所有监听函数的合集 (拥有统一化名称)  */
+export declare const watch: hmc_win32["watch"];
 
 export {
   native
