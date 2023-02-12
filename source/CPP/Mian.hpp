@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <iosfwd>
 
 #include <Shellapi.h>
 #include <vector>
@@ -94,11 +95,17 @@ BOOL EnableShutDownPriv();
     }
 
 // clip.cpp
+napi_value enumClipboardFormats(napi_env env, napi_callback_info info);
 napi_value setClipboardText(napi_env env, napi_callback_info info);
 napi_value getClipboardText(napi_env env, napi_callback_info info);
 napi_value getClipboardFilePaths(napi_env env);
 napi_value setClipboardFilePaths(napi_env env, napi_callback_info info);
 napi_value clearClipboard(napi_env env, napi_callback_info info);
+napi_value getClipboardSequenceNumber(napi_env env, napi_callback_info info);
+napi_value getClipboardHTML(napi_env env, napi_callback_info info);
+napi_value setClipboardHTML(napi_env env, napi_callback_info info);
+
+
 // registr.cpp
 
 napi_value getStringRegKey(napi_env env, napi_callback_info info);

@@ -70,6 +70,7 @@
         "list": "cpp",
         "stack": "cpp",
         "unordered_map": "cpp",
-        "xhash": "cpp"
+        "xhash": "cpp",
+        "fstream": "cpp"
     }
 }

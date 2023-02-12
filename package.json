@@ -71,7 +71,8 @@
     "usb",
     "delete-file",
     "trash",
-    "recycle"
+    "recycle",
+    "watch-clipboard"
   ],
   "scripts": {
     "build": "cd CPP&&node-gyp rebuild",

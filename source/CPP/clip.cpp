@@ -185,7 +185,6 @@ napi_value clearClipboard(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, IsEmptyClipboard);
 }
 
-
 // https://github.com/kenan2002/electron-clipboard-ex/blob/master/src/clipboard_win.cc
 // MIT
 class ClipboardScope
@@ -270,7 +269,6 @@ void WriteFilePaths(vector<wstring> &file_paths_unicode)
     }
 }
 
-
 napi_value setClipboardFilePaths(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -280,17 +278,116 @@ napi_value setClipboardFilePaths(napi_env env, napi_callback_info info)
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
     vector<wstring> file_paths_unicode;
-    
+
     uint32_t size = 0;
-    status = napi_get_array_length(env,args[0],&size);
-     if (status != napi_ok) return NULL;
+    status = napi_get_array_length(env, args[0], &size);
+    if (status != napi_ok)
+        return NULL;
 
     for (size_t i = 0; i < size; i++)
     {
-       status = napi_get_element(env, args[0], i, &value);
-       if (status != napi_ok) return NULL;
-       file_paths_unicode.push_back(call_String_NAPI_WINAPI_W(env,value));
+        status = napi_get_element(env, args[0], i, &value);
+        if (status != napi_ok)
+            return NULL;
+        file_paths_unicode.push_back(call_String_NAPI_WINAPI_W(env, value));
     }
     WriteFilePaths(file_paths_unicode);
     return NULL;
 }
+
+napi_value getClipboardSequenceNumber(napi_env env, napi_callback_info info)
+{
+    return _create_int64_Number(env, GetClipboardSequenceNumber());
+}
+
+napi_value enumClipboardFormats(napi_env env, napi_callback_info info)
+{
+    napi_value Formats;
+    napi_status status;
+    status = napi_create_array(env, &Formats);
+    if (status != napi_ok)
+    {
+        return Formats;
+    }
+    // UINT CF_HTML = Registerclipboardformat('HTML Format');
+    UINT iFormat = 0;
+    OpenClipboard(NULL);
+    int index = 0;
+    while (iFormat = EnumClipboardFormats(iFormat))
+    {
+        status = napi_set_element(env, Formats, index, _create_int64_Number(env, iFormat));
+        if (status != napi_ok)
+        {
+            return Formats;
+        }
+        // 针对每个iFormat数据格式的操作
+        index += 1;
+    }
+
+    CloseClipboard();
+    return Formats;
+}
+
+napi_value getClipboardHTML(napi_env env, napi_callback_info info)
+{
+    napi_value ClipHTML;
+
+    napi_create_string_utf8(env, "", NAPI_AUTO_LENGTH, &ClipHTML);
+    return ClipHTML;
+}
+
+bool setClipboard(LPCWSTR lpszWide){
+    int nUtf8Size = ::WideCharToMultiByte(CP_UTF8, 0, lpszWide, -1, NULL, 0, NULL, NULL);
+    if (nUtf8Size < 1) return false;
+
+    const int nDescLen = 105;
+    HGLOBAL hGlobal = ::GlobalAlloc(GMEM_MOVEABLE, nDescLen + nUtf8Size);
+    if (NULL != hGlobal)
+    {
+        bool bErr = false;
+        LPSTR lpszBuf = static_cast<LPSTR>(::GlobalLock(hGlobal));
+        LPSTR lpszUtf8 = lpszBuf + nDescLen;
+        if (::WideCharToMultiByte(CP_UTF8, 0, lpszWide, -1, lpszUtf8, nUtf8Size, NULL, NULL) <= 0)
+        {
+            bErr = true;
+        }
+        else
+        {
+            LPCSTR lpszStartFrag = strstr(lpszUtf8, "<!--StartFragment-->");
+            LPCSTR lpszEndFrag = strstr(lpszUtf8, "<!--EndFragment-->");
+            lpszStartFrag += strlen("<!--StartFragment-->") + 2;
+
+            int i = _snprintf(
+            lpszBuf, nDescLen,
+            "Version:1.0\r\nStartHTML:%010d\r\nEndHTML:%010d\r\nStartFragment:%010d\r\nEndFragment:%010d\r\n",
+            nDescLen, 
+            nDescLen + nUtf8Size - 1,       // offset to next char behind string
+            nDescLen + static_cast<int>(lpszStartFrag - lpszUtf8), 
+            nDescLen + static_cast<int>(lpszEndFrag - lpszUtf8));
+        }
+        ::GlobalUnlock(hGlobal);
+        if (bErr)
+        {
+            ::GlobalFree(hGlobal);
+            hGlobal = NULL;
+        }
+
+        // Get clipboard id for HTML format...
+        static int cfid = 0;
+        cfid = RegisterClipboardFormatW(L"HTML Format");
+        // Open the clipboard...
+        if(OpenClipboard(0)) {
+            EmptyClipboard();
+            HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE |GMEM_DDESHARE, strlen(lpszBuf)+4);
+            char *ptr = (char *)GlobalLock(hText);
+            strcpy(ptr, lpszBuf);
+            GlobalUnlock(hText);
+            ::SetClipboardData(cfid, hText);
+            CloseClipboard();
+            GlobalFree(hText);
+        }
+    }
+
+    return NULL != hGlobal;
+}
+

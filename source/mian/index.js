@@ -2272,6 +2272,51 @@ class hmc_win32 {
     get trash() {
         return this.deleteFile;
     }
+    /**
+     * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+     * @returns
+     */
+    getClipboardSequenceNumber() {
+        return native.getClipboardSequenceNumber();
+    }
+    /**
+     * 当剪贴板内容变更后发生回调
+     * @param CallBack 回调函数
+     * @param nextAwaitMs 每次判断内容变化用时 默认 `150` ms
+     * @returns
+     */
+    watchClipboard(CallBack, nextAwaitMs) {
+        let _this = this;
+        let NextAwaitMs = nextAwaitMs || 150;
+        let Next = true;
+        let oidClipboardSequenceNumber = this.getClipboardSequenceNumber();
+        (async function () {
+            while (Next) {
+                await _this.Sleep(NextAwaitMs);
+                let clipboardSequenceNumber = _this.getClipboardSequenceNumber();
+                if (oidClipboardSequenceNumber == clipboardSequenceNumber) {
+                    if (CallBack)
+                        CallBack();
+                }
+                oidClipboardSequenceNumber = clipboardSequenceNumber;
+            }
+        })();
+        return {
+            /**
+             * 取消继续监听
+             */
+            unwatcher() {
+                Next = false;
+            },
+            /**
+             * 每次判断内容变化用时 默认 `150` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs) {
+                NextAwaitMs = _this.ref.int(NextAwaitMs) || 150;
+            }
+        };
+    }
 }
 _hmc_win32_thenConsole = new WeakMap();
 /**

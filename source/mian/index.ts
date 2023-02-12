@@ -468,7 +468,7 @@ class hmc_win32 {
     * @returns
     */
     path(Str: any) {
-      return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/,'\0');
+      return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
     },
     /**
      * 格式化为bool
@@ -2387,9 +2387,55 @@ class hmc_win32 {
   * * Recycle true
   * * isShow false
   */
-  get trash(){
+  get trash() {
     return this.deleteFile
   }
+  
+  /**
+   * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+   * @returns 
+   */
+  getClipboardSequenceNumber(): number {
+    return native.getClipboardSequenceNumber()
+  }
+  /**
+   * 当剪贴板内容变更后发生回调
+   * @param CallBack 回调函数
+   * @param nextAwaitMs 每次判断内容变化用时 默认 `150` ms
+   * @returns 
+   */
+  watchClipboard(CallBack:()=>void,nextAwaitMs?: number){
+    let _this = this;
+    let NextAwaitMs = nextAwaitMs||150;
+    let Next = true;
+    let oidClipboardSequenceNumber = this.getClipboardSequenceNumber();
+    (async function(){
+      while(Next){
+        await _this.Sleep(NextAwaitMs);
+        let clipboardSequenceNumber = _this.getClipboardSequenceNumber();
+        if(oidClipboardSequenceNumber==clipboardSequenceNumber){
+          if(CallBack)CallBack();
+        }
+        oidClipboardSequenceNumber = clipboardSequenceNumber;
+      }
+    })();
+    return {
+      /**
+       * 取消继续监听
+       */
+      unwatcher(){
+        Next =false;
+      },
+      /**
+       * 每次判断内容变化用时 默认 `150` ms
+       * @param nextAwaitMs 
+       */
+      setNextAwaitMs(nextAwaitMs:number){
+        NextAwaitMs= _this.ref.int(NextAwaitMs)||150;
+      }
+    }
+  }
+
 }
 /**
  * 获取窗口的标题
@@ -2406,6 +2452,7 @@ function getDefaultTitele(): string {
       process.title
     );
   }
+
 }
 
 export const hmc = new hmc_win32();

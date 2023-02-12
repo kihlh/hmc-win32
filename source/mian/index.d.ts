@@ -1331,6 +1331,28 @@ declare class hmc_win32 {
     * * isShow false
     */
     get trash(): (Path: string, Recycle?: boolean | undefined, isShow?: boolean | undefined) => number;
+    /**
+     * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+     * @returns
+     */
+    getClipboardSequenceNumber(): number;
+    /**
+     * 当剪贴板内容变更后发生回调
+     * @param CallBack 回调函数
+     * @param nextAwaitMs 每次判断内容变化用时 默认 `150` ms
+     * @returns
+     */
+    watchClipboard(CallBack: () => void, nextAwaitMs?: number): {
+        /**
+         * 取消继续监听
+         */
+        unwatcher(): void;
+        /**
+         * 每次判断内容变化用时 默认 `150` ms
+         * @param nextAwaitMs
+         */
+        setNextAwaitMs(nextAwaitMs: number): void;
+    };
 }
 export declare const hmc: hmc_win32;
 export declare interface Rect {

@@ -460,6 +460,14 @@ export declare type Native = {
      * * isShow false
      */
     deleteFile(Path: string, Recycle?: boolean, isShow?: boolean): number;
+    /**
+     * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+     */
+    getClipboardSequenceNumber(): number;
+    /**
+     * 枚举剪贴板中的内容格式
+     */
+    enumClipboardFormats(): number[];
 };
 export declare type chcpList = {
     37: "IBM037";

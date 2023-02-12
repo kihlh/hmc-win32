@@ -2599,11 +2599,11 @@ static int API_DeleteFile(string FromPath, bool bRecycle, bool isShow)
     {
         if (isShow)
         {
-            FileOp.fFlags |= FOF_ALLOWUNDO ;
+            FileOp.fFlags |= FOF_ALLOWUNDO;
         }
         else
         {
-            FileOp.fFlags |= FOF_ALLOWUNDO | FOF_NOCONFIRMATION ;
+            FileOp.fFlags |= FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
         }
     }
     FileOp.pFrom = FromPath.c_str();
@@ -2637,16 +2637,17 @@ static napi_value deleteFile(napi_env env, napi_callback_info info)
     case 3:
         hmc_is_argv_type(argv, 1, 3, napi_boolean, Results);
         napi_get_value_bool(env, argv[1], &bRecycle);
-        napi_get_value_bool(env,argv[2], &isShow);
+        napi_get_value_bool(env, argv[2], &isShow);
         break;
     }
-    string Paths = call_String_NAPI_WINAPI_A(env,argv[0]);
-    int Info = API_DeleteFile(Paths,bRecycle,isShow);
+    string Paths = call_String_NAPI_WINAPI_A(env, argv[0]);
+    int Info = API_DeleteFile(Paths, bRecycle, isShow);
     Results = _create_int32_Number(env, Info);
     return Results;
 }
 
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -2748,9 +2749,11 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2-11ADD
         DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
-        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),     //=>2-11ADD
-        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows), //=>2-11ADD
-        DECLARE_NAPI_METHOD("deleteFile", deleteFile),             //=>2-11ADD
+        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                         //=>2-11ADD
+        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                     //=>2-11ADD
+        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                 //=>2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2-12ADD
+        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats), //=>2-12ADD
 
     };
 
