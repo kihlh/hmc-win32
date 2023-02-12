@@ -4,14 +4,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HMC", "HMC.vcxproj", "{1F0F
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
 		Release|x64 = Release|x64
+		Debug|x64 = Debug|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Debug|x64.ActiveCfg = Debug|x64
-		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Debug|x64.Build.0 = Debug|x64
 		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Release|x64.ActiveCfg = Release|x64
 		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Release|x64.Build.0 = Release|x64
+		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Debug|x64.ActiveCfg = Debug|x64
+		{1F0FC2CA-444B-B196-0C66-DCE65826C401}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

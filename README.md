@@ -192,6 +192,8 @@ import  HMC = require("hmc-win32");
 - **systemChcp** 当前系统shell的chcp信息
 - **deleteFile** 将文件放入回收站
 - **trash**  将文件放入回收站
+- **getClipboardSequenceNumber** 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+- **watchClipboard**  当剪贴板内容变更后发生回调
 ### 电源控制
 - **systemStartTime** 系统启动到现在的时间
 - **shutMonitors** 关闭显示器

@@ -2390,7 +2390,7 @@ class hmc_win32 {
   get trash() {
     return this.deleteFile
   }
-  
+
   /**
    * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
    * @returns 
@@ -2404,17 +2404,17 @@ class hmc_win32 {
    * @param nextAwaitMs 每次判断内容变化用时 默认 `150` ms
    * @returns 
    */
-  watchClipboard(CallBack:()=>void,nextAwaitMs?: number){
+  watchClipboard(CallBack: () => void, nextAwaitMs?: number) {
     let _this = this;
-    let NextAwaitMs = nextAwaitMs||150;
+    let NextAwaitMs = nextAwaitMs || 150;
     let Next = true;
     let oidClipboardSequenceNumber = this.getClipboardSequenceNumber();
-    (async function(){
-      while(Next){
+    (async function () {
+      while (Next) {
         await _this.Sleep(NextAwaitMs);
         let clipboardSequenceNumber = _this.getClipboardSequenceNumber();
-        if(oidClipboardSequenceNumber==clipboardSequenceNumber){
-          if(CallBack)CallBack();
+        if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
+          if (CallBack) CallBack();
         }
         oidClipboardSequenceNumber = clipboardSequenceNumber;
       }
@@ -2423,19 +2423,86 @@ class hmc_win32 {
       /**
        * 取消继续监听
        */
-      unwatcher(){
-        Next =false;
+      unwatcher() {
+        Next = false;
       },
       /**
        * 每次判断内容变化用时 默认 `150` ms
        * @param nextAwaitMs 
        */
-      setNextAwaitMs(nextAwaitMs:number){
-        NextAwaitMs= _this.ref.int(NextAwaitMs)||150;
+      setNextAwaitMs(nextAwaitMs: number) {
+        NextAwaitMs = _this.ref.int(nextAwaitMs) || 150;
       }
     }
   }
+  /**
+    * 当驱动器添加或者移除后发生回调
+    * @param CallBack 回调函数
+    * @param nextAwaitMs 每次判断内容变化用时 默认 `800` ms
+    * @param watchType 监听的设备类型 默认 `["HUB","drive"]`
+    * @returns 
+    */
+  watchUSB(CallBack: (env: "add" | "remove" | "start", id: string) => void, nextAwaitMs?: number,watchType?:"hub"|"drive"|Array<"hub"|"drive">) {
+    let _this = this;
+    let NextAwaitMs = nextAwaitMs || 800;
+    let Next = true;
+    let OID_ID_LIST: Set<string> = new Set();
+    let start = true;
+    if(typeof watchType =="string") watchType=[watchType];
+    (async function () {
+      while (Next) {
+        await _this.Sleep(NextAwaitMs);
+        let GET_ID_List = new Set(watchType?[
+        ...(watchType.includes("hub")?native.getHidUsbIdList():[]),
+        ...(watchType.includes("drive")?native.getUsbDevsInfo():[]),
+        ]:[...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
+        if (start) {
+          for (const NEW_ID of GET_ID_List) {
+            OID_ID_LIST.add(NEW_ID);
+            CallBack && CallBack("start", NEW_ID);
+          }
+          start = false;
+        }
+        let GET_ID_List_NEW = [...GET_ID_List];
 
+        for (const OID_ID of OID_ID_LIST) {
+          if (!GET_ID_List.has(OID_ID)) {
+            CallBack && CallBack("remove", OID_ID);
+          }
+        }
+
+        for (const NEW_ID of GET_ID_List) {
+          if (!OID_ID_LIST.has(NEW_ID)) {
+            CallBack && CallBack("add", NEW_ID);
+          }
+        }
+
+        OID_ID_LIST.clear();
+        for (let index = 0; index < GET_ID_List_NEW.length; index++) {
+          const GET_ID = GET_ID_List_NEW[index];
+          OID_ID_LIST.add(GET_ID);
+        }
+      }
+    })();
+    return {
+      get idList(){
+        return OID_ID_LIST
+      },
+      /**
+       * 取消继续监听
+       */
+      unwatcher() {
+        Next = false;
+      },
+      /**
+       * 每次判断内容变化用时 默认 `800` ms
+       * @param nextAwaitMs 
+       */
+      setNextAwaitMs(nextAwaitMs: number) {
+        NextAwaitMs = _this.ref.int(nextAwaitMs) || 800;
+      }
+    }
+  }
 }
 /**
  * 获取窗口的标题
@@ -3418,6 +3485,27 @@ export declare const deleteFile: hmc_win32["deleteFile"];
  * * isShow false
  */
 export declare const trash: hmc_win32["deleteFile"];
+
+/**
+ * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
+ * @returns 
+ */
+export declare const getClipboardSequenceNumber: hmc_win32["getClipboardSequenceNumber"];
+/**
+ * 当剪贴板内容变更后发生回调
+ * @param CallBack 回调函数
+ * @param nextAwaitMs 每次判断内容变化用时 默认 `150` ms
+ * @returns 
+ */
+export declare const watchClipboard: hmc_win32["watchClipboard"];
+/**
+    * 当驱动器添加或者移除后发生回调
+    * @param CallBack 回调函数
+    * @param nextAwaitMs 每次判断内容变化用时 默认 `800` ms
+    * @returns 
+    */
+export declare const watchUSB: hmc_win32["watchUSB"];
+
 export {
   native
 }

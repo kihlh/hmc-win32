@@ -2754,6 +2754,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                 //=>2-11ADD
         DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2-12ADD
         DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats), //=>2-12ADD
+        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList), //=>2-12ADD
 
     };
 

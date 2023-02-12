@@ -1,6 +1,6 @@
 {
   "name": "hmc-win32",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Connect to the system api in the easiest way (win-api)",
   "license": "MIT License",
   "main": "./index.js",
@@ -48,8 +48,6 @@
     "link",
     "open-app",
     "open-url",
-    "watch-process",
-    "watch-window",
     "open-external",
     "hide",
     "show",
@@ -72,7 +70,18 @@
     "delete-file",
     "trash",
     "recycle",
-    "watch-clipboard"
+    "watch-clipboard",
+    "watch-usb",
+    "watch-clip",
+    "watch-drive",
+    "watch-process",
+    "watch-window",
+    "change-clipboard",
+    "change-usb",
+    "change-clip",
+    "change-drive",
+    "change-process",
+    "change-window"
   ],
   "scripts": {
     "build": "cd CPP&&node-gyp rebuild",

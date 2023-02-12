@@ -150,7 +150,6 @@ napi_value getHidUsbList(napi_env env, napi_callback_info info)
     return Results;
 }
 
-
 napi_value getUsbDevsInfo(napi_env env, napi_callback_info info)
 {
     napi_value usbDevsInfoList, value;
@@ -191,7 +190,7 @@ napi_value getUsbDevsInfo(napi_env env, napi_callback_info info)
                     {
                         str_device_path.replace(str_device_path.find("#"), 1, "\\");
                     }
-                    
+
                     status = napi_set_element(env, usbDevsInfoList, nextCount, _create_String(env, str_device_path));
                     if (status != napi_ok)
                         return nullptr;
@@ -204,4 +203,92 @@ napi_value getUsbDevsInfo(napi_env env, napi_callback_info info)
         ::SetupDiDestroyDeviceInfoList(hDevInfo);
     }
     return usbDevsInfoList;
+}
+
+napi_value getHidUsbIdList(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value Results;
+    status = napi_create_array(env, &Results);
+    assert(status == napi_ok);
+    // 获取设备数量
+    UINT nDevices = 0;
+    GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST));
+
+    // 没有设备
+    if (nDevices < 1)
+        return Results;
+
+    // 为设备列表分配内存
+    PRAWINPUTDEVICELIST pRawInputDeviceList;
+    pRawInputDeviceList = new RAWINPUTDEVICELIST[sizeof(RAWINPUTDEVICELIST) * nDevices];
+
+    // 没有内存变量
+    if (pRawInputDeviceList == NULL)
+        return Results;
+
+    // 设备列表缓冲区
+    int nResult;
+    nResult = GetRawInputDeviceList(pRawInputDeviceList, &nDevices, sizeof(RAWINPUTDEVICELIST));
+
+    // 是否有设备列表
+    if (nResult < 0)
+    {
+        // 清空内存
+        delete[] pRawInputDeviceList;
+        return Results;
+    }
+
+    // 循环枚举列表
+    for (UINT index = 0; index < nDevices; index++)
+    {
+        // 获取设备名称的字节数
+        UINT nBufferSize = 0;
+        nResult = GetRawInputDeviceInfoW(pRawInputDeviceList[index].hDevice, // 磁盘
+                                         RIDI_DEVICENAME,                    // 驱动名称
+                                         NULL,                               // 没有缓存区  获取缓冲区大小
+                                         &nBufferSize);                      // 文本大小预设!
+        napi_value NextDeviceInfo;
+        status = napi_create_object(env, &NextDeviceInfo);
+        // 是否有设备名称
+        if (nResult < 0)
+            continue;
+
+        // 为设备名称分配内存
+        WCHAR *wcDeviceName = new WCHAR[nBufferSize + 1];
+
+        // 是否有内存
+        if (wcDeviceName == NULL)
+            continue;
+
+        // 设备名称
+        nResult = GetRawInputDeviceInfoW(pRawInputDeviceList[index].hDevice, // 磁盘
+                                         RIDI_DEVICENAME,                    // 驱动名称
+                                         wcDeviceName,                       // 设备名称
+                                         &nBufferSize);                      // 文本大小
+
+        // 是否有驱动名称
+        if (nResult < 0)
+        {
+            // 清空并执行下个
+            delete[] wcDeviceName;
+            continue;
+        }
+
+        string str_device_path = _W2A_(wcDeviceName);
+        delete[] wcDeviceName;
+        
+        for (int i = 3 - 1; i >= 0; i--)
+        {
+            str_device_path.replace(str_device_path.find("#"), 1, "\\");
+        }
+
+        status = napi_set_element(env, Results, (int)index , _create_String(env, str_device_path));
+        if (status != napi_ok){
+            return Results;
+        }
+    }
+
+    delete[] pRawInputDeviceList;
+    return Results;
 }

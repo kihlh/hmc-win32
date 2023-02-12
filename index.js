@@ -2294,7 +2294,7 @@ class hmc_win32 {
             while (Next) {
                 await _this.Sleep(NextAwaitMs);
                 let clipboardSequenceNumber = _this.getClipboardSequenceNumber();
-                if (oidClipboardSequenceNumber == clipboardSequenceNumber) {
+                if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
                     if (CallBack)
                         CallBack();
                 }
@@ -2313,7 +2313,73 @@ class hmc_win32 {
              * @param nextAwaitMs
              */
             setNextAwaitMs(nextAwaitMs) {
-                NextAwaitMs = _this.ref.int(NextAwaitMs) || 150;
+                NextAwaitMs = _this.ref.int(nextAwaitMs) || 150;
+            }
+        };
+    }
+    /**
+      * 当驱动器添加或者移除后发生回调
+      * @param CallBack 回调函数
+      * @param nextAwaitMs 每次判断内容变化用时 默认 `800` ms
+      * @param watchType 监听的设备类型 默认 `["HUB","drive"]`
+      * @returns
+      */
+    watchUSB(CallBack, nextAwaitMs, watchType) {
+        let _this = this;
+        let NextAwaitMs = nextAwaitMs || 800;
+        let Next = true;
+        let OID_ID_LIST = new Set();
+        let start = true;
+        if (typeof watchType == "string")
+            watchType = [watchType];
+        (async function () {
+            while (Next) {
+                await _this.Sleep(NextAwaitMs);
+                let GET_ID_List = new Set(watchType ? [
+                    ...(watchType.includes("hub") ? native.getHidUsbIdList() : []),
+                    ...(watchType.includes("drive") ? native.getUsbDevsInfo() : []),
+                ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
+                if (start) {
+                    for (const NEW_ID of GET_ID_List) {
+                        OID_ID_LIST.add(NEW_ID);
+                        CallBack && CallBack("start", NEW_ID);
+                    }
+                    start = false;
+                }
+                let GET_ID_List_NEW = [...GET_ID_List];
+                for (const OID_ID of OID_ID_LIST) {
+                    if (!GET_ID_List.has(OID_ID)) {
+                        CallBack && CallBack("remove", OID_ID);
+                    }
+                }
+                for (const NEW_ID of GET_ID_List) {
+                    if (!OID_ID_LIST.has(NEW_ID)) {
+                        CallBack && CallBack("add", NEW_ID);
+                    }
+                }
+                OID_ID_LIST.clear();
+                for (let index = 0; index < GET_ID_List_NEW.length; index++) {
+                    const GET_ID = GET_ID_List_NEW[index];
+                    OID_ID_LIST.add(GET_ID);
+                }
+            }
+        })();
+        return {
+            get idList() {
+                return OID_ID_LIST;
+            },
+            /**
+             * 取消继续监听
+             */
+            unwatcher() {
+                Next = false;
+            },
+            /**
+             * 每次判断内容变化用时 默认 `800` ms
+             * @param nextAwaitMs
+             */
+            setNextAwaitMs(nextAwaitMs) {
+                NextAwaitMs = _this.ref.int(nextAwaitMs) || 800;
             }
         };
     }

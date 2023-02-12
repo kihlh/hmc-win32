@@ -513,6 +513,10 @@ export type Native = {
      * 枚举剪贴板中的内容格式
      */
     enumClipboardFormats():number[];
+    /**
+     * 获取所有HID设备的id
+     */
+    getHidUsbIdList():string[];
 }
 export type chcpList = {
     37: "IBM037",
