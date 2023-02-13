@@ -21,61 +21,61 @@ let NotHMC: Native = {
     createPathRegistr: fnBool,
     createSymlink: fnBool,
     desc: "HMC Connection System api",
-    enumRegistrKey: () => {console.error(HMCNotPlatform); return [] as string[] },
-    getAllWindows: ()=>{console.error(HMCNotPlatform);return[]},
-    getAllWindowsHandle: ()=>{console.error(HMCNotPlatform);return[]},
-    getBasicKeys: ()=>{
+    enumRegistrKey: () => { console.error(HMCNotPlatform); return [] as string[] },
+    getAllWindows: () => { console.error(HMCNotPlatform); return [] },
+    getAllWindowsHandle: () => { console.error(HMCNotPlatform); return [] },
+    getBasicKeys: () => {
         console.error(HMCNotPlatform);
         return {
-            "alt":false,
-            "ctrl":false,
-            "shift":false,
-            "win":false,
+            "alt": false,
+            "ctrl": false,
+            "shift": false,
+            "win": false,
         }
     },
     getClipboardFilePaths: fnStrList,
     getClipboardText: fnStr,
-    getDetailsProcessList: ()=>{console.error(HMCNotPlatform);return[]},
-    getDeviceCaps: ()=>{
+    getDetailsProcessList: () => { console.error(HMCNotPlatform); return [] },
+    getDeviceCaps: () => {
         console.error(HMCNotPlatform);
         return {
-            "height":0,
-            "width":0,
+            "height": 0,
+            "width": 0,
         }
     },
     getForegroundWindow: fnNum,
     getForegroundWindowProcessID: fnNull,
     getHandleProcessID: fnNull,
-    getHidUsbList: ()=>{console.error(HMCNotPlatform);return[]},
+    getHidUsbList: () => { console.error(HMCNotPlatform); return [] },
     getMainWindow: fnNull,
-    getMetrics:  ()=>{ console.error(HMCNotPlatform);return {"left":0,"top":0,"x":0,"y":0}},
-    getMouseMovePoints: ()=>{console.error(HMCNotPlatform);return[]},
+    getMetrics: () => { console.error(HMCNotPlatform); return { "left": 0, "top": 0, "x": 0, "y": 0 } },
+    getMouseMovePoints: () => { console.error(HMCNotPlatform); return [] },
     getPointWindow: fnNull,
     getPointWindowMain: fnNum,
     getPointWindowName: fnStr,
     getPointWindowProcessId: fnNum,
     getProcessHandle: fnNull,
-    getProcessList: ()=>{console.error(HMCNotPlatform);return[]},
+    getProcessList: () => { console.error(HMCNotPlatform); return [] },
     getProcessName: fnNull,
     getProcessidFilePath: fnNull,
     getRegistrBuffValue: fnVoid,
     getRegistrDword: fnNum,
-    getRegistrQword: ()=>{
+    getRegistrQword: () => {
         console.error(HMCNotPlatform);
         return BigInt(0)
     },
-    getShortcutLink: ()=>{
+    getShortcutLink: () => {
         console.error(HMCNotPlatform);
-        return {"args":"","cwd":'',"desc":"","hotkey":0,"icon":"","iconIndex":0,"showCmd":0,"path":""}
+        return { "args": "", "cwd": '', "desc": "", "hotkey": 0, "icon": "", "iconIndex": 0, "showCmd": 0, "path": "" }
     },
     getStringRegKey: fnStr,
     getSystemIdleTime: fnNum,
     getSystemMenu: fnBool,
-    getTrayList: ()=>{console.error(HMCNotPlatform);return[]},
+    getTrayList: () => { console.error(HMCNotPlatform); return [] },
     getUsbDevsInfo: fnStrList,
-    getWindowRect: ()=>{
+    getWindowRect: () => {
         console.error(HMCNotPlatform);
-        return {"bottom":0,"height":0,"width":0,"left":0,"top":0,"right":0,"x":0,"y":0}
+        return { "bottom": 0, "height": 0, "width": 0, "left": 0, "top": 0, "right": 0, "x": 0, "y": 0 }
     },
     hasKeyActivate: fnBool,
     hasProcess: fnBool,
@@ -125,16 +125,16 @@ let NotHMC: Native = {
     updateWindow: fnBool,
     version: "1.0.5",
     windowJitter: fnVoid,
-    enumChildWindows:()=>{console.error(HMCNotPlatform);return[]}, 
-    deleteFile:fnNum, 
-    getClipboardSequenceNumber:fnNum, 
-    enumClipboardFormats:()=>{console.error(HMCNotPlatform);return[]},
-    getHidUsbIdList:()=>{console.error(HMCNotPlatform);return[]},
-    getDeviceCapsAll:()=>{console.error(HMCNotPlatform);return[]},
-    isInMonitorWindow:fnBool, 
-    isMouseMonitorWindow:fnBool,
-    getCurrentMonitorRect:()=>{ console.error(HMCNotPlatform);return {"bottom":0,"left":0,"top":0,"right":0,}}, 
-    getSystemMetricsLen:fnNum
+    enumChildWindows: () => { console.error(HMCNotPlatform); return [] },
+    deleteFile: fnNum,
+    getClipboardSequenceNumber: fnNum,
+    enumClipboardFormats: () => { console.error(HMCNotPlatform); return [] },
+    getHidUsbIdList: () => { console.error(HMCNotPlatform); return [] },
+    getDeviceCapsAll: () => { console.error(HMCNotPlatform); return [] },
+    isInMonitorWindow: fnBool,
+    isMouseMonitorWindow: fnBool,
+    getCurrentMonitorRect: () => { console.error(HMCNotPlatform); return { "bottom": 0, "left": 0, "top": 0, "right": 0, } },
+    getSystemMetricsLen: fnNum
 }
 export const native: Native = (() => {
     return process.platform == "win32" ? require("./HMC.node") : NotHMC

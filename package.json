@@ -4,6 +4,7 @@
   "description": "Connect to the system api in the easiest way (win-api)",
   "license": "MIT License",
   "main": "./index.js",
+  "exports": "./index.mjs",
   "types": "index.d.ts",
   "repository": {
     "type": "git",
@@ -13,7 +14,7 @@
     "index.d.ts",
     "HMC.node",
     "index.js",
-    "native.d.ts"
+    "index.mjs"
   ],
   "homepage": "https://kihlh.gitbook.io/hmc/",
   "keywords": [
@@ -85,12 +86,19 @@
   ],
   "scripts": {
     "build": "cd CPP&&node-gyp rebuild",
-    "ts":"tsc -d -w",
+    "ts": "tsc -d -w",
     "publish": "npm publish",
-    "pull":"git push origin master -f",
-    "copyBin-w":"node -e \"let fs= require('fs');function Copy(){try {fs.copyFileSync('./CPP/build/Release/HMC.node','./index.node')} catch (error) {}};fs.watchFile('./CPP/build/Release/HMC.node',()=>setTimeout(Copy,8000));\""
+    "pull": "git push origin master -f",
+    "esbuild-cjs": "esbuild ./source/mian/hmc.ts --charset=utf8  --bundle --external:./HMC.node  --platform=node --format=iife --target=node8  --watch --format=cjs --outfile=index.js",
+    "esbuild-esm": "esbuild ./source/mian/hmc.ts --charset=utf8  --bundle --external:./HMC.node  --platform=node --format=iife --target=node8  --watch --format=esm --outfile=index.mjs"
   },
   "engines": {
-    "node": ">= 8.0.0"
+    "node": ">= 6.14.2"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.0"
+  },
+  "dependencies": {
+    "argv-split": "^2.0.1"
   }
 }

@@ -1,11 +1,11 @@
 # **HMC-win32: Package for Windows platform API**
 
-![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node8.0+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
+![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
 ## help
 `ddffsd Parts of this document were translated by machine (Deepl)`
 
-####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)             [help (English) ](https://kihlh.gitbook.io/hmc_en/)
+####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)     [编程帮助(中国服务器)](https://www.yuque.com/kiic/hmc/)           [help (English) ](https://kihlh.gitbook.io/hmc_en/)
 
 ##   Why do I need to use this module ?
 

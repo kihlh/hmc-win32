@@ -2101,6 +2101,15 @@ static napi_value getAllWindows(napi_env env, napi_callback_info info)
 
     return Results;
 }
+static napi_value getAllWindowsNot(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value Results;
+    status = napi_create_array(env, &Results);
+    assert(status == napi_ok);
+    return Results;
+}
+
 // 获取所有窗口
 static napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)
 {
@@ -2912,6 +2921,78 @@ static napi_value isInMonitorWindow(napi_env env, napi_callback_info info)
     return is_OKs;
 }
 
+
+static napi_value getWindowClassName(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value  Result =_create_String(env,"");
+     
+    if (status != napi_ok)
+        return Result;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    if (status != napi_ok)
+        return Result;
+    if (!argc)
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+    }
+    // get HWND
+    int64_t NumHandle;
+    status = napi_get_value_int64(env, args[0], &NumHandle);
+    if (status != napi_ok)
+        return Result;
+    HWND Handle = (HWND)NumHandle;
+
+    // is the handle
+    if (!(GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
+        return Result;
+    LPSTR lpClassName;
+
+    if(!GetClassNameA(Handle,lpClassName,256)){
+        lpClassName = "";
+    };
+
+    Result=_create_A2U8_string(env,lpClassName);
+
+    return Result;
+}
+
+static napi_value getWindowStyle(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value  Result =_create_int64_Number(env,0);
+     
+    if (status != napi_ok)
+        return Result;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    if (status != napi_ok)
+        return Result;
+    if (!argc)
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+    }
+    // get HWND
+    int64_t NumHandle;
+    status = napi_get_value_int64(env, args[0], &NumHandle);
+    if (status != napi_ok)
+        return Result;
+    HWND Handle = (HWND)NumHandle;
+
+    // is the handle
+    if (!(GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
+        return Result;
+
+    DWORD dwStyle = GetClassLongA(Handle, GCL_STYLE);
+
+    Result=_create_int64_Number(env,dwStyle);
+
+    return Result;
+}
+
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
@@ -2981,7 +3062,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("rightClick", rightClick),
         DECLARE_NAPI_METHOD("leftClick", leftClick),
         DECLARE_NAPI_METHOD("mouse", mouse),
-        DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),
         DECLARE_NAPI_METHOD("getAllWindowsHandle", getAllWindowsHandle), //=>2-1ADD
         DECLARE_NAPI_METHOD("SetWindowInTaskbarVisible", SetWindowInTaskbarVisible),
         DECLARE_NAPI_METHOD("SetBlockInput", SetBlockInput),
@@ -3025,7 +3105,10 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),                     //=>2-12ADD
         DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
         DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
-
+        // DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),                          //=>2-13REMOVE
+        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0},                  //=>2-13ADD
+        DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
+        DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
     };
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);

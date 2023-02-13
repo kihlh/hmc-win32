@@ -1860,7 +1860,6 @@ export declare const desc: hmc_win32['desc'];
 export declare const getAllWindows: hmc_win32['getAllWindows'];
 /**当前二进制适用系统平台 */
 export declare const platform: hmc_win32['platform'];
-export declare const ref: hmc_win32['ref'];
 /**注册表编辑 */
 export declare const registr: hmc_win32['registr'];
 /**版本号 */

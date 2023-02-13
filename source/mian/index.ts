@@ -550,8 +550,72 @@ function hasregArgs(HKEY: HKEY, Path: string, funName: string) {
       `);
   }
 }
-
-
+const ref = {
+  /**
+  * 将内容格式化为文本路径
+  * @param Str
+  * @returns
+  */
+  path(Str: any) {
+    return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
+  },
+  /**
+   * 格式化为bool
+   * @param bool
+   * @returns
+   */
+  bool(bool: any) {
+    return bool ? true : false;
+  },
+  /**
+   * 将内容格式化为文本
+   * @param Str
+   * @returns
+   */
+  string(Str: any) {
+    return String(Str || "");
+  },
+  /**
+   * 格式化数字为int(强制)
+   * @param Num
+   * @returns
+   */
+  int(Num: any): number {
+    if (!Num) return 0;
+    if (typeof Num == "object" && Num instanceof Number) {
+      Num = Num?.valueOf();
+    }
+    // 取整
+    Num = Math.trunc(Num + 0);
+    if (typeof Num == "number" && !isNaN(Num)) return Num;
+    // true == 1
+    if (Num && typeof Num == "boolean") Num = 1;
+    // false = 0;
+    if (!Num && typeof Num == "boolean") Num = 0;
+    if (Num >= Infinity) {
+      Num = 999999999999999;
+    }
+    if (Num <= -Infinity) {
+      Num = -999999999999999;
+    }
+    return Num;
+  },
+  HKEY: Hkey,
+  /**
+   * 拼合buff片段
+   * @param buffList 
+   * @returns 
+   */
+  concatBuff(buffList: Buffer[]): Buffer {
+    let buffSize = 0;
+    for (let index = 0; index < buffList.length; index++) {
+      const buff = buffList[index];
+      buffSize = buffSize + buff.byteLength;
+    }
+    let ResponseData = Buffer.concat([...buffList], buffSize);
+    return ResponseData;
+  }
+};
 class hmc_win32 {
 
   get hmc() { return this }
@@ -566,72 +630,7 @@ class hmc_win32 {
   desc: string = native.desc;
   /**当前二进制适用系统平台 */
   platform: string = native.platform;
-  ref = {
-    /**
-    * 将内容格式化为文本路径
-    * @param Str
-    * @returns
-    */
-    path(Str: any) {
-      return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
-    },
-    /**
-     * 格式化为bool
-     * @param bool
-     * @returns
-     */
-    bool(bool: any) {
-      return bool ? true : false;
-    },
-    /**
-     * 将内容格式化为文本
-     * @param Str
-     * @returns
-     */
-    string(Str: any) {
-      return String(Str || "");
-    },
-    /**
-     * 格式化数字为int(强制)
-     * @param Num
-     * @returns
-     */
-    int(Num: any): number {
-      if (!Num) return 0;
-      if (typeof Num == "object" && Num instanceof Number) {
-        Num = Num?.valueOf();
-      }
-      // 取整
-      Num = Math.trunc(Num + 0);
-      if (typeof Num == "number" && !isNaN(Num)) return Num;
-      // true == 1
-      if (Num && typeof Num == "boolean") Num = 1;
-      // false = 0;
-      if (!Num && typeof Num == "boolean") Num = 0;
-      if (Num >= Infinity) {
-        Num = 999999999999999;
-      }
-      if (Num <= -Infinity) {
-        Num = -999999999999999;
-      }
-      return Num;
-    },
-    HKEY: Hkey,
-    /**
-     * 拼合buff片段
-     * @param buffList 
-     * @returns 
-     */
-    concatBuff(buffList: Buffer[]): Buffer {
-      let buffSize = 0;
-      for (let index = 0; index < buffList.length; index++) {
-        const buff = buffList[index];
-        buffSize = buffSize + buff.byteLength;
-      }
-      let ResponseData = Buffer.concat([...buffList], buffSize);
-      return ResponseData;
-    }
-  };
+  ref=ref;
   /**
    * 设置窗口位置大小
    * @param Handle 句柄
@@ -649,7 +648,7 @@ class hmc_win32 {
     width?: number | null | 0,
     height?: number | null | 0
   ): boolean {
-    if (!this.ref.int(HWND)) return false;
+    if (!ref.int(HWND)) return false;
     if (x && typeof x == "object") {
       let SetWindowRect = x;
       SetWindowRect.y = SetWindowRect.top
@@ -668,11 +667,11 @@ class hmc_win32 {
     if (!width) width = 0;
     if (!height) height = 0;
     return native.setWindowMode(
-      this.ref.int(HWND),
-      this.ref.int(x),
-      this.ref.int(y),
-      this.ref.int(width),
-      this.ref.int(height)
+      ref.int(HWND),
+      ref.int(x),
+      ref.int(y),
+      ref.int(width),
+      ref.int(height)
     );
   }
   /**
@@ -688,10 +687,10 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "hasRegistrKey");
     return native.hasRegistrKey(
       HKEY,
-      this.ref.string(Path)
+      ref.string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -706,7 +705,7 @@ class hmc_win32 {
     if (!key) key = "";
     hasregArgs(HKEY, Path, "hasRegistrKey");
     if (!Qword) Qword = BigInt(0);
-    return native.setRegistrQword(HKEY, this.ref.string(Path), this.ref.string(key), BigInt(Qword));
+    return native.setRegistrQword(HKEY, ref.string(Path), ref.string(key), BigInt(Qword));
   }
   /**
    * 设置键值对内容(32位数字)
@@ -719,7 +718,7 @@ class hmc_win32 {
   setRegistrDword(HKEY: HKEY, Path: string, key: string, Dword: number): boolean {
     if (!key) key = "";
     hasregArgs(HKEY, Path, "hasRegistrKey");
-    return native.setRegistrDword(HKEY, this.ref.string(Path), this.ref.string(key), this.ref.int(Dword));
+    return native.setRegistrDword(HKEY, ref.string(Path), ref.string(key), ref.int(Dword));
   }
   /**
    * 获取内容(64位数字)
@@ -734,11 +733,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "getRegistrQword");
     return native.getRegistrQword(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -754,11 +753,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "getRegistrDword");
     return native.getRegistrDword(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -774,11 +773,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "getRegistrBuffValue");
     return native.getRegistrBuffValue(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -793,7 +792,7 @@ class hmc_win32 {
     let enumKeyList: Set<string> = new Set();
     let NatenumKey = native.enumRegistrKey(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\")
@@ -847,11 +846,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "getStringRegKey");
     return native.getStringRegKey(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -928,14 +927,14 @@ class hmc_win32 {
   getNumberRegKey(HKEY: HKEY, Path: string, key?: string): number {
     if (!key) key = "";
     hasregArgs(HKEY, Path, "getNumberRegKey");
-    return this.ref.int(
+    return ref.int(
       native.getStringRegKey(
         HKEY,
-        this.ref
+        ref
           .string(Path)
           .split(/[\\\/]+/g)
           .join("\\"),
-        this.ref.string(key)
+        ref.string(key)
       )
     );
   }
@@ -952,11 +951,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "removeStringRegKey");
     return native.removeStringRegKey(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -968,7 +967,7 @@ class hmc_win32 {
    */
   removeStringRegKeyWalk(HKEY: HKEY, Path: string, key?: string) {
     if (!key) {
-      let paths = this.ref
+      let paths = ref
         .string(Path)
         .split(/[\\\/]/g);
       key = paths.pop();
@@ -978,11 +977,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "removeStringRegKeyWalk");
     return native.removeStringRegKeyWalk(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]+/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -1007,11 +1006,11 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "removeStringRegValue");
     return native.removeStringRegValue(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]/g)
         .join("\\"),
-      this.ref.string(key)
+      ref.string(key)
     );
   }
   /**
@@ -1028,12 +1027,12 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "setRegistrKey");
     return native.setRegistrKey(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]/g)
         .join("\\"),
-      this.ref.string(key),
-      this.ref.string(Value)
+      ref.string(key),
+      ref.string(Value)
     );
   }
   /**
@@ -1047,7 +1046,7 @@ class hmc_win32 {
     hasregArgs(HKEY, Path, "createPathRegistr");
     return native.createPathRegistr(
       HKEY,
-      this.ref
+      ref
         .string(Path)
         .split(/[\\\/]/g)
         .join("\\")
@@ -1178,7 +1177,7 @@ class hmc_win32 {
           while (true) {
             if (quit) break;
             await this.Sleep(awaitMs || 500);
-            if (!this.hasProcess(this.ref.int(ProcessID))) {
+            if (!this.hasProcess(ref.int(ProcessID))) {
               resolve(void 0);
               break;
             }
@@ -1193,7 +1192,7 @@ class hmc_win32 {
     (async () => {
       while (true) {
         await this.Sleep(awaitMs || 500);
-        if (!this.hasProcess(this.ref.int(ProcessID))) {
+        if (!this.hasProcess(ref.int(ProcessID))) {
           typeof callback == "function" && callback();
           break;
         }
@@ -1231,9 +1230,9 @@ class hmc_win32 {
           if (newPoint != oidPoint) {
             if (callback) {
               callback(
-                this.ref.int(newPoint),
-                this.ref.int(oidPoint) || 0,
-                new this.HWND(this.ref.int(newPoint))
+                ref.int(newPoint),
+                ref.int(oidPoint) || 0,
+                new this.HWND(ref.int(newPoint))
               );
               oidPoint = newPoint;
             }
@@ -1278,12 +1277,12 @@ class hmc_win32 {
         if (quit) return;
         let newForeg = this.getForegroundWindow();
         if (newForeg)
-          if (this.ref.int(newForeg) != this.ref.int(oidForeg)) {
+          if (ref.int(newForeg) != ref.int(oidForeg)) {
             if (callback) {
               callback(
-                this.ref.int(newForeg),
-                this.ref.int(oidForeg) || 0,
-                new this.HWND(this.ref.int(newForeg))
+                ref.int(newForeg),
+                ref.int(oidForeg) || 0,
+                new this.HWND(ref.int(newForeg))
               );
               oidForeg = newForeg;
             }
@@ -1325,8 +1324,8 @@ class hmc_win32 {
     UAC?: boolean
   ) {
     return native.openApp(
-      this.ref.string(AppPath),
-      this.ref.string(
+      ref.string(AppPath),
+      ref.string(
         Array.isArray(Command)
           ? `${Command.map((data) =>
             String(data)
@@ -1335,9 +1334,9 @@ class hmc_win32 {
           ).join(" ")}`
           : Command
       ) || "",
-      this.ref.string(cwd || path.parse(AppPath || "").dir || process.cwd()),
-      this.ref.bool(hide || false),
-      this.ref.bool(UAC || false)
+      ref.string(cwd || path.parse(AppPath || "").dir || process.cwd()),
+      ref.bool(hide || false),
+      ref.bool(UAC || false)
     );
   }
   /**
@@ -1447,7 +1446,7 @@ class hmc_win32 {
    * @returns 一个可以操作的伪数字类
    */
   getMainWindow(Handle: number | HWND) {
-    let Handles = native.getMainWindow(this.ref.int(Handle));
+    let Handles = native.getMainWindow(ref.int(Handle));
     return Handles ? new this.HWND(Handles) : null;
   }
 
@@ -1473,14 +1472,14 @@ class hmc_win32 {
    * @returns
    */
   getProcessHandle(ProcessID: number) {
-    let Handles = native.getProcessHandle(this.ref.int(ProcessID));
+    let Handles = native.getProcessHandle(ref.int(ProcessID));
     return Handles ? new this.HWND(Handles) : null;
   }
   /**
    * 阻止键盘和鼠标输入事件到达应用程序。
    */
   SetBlockInput(Block: boolean) {
-    return native.SetBlockInput(this.ref.bool(Block));
+    return native.SetBlockInput(ref.bool(Block));
   }
   /**
    * 设置该窗口图标在状态栏可见性 (注意：XP 下激活窗口了会失效(但是有没有一种可能 xp运行不了node和electron))
@@ -1490,8 +1489,8 @@ class hmc_win32 {
    */
   SetWindowInTaskbarVisible(Handle: number | HWND, Visible: boolean) {
     return native.SetWindowInTaskbarVisible(
-      this.ref.int(Handle),
-      this.ref.bool(Visible)
+      ref.int(Handle),
+      ref.bool(Visible)
     );
   }
   /**
@@ -1500,13 +1499,13 @@ class hmc_win32 {
    * @returns
    */
   getHandleProcessID(Handle: number | HWND) {
-    return native.getHandleProcessID(this.ref.int(Handle));
+    return native.getHandleProcessID(ref.int(Handle));
   }
   /** 获取窗口位置大小
    *  - 高，宽，坐标大于一万以上都是不可见的
    * **/
   getWindowRect(Handle: number | HWND) {
-    return native.getWindowRect(this.ref.int(Handle));
+    return native.getWindowRect(ref.int(Handle));
   }
   /**
    * 判断窗口是否禁用响应事件(鼠标键盘点击)
@@ -1514,7 +1513,7 @@ class hmc_win32 {
    * @returns
    */
   isEnabled(Handle: number | HWND) {
-    return native.isEnabled(this.ref.int(Handle));
+    return native.isEnabled(ref.int(Handle));
   }
   /**
    * 判断句柄是否有效
@@ -1522,7 +1521,7 @@ class hmc_win32 {
    * @returns
    */
   isHandle(Handle: number | HWND) {
-    return native.isHandle(this.ref.int(Handle));
+    return native.isHandle(ref.int(Handle));
   }
   /**
    * 判断此句柄是否是正在活动中的窗口
@@ -1530,7 +1529,7 @@ class hmc_win32 {
    * @returns
    */
   isHandleWindowVisible(Handle: number | HWND) {
-    return native.isHandleWindowVisible(this.ref.int(Handle));
+    return native.isHandleWindowVisible(ref.int(Handle));
   }
   /**
    * 关闭此句柄对应的窗口
@@ -1538,7 +1537,7 @@ class hmc_win32 {
    * @returns
    */
   lookHandleCloseWindow(Handle: number | HWND) {
-    return native.lookHandleCloseWindow(this.ref.int(Handle));
+    return native.lookHandleCloseWindow(ref.int(Handle));
   }
   /**
    * 获取此句柄的标题
@@ -1546,7 +1545,7 @@ class hmc_win32 {
    * @returns
    */
   lookHandleGetTitle(Handle: number | HWND) {
-    return native.lookHandleGetTitle(this.ref.int(Handle));
+    return native.lookHandleGetTitle(ref.int(Handle));
   }
   /**
    * 设置此句柄的标题
@@ -1556,8 +1555,8 @@ class hmc_win32 {
    */
   lookHandleSetTitle(Handle: number | HWND, title: string) {
     return native.lookHandleSetTitle(
-      this.ref.int(Handle),
-      this.ref.string(title)
+      ref.int(Handle),
+      ref.string(title)
     );
   }
   /**
@@ -1583,9 +1582,9 @@ class hmc_win32 {
     SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
   ) {
     return native.lookHandleShowWindow(
-      this.ref.int(Handle),
-      this.ref.int(
-        typeof SetShowType == "number" ? this.ref.int(SetShowType) : 5
+      ref.int(Handle),
+      ref.int(
+        typeof SetShowType == "number" ? ref.int(SetShowType) : 5
       ) as 0
     );
   }
@@ -1597,8 +1596,8 @@ class hmc_win32 {
    */
   setHandleTransparent(Handle: number | HWND, Transparent: number) {
     return native.setHandleTransparent(
-      this.ref.int(Handle),
-      this.ref.int(Transparent || 255)
+      ref.int(Handle),
+      ref.int(Transparent || 255)
     );
   }
   /**
@@ -1609,8 +1608,8 @@ class hmc_win32 {
    */
   setWindowEnabled(Handle: number | HWND, Enabled: boolean) {
     return native.setWindowEnabled(
-      this.ref.int(Handle),
-      this.ref.bool(Enabled)
+      ref.int(Handle),
+      ref.bool(Enabled)
     );
   }
   /**
@@ -1619,7 +1618,7 @@ class hmc_win32 {
    * @returns
    */
   setWindowFocus(Handle: number | HWND) {
-    return native.setWindowFocus(this.ref.int(Handle));
+    return native.setWindowFocus(ref.int(Handle));
   }
   /**
    * 设置窗口顶设
@@ -1627,7 +1626,7 @@ class hmc_win32 {
    * @returns
    */
   setWindowTop(Handle: number | HWND) {
-    return native.setWindowTop(this.ref.int(Handle));
+    return native.setWindowTop(ref.int(Handle));
   }
   /**
    * 刷新该窗口
@@ -1635,7 +1634,7 @@ class hmc_win32 {
    * @returns
    */
   updateWindow(Handle: number | HWND) {
-    return native.updateWindow(this.ref.int(Handle));
+    return native.updateWindow(ref.int(Handle));
   }
   /**
    * 窗口抖动
@@ -1643,7 +1642,7 @@ class hmc_win32 {
    * @returns
    */
   windowJitter(Handle: number | HWND) {
-    return native.windowJitter(this.ref.int(Handle));
+    return native.windowJitter(ref.int(Handle));
   }
   /**
    * 判断窗口是否被顶设
@@ -1651,13 +1650,13 @@ class hmc_win32 {
    * @returns
    */
   hasWindowTop(Handle: number | HWND) {
-    return native.hasWindowTop(this.ref.int(Handle));
+    return native.hasWindowTop(ref.int(Handle));
   }
   /**
    * 关闭该句柄窗口(可关闭托盘)(发送关闭消息)
    */
   closedHandle(Handle: number | HWND) {
-    return native.closedHandle(this.ref.int(Handle));
+    return native.closedHandle(ref.int(Handle));
   }
   /**
    * 获取所有HidUsb设备（仅限HID设备)
@@ -1694,7 +1693,7 @@ class hmc_win32 {
     否则有可能导致用户无法正常使用
     **/
   SetSystemHOOK(HOOK: boolean) {
-    return native.SetSystemHOOK(this.ref.bool(HOOK));
+    return native.SetSystemHOOK(ref.bool(HOOK));
   }
   /**
    * 获取四大按钮(`alt`  `ctrl`  `win`  `shift` )是否按下
@@ -1716,7 +1715,7 @@ class hmc_win32 {
    * @returns
    */
   setClipboardText(text: string) {
-    return native.setClipboardText(this.ref.string(text));
+    return native.setClipboardText(ref.string(text));
   }
   /**
    * 清空剪贴版
@@ -1751,7 +1750,7 @@ class hmc_win32 {
    * @returns
    */
   getProcessName(ProcessID: number) {
-    return native.getProcessName(this.ref.int(ProcessID));
+    return native.getProcessName(ref.int(ProcessID));
   }
   /**
    * 获取进程可执行文件位置
@@ -1759,7 +1758,7 @@ class hmc_win32 {
    * @returns 进程id
    */
   getProcessidFilePath(ProcessID: number) {
-    return native.getProcessidFilePath(this.ref.int(ProcessID));
+    return native.getProcessidFilePath(ref.int(ProcessID));
   }
   /**
    * 获取快捷方式的信息
@@ -1767,7 +1766,7 @@ class hmc_win32 {
    * @returns
    */
   getShortcutLink(LnkPath: string) {
-    return native.getShortcutLink(this.ref.string(LnkPath));
+    return native.getShortcutLink(ref.string(LnkPath));
   }
   /**系统空闲时间 */
   getSystemIdleTime() {
@@ -1780,7 +1779,7 @@ class hmc_win32 {
    * @returns
    */
   getSystemMenu(Handle: number | HWND, boolean: boolean) {
-    return native.getSystemMenu(this.ref.int(Handle), this.ref.bool(boolean));
+    return native.getSystemMenu(ref.int(Handle), ref.bool(boolean));
   }
   /**获取托盘图标列表 */
   getTrayList() {
@@ -1796,7 +1795,7 @@ class hmc_win32 {
    * @returns
    */
   hasProcess(ProcessID: number) {
-    return native.isProcess(this.ref.int(ProcessID));
+    return native.isProcess(ref.int(ProcessID));
   }
   /**
    * 当前程序是否拥有管理员权限
@@ -1811,7 +1810,7 @@ class hmc_win32 {
    * @returns
    */
   isProcess(ProcessID: number) {
-    return native.isProcess(this.ref.int(ProcessID));
+    return native.isProcess(ref.int(ProcessID));
   }
   /**判断当前系统是否是64位 */
   isSystemX64() {
@@ -1832,7 +1831,7 @@ class hmc_win32 {
     if (typeof ProcessID == "string") {
       return this.killProcessName(ProcessID)
     }
-    return native.killProcess(this.ref.int(ProcessID));
+    return native.killProcess(ref.int(ProcessID));
   }
   /**
    * 左键点击
@@ -1851,14 +1850,14 @@ class hmc_win32 {
    * @returns 
    */
   messageBox(message: string, title: string, UINT_String: UINT) {
-    return native.messageBox(this.ref.string(message), this.ref.string(title), this.ref.string(UINT_String) as UINT);
+    return native.messageBox(ref.string(message), ref.string(title), ref.string(UINT_String) as UINT);
   }
   /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
   mouse(mouse_event: mouse_event, ms?: number) {
     if (typeof mouse_event == "number") {
-      mouse_event = this.ref.int(mouse_event) as 1;
+      mouse_event = ref.int(mouse_event) as 1;
     } else {
-      mouse_event = this.ref.string(mouse_event) as 'MOUSEEVENTF_RIGHTDOWN';
+      mouse_event = ref.string(mouse_event) as 'MOUSEEVENTF_RIGHTDOWN';
     }
     return native.mouse.apply(undefined, ms ? [mouse_event] : [mouse_event, ms]);
   }
@@ -1884,7 +1883,7 @@ class hmc_win32 {
    * @returns 
    */
   openURL(URL: string) {
-    return native.openURL(this.ref.string(URL));
+    return native.openURL(ref.string(URL));
   }
   /**
    * 电源控制
@@ -1935,7 +1934,7 @@ class hmc_win32 {
    * @returns 
    */
   setCursorPos(x: number, y: number) {
-    return native.setCursorPos(this.ref.int(x), this.ref.int(y));
+    return native.setCursorPos(ref.int(x), ref.int(y));
   }
   setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string | string[], iShowCmd: number, icon: string, iconIndex: number): boolean;
   setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string | string[], iShowCmd?: number): boolean;
@@ -1954,29 +1953,29 @@ class hmc_win32 {
   setShortcutLink(...args: unknown[]): boolean {
     if (args.length < 2) throw new Error("not LnkPath and FilePath arguments");
     // LnkPath
-    args[0] = this.ref.string(args[0] || "");
+    args[0] = ref.string(args[0] || "");
     // FilePath
-    args[1] = this.ref.string(args[1] || "");
+    args[1] = ref.string(args[1] || "");
     // work_dir
-    args[2] = this.ref.string(args[2] || "");
+    args[2] = ref.string(args[2] || "");
     // desc
-    args[3] = this.ref.string(args[3] || "");
+    args[3] = ref.string(args[3] || "");
     // args
     if (Array.isArray(args[4])) {
       args[4] = args[4].map(itme => `"${itme ? itme?.replace(/\"/g, "\\\"") : ""}"`).join(" ");
     }
-    args[4] = this.ref.string(args[4] || "");
+    args[4] = ref.string(args[4] || "");
     // iShowCmd
     if (args.length > 5) {
-      args[5] = this.ref.int(args[5] || 0);
+      args[5] = ref.int(args[5] || 0);
     }
     // icon
     if (args.length > 6) {
-      args[6] = this.ref.string(args[6] || "");
+      args[6] = ref.string(args[6] || "");
     }
     // iconIndex
     if (args.length > 7) {
-      args[7] = this.ref.int(args[7] || 0);
+      args[7] = ref.int(args[7] || 0);
     }
     return native.setShortcutLink(...args as [string, string, string]);
   }
@@ -1987,7 +1986,7 @@ class hmc_win32 {
    * @returns 
    */
   createSymlink(LinkPath: string, sourcePath: string) {
-    return native.createSymlink(this.ref.string(LinkPath), this.ref.string(sourcePath))
+    return native.createSymlink(ref.string(LinkPath), ref.string(sourcePath))
   }
   /**
    * 创建文件夹软链接
@@ -1996,7 +1995,7 @@ class hmc_win32 {
    * @returns 
    */
   createDirSymlink(LinkPath: string, sourcePath: string) {
-    return native.createSymlink(this.ref.string(LinkPath), this.ref.string(sourcePath))
+    return native.createSymlink(ref.string(LinkPath), ref.string(sourcePath))
   }
   /**
    * 创建文件硬链接
@@ -2005,7 +2004,7 @@ class hmc_win32 {
    * @returns 
    */
   createHardLink(LinkPath: string, sourcePath: string) {
-    return native.createSymlink(this.ref.string(LinkPath), this.ref.string(sourcePath))
+    return native.createSymlink(ref.string(LinkPath), ref.string(sourcePath))
   }
 
   /**打开显示器 */
@@ -2028,7 +2027,7 @@ class hmc_win32 {
    * @returns
    */
   sleep(awaitTime: number) {
-    return native.sleep(this.ref.int(awaitTime));
+    return native.sleep(ref.int(awaitTime));
   }
   /**
    * `async` 异步阻塞(进程)
@@ -2037,10 +2036,10 @@ class hmc_win32 {
    */
   async Sleep(awaitTime: number, Sync?: boolean) {
     if (Sync) {
-      return this.sleep(this.ref.int(awaitTime));
+      return this.sleep(ref.int(awaitTime));
     }
     return new Promise((resolve) =>
-      setTimeout(resolve, this.ref.int(awaitTime))
+      setTimeout(resolve, ref.int(awaitTime))
     );
   }
   /**
@@ -2266,7 +2265,7 @@ class hmc_win32 {
    * @returns 程序退出代码
    */
   system(str: string) {
-    return native.system(this.ref.string(str));
+    return native.system(ref.string(str));
   }
   /**
    * 空闲的随机端口号
@@ -2352,8 +2351,8 @@ class hmc_win32 {
   //     })
   //     _.once("close", (d) => {
   //       resolve({
-  //         err: this.ref.concatBuff(errDataList),
-  //         data: this.ref.concatBuff(dataList)
+  //         err: ref.concatBuff(errDataList),
+  //         data: ref.concatBuff(dataList)
   //       });
   //       removeChcp();
   //     });
@@ -2410,10 +2409,10 @@ class hmc_win32 {
       const FilePath = FilePaths[index];
       if (typeof FilePath !== "string") {
         for (let indexc = 0; indexc < FilePaths.length; indexc++) {
-          filePaths.push(this.ref.string(FilePaths[indexc]));
+          filePaths.push(ref.string(FilePaths[indexc]));
         }
       } else {
-        filePaths.push(this.ref.string(FilePath));
+        filePaths.push(ref.string(FilePath));
       }
     }
     return native.setClipboardFilePaths(filePaths);
@@ -2431,7 +2430,7 @@ class hmc_win32 {
    * @returns 
    */
   enumChildWindows(Handle: number | HWND) {
-    return native.enumChildWindows(this.ref.int(Handle));
+    return native.enumChildWindows(ref.int(Handle));
   }
   #thenConsole: HWND | undefined | null;
   /**
@@ -2476,9 +2475,9 @@ class hmc_win32 {
   * * isShow false
   */
   deleteFile(Path: string, Recycle?: boolean, isShow?: boolean) {
-    return native.deleteFile(this.ref.path(Path),
-      typeof Recycle == "boolean" ? this.ref.bool(Recycle) : true,
-      typeof isShow == "boolean" ? this.ref.bool(isShow) : false,
+    return native.deleteFile(ref.path(Path),
+      typeof Recycle == "boolean" ? ref.bool(Recycle) : true,
+      typeof isShow == "boolean" ? ref.bool(isShow) : false,
     )
   }
   /**
@@ -2536,7 +2535,7 @@ class hmc_win32 {
        * @param nextAwaitMs 
        */
       setNextAwaitMs(nextAwaitMs: number) {
-        NextAwaitMs = _this.ref.int(nextAwaitMs) || 150;
+        NextAwaitMs = ref.int(nextAwaitMs) || 150;
       }
     }
   }
@@ -2604,7 +2603,7 @@ class hmc_win32 {
        * @param nextAwaitMs 
        */
       setNextAwaitMs(nextAwaitMs: number) {
-        NextAwaitMs = _this.ref.int(nextAwaitMs) || 800;
+        NextAwaitMs = ref.int(nextAwaitMs) || 800;
       }
     }
   }
@@ -2620,14 +2619,14 @@ class hmc_win32 {
    * @param Handle 
    */
   isInMonitorWindow(Handle: number | HWND): boolean {
-    return native.isInMonitorWindow(this.ref.int(Handle));
+    return native.isInMonitorWindow(ref.int(Handle));
   }
   /**
    * 判断句柄的窗口是否在鼠标所在的窗口
    * @param Handle 
    */
   isMouseMonitorWindow(Handle: number): boolean {
-    return native.isMouseMonitorWindow(this.ref.int(Handle));
+    return native.isMouseMonitorWindow(ref.int(Handle));
   }
   /**
    * 获取鼠标所在的屏幕信息
@@ -2794,8 +2793,7 @@ class hmc_win32 {
  */
 function getDefaultTitele(): string {
   try {
-    // @ts-expect-error
-    return window.document.title;
+    return globalThis.document.title;
   } catch (error) {
     return (
       native.lookHandleGetTitle(native.getProcessHandle(process.pid) || 0) ||
@@ -3011,7 +3009,6 @@ export declare const desc: hmc_win32['desc'];
 export declare const getAllWindows: hmc_win32['getAllWindows'];
 /**当前二进制适用系统平台 */
 export declare const platform: hmc_win32['platform'];
-export declare const ref: hmc_win32['ref'];
 /**注册表编辑 */
 export declare const registr: hmc_win32['registr'];
 /**版本号 */
@@ -3807,5 +3804,4 @@ module.exports = hmc;
 
 type SystemDecoderKey = keyof chcpList;
 type SystemDecoder = chcpList[SystemDecoderKey]
-
 

@@ -1,28 +1,18 @@
-"use strict";
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJS = (cb, mod) => function __require() {
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined")
+    return require.apply(this, arguments);
+  throw new Error('Dynamic require of "' + x + '" is not supported');
+});
+var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc2) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc2 = __getOwnPropDesc(from, key)) || desc2.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/argv-split/split.js
 var require_split = __commonJS({
-  "node_modules/argv-split/split.js"(exports, module2) {
+  "node_modules/argv-split/split.js"(exports, module) {
     "use strict";
     var _CHARS;
     function _defineProperty(obj, key, value) {
@@ -33,7 +23,7 @@ var require_split = __commonJS({
       }
       return obj;
     }
-    module2.exports = split;
+    module.exports = split;
     var MATRIX = {
       0: [a, suq, a, a, a, EOF],
       1: [eaue, aue, eaue, aue, aue, ue],
@@ -162,149 +152,6 @@ var require_split = __commonJS({
     }
   }
 });
-
-// source/mian/hmc.ts
-var hmc_exports = {};
-__export(hmc_exports, {
-  Auto: () => Auto,
-  Clipboard: () => Clipboard,
-  HMC: () => HMC,
-  HWND: () => HWND,
-  MessageError: () => MessageError,
-  MessageStop: () => MessageStop,
-  Process: () => Process,
-  SetBlockInput: () => SetBlockInput,
-  SetSystemHOOK: () => SetSystemHOOK,
-  SetWindowInTaskbarVisible: () => SetWindowInTaskbarVisible,
-  Shell: () => Shell,
-  Sleep: () => Sleep,
-  Usb: () => Usb,
-  Watch: () => Watch,
-  WatchWindowForeground: () => WatchWindowForeground,
-  WatchWindowPoint: () => WatchWindowPoint,
-  Window: () => Window,
-  alert: () => alert,
-  analysisDirectPath: () => analysisDirectPath,
-  clearClipboard: () => clearClipboard,
-  closedHandle: () => closedHandle,
-  confirm: () => confirm,
-  createDirSymlink: () => createDirSymlink,
-  createHardLink: () => createHardLink,
-  createPathRegistr: () => createPathRegistr,
-  createSymlink: () => createSymlink,
-  deleteFile: () => deleteFile,
-  desc: () => desc,
-  enumChildWindows: () => enumChildWindows,
-  enumRegistrKey: () => enumRegistrKey,
-  freePort: () => freePort,
-  getAllWindows: () => getAllWindows,
-  getAllWindowsHandle: () => getAllWindowsHandle,
-  getBasicKeys: () => getBasicKeys,
-  getClipboardFilePaths: () => getClipboardFilePaths,
-  getClipboardSequenceNumber: () => getClipboardSequenceNumber,
-  getClipboardText: () => getClipboardText,
-  getConsoleHandle: () => getConsoleHandle,
-  getCurrentMonitorRect: () => getCurrentMonitorRect,
-  getDetailsProcessList: () => getDetailsProcessList,
-  getDetailsProcessNameList: () => getDetailsProcessNameList,
-  getDeviceCaps: () => getDeviceCaps,
-  getDeviceCapsAll: () => getDeviceCapsAll,
-  getForegroundWindow: () => getForegroundWindow,
-  getForegroundWindowProcessID: () => getForegroundWindowProcessID,
-  getHandleProcessID: () => getHandleProcessID,
-  getHidUsbList: () => getHidUsbList,
-  getMainWindow: () => getMainWindow,
-  getMetrics: () => getMetrics,
-  getMouseMovePoints: () => getMouseMovePoints,
-  getNumberRegKey: () => getNumberRegKey,
-  getPointWindow: () => getPointWindow,
-  getPointWindowMain: () => getPointWindowMain,
-  getPointWindowName: () => getPointWindowName,
-  getPointWindowProcessId: () => getPointWindowProcessId,
-  getProcessHandle: () => getProcessHandle,
-  getProcessList: () => getProcessList,
-  getProcessName: () => getProcessName,
-  getProcessNameList: () => getProcessNameList,
-  getProcessidFilePath: () => getProcessidFilePath,
-  getRegistrBuffValue: () => getRegistrBuffValue,
-  getRegistrDword: () => getRegistrDword,
-  getRegistrQword: () => getRegistrQword,
-  getShortcutLink: () => getShortcutLink,
-  getStringRegKey: () => getStringRegKey,
-  getSystemIdleTime: () => getSystemIdleTime,
-  getSystemMenu: () => getSystemMenu,
-  getSystemMetricsLen: () => getSystemMetricsLen,
-  getTrayList: () => getTrayList,
-  getUsbDevsInfo: () => getUsbDevsInfo,
-  getWindowRect: () => getWindowRect,
-  hasKeyActivate: () => hasKeyActivate,
-  hasProcess: () => hasProcess,
-  hasRegistrKey: () => hasRegistrKey,
-  hasWindowTop: () => hasWindowTop,
-  hideConsole: () => hideConsole,
-  hmc: () => hmc,
-  isAdmin: () => isAdmin,
-  isEnabled: () => isEnabled,
-  isHandle: () => isHandle,
-  isHandleWindowVisible: () => isHandleWindowVisible,
-  isInMonitorWindow: () => isInMonitorWindow,
-  isMouseMonitorWindow: () => isMouseMonitorWindow,
-  isProcess: () => isProcess,
-  isRegistrTreeKey: () => isRegistrTreeKey,
-  isSystemX64: () => isSystemX64,
-  killProcess: () => killProcess,
-  killProcessName: () => killProcessName,
-  leftClick: () => leftClick,
-  listRegistrPath: () => listRegistrPath,
-  lookHandleCloseWindow: () => lookHandleCloseWindow,
-  lookHandleGetTitle: () => lookHandleGetTitle,
-  lookHandleSetTitle: () => lookHandleSetTitle,
-  lookHandleShowWindow: () => lookHandleShowWindow,
-  messageBox: () => messageBox,
-  mouse: () => mouse,
-  native: () => native,
-  openApp: () => openApp,
-  openExternal: () => openExternal,
-  openPath: () => openPath,
-  openRegKey: () => openRegKey,
-  openURL: () => openURL,
-  platform: () => platform,
-  powerControl: () => powerControl,
-  processWatchdog: () => processWatchdog,
-  ref: () => ref,
-  registr: () => registr,
-  removeStringRegKey: () => removeStringRegKey,
-  removeStringRegKeyWalk: () => removeStringRegKeyWalk,
-  removeStringRegValue: () => removeStringRegValue,
-  removeStringTree: () => removeStringTree,
-  rightClick: () => rightClick,
-  setClipboardFilePaths: () => setClipboardFilePaths,
-  setClipboardText: () => setClipboardText,
-  setCursorPos: () => setCursorPos,
-  setHandleTransparent: () => setHandleTransparent,
-  setRegistrDword: () => setRegistrDword,
-  setRegistrKey: () => setRegistrKey,
-  setRegistrQword: () => setRegistrQword,
-  setShortcutLink: () => setShortcutLink,
-  setWindowEnabled: () => setWindowEnabled,
-  setWindowFocus: () => setWindowFocus,
-  setWindowMode: () => setWindowMode,
-  setWindowTop: () => setWindowTop,
-  showConsole: () => showConsole,
-  showMonitors: () => showMonitors,
-  shutMonitors: () => shutMonitors,
-  sleep: () => sleep,
-  system: () => system,
-  systemChcp: () => systemChcp,
-  systemStartTime: () => systemStartTime,
-  trash: () => trash,
-  updateWindow: () => updateWindow,
-  version: () => version,
-  watchClipboard: () => watchClipboard,
-  watchUSB: () => watchUSB,
-  windowJitter: () => windowJitter
-});
-module.exports = __toCommonJS(hmc_exports);
 
 // source/mian/chcpList.ts
 var chcpList = {
@@ -451,9 +298,9 @@ var chcpList = {
 };
 
 // source/mian/hmc.ts
-var path = require("path");
-var child_process = require("child_process");
-var net = require("net");
+var path = __require("path");
+var child_process = __require("child_process");
+var net = __require("net");
 var argvSplit = require_split();
 var $_thenConsole = null;
 var Hkey = {
@@ -464,7 +311,7 @@ var Hkey = {
   HKEY_CURRENT_USER: "HKEY_CURRENT_USER"
 };
 var native = (() => {
-  let Native = process.platform == "win32" ? require("./HMC.node") : (() => {
+  let Native = process.platform == "win32" ? __require("./HMC.node") : (() => {
     let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
     function fnBool(...args) {
       console.error(HMCNotPlatform);
@@ -2079,8 +1926,7 @@ var registr = {
   }
 };
 var hmc = { Auto, Clipboard, HMC, HWND, MessageError, MessageStop, Process, SetBlockInput, SetSystemHOOK, SetWindowInTaskbarVisible, Shell, Sleep, Usb, Watch, WatchWindowForeground, WatchWindowPoint, Window, alert, analysisDirectPath, clearClipboard, closedHandle, confirm, createDirSymlink, createHardLink, createPathRegistr, createSymlink, deleteFile, desc, enumChildWindows, enumRegistrKey, freePort, getAllWindows, getAllWindowsHandle, getBasicKeys, getClipboardFilePaths, getClipboardSequenceNumber, getClipboardText, getConsoleHandle, getCurrentMonitorRect, getDetailsProcessList, getDetailsProcessNameList, getDeviceCaps, getDeviceCapsAll, getForegroundWindow, getForegroundWindowProcessID, getHandleProcessID, getHidUsbList, getMainWindow, getMetrics, getMouseMovePoints, getNumberRegKey, getPointWindow, getPointWindowMain, getPointWindowName, getPointWindowProcessId, getProcessHandle, getProcessList, getProcessName, getProcessNameList, getProcessidFilePath, getRegistrBuffValue, getRegistrDword, getRegistrQword, getShortcutLink, getStringRegKey, getSystemIdleTime, getSystemMenu, getSystemMetricsLen, getTrayList, getUsbDevsInfo, getWindowRect, hasKeyActivate, hasProcess, hasRegistrKey, hasWindowTop, hideConsole, isAdmin, isEnabled, isHandle, isHandleWindowVisible, isInMonitorWindow, isMouseMonitorWindow, isProcess, isRegistrTreeKey, isSystemX64, killProcess, killProcessName, leftClick, listRegistrPath, lookHandleCloseWindow, lookHandleGetTitle, lookHandleSetTitle, lookHandleShowWindow, messageBox, mouse, native, openApp, openExternal, openPath, openRegKey, openURL, platform, powerControl, processWatchdog, ref, registr, removeStringRegKey, removeStringRegKeyWalk, removeStringRegValue, removeStringTree, rightClick, setClipboardFilePaths, setClipboardText, setCursorPos, setHandleTransparent, setRegistrDword, setRegistrKey, setRegistrQword, setShortcutLink, setWindowEnabled, setWindowFocus, setWindowMode, setWindowTop, showConsole, showMonitors, shutMonitors, sleep, system, systemChcp, systemStartTime, trash, updateWindow, version, watchClipboard, watchUSB, windowJitter };
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
+export {
   Auto,
   Clipboard,
   HMC,
@@ -2218,4 +2064,4 @@ var hmc = { Auto, Clipboard, HMC, HWND, MessageError, MessageStop, Process, SetB
   watchClipboard,
   watchUSB,
   windowJitter
-});
+};
