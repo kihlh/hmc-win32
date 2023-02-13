@@ -855,6 +855,11 @@ declare class hmc_win32 {
     }[];
     /** 获取进程列表**/
     getProcessList(): {
+        /**
+         * 格式化数字为int(强制)
+         * @param Num
+         * @returns
+         */
         name: string;
         pid: number;
     }[];
@@ -1638,6 +1643,11 @@ declare class hmc_win32 {
             name: string;
         }[];
         getList: () => {
+            /**
+             * 格式化数字为int(强制)
+             * @param Num
+             * @returns
+             */
             name: string;
             pid: number;
         }[];

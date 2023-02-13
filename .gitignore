@@ -3,3 +3,9 @@ source/CPP/build/
 .DS_Store
 npm-debug.log
 dist/
+source/mian/hmc.d.ts
+source/mian/index.d.ts
+source/mian/index.d.ts
+native.d.ts
+source/mian/chcpList.js
+source/mian/hmc.js

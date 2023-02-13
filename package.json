@@ -5,13 +5,13 @@
   "license": "MIT License",
   "main": "./index.js",
   "exports": "./index.mjs",
-  "types": "index.d.ts",
+  "types": "hmc.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kihlh/hmc-win32.git"
   },
   "files": [
-    "index.d.ts",
+    "hmc.d.ts",
     "HMC.node",
     "index.js",
     "index.mjs"

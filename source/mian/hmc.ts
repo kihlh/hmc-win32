@@ -1231,6 +1231,7 @@ export module HMC {
         65001: "utf-8"
     };
     export type SystemDecoderKey = keyof chcpList;
+    
     export type SystemDecoder = chcpList[SystemDecoderKey]
 }
 
