@@ -1,6 +1,5 @@
 /// <reference types="node" />
-import { Native, chcpList } from "./native";
-declare const native: Native;
+import { native, chcpList } from "./native";
 declare let chcpList: {
     [key: string | number]: SystemDecoder;
 };
@@ -192,7 +191,7 @@ declare class hmc_win32 {
     get hmc(): this;
     get default(): this;
     /**原生HMC */
-    native: Native;
+    native: import("./native").Native;
     /**一个可以快速操作的句柄类对象 */
     HWND: typeof HWND;
     /**版本号 */
@@ -488,11 +487,6 @@ declare class hmc_win32 {
     getAllWindows: () => {
         className: string;
         handle: number;
-        /**
-         * 禁用窗口
-         * @param enabled
-         * @returns
-         */
         rect: {
             bottom: number;
             height: number;
@@ -573,9 +567,6 @@ declare class hmc_win32 {
         /**设置每次延迟事件 */
         setAwaitMs(ms: number): void;
     };
-    pointInRect: typeof pointInRect;
-    RectInRect: typeof RectInRect;
-    RECT2Rect: typeof RECT2Rect;
     /**
     * 监听焦点窗口变化并返回句柄
     * @param callback 回调函数
@@ -1453,11 +1444,6 @@ declare class hmc_win32 {
         getAllWindows: () => {
             className: string;
             handle: number;
-            /**
-             * 禁用窗口
-             * @param enabled
-             * @returns
-             */
             rect: {
                 bottom: number;
                 height: number;

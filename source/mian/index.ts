@@ -1,6 +1,5 @@
 import path = require("path");
-import { Native, chcpList } from "./native";
-const native: Native = require("./HMC.node");
+import { native , chcpList } from "./native";
 import { spawn, execFileSync, SpawnOptionsWithoutStdio, ChildProcessWithoutNullStreams, execFile } from "child_process";
 import net = require("net");
 let chcpList: { [key: string | number]: SystemDecoder } = {
@@ -1253,9 +1252,6 @@ class hmc_win32 {
       },
     };
   }
-  pointInRect = pointInRect;
-  RectInRect = RectInRect;
-  RECT2Rect = RECT2Rect;
   /**
   * 监听焦点窗口变化并返回句柄
   * @param callback 回调函数
@@ -2769,7 +2765,7 @@ class hmc_win32 {
         match:this.getProcessNameList,
         matchDetails:this.getDetailsProcessNameList ,
         getDetailsList:this.getDetailsProcessList,
-        
+
       }
     })();
   }

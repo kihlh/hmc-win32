@@ -1,3 +1,145 @@
+let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
+function fnBool(...args: any[]) { console.error(HMCNotPlatform); return false }
+function fnVoid(...args: any[]) { console.error(HMCNotPlatform); return undefined }
+function fnNull(...args: any[]) { console.error(HMCNotPlatform); return null }
+function fnNum(...args: any[]) { console.error(HMCNotPlatform); return 0 }
+function fnStrList(...args: any[]) { console.error(HMCNotPlatform); return [] as string[] }
+function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
+
+let NotHMC: Native = {
+    MessageError: fnVoid,
+    MessageStop: fnBool,
+    SetBlockInput: fnBool,
+    SetSystemHOOK: fnBool,
+    SetWindowInTaskbarVisible: fnBool,
+    alert: fnBool,
+    clearClipboard: fnBool,
+    closedHandle: fnVoid,
+    confirm: fnBool,
+    createDirSymlink: fnBool,
+    createHardLink: fnBool,
+    createPathRegistr: fnBool,
+    createSymlink: fnBool,
+    desc: "HMC Connection System api",
+    enumRegistrKey: () => {console.error(HMCNotPlatform); return [] as string[] },
+    getAllWindows: ()=>{console.error(HMCNotPlatform);return[]},
+    getAllWindowsHandle: ()=>{console.error(HMCNotPlatform);return[]},
+    getBasicKeys: ()=>{
+        console.error(HMCNotPlatform);
+        return {
+            "alt":false,
+            "ctrl":false,
+            "shift":false,
+            "win":false,
+        }
+    },
+    getClipboardFilePaths: fnStrList,
+    getClipboardText: fnStr,
+    getDetailsProcessList: ()=>{console.error(HMCNotPlatform);return[]},
+    getDeviceCaps: ()=>{
+        console.error(HMCNotPlatform);
+        return {
+            "height":0,
+            "width":0,
+        }
+    },
+    getForegroundWindow: fnNum,
+    getForegroundWindowProcessID: fnNull,
+    getHandleProcessID: fnNull,
+    getHidUsbList: ()=>{console.error(HMCNotPlatform);return[]},
+    getMainWindow: fnNull,
+    getMetrics:  ()=>{ console.error(HMCNotPlatform);return {"left":0,"top":0,"x":0,"y":0}},
+    getMouseMovePoints: ()=>{console.error(HMCNotPlatform);return[]},
+    getPointWindow: fnNull,
+    getPointWindowMain: fnNum,
+    getPointWindowName: fnStr,
+    getPointWindowProcessId: fnNum,
+    getProcessHandle: fnNull,
+    getProcessList: ()=>{console.error(HMCNotPlatform);return[]},
+    getProcessName: fnNull,
+    getProcessidFilePath: fnNull,
+    getRegistrBuffValue: fnVoid,
+    getRegistrDword: fnNum,
+    getRegistrQword: ()=>{
+        console.error(HMCNotPlatform);
+        return BigInt(0)
+    },
+    getShortcutLink: ()=>{
+        console.error(HMCNotPlatform);
+        return {"args":"","cwd":'',"desc":"","hotkey":0,"icon":"","iconIndex":0,"showCmd":0,"path":""}
+    },
+    getStringRegKey: fnStr,
+    getSystemIdleTime: fnNum,
+    getSystemMenu: fnBool,
+    getTrayList: ()=>{console.error(HMCNotPlatform);return[]},
+    getUsbDevsInfo: fnStrList,
+    getWindowRect: ()=>{
+        console.error(HMCNotPlatform);
+        return {"bottom":0,"height":0,"width":0,"left":0,"top":0,"right":0,"x":0,"y":0}
+    },
+    hasKeyActivate: fnBool,
+    hasProcess: fnBool,
+    hasRegistrKey: fnBool,
+    hasWindowTop: fnBool,
+    isAdmin: fnBool,
+    isEnabled: fnBool,
+    isHandle: fnBool,
+    isHandleWindowVisible: fnBool,
+    isProcess: fnBool,
+    isSystemX64: fnBool,
+    killProcess: fnBool,
+    leftClick: fnBool,
+    lookHandleCloseWindow: fnBool,
+    lookHandleGetTitle: fnNull,
+    lookHandleSetTitle: fnBool,
+    lookHandleShowWindow: fnBool,
+    messageBox: fnNum as () => 1,
+    mouse: fnBool,
+    openApp: fnBool,
+    openExternal: fnBool,
+    openPath: fnBool,
+    openURL: fnBool,
+    platform: "win32",
+    powerControl: fnVoid,
+    removeStringRegKey: fnBool,
+    removeStringRegKeyWalk: fnBool,
+    removeStringRegValue: fnBool,
+    rightClick: fnBool,
+    setClipboardFilePaths: fnBool,
+    setClipboardText: fnBool,
+    setCursorPos: fnBool,
+    setHandleTransparent: fnBool,
+    setRegistrDword: fnBool,
+    setRegistrKey: fnBool,
+    setRegistrQword: fnBool,
+    setShortcutLink: fnBool,
+    setWindowEnabled: fnBool,
+    setWindowFocus: fnBool,
+    setWindowMode: fnBool,
+    setWindowTop: fnBool,
+    showMonitors: fnBool,
+    shutMonitors: fnBool,
+    sleep: fnBool,
+    system: fnNum,
+    systemStartTime: fnNum,
+    updateWindow: fnBool,
+    version: "1.0.5",
+    windowJitter: fnVoid,
+    enumChildWindows:()=>{console.error(HMCNotPlatform);return[]}, 
+    deleteFile:fnNum, 
+    getClipboardSequenceNumber:fnNum, 
+    enumClipboardFormats:()=>{console.error(HMCNotPlatform);return[]},
+    getHidUsbIdList:()=>{console.error(HMCNotPlatform);return[]},
+    getDeviceCapsAll:()=>{console.error(HMCNotPlatform);return[]},
+    isInMonitorWindow:fnBool, 
+    isMouseMonitorWindow:fnBool,
+    getCurrentMonitorRect:()=>{ console.error(HMCNotPlatform);return {"bottom":0,"left":0,"top":0,"right":0,}}, 
+    getSystemMetricsLen:fnNum
+}
+export const native: Native = (() => {
+    return process.platform == "win32" ? require("./HMC.node") : NotHMC
+})();
+
 import { cRECT, HKEY, HidUsb, mouse_event, UINT, ProcessID, Rect, HandleTransparent, HWND } from './index';
 
 export type Native = {
@@ -504,41 +646,41 @@ export type Native = {
      * * Recycle true
      * * isShow false
      */
-    deleteFile(Path:string,Recycle?:boolean,isShow?:boolean):number
+    deleteFile(Path: string, Recycle?: boolean, isShow?: boolean): number
     /**
      * 获取当前剪贴板内容的id(如果被重新写入了该id会变动)
      */
-    getClipboardSequenceNumber():number;
+    getClipboardSequenceNumber(): number;
     /**
      * 枚举剪贴板中的内容格式
      */
-    enumClipboardFormats():number[];
+    enumClipboardFormats(): number[];
     /**
      * 获取所有HID设备的id
      */
-    getHidUsbIdList():string[];
+    getHidUsbIdList(): string[];
     /**
      * 获取所有屏幕
      */
-    getDeviceCapsAll():cRECT[];
+    getDeviceCapsAll(): cRECT[];
     /**
      * 判断句柄的窗口是否在所有窗口的范围中(无论他是否被其他窗口挡住)
      * @param Handle 
      */
-    isInMonitorWindow(Handle:number):boolean;
+    isInMonitorWindow(Handle: number): boolean;
     /**
      * 判断句柄的窗口是否在鼠标所在的窗口
      * @param Handle 
      */
-    isMouseMonitorWindow(Handle:number):boolean;
+    isMouseMonitorWindow(Handle: number): boolean;
     /**
      * 获取鼠标所在的屏幕信息
      */
-    getCurrentMonitorRect():cRECT;
+    getCurrentMonitorRect(): cRECT;
     /**
      * 当前电脑存在几个屏幕
      */
-    getSystemMetricsLen():number;
+    getSystemMetricsLen(): number;
 }
 export type chcpList = {
     37: "IBM037",

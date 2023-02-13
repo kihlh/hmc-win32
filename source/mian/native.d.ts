@@ -1,4 +1,5 @@
 /// <reference types="node" />
+export declare const native: Native;
 import { cRECT, HKEY, HidUsb, mouse_event, UINT, ProcessID, Rect, HandleTransparent } from './index';
 export declare type Native = {
     /**版本号 */
