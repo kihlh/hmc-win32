@@ -9,6 +9,26 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
 var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
+var __async = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
 
 // node_modules/argv-split/split.js
 var require_split = __commonJS({
@@ -481,7 +501,7 @@ var native = (() => {
       system: fnNum,
       systemStartTime: fnNum,
       updateWindow: fnBool,
-      version: "1.0.5",
+      version: "0.0.0",
       windowJitter: fnVoid,
       enumChildWindows: () => {
         console.error(HMCNotPlatform);
@@ -1130,16 +1150,18 @@ function watchClipboard(CallBack, nextAwaitMs) {
   let NextAwaitMs = nextAwaitMs || 150;
   let Next = true;
   let oidClipboardSequenceNumber = getClipboardSequenceNumber();
-  (async function() {
-    while (Next) {
-      await Sleep(NextAwaitMs);
-      let clipboardSequenceNumber = getClipboardSequenceNumber();
-      if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
-        if (CallBack)
-          CallBack();
+  (function() {
+    return __async(this, null, function* () {
+      while (Next) {
+        yield Sleep(NextAwaitMs);
+        let clipboardSequenceNumber = getClipboardSequenceNumber();
+        if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
+          if (CallBack)
+            CallBack();
+        }
+        oidClipboardSequenceNumber = clipboardSequenceNumber;
       }
-      oidClipboardSequenceNumber = clipboardSequenceNumber;
-    }
+    });
   })();
   return {
     unwatcher() {
@@ -1157,37 +1179,39 @@ function watchUSB(CallBack, nextAwaitMs, watchType) {
   let start = true;
   if (typeof watchType == "string")
     watchType = [watchType];
-  (async function() {
-    while (Next) {
-      await Sleep(NextAwaitMs);
-      let GET_ID_List = new Set(watchType ? [
-        ...watchType.includes("hub") ? native.getHidUsbIdList() : [],
-        ...watchType.includes("drive") ? native.getUsbDevsInfo() : []
-      ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
-      if (start) {
+  (function() {
+    return __async(this, null, function* () {
+      while (Next) {
+        yield Sleep(NextAwaitMs);
+        let GET_ID_List = new Set(watchType ? [
+          ...watchType.includes("hub") ? native.getHidUsbIdList() : [],
+          ...watchType.includes("drive") ? native.getUsbDevsInfo() : []
+        ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
+        if (start) {
+          for (const NEW_ID of GET_ID_List) {
+            OID_ID_LIST.add(NEW_ID);
+            CallBack && CallBack("start", NEW_ID);
+          }
+          start = false;
+        }
+        let GET_ID_List_NEW = [...GET_ID_List];
+        for (const OID_ID of OID_ID_LIST) {
+          if (!GET_ID_List.has(OID_ID)) {
+            CallBack && CallBack("remove", OID_ID);
+          }
+        }
         for (const NEW_ID of GET_ID_List) {
-          OID_ID_LIST.add(NEW_ID);
-          CallBack && CallBack("start", NEW_ID);
+          if (!OID_ID_LIST.has(NEW_ID)) {
+            CallBack && CallBack("add", NEW_ID);
+          }
         }
-        start = false;
-      }
-      let GET_ID_List_NEW = [...GET_ID_List];
-      for (const OID_ID of OID_ID_LIST) {
-        if (!GET_ID_List.has(OID_ID)) {
-          CallBack && CallBack("remove", OID_ID);
-        }
-      }
-      for (const NEW_ID of GET_ID_List) {
-        if (!OID_ID_LIST.has(NEW_ID)) {
-          CallBack && CallBack("add", NEW_ID);
+        OID_ID_LIST.clear();
+        for (let index = 0; index < GET_ID_List_NEW.length; index++) {
+          const GET_ID = GET_ID_List_NEW[index];
+          OID_ID_LIST.add(GET_ID);
         }
       }
-      OID_ID_LIST.clear();
-      for (let index = 0; index < GET_ID_List_NEW.length; index++) {
-        const GET_ID = GET_ID_List_NEW[index];
-        OID_ID_LIST.add(GET_ID);
-      }
-    }
+    });
   })();
   return {
     get idList() {
@@ -1253,32 +1277,32 @@ function processWatchdog(ProcessID, callback, awaitMs) {
   let quit = false;
   if (!callback) {
     let Prom = new Promise(
-      async (resolve, reject) => {
+      (resolve, reject) => __async(this, null, function* () {
         while (true) {
           if (quit)
             break;
-          await Sleep(awaitMs || 500);
+          yield Sleep(awaitMs || 500);
           if (!hasProcess(ref.int(ProcessID))) {
             resolve(void 0);
             break;
           }
         }
-      }
+      })
     );
     Prom.quit = function() {
       quit = true;
     };
     return Prom;
   }
-  (async () => {
+  (() => __async(this, null, function* () {
     while (true) {
-      await Sleep(awaitMs || 500);
+      yield Sleep(awaitMs || 500);
       if (!hasProcess(ref.int(ProcessID))) {
         typeof callback == "function" && callback();
         break;
       }
     }
-  })();
+  }))();
   return {
     quit: function() {
       quit = true;
@@ -1288,7 +1312,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
 function WatchWindowPoint(callback, awaitMs) {
   let quit = false;
   let oidPoint = native.getPointWindow() || 0;
-  (async () => {
+  (() => __async(this, null, function* () {
     if (typeof callback !== "function")
       return;
     while (true) {
@@ -1307,9 +1331,9 @@ function WatchWindowPoint(callback, awaitMs) {
           }
         }
       }
-      await Sleep(awaitMs || 350);
+      yield Sleep(awaitMs || 350);
     }
-  })();
+  }))();
   return {
     quit: function() {
       quit = true;
@@ -1322,7 +1346,7 @@ function WatchWindowPoint(callback, awaitMs) {
 function WatchWindowForeground(callback, awaitMs) {
   let quit = false;
   let oidForeg = getForegroundWindow();
-  (async () => {
+  (() => __async(this, null, function* () {
     if (typeof callback !== "function")
       return;
     while (true) {
@@ -1341,9 +1365,9 @@ function WatchWindowForeground(callback, awaitMs) {
           }
         }
       }
-      await Sleep(awaitMs || 350);
+      yield Sleep(awaitMs || 350);
     }
-  })();
+  }))();
   return {
     quit: function() {
       quit = true;
@@ -1494,6 +1518,10 @@ function lookHandleSetTitle(Handle, title) {
     ref.string(title)
   );
 }
+var setShowWindow = lookHandleShowWindow;
+var setCloseWindow = lookHandleCloseWindow;
+var getWindowTitle = lookHandleGetTitle;
+var setWindowTitle = lookHandleSetTitle;
 function lookHandleShowWindow(Handle, SetShowType) {
   return native.lookHandleShowWindow(
     ref.int(Handle),
@@ -1718,13 +1746,15 @@ function shutMonitors(show) {
 function sleep(awaitTime) {
   return native.sleep(ref.int(awaitTime));
 }
-async function Sleep(awaitTime, Sync) {
-  if (Sync) {
-    return sleep(ref.int(awaitTime));
-  }
-  return new Promise(
-    (resolve) => setTimeout(resolve, ref.int(awaitTime))
-  );
+function Sleep(awaitTime, Sync) {
+  return __async(this, null, function* () {
+    if (Sync) {
+      return sleep(ref.int(awaitTime));
+    }
+    return new Promise(
+      (resolve) => setTimeout(resolve, ref.int(awaitTime))
+    );
+  });
 }
 function systemStartTime() {
   return native.systemStartTime();
@@ -1762,6 +1792,12 @@ function getAllWindows() {
     AllWindows.push(new WINDOWS_INFO(handle));
   }
   return AllWindows;
+}
+function getWindowClassName(Handle) {
+  return native.getWindowClassName(ref.int(Handle));
+}
+function getWindowStyle(Handle) {
+  return native.getWindowStyle(ref.int(Handle));
 }
 var version = native.version;
 var desc = native.desc;
@@ -1925,7 +1961,150 @@ var registr = {
     return open;
   }
 };
-var hmc = { Auto, Clipboard, HMC, HWND, MessageError, MessageStop, Process, SetBlockInput, SetSystemHOOK, SetWindowInTaskbarVisible, Shell, Sleep, Usb, Watch, WatchWindowForeground, WatchWindowPoint, Window, alert, analysisDirectPath, clearClipboard, closedHandle, confirm, createDirSymlink, createHardLink, createPathRegistr, createSymlink, deleteFile, desc, enumChildWindows, enumRegistrKey, freePort, getAllWindows, getAllWindowsHandle, getBasicKeys, getClipboardFilePaths, getClipboardSequenceNumber, getClipboardText, getConsoleHandle, getCurrentMonitorRect, getDetailsProcessList, getDetailsProcessNameList, getDeviceCaps, getDeviceCapsAll, getForegroundWindow, getForegroundWindowProcessID, getHandleProcessID, getHidUsbList, getMainWindow, getMetrics, getMouseMovePoints, getNumberRegKey, getPointWindow, getPointWindowMain, getPointWindowName, getPointWindowProcessId, getProcessHandle, getProcessList, getProcessName, getProcessNameList, getProcessidFilePath, getRegistrBuffValue, getRegistrDword, getRegistrQword, getShortcutLink, getStringRegKey, getSystemIdleTime, getSystemMenu, getSystemMetricsLen, getTrayList, getUsbDevsInfo, getWindowRect, hasKeyActivate, hasProcess, hasRegistrKey, hasWindowTop, hideConsole, isAdmin, isEnabled, isHandle, isHandleWindowVisible, isInMonitorWindow, isMouseMonitorWindow, isProcess, isRegistrTreeKey, isSystemX64, killProcess, killProcessName, leftClick, listRegistrPath, lookHandleCloseWindow, lookHandleGetTitle, lookHandleSetTitle, lookHandleShowWindow, messageBox, mouse, native, openApp, openExternal, openPath, openRegKey, openURL, platform, powerControl, processWatchdog, ref, registr, removeStringRegKey, removeStringRegKeyWalk, removeStringRegValue, removeStringTree, rightClick, setClipboardFilePaths, setClipboardText, setCursorPos, setHandleTransparent, setRegistrDword, setRegistrKey, setRegistrQword, setShortcutLink, setWindowEnabled, setWindowFocus, setWindowMode, setWindowTop, showConsole, showMonitors, shutMonitors, sleep, system, systemChcp, systemStartTime, trash, updateWindow, version, watchClipboard, watchUSB, windowJitter };
+var hmc = {
+  Auto,
+  Clipboard,
+  HMC,
+  HWND,
+  MessageError,
+  MessageStop,
+  Process,
+  SetBlockInput,
+  SetSystemHOOK,
+  SetWindowInTaskbarVisible,
+  Shell,
+  Sleep,
+  Usb,
+  Watch,
+  WatchWindowForeground,
+  WatchWindowPoint,
+  Window,
+  alert,
+  analysisDirectPath,
+  clearClipboard,
+  closedHandle,
+  confirm,
+  createDirSymlink,
+  createHardLink,
+  createPathRegistr,
+  createSymlink,
+  deleteFile,
+  desc,
+  enumChildWindows,
+  enumRegistrKey,
+  freePort,
+  getAllWindows,
+  getAllWindowsHandle,
+  getBasicKeys,
+  getClipboardFilePaths,
+  getClipboardSequenceNumber,
+  getClipboardText,
+  getConsoleHandle,
+  getCurrentMonitorRect,
+  getDetailsProcessList,
+  getDetailsProcessNameList,
+  getDeviceCaps,
+  getDeviceCapsAll,
+  getForegroundWindow,
+  getForegroundWindowProcessID,
+  getHandleProcessID,
+  getHidUsbList,
+  getMainWindow,
+  getMetrics,
+  getMouseMovePoints,
+  getNumberRegKey,
+  getPointWindow,
+  getPointWindowMain,
+  getPointWindowName,
+  getPointWindowProcessId,
+  getProcessHandle,
+  getProcessList,
+  getProcessName,
+  getProcessNameList,
+  getProcessidFilePath,
+  getRegistrBuffValue,
+  getRegistrDword,
+  getRegistrQword,
+  getShortcutLink,
+  getStringRegKey,
+  getSystemIdleTime,
+  getSystemMenu,
+  getSystemMetricsLen,
+  getTrayList,
+  getUsbDevsInfo,
+  getWindowClassName,
+  getWindowRect,
+  getWindowStyle,
+  getWindowTitle,
+  hasKeyActivate,
+  hasProcess,
+  hasRegistrKey,
+  hasWindowTop,
+  hideConsole,
+  isAdmin,
+  isEnabled,
+  isHandle,
+  isHandleWindowVisible,
+  isInMonitorWindow,
+  isMouseMonitorWindow,
+  isProcess,
+  isRegistrTreeKey,
+  isSystemX64,
+  killProcess,
+  killProcessName,
+  leftClick,
+  listRegistrPath,
+  lookHandleCloseWindow,
+  lookHandleGetTitle,
+  lookHandleSetTitle,
+  lookHandleShowWindow,
+  messageBox,
+  mouse,
+  native,
+  openApp,
+  openExternal,
+  openPath,
+  openRegKey,
+  openURL,
+  platform,
+  powerControl,
+  processWatchdog,
+  ref,
+  registr,
+  removeStringRegKey,
+  removeStringRegKeyWalk,
+  removeStringRegValue,
+  removeStringTree,
+  rightClick,
+  setClipboardFilePaths,
+  setClipboardText,
+  setCloseWindow,
+  setCursorPos,
+  setHandleTransparent,
+  setRegistrDword,
+  setRegistrKey,
+  setRegistrQword,
+  setShortcutLink,
+  setShowWindow,
+  setWindowEnabled,
+  setWindowFocus,
+  setWindowMode,
+  setWindowTitle,
+  setWindowTop,
+  showConsole,
+  showMonitors,
+  shutMonitors,
+  sleep,
+  system,
+  systemChcp,
+  systemStartTime,
+  trash,
+  updateWindow,
+  version,
+  watchClipboard,
+  watchUSB,
+  windowJitter
+};
 export {
   Auto,
   Clipboard,
@@ -1997,7 +2176,10 @@ export {
   getSystemMetricsLen,
   getTrayList,
   getUsbDevsInfo,
+  getWindowClassName,
   getWindowRect,
+  getWindowStyle,
+  getWindowTitle,
   hasKeyActivate,
   hasProcess,
   hasRegistrKey,
@@ -2041,15 +2223,18 @@ export {
   rightClick,
   setClipboardFilePaths,
   setClipboardText,
+  setCloseWindow,
   setCursorPos,
   setHandleTransparent,
   setRegistrDword,
   setRegistrKey,
   setRegistrQword,
   setShortcutLink,
+  setShowWindow,
   setWindowEnabled,
   setWindowFocus,
   setWindowMode,
+  setWindowTitle,
   setWindowTop,
   showConsole,
   showMonitors,

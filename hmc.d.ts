@@ -1593,6 +1593,44 @@ export declare function lookHandleSetTitle(Handle: number | HWND, title: string)
  *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
  * @returns
  */
+export declare const setShowWindow: typeof lookHandleShowWindow;
+/**
+ * 关闭此句柄对应的窗口
+ * @param Handle
+ * @returns
+ */
+export declare const setCloseWindow: typeof lookHandleCloseWindow;
+/**
+ * 获取此句柄的标题
+ * @param Handle
+ * @returns
+ */
+export declare const getWindowTitle: typeof lookHandleGetTitle;
+/**
+ * 设置此句柄的标题
+ * @param Handle
+ * @param title
+ * @returns
+ */
+export declare const setWindowTitle: typeof lookHandleSetTitle;
+/**
+ * 通过句柄设置窗口显示状态  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+ * @param Handle 窗口句柄
+ * @param nCmdShow 操作内容
+ *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
+ *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
+ *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ * @returns
+ */
 export declare function lookHandleShowWindow(Handle: number | HWND, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11): boolean;
 /**
  * 设置窗口不透明度 0-255
@@ -1899,6 +1937,18 @@ export declare function systemStartTime(): number;
 * 获取所有窗口的信息
 **/
 export declare function getAllWindows(): HMC.GET_ALL_WINDOWS_INFO[];
+/**
+ * 检索指定窗口所属的类的名称
+ * @param Handle 句柄
+ * @returns
+ */
+export declare function getWindowClassName(Handle: number | HWND): string;
+/**
+ * 获取窗口类关联代码
+ * @param Handle 句柄
+ * @returns
+ */
+export declare function getWindowStyle(Handle: number | HWND): number;
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -2426,7 +2476,10 @@ export declare const hmc: {
     getSystemMetricsLen: typeof getSystemMetricsLen;
     getTrayList: typeof getTrayList;
     getUsbDevsInfo: typeof getUsbDevsInfo;
+    getWindowClassName: typeof getWindowClassName;
     getWindowRect: typeof getWindowRect;
+    getWindowStyle: typeof getWindowStyle;
+    getWindowTitle: typeof lookHandleGetTitle;
     hasKeyActivate: typeof hasKeyActivate;
     hasProcess: typeof hasProcess;
     hasRegistrKey: typeof hasRegistrKey;
@@ -2763,15 +2816,18 @@ export declare const hmc: {
     rightClick: typeof rightClick;
     setClipboardFilePaths: typeof setClipboardFilePaths;
     setClipboardText: typeof setClipboardText;
+    setCloseWindow: typeof lookHandleCloseWindow;
     setCursorPos: typeof setCursorPos;
     setHandleTransparent: typeof setHandleTransparent;
     setRegistrDword: typeof setRegistrDword;
     setRegistrKey: typeof setRegistrKey;
     setRegistrQword: typeof setRegistrQword;
     setShortcutLink: typeof setShortcutLink;
+    setShowWindow: typeof lookHandleShowWindow;
     setWindowEnabled: typeof setWindowEnabled;
     setWindowFocus: typeof setWindowFocus;
     setWindowMode: typeof setWindowMode;
+    setWindowTitle: typeof lookHandleSetTitle;
     setWindowTop: typeof setWindowTop;
     showConsole: typeof showConsole;
     showMonitors: typeof showMonitors;

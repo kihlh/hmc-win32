@@ -149,7 +149,7 @@ export const native: HMC.Native = (() => {
             system: fnNum,
             systemStartTime: fnNum,
             updateWindow: fnBool,
-            version: "1.0.5",
+            version: "0.0.0",
             windowJitter: fnVoid,
             enumChildWindows: () => { console.error(HMCNotPlatform); return [] },
             deleteFile: fnNum,
@@ -1231,7 +1231,7 @@ export module HMC {
         65001: "utf-8"
     };
     export type SystemDecoderKey = keyof chcpList;
-    
+
     export type SystemDecoder = chcpList[SystemDecoderKey]
 }
 
@@ -1451,6 +1451,7 @@ export function systemChcp() {
         });
     });
 }
+
 /**
  * 设置窗口位置大小
  * @param Handle 句柄
@@ -2223,6 +2224,7 @@ export function confirm(Message: string, Title?: string) {
         typeof Title != "string" ? getDefaultTitele() : Title
     );
 }
+
 /**
  * 方法用于显示带有一条指定消息和一个 确认 按钮的和❌（X）的消息框。
  * @param Message 消息
@@ -2236,6 +2238,7 @@ export function MessageStop(Message: string, Title?: string) {
         typeof Title != "string" ? getDefaultTitele() : Title
     );
 }
+
 /**
  * 方法用于显示带有一条指定消息和一个 确认 按钮的错误框 附带有❗ 感叹号。
  * @param Message 消息
@@ -2249,6 +2252,7 @@ export function MessageError(Message: string, Title?: string) {
         typeof Title != "string" ? getDefaultTitele() : Title
     );
 }
+
 /**
  * 获取所有窗口句柄并返回一个快速操作的句柄类 可以快速操作窗口
  * @time 0.657958984375 ms 
@@ -2295,6 +2299,7 @@ export function getAllWindowsHandle() {
     }
     return data;
 }
+
 /**
  * 进程监听 当该进程被关闭的时候执行回调
  * @param ProcessID 进程id
@@ -2343,6 +2348,7 @@ export function processWatchdog(ProcessID: number, callback?: (() => void) | num
         },
     };
 }
+
 /**
  * 监听鼠标所在的窗口的句柄
  * @param callback 回调函数
@@ -2390,6 +2396,7 @@ export function WatchWindowPoint(callback: (newPoint: number, oidPoint: number, 
         },
     };
 }
+
 /**
 * 监听焦点窗口变化并返回句柄
 * @param callback 回调函数
@@ -2463,6 +2470,7 @@ export function openApp(AppPath: string, Command?: string | string[], cwd?: stri
         ref.bool(UAC || false)
     );
 }
+
 /**
  * 获取该名称 /正则匹配的进程列表
  * @param Name 
@@ -2488,6 +2496,7 @@ export function getProcessNameList(...Name: Array<string | RegExp>) {
     }
     return resultList;
 }
+
 /**
 * 获取该名称 /正则匹配的进程列表 带执行文件路径 慢20ms
 * @param Name 
@@ -2513,6 +2522,7 @@ export function getDetailsProcessNameList(...Name: Array<string | RegExp>) {
     }
     return resultList;
 }
+
 /**
  * 结束该名称的进程
  * @param Name
@@ -2555,6 +2565,7 @@ export function killProcessName(...Name: Array<string | RegExp>) {
     }
     return resultList;
 }
+
 /**
  * 获取当前的焦点窗口
  * @returns 一个可以操作的伪数字类
@@ -2694,6 +2705,48 @@ export function lookHandleSetTitle(Handle: number | HWND, title: string) {
         ref.string(title)
     );
 }
+
+/**
+ * 通过句柄设置窗口显示状态  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+ * @param Handle 窗口句柄
+ * @param nCmdShow 操作内容
+ *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
+ *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
+ *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ * @returns
+ */
+export const setShowWindow = lookHandleShowWindow;
+
+/**
+ * 关闭此句柄对应的窗口
+ * @param Handle
+ * @returns
+ */
+export const setCloseWindow = lookHandleCloseWindow;
+
+/**
+ * 获取此句柄的标题
+ * @param Handle
+ * @returns
+ */
+export const getWindowTitle = lookHandleGetTitle;
+
+/**
+ * 设置此句柄的标题
+ * @param Handle
+ * @param title
+ * @returns
+ */
+export const setWindowTitle = lookHandleSetTitle;
 
 /**
  * 通过句柄设置窗口显示状态  https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
@@ -3274,6 +3327,24 @@ export function getAllWindows() {
     return AllWindows;
 }
 
+/**
+ * 检索指定窗口所属的类的名称
+ * @param Handle 句柄
+ * @returns 
+ */
+export function getWindowClassName(Handle: number | HWND) {
+    return native.getWindowClassName(ref.int(Handle));
+}
+
+/**
+ * 获取窗口类关联代码
+ * @param Handle 句柄
+ * @returns 
+ */
+export function getWindowStyle(Handle: number | HWND) {
+    return native.getWindowStyle(ref.int(Handle));
+}
+
 // hmc.node 的版本号
 export const version = native.version;
 
@@ -3612,4 +3683,147 @@ export const registr = {
     },
 };
 
-export const hmc = { Auto, Clipboard, HMC, HWND, MessageError, MessageStop, Process, SetBlockInput, SetSystemHOOK, SetWindowInTaskbarVisible, Shell, Sleep, Usb, Watch, WatchWindowForeground, WatchWindowPoint, Window, alert, analysisDirectPath, clearClipboard, closedHandle, confirm, createDirSymlink, createHardLink, createPathRegistr, createSymlink, deleteFile, desc, enumChildWindows, enumRegistrKey, freePort, getAllWindows, getAllWindowsHandle, getBasicKeys, getClipboardFilePaths, getClipboardSequenceNumber, getClipboardText, getConsoleHandle, getCurrentMonitorRect, getDetailsProcessList, getDetailsProcessNameList, getDeviceCaps, getDeviceCapsAll, getForegroundWindow, getForegroundWindowProcessID, getHandleProcessID, getHidUsbList, getMainWindow, getMetrics, getMouseMovePoints, getNumberRegKey, getPointWindow, getPointWindowMain, getPointWindowName, getPointWindowProcessId, getProcessHandle, getProcessList, getProcessName, getProcessNameList, getProcessidFilePath, getRegistrBuffValue, getRegistrDword, getRegistrQword, getShortcutLink, getStringRegKey, getSystemIdleTime, getSystemMenu, getSystemMetricsLen, getTrayList, getUsbDevsInfo, getWindowRect, hasKeyActivate, hasProcess, hasRegistrKey, hasWindowTop, hideConsole, isAdmin, isEnabled, isHandle, isHandleWindowVisible, isInMonitorWindow, isMouseMonitorWindow, isProcess, isRegistrTreeKey, isSystemX64, killProcess, killProcessName, leftClick, listRegistrPath, lookHandleCloseWindow, lookHandleGetTitle, lookHandleSetTitle, lookHandleShowWindow, messageBox, mouse, native, openApp, openExternal, openPath, openRegKey, openURL, platform, powerControl, processWatchdog, ref, registr, removeStringRegKey, removeStringRegKeyWalk, removeStringRegValue, removeStringTree, rightClick, setClipboardFilePaths, setClipboardText, setCursorPos, setHandleTransparent, setRegistrDword, setRegistrKey, setRegistrQword, setShortcutLink, setWindowEnabled, setWindowFocus, setWindowMode, setWindowTop, showConsole, showMonitors, shutMonitors, sleep, system, systemChcp, systemStartTime, trash, updateWindow, version, watchClipboard, watchUSB, windowJitter };   
+export const hmc = {
+    Auto,
+    Clipboard,
+    HMC,
+    HWND,
+    MessageError,
+    MessageStop,
+    Process,
+    SetBlockInput,
+    SetSystemHOOK,
+    SetWindowInTaskbarVisible,
+    Shell,
+    Sleep,
+    Usb,
+    Watch,
+    WatchWindowForeground,
+    WatchWindowPoint,
+    Window,
+    alert,
+    analysisDirectPath,
+    clearClipboard,
+    closedHandle,
+    confirm,
+    createDirSymlink,
+    createHardLink,
+    createPathRegistr,
+    createSymlink,
+    deleteFile,
+    desc,
+    enumChildWindows,
+    enumRegistrKey,
+    freePort,
+    getAllWindows,
+    getAllWindowsHandle,
+    getBasicKeys,
+    getClipboardFilePaths,
+    getClipboardSequenceNumber,
+    getClipboardText,
+    getConsoleHandle,
+    getCurrentMonitorRect,
+    getDetailsProcessList,
+    getDetailsProcessNameList,
+    getDeviceCaps,
+    getDeviceCapsAll,
+    getForegroundWindow,
+    getForegroundWindowProcessID,
+    getHandleProcessID,
+    getHidUsbList,
+    getMainWindow,
+    getMetrics,
+    getMouseMovePoints,
+    getNumberRegKey,
+    getPointWindow,
+    getPointWindowMain,
+    getPointWindowName,
+    getPointWindowProcessId,
+    getProcessHandle,
+    getProcessList,
+    getProcessName,
+    getProcessNameList,
+    getProcessidFilePath,
+    getRegistrBuffValue,
+    getRegistrDword,
+    getRegistrQword,
+    getShortcutLink,
+    getStringRegKey,
+    getSystemIdleTime,
+    getSystemMenu,
+    getSystemMetricsLen,
+    getTrayList,
+    getUsbDevsInfo,
+    getWindowClassName,
+    getWindowRect,
+    getWindowStyle,
+    getWindowTitle,
+    hasKeyActivate,
+    hasProcess,
+    hasRegistrKey,
+    hasWindowTop,
+    hideConsole,
+    isAdmin,
+    isEnabled,
+    isHandle,
+    isHandleWindowVisible,
+    isInMonitorWindow,
+    isMouseMonitorWindow,
+    isProcess,
+    isRegistrTreeKey,
+    isSystemX64,
+    killProcess,
+    killProcessName,
+    leftClick,
+    listRegistrPath,
+    lookHandleCloseWindow,
+    lookHandleGetTitle,
+    lookHandleSetTitle,
+    lookHandleShowWindow,
+    messageBox,
+    mouse,
+    native,
+    openApp,
+    openExternal,
+    openPath,
+    openRegKey,
+    openURL,
+    platform,
+    powerControl,
+    processWatchdog,
+    ref,
+    registr,
+    removeStringRegKey,
+    removeStringRegKeyWalk,
+    removeStringRegValue,
+    removeStringTree,
+    rightClick,
+    setClipboardFilePaths,
+    setClipboardText,
+    setCloseWindow,
+    setCursorPos,
+    setHandleTransparent,
+    setRegistrDword,
+    setRegistrKey,
+    setRegistrQword,
+    setShortcutLink,
+    setShowWindow,
+    setWindowEnabled,
+    setWindowFocus,
+    setWindowMode,
+    setWindowTitle,
+    setWindowTop,
+    showConsole,
+    showMonitors,
+    shutMonitors,
+    sleep,
+    system,
+    systemChcp,
+    systemStartTime,
+    trash,
+    updateWindow,
+    version,
+    watchClipboard,
+    watchUSB,
+    windowJitter
+}

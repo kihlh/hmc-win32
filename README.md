@@ -5,6 +5,8 @@
 ## help
 `ddffsd Parts of this document were translated by machine (Deepl)`
 
+`Backwards compatible to node6.14.2 but the precompiled version is only supported to node8 and above (because node6 has no asynchronous syntactic sugar), for node6 please compile to node6.14.2 with esbuld yourself`
+
 ####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)     [编程帮助(中国服务器)](https://www.yuque.com/kiic/hmc/)           [help (English) ](https://kihlh.gitbook.io/hmc_en/)
 
 ##   Why do I need to use this module ?
@@ -32,10 +34,16 @@
 ## What functions can be achieved
 
 - **C++ easily implements functions like closing processes, getting the clipboard, but node doesn't support them.**
+
 - **Window Processing**
+
 - **Process Handling**
+
 - **System api calls**
+
 - **Disable user actions**
+
+  
 
 
 
@@ -265,7 +273,7 @@ import  HMC = require("hmc-win32");
 
 ### 重新构建
 
-HMC所有API采用winapi+nodeapi实现，因此无需重新编译（允许运行在node8以上环境），如果您需要对源代码进行修改请使用``node-gyp rebuild`` 进行编译，这需要有一定的C/C++基础，编译工具使用node-gyp即可，需要使用到的工具如下：
+HMC所有API采用winapi+nodeapi实现，因此无需重新编译（允许运行在node8以上环境 node6.14.2 需要自行使用esbuld编译），如果您需要对源代码进行修改请使用``node-gyp rebuild`` 进行编译，这需要有一定的C/C++基础，编译工具使用node-gyp即可，需要使用到的工具如下：
 
 - node-gyp
 - Visual Studio 2019（or other versions)
