@@ -98,7 +98,5 @@
   "devDependencies": {
     "@types/node": "^8.0.0"
   },
-  "dependencies": {
-    "argv-split": "^2.0.1"
-  }
+  "dependencies": {}
 }

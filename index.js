@@ -193,6 +193,7 @@ __export(hmc_exports, {
   MessageError: () => MessageError,
   MessageStop: () => MessageStop,
   Process: () => Process,
+  Registr: () => Registr,
   SetBlockInput: () => SetBlockInput,
   SetSystemHOOK: () => SetSystemHOOK,
   SetWindowInTaskbarVisible: () => SetWindowInTaskbarVisible,
@@ -212,6 +213,7 @@ __export(hmc_exports, {
   createHardLink: () => createHardLink,
   createPathRegistr: () => createPathRegistr,
   createSymlink: () => createSymlink,
+  default: () => hmc_default,
   deleteFile: () => deleteFile,
   desc: () => desc,
   enumChildWindows: () => enumChildWindows,
@@ -256,6 +258,7 @@ __export(hmc_exports, {
   getSystemMetricsLen: () => getSystemMetricsLen,
   getTrayList: () => getTrayList,
   getUsbDevsInfo: () => getUsbDevsInfo,
+  getWebView2Info: () => getWebView2Info,
   getWindowClassName: () => getWindowClassName,
   getWindowRect: () => getWindowRect,
   getWindowStyle: () => getWindowStyle,
@@ -263,6 +266,7 @@ __export(hmc_exports, {
   hasKeyActivate: () => hasKeyActivate,
   hasProcess: () => hasProcess,
   hasRegistrKey: () => hasRegistrKey,
+  hasWebView2: () => hasWebView2,
   hasWindowTop: () => hasWindowTop,
   hideConsole: () => hideConsole,
   hmc: () => hmc,
@@ -478,6 +482,7 @@ var chcpList = {
 
 // source/mian/hmc.ts
 var path = require("path");
+var fs = require("fs");
 var child_process = require("child_process");
 var net = require("net");
 var argvSplit = require_split();
@@ -1958,6 +1963,39 @@ function getWindowClassName(Handle) {
 function getWindowStyle(Handle) {
   return native.getWindowStyle(ref.int(Handle));
 }
+function GetWebView2Info(Has) {
+  const INFO = {
+    version: "",
+    name: "",
+    location: ""
+  };
+  const { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER } = Hkey;
+  let WebView2IDKEY = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}";
+  let Path_64bit_LOCAL = [HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients"];
+  let Path_64bit_USER = [HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\EdgeUpdate\\Clients"];
+  let Path_32bit_LOCAL = [HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\EdgeUpdate\\Clients"];
+  let Path_32bit_USER = [HKEY_CURRENT_USER, "Software\\Microsoft\\EdgeUpdate\\Clients"];
+  let ForEachKey = [Path_64bit_LOCAL, Path_64bit_USER, Path_32bit_LOCAL, Path_32bit_USER];
+  for (let index = 0; index < ForEachKey.length; index++) {
+    const KEY_PATH = ForEachKey[index];
+    if (registr.hasRegistrKey(...KEY_PATH, WebView2IDKEY)) {
+      if (Has)
+        return true;
+    }
+    const [Hkey2, Path] = KEY_PATH;
+    INFO.location = registr.getStringRegKey(Hkey2, Path.concat("\\", WebView2IDKEY), "location");
+    INFO.name = registr.getStringRegKey(Hkey2, Path.concat("\\", WebView2IDKEY), "name");
+    INFO.version = registr.getStringRegKey(Hkey2, Path.concat("\\", WebView2IDKEY), "pv");
+    break;
+  }
+  return INFO;
+}
+function getWebView2Info() {
+  return GetWebView2Info();
+}
+function hasWebView2() {
+  return GetWebView2Info(true);
+}
 var version = native.version;
 var desc = native.desc;
 var platform = native.platform;
@@ -2003,7 +2041,9 @@ var Window = {
     show: showConsole,
     get: getConsoleHandle,
     blockInput: SetBlockInput
-  }
+  },
+  getStyle: getWindowStyle,
+  getClassName: getWindowClassName
 };
 var Watch = {
   clipboard: watchClipboard,
@@ -2118,9 +2158,20 @@ var registr = {
   },
   get openRegKey() {
     return open;
-  }
+  },
+  getRegistrQword,
+  getRegistrDword,
+  setRegistrQword,
+  setRegistrDword,
+  removeStringRegValue,
+  removeStringRegKeyWalk,
+  removeStringTree,
+  isRegistrTreeKey
 };
+var Registr = registr;
 var hmc = {
+  getWebView2Info,
+  hasWebView2,
   Auto,
   Clipboard,
   HMC,
@@ -2264,6 +2315,7 @@ var hmc = {
   watchUSB,
   windowJitter
 };
+var hmc_default = hmc;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Auto,
@@ -2273,6 +2325,7 @@ var hmc = {
   MessageError,
   MessageStop,
   Process,
+  Registr,
   SetBlockInput,
   SetSystemHOOK,
   SetWindowInTaskbarVisible,
@@ -2336,6 +2389,7 @@ var hmc = {
   getSystemMetricsLen,
   getTrayList,
   getUsbDevsInfo,
+  getWebView2Info,
   getWindowClassName,
   getWindowRect,
   getWindowStyle,
@@ -2343,6 +2397,7 @@ var hmc = {
   hasKeyActivate,
   hasProcess,
   hasRegistrKey,
+  hasWebView2,
   hasWindowTop,
   hideConsole,
   hmc,

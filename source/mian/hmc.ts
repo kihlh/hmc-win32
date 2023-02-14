@@ -1,4 +1,5 @@
 import path = require("path");
+import fs = require("fs");
 import { SpawnOptionsWithoutStdio, ChildProcessWithoutNullStreams } from "child_process";
 import { chcpList } from "./chcpList";
 import child_process = require("child_process");
@@ -8,15 +9,15 @@ let $_thenConsole: HWND | null = null;
 /**注册表根目录 */
 const Hkey = {
     /**用作默认用户首选设置，也作为单个用户的首选设置 */
-    HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG",
+    HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG" as "HKEY_CURRENT_CONFIG",
     /**用作默认用户首选设置，也作为单个用户的首选设置 */
-    HKEY_USERS: "HKEY_USERS",
+    HKEY_USERS: "HKEY_USERS" as "HKEY_USERS",
     /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
-    HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT",
+    HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT" as "HKEY_CLASSES_ROOT",
     /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
-    HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE",
+    HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE" as "HKEY_LOCAL_MACHINE",
     /**管理系统当前的用户信息 */
-    HKEY_CURRENT_USER: "HKEY_CURRENT_USER",
+    HKEY_CURRENT_USER: "HKEY_CURRENT_USER" as "HKEY_CURRENT_USER",
 };
 
 /**
@@ -439,6 +440,17 @@ export module HMC {
         //  (top) 从屏幕顶部边到所在位置得像素数
         y: number;
     }
+
+    // WebView2 信息
+    export type WebView2Info ={
+        // 版本号
+        version: string,
+        // 名称
+        name: string,
+        // 安装路径
+        location: string,
+    }|null;
+
 
     /**
      * C++ 中的 位置定义
@@ -3345,6 +3357,66 @@ export function getWindowStyle(Handle: number | HWND) {
     return native.getWindowStyle(ref.int(Handle));
 }
 
+/**
+ * 获取WebView2Info 的信息
+ * @param Has 
+ */
+ function GetWebView2Info(Has:true):boolean; 
+ function GetWebView2Info(Has?:false):HMC.WebView2Info
+ function GetWebView2Info(Has?:boolean):boolean|HMC.WebView2Info{
+    const INFO:HMC.WebView2Info = {
+        version: "",
+        name: "",
+        location: "",
+    };
+    const { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER } = Hkey;
+    let WebView2IDKEY = "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}";
+
+    //  https://learn.microsoft.com/zh-cn/microsoft-edge/webview2/concepts/distribution#detect-if-a-suitable-webview2-runtime-is-already-installed
+
+    // 64bit Windows
+    let Path_64bit_LOCAL: ForEachKey = [HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients"];
+    let Path_64bit_USER: ForEachKey = [HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\EdgeUpdate\\Clients"];
+
+    // 32bit Windows
+    let Path_32bit_LOCAL: ForEachKey = [HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\EdgeUpdate\\Clients"];
+    let Path_32bit_USER: ForEachKey = [HKEY_CURRENT_USER, "Software\\Microsoft\\EdgeUpdate\\Clients"];
+
+    type ForEachKey = [HMC.HKEY, string];
+    let ForEachKey: Array<ForEachKey> = [Path_64bit_LOCAL, Path_64bit_USER, Path_32bit_LOCAL, Path_32bit_USER];
+
+    for (let index = 0; index < ForEachKey.length; index++) {
+        const KEY_PATH = ForEachKey[index];
+        if (registr.hasRegistrKey(...KEY_PATH, WebView2IDKEY)) {
+            if(Has)return true;
+        }
+        const [Hkey,Path] = KEY_PATH;
+        INFO.location = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"location");
+        INFO.name = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"name");
+        INFO.version = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"pv");
+
+        break;
+    }
+
+    return INFO;
+}
+
+/**
+ * 获取WebView2的信息
+ * @returns 
+ */
+export function getWebView2Info(){
+    return GetWebView2Info();
+}
+
+/**
+ * 当前系统是否安装了 WebView2
+ * @returns 
+ */
+export function hasWebView2(){
+    return GetWebView2Info(true);
+}
+
 // hmc.node 的版本号
 export const version = native.version;
 
@@ -3398,7 +3470,9 @@ export const Window = {
         show: showConsole,
         get: getConsoleHandle,
         blockInput: SetBlockInput,
-    }
+    },
+    getStyle: getWindowStyle,
+    getClassName: getWindowClassName
 }
 
 //所有监听函数的合集 (拥有统一化名称)  
@@ -3681,9 +3755,19 @@ export const registr = {
     get openRegKey() {
         return open;
     },
+    getRegistrQword,
+    getRegistrDword,
+    setRegistrQword,
+    setRegistrDword,
+    removeStringRegValue,
+    removeStringRegKeyWalk,
+    removeStringTree,
+    isRegistrTreeKey,
 };
-
+export const Registr = registr;
 export const hmc = {
+    getWebView2Info,
+    hasWebView2,
     Auto,
     Clipboard,
     HMC,
@@ -3827,3 +3911,4 @@ export const hmc = {
     watchUSB,
     windowJitter
 }
+export default hmc;
