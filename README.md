@@ -69,11 +69,10 @@ console.log("SystemIdleTime=>",HMC.getSystemIdleTime())
 ###  In TypeScript using the
 
 ```typescript
-
 import  HMC = require("hmc-win32");
 ```
 
-## 功能概览
+# 功能概览
 
 ### API中间层
 

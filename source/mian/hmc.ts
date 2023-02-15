@@ -1,5 +1,7 @@
 import path = require("path");
+import os = require("os");
 import fs = require("fs");
+import https = require('https');
 import { SpawnOptionsWithoutStdio, ChildProcessWithoutNullStreams } from "child_process";
 import { chcpList } from "./chcpList";
 import child_process = require("child_process");
@@ -19,13 +21,19 @@ const Hkey = {
     /**管理系统当前的用户信息 */
     HKEY_CURRENT_USER: "HKEY_CURRENT_USER" as "HKEY_CURRENT_USER",
 };
-
 /**
  * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
  * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
  */
 export const native: HMC.Native = (() => {
-    let Native: HMC.Native = process.platform == "win32" ? require("./HMC.node") : (() => {
+    function _require_bin(): HMC.Native {
+        try {
+            return require("./HMC.node");
+        } catch (error) {
+            return require("../HMC.node");
+        }
+    }
+    let Native: HMC.Native = process.platform == "win32" ? _require_bin() : (() => {
         let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
         function fnBool(...args: any[]) { console.error(HMCNotPlatform); return false }
         function fnVoid(...args: any[]) { console.error(HMCNotPlatform); return undefined }
@@ -442,14 +450,14 @@ export module HMC {
     }
 
     // WebView2 信息
-    export type WebView2Info ={
+    export type WebView2Info = {
         // 版本号
         version: string,
         // 名称
         name: string,
         // 安装路径
         location: string,
-    }|null;
+    } | null;
 
 
     /**
@@ -3361,10 +3369,10 @@ export function getWindowStyle(Handle: number | HWND) {
  * 获取WebView2Info 的信息
  * @param Has 
  */
- function GetWebView2Info(Has:true):boolean; 
- function GetWebView2Info(Has?:false):HMC.WebView2Info
- function GetWebView2Info(Has?:boolean):boolean|HMC.WebView2Info{
-    const INFO:HMC.WebView2Info = {
+function GetWebView2Info(Has: true): boolean;
+function GetWebView2Info(Has?: false): HMC.WebView2Info
+function GetWebView2Info(Has?: boolean): boolean | HMC.WebView2Info {
+    const INFO: HMC.WebView2Info = {
         version: "",
         name: "",
         location: "",
@@ -3388,12 +3396,12 @@ export function getWindowStyle(Handle: number | HWND) {
     for (let index = 0; index < ForEachKey.length; index++) {
         const KEY_PATH = ForEachKey[index];
         if (registr.hasRegistrKey(...KEY_PATH, WebView2IDKEY)) {
-            if(Has)return true;
+            if (Has) return true;
         }
-        const [Hkey,Path] = KEY_PATH;
-        INFO.location = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"location");
-        INFO.name = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"name");
-        INFO.version = registr.getStringRegKey(Hkey,Path.concat("\\",WebView2IDKEY),"pv");
+        const [Hkey, Path] = KEY_PATH;
+        INFO.location = registr.getStringRegKey(Hkey, Path.concat("\\", WebView2IDKEY), "location");
+        INFO.name = registr.getStringRegKey(Hkey, Path.concat("\\", WebView2IDKEY), "name");
+        INFO.version = registr.getStringRegKey(Hkey, Path.concat("\\", WebView2IDKEY), "pv");
 
         break;
     }
@@ -3405,15 +3413,59 @@ export function getWindowStyle(Handle: number | HWND) {
  * 获取WebView2的信息
  * @returns 
  */
-export function getWebView2Info(){
+export function getWebView2Info() {
     return GetWebView2Info();
+}
+
+/**
+ * 下载并安装WebView2 
+ */
+export async function WebView2OnlineInstall() {
+    const webView2URL = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+    const webView2Path = path.join("MicrosoftEdgeWebview2Setup.exe");
+    const webView2InstallCommand = ["/silent", "/install"];
+    return new Promise<void>((resolve, reject) => {
+        const buffList: Buffer[] = [];
+        https.get(webView2URL, (res) => {
+            if (res.statusCode !== 200) {
+                reject(new Error(`Install  WebView2 failure statusCode: ${res.statusCode || 404}`));
+                return;
+            }
+
+            res.on("data", (data) => {
+                buffList.push(data);
+            });
+
+            res.once("error", (err) => {
+                reject(err);
+            });
+
+            res.on('end', () => {
+                const buff = ref.concatBuff(buffList);
+                buffList.length = 0;
+                fs.promises.writeFile(webView2Path, buff).then(() => {
+                    const spawn = child_process.spawn(webView2Path, webView2InstallCommand, { "windowsHide": true, });
+                    spawn.on("error", function () {
+                        reject(new Error(`Install  WebView2 failure Installation process creation failed`));
+                        spawn.kill();
+                    });
+                    spawn.once("exit", function () {
+                        resolve(undefined);
+                    });
+                }).catch(err => {
+                    reject(new Error(`Install  WebView2 failure Update file cannot be written`));
+                });
+            });
+
+        });
+    });
 }
 
 /**
  * 当前系统是否安装了 WebView2
  * @returns 
  */
-export function hasWebView2(){
+export function hasWebView2() {
     return GetWebView2Info(true);
 }
 

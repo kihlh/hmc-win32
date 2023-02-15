@@ -9,26 +9,6 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
 var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __async = (__this, __arguments, generator) => {
-  return new Promise((resolve, reject) => {
-    var fulfilled = (value) => {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var rejected = (value) => {
-      try {
-        step(generator.throw(value));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
-    step((generator = generator.apply(__this, __arguments)).next());
-  });
-};
 
 // node_modules/argv-split/split.js
 var require_split = __commonJS({
@@ -319,7 +299,9 @@ var chcpList = {
 
 // source/mian/hmc.ts
 var path = __require("path");
+var os = __require("os");
 var fs = __require("fs");
+var https = __require("https");
 var child_process = __require("child_process");
 var net = __require("net");
 var argvSplit = require_split();
@@ -332,7 +314,14 @@ var Hkey = {
   HKEY_CURRENT_USER: "HKEY_CURRENT_USER"
 };
 var native = (() => {
-  let Native = process.platform == "win32" ? __require("./HMC.node") : (() => {
+  function _require_bin() {
+    try {
+      return __require("./HMC.node");
+    } catch (error) {
+      return __require("../HMC.node");
+    }
+  }
+  let Native = process.platform == "win32" ? _require_bin() : (() => {
     let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
     function fnBool(...args) {
       console.error(HMCNotPlatform);
@@ -1151,18 +1140,16 @@ function watchClipboard(CallBack, nextAwaitMs) {
   let NextAwaitMs = nextAwaitMs || 150;
   let Next = true;
   let oidClipboardSequenceNumber = getClipboardSequenceNumber();
-  (function() {
-    return __async(this, null, function* () {
-      while (Next) {
-        yield Sleep(NextAwaitMs);
-        let clipboardSequenceNumber = getClipboardSequenceNumber();
-        if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
-          if (CallBack)
-            CallBack();
-        }
-        oidClipboardSequenceNumber = clipboardSequenceNumber;
+  (async function() {
+    while (Next) {
+      await Sleep(NextAwaitMs);
+      let clipboardSequenceNumber = getClipboardSequenceNumber();
+      if (oidClipboardSequenceNumber !== clipboardSequenceNumber) {
+        if (CallBack)
+          CallBack();
       }
-    });
+      oidClipboardSequenceNumber = clipboardSequenceNumber;
+    }
   })();
   return {
     unwatcher() {
@@ -1180,39 +1167,37 @@ function watchUSB(CallBack, nextAwaitMs, watchType) {
   let start = true;
   if (typeof watchType == "string")
     watchType = [watchType];
-  (function() {
-    return __async(this, null, function* () {
-      while (Next) {
-        yield Sleep(NextAwaitMs);
-        let GET_ID_List = new Set(watchType ? [
-          ...watchType.includes("hub") ? native.getHidUsbIdList() : [],
-          ...watchType.includes("drive") ? native.getUsbDevsInfo() : []
-        ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
-        if (start) {
-          for (const NEW_ID of GET_ID_List) {
-            OID_ID_LIST.add(NEW_ID);
-            CallBack && CallBack("start", NEW_ID);
-          }
-          start = false;
-        }
-        let GET_ID_List_NEW = [...GET_ID_List];
-        for (const OID_ID of OID_ID_LIST) {
-          if (!GET_ID_List.has(OID_ID)) {
-            CallBack && CallBack("remove", OID_ID);
-          }
-        }
+  (async function() {
+    while (Next) {
+      await Sleep(NextAwaitMs);
+      let GET_ID_List = new Set(watchType ? [
+        ...watchType.includes("hub") ? native.getHidUsbIdList() : [],
+        ...watchType.includes("drive") ? native.getUsbDevsInfo() : []
+      ] : [...native.getHidUsbIdList(), ...native.getUsbDevsInfo()]);
+      if (start) {
         for (const NEW_ID of GET_ID_List) {
-          if (!OID_ID_LIST.has(NEW_ID)) {
-            CallBack && CallBack("add", NEW_ID);
-          }
+          OID_ID_LIST.add(NEW_ID);
+          CallBack && CallBack("start", NEW_ID);
         }
-        OID_ID_LIST.clear();
-        for (let index = 0; index < GET_ID_List_NEW.length; index++) {
-          const GET_ID = GET_ID_List_NEW[index];
-          OID_ID_LIST.add(GET_ID);
+        start = false;
+      }
+      let GET_ID_List_NEW = [...GET_ID_List];
+      for (const OID_ID of OID_ID_LIST) {
+        if (!GET_ID_List.has(OID_ID)) {
+          CallBack && CallBack("remove", OID_ID);
         }
       }
-    });
+      for (const NEW_ID of GET_ID_List) {
+        if (!OID_ID_LIST.has(NEW_ID)) {
+          CallBack && CallBack("add", NEW_ID);
+        }
+      }
+      OID_ID_LIST.clear();
+      for (let index = 0; index < GET_ID_List_NEW.length; index++) {
+        const GET_ID = GET_ID_List_NEW[index];
+        OID_ID_LIST.add(GET_ID);
+      }
+    }
   })();
   return {
     get idList() {
@@ -1278,32 +1263,32 @@ function processWatchdog(ProcessID, callback, awaitMs) {
   let quit = false;
   if (!callback) {
     let Prom = new Promise(
-      (resolve, reject) => __async(this, null, function* () {
+      async (resolve, reject) => {
         while (true) {
           if (quit)
             break;
-          yield Sleep(awaitMs || 500);
+          await Sleep(awaitMs || 500);
           if (!hasProcess(ref.int(ProcessID))) {
             resolve(void 0);
             break;
           }
         }
-      })
+      }
     );
     Prom.quit = function() {
       quit = true;
     };
     return Prom;
   }
-  (() => __async(this, null, function* () {
+  (async () => {
     while (true) {
-      yield Sleep(awaitMs || 500);
+      await Sleep(awaitMs || 500);
       if (!hasProcess(ref.int(ProcessID))) {
         typeof callback == "function" && callback();
         break;
       }
     }
-  }))();
+  })();
   return {
     quit: function() {
       quit = true;
@@ -1313,7 +1298,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
 function WatchWindowPoint(callback, awaitMs) {
   let quit = false;
   let oidPoint = native.getPointWindow() || 0;
-  (() => __async(this, null, function* () {
+  (async () => {
     if (typeof callback !== "function")
       return;
     while (true) {
@@ -1332,9 +1317,9 @@ function WatchWindowPoint(callback, awaitMs) {
           }
         }
       }
-      yield Sleep(awaitMs || 350);
+      await Sleep(awaitMs || 350);
     }
-  }))();
+  })();
   return {
     quit: function() {
       quit = true;
@@ -1347,7 +1332,7 @@ function WatchWindowPoint(callback, awaitMs) {
 function WatchWindowForeground(callback, awaitMs) {
   let quit = false;
   let oidForeg = getForegroundWindow();
-  (() => __async(this, null, function* () {
+  (async () => {
     if (typeof callback !== "function")
       return;
     while (true) {
@@ -1366,9 +1351,9 @@ function WatchWindowForeground(callback, awaitMs) {
           }
         }
       }
-      yield Sleep(awaitMs || 350);
+      await Sleep(awaitMs || 350);
     }
-  }))();
+  })();
   return {
     quit: function() {
       quit = true;
@@ -1747,15 +1732,13 @@ function shutMonitors(show) {
 function sleep(awaitTime) {
   return native.sleep(ref.int(awaitTime));
 }
-function Sleep(awaitTime, Sync) {
-  return __async(this, null, function* () {
-    if (Sync) {
-      return sleep(ref.int(awaitTime));
-    }
-    return new Promise(
-      (resolve) => setTimeout(resolve, ref.int(awaitTime))
-    );
-  });
+async function Sleep(awaitTime, Sync) {
+  if (Sync) {
+    return sleep(ref.int(awaitTime));
+  }
+  return new Promise(
+    (resolve) => setTimeout(resolve, ref.int(awaitTime))
+  );
 }
 function systemStartTime() {
   return native.systemStartTime();
@@ -1829,6 +1812,42 @@ function GetWebView2Info(Has) {
 }
 function getWebView2Info() {
   return GetWebView2Info();
+}
+async function WebView2OnlineInstall() {
+  const webView2URL = "https://go.microsoft.com/fwlink/p/?LinkId=2124703";
+  const webView2Path = path.join("MicrosoftEdgeWebview2Setup.exe");
+  const webView2InstallCommand = ["/silent", "/install"];
+  return new Promise((resolve, reject) => {
+    const buffList = [];
+    https.get(webView2URL, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Install  WebView2 failure statusCode: ${res.statusCode || 404}`));
+        return;
+      }
+      res.on("data", (data) => {
+        buffList.push(data);
+      });
+      res.once("error", (err) => {
+        reject(err);
+      });
+      res.on("end", () => {
+        const buff = ref.concatBuff(buffList);
+        buffList.length = 0;
+        fs.promises.writeFile(webView2Path, buff).then(() => {
+          const spawn = child_process.spawn(webView2Path, webView2InstallCommand, { "windowsHide": true });
+          spawn.on("error", function() {
+            reject(new Error(`Install  WebView2 failure Installation process creation failed`));
+            spawn.kill();
+          });
+          spawn.once("exit", function() {
+            resolve(void 0);
+          });
+        }).catch((err) => {
+          reject(new Error(`Install  WebView2 failure Update file cannot be written`));
+        });
+      });
+    });
+  });
 }
 function hasWebView2() {
   return GetWebView2Info(true);
@@ -2171,6 +2190,7 @@ export {
   Watch,
   WatchWindowForeground,
   WatchWindowPoint,
+  WebView2OnlineInstall,
   Window,
   alert,
   analysisDirectPath,
