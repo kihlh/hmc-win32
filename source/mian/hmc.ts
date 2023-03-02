@@ -3924,28 +3924,37 @@ class Iohook_Mouse {
         start: [] as Function[],
         move: [] as Function[],
     };
-    private _emit_start_Index: null | NodeJS.Timer = null;
     private _Close = false;
     constructor() {
 
     }
     once(eventName: "start" | "close", listener: () => void): this;
     once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
     once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
-    once(eventName: unknown, listener: unknown) {
-        if (typeof listener !== "function") return this;
-        this._oncelistenerCountList[eventName as "data"].push(listener);
-        return this;
+    once(eventName: unknown, listener?: unknown) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "mouse"
+        }
+        if (typeof listener !== "function") return mouseHook;
+        mouseHook._oncelistenerCountList[eventName as "data"].push(listener);
+        return mouseHook;
     };
+    on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
     on(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
-    on(eventName: unknown, listener: unknown) {
-        if (typeof listener !== "function") return this;
-        this._onlistenerCountList[eventName as "data"].push(listener);
-        return this;
+    on(eventName: unknown, listener?: unknown) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "mouse"
+        }
+        if (typeof listener !== "function") return mouseHook;
+        mouseHook._onlistenerCountList[eventName as "data"].push(listener);
+        return mouseHook;
     };
     /**
      * 开始
@@ -3960,30 +3969,33 @@ class Iohook_Mouse {
             y: 0,
             isDown: false,
         };
-        start = native.isStartHookMouse();
-        if (start) {
-            this.emit("start");
+       
+            mouseHook.emit("start");
             let emit_getMouseNextSession = () => {
-                if (this._Close) { this._emit_start_Index !== null && clearInterval(this._emit_start_Index); return };
+                if (mouseHook._Close) {return };
                 let getMouseNextSession = native.getMouseNextSession();
-                if (getMouseNextSession?.length) this.emit("data", getMouseNextSession);
+                if (getMouseNextSession?.length) mouseHook.emit("data", getMouseNextSession);
                 if (getMouseNextSession)
                     for (let index = 0; index < getMouseNextSession.length; index++) {
                         const MouseNextSession = getMouseNextSession[index];
                         const mousePoint = new MousePoint(MouseNextSession);
-                        this.emit("mouse", mousePoint);
+                        mouseHook.emit("mouse", mousePoint);
                         if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
-                            this.emit("move", mousePoint.x, mousePoint.y, mousePoint);
+                            mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
                         }
                         oid_Mouse_info.isDown = mousePoint.isDown;
                         oid_Mouse_info.x = mousePoint.x;
                         oid_Mouse_info.y = mousePoint.y;
                     }
-
+                    
             }
-            this._emit_start_Index = setInterval(emit_getMouseNextSession, 50);
-        }
-        return start;
+            (async()=>{
+                while (true) {
+                    if(this._Close)return;
+                    await Sleep(50);
+                    emit_getMouseNextSession();
+                }
+            })();
     }
     /**
      * 结束
@@ -3991,36 +4003,34 @@ class Iohook_Mouse {
     close() {
         native.unHookMouse();
 
-        this.emit("close");
-        this._emit_start_Index !== null && clearInterval(this._emit_start_Index);
-        this._Close = false;
+        mouseHook.emit("close");
+        mouseHook._Close = true;
+        mouseHook._oncelistenerCountList.close.length = 0;
+        mouseHook._oncelistenerCountList.data.length = 0;
+        mouseHook._oncelistenerCountList.mouse.length = 0;
+        mouseHook._oncelistenerCountList.move.length = 0;
+        mouseHook._oncelistenerCountList.start.length = 0;
 
-        this._oncelistenerCountList.close.length = 0;
-        this._oncelistenerCountList.data.length = 0;
-        this._oncelistenerCountList.mouse.length = 0;
-        this._oncelistenerCountList.move.length = 0;
-        this._oncelistenerCountList.start.length = 0;
-
-        this._onlistenerCountList.close.length = 0;
-        this._onlistenerCountList.data.length = 0;
-        this._onlistenerCountList.mouse.length = 0;
-        this._onlistenerCountList.move.length = 0;
-        this._onlistenerCountList.start.length = 0;
+        mouseHook._onlistenerCountList.close.length = 0;
+        mouseHook._onlistenerCountList.data.length = 0;
+        mouseHook._onlistenerCountList.mouse.length = 0;
+        mouseHook._onlistenerCountList.move.length = 0;
+        mouseHook._onlistenerCountList.start.length = 0;
     }
     emit(eventName: "data", data: `${number}|${number}|${0 | 1}`[]): boolean;
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
     emit(eventName: "mouse", MousePoint: MousePoint): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
-        const emitFunList = this._onlistenerCountList[eventName as "data"];
-        const onceEmitFunList = this._oncelistenerCountList[eventName as "data"];
+        const emitFunList = mouseHook._onlistenerCountList[eventName as "data"];
+        const onceEmitFunList = mouseHook._oncelistenerCountList[eventName as "data"];
         for (let index = 0; index < emitFunList.length; index++) {
             const emitFun = emitFunList[index];
-            emitFun.apply(this, data);
+            emitFun.apply(mouseHook, data);
         };
         for (let index = 0; index < onceEmitFunList.length; index++) {
             const emitFun = onceEmitFunList[index];
-            emitFun.apply(this, data);
+            emitFun.apply(mouseHook, data);
         };
         onceEmitFunList.length = 0;
         return emitFunList.length ? true : false;
@@ -4035,25 +4045,25 @@ class Iohook_Mouse {
         switch (treatmentMode) {
             case "on": {
                 if (data) {
-                    const listenerCountList = this._onlistenerCountList[eventName];
+                    const listenerCountList = mouseHook._onlistenerCountList[eventName];
                     if (listenerCountList.indexOf(data)) {
-                        return this._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                        return mouseHook._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
                     }
                 } else {
-                    this._onlistenerCountList[eventName].length = 0;
-                    return !this._onlistenerCountList[eventName].length
+                    mouseHook._onlistenerCountList[eventName].length = 0;
+                    return !mouseHook._onlistenerCountList[eventName].length
                 }
                 break;
             }
             case "once": {
                 if (data) {
-                    const listenerCountList = this._oncelistenerCountList[eventName];
+                    const listenerCountList = mouseHook._oncelistenerCountList[eventName];
                     if (listenerCountList.indexOf(data)) {
-                        return this._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                        return mouseHook._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
                     }
                 } else {
-                    this._oncelistenerCountList[eventName].length = 0;
-                    return !this._oncelistenerCountList[eventName].length
+                    mouseHook._oncelistenerCountList[eventName].length = 0;
+                    return !mouseHook._oncelistenerCountList[eventName].length
                 }
                 break;
             }
@@ -4100,7 +4110,6 @@ class Iohook_Keyboard {
         start: [] as Function[],
         change: [] as Function[],
     };
-    private _emit_start_Index: null | NodeJS.Timer = null;
     private _Close = false;
     constructor() {
 
@@ -4114,9 +4123,9 @@ class Iohook_Keyboard {
             listener = eventName;
             eventName = "change"
         }
-        if (typeof listener !== "function") return this;
-        this._oncelistenerCountList[eventName as "data"].push(listener);
-        return this;
+        if (typeof listener !== "function") return keyboardHook;
+        keyboardHook._oncelistenerCountList[eventName as "data"].push(listener);
+        return keyboardHook;
     };
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
@@ -4127,9 +4136,9 @@ class Iohook_Keyboard {
             listener = eventName;
             eventName = "change"
         }
-        if (typeof listener !== "function") return this;
-        this._onlistenerCountList[eventName as "data"].push(listener);
-        return this;
+        if (typeof listener !== "function") return keyboardHook;
+        keyboardHook._onlistenerCountList[eventName as "data"].push(listener);
+        return keyboardHook;
     };
     /**
      * 开始
@@ -4139,24 +4148,27 @@ class Iohook_Keyboard {
         let start = native.isStartKeyboardHook();
         if (start) throw new Error("the Task Has Started.");
         native.installKeyboardHook();
-        start = native.isStartKeyboardHook();
-        if (start) {
-            this.emit("start");
+      
+        keyboardHook.emit("start");
             let emit_getKeyboardNextSession = () => {
-                if (this._Close) { this._emit_start_Index !== null && clearInterval(this._emit_start_Index); return };
                 let getKeyboardNextSession = native.getKeyboardNextSession();
-                if (getKeyboardNextSession?.length) this.emit("data", getKeyboardNextSession);
+                if (getKeyboardNextSession?.length) keyboardHook.emit("data", getKeyboardNextSession);
                 if (getKeyboardNextSession)
                     for (let index = 0; index < getKeyboardNextSession.length; index++) {
                         const KeyboardNextSession = getKeyboardNextSession[index];
                         const KeyboardPoint = new Keyboard(KeyboardNextSession);
-                        this.emit("change", KeyboardPoint);
+                        keyboardHook.emit("change", KeyboardPoint);
                     }
 
             }
-            this._emit_start_Index = setInterval(emit_getKeyboardNextSession, 50);
-        }
-        return start;
+            (async()=>{
+                while (true) {
+                    if(keyboardHook._Close)return;
+                    await Sleep(15);
+                    emit_getKeyboardNextSession();
+                }
+            })();
+            return start;
     }
     /**
      * 结束
@@ -4164,33 +4176,32 @@ class Iohook_Keyboard {
     close() {
         native.unKeyboardHook();
 
-        this.emit("close");
-        this._emit_start_Index !== null && clearInterval(this._emit_start_Index);
-        this._Close = false;
+        keyboardHook.emit("close");
+        keyboardHook._Close = true;
 
-        this._oncelistenerCountList.close.length = 0;
-        this._oncelistenerCountList.data.length = 0;
-        this._oncelistenerCountList.change.length = 0;
-        this._oncelistenerCountList.start.length = 0;
+        keyboardHook._oncelistenerCountList.close.length = 0;
+        keyboardHook._oncelistenerCountList.data.length = 0;
+        keyboardHook._oncelistenerCountList.change.length = 0;
+        keyboardHook._oncelistenerCountList.start.length = 0;
 
-        this._onlistenerCountList.close.length = 0;
-        this._onlistenerCountList.data.length = 0;
-        this._onlistenerCountList.change.length = 0;
-        this._onlistenerCountList.start.length = 0;
+        keyboardHook._onlistenerCountList.close.length = 0;
+        keyboardHook._onlistenerCountList.data.length = 0;
+        keyboardHook._onlistenerCountList.change.length = 0;
+        keyboardHook._onlistenerCountList.start.length = 0;
     }
     emit(eventName: "data", data: (`${number}|0` | `${number}|1`)[]): boolean;
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "change", KeyboardPoint: Keyboard): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
-        const emitFunList = this._onlistenerCountList[eventName as "data"];
-        const onceEmitFunList = this._oncelistenerCountList[eventName as "data"];
+        const emitFunList = keyboardHook._onlistenerCountList[eventName as "data"];
+        const onceEmitFunList = keyboardHook._oncelistenerCountList[eventName as "data"];
         for (let index = 0; index < emitFunList.length; index++) {
             const emitFun = emitFunList[index];
-            emitFun.apply(this, data);
+            emitFun.apply(keyboardHook, data);
         };
         for (let index = 0; index < onceEmitFunList.length; index++) {
             const emitFun = onceEmitFunList[index];
-            emitFun.apply(this, data);
+            emitFun.apply(keyboardHook, data);
         };
         onceEmitFunList.length = 0;
         return emitFunList.length ? true : false;
@@ -4205,25 +4216,25 @@ class Iohook_Keyboard {
         switch (treatmentMode) {
             case "on": {
                 if (data) {
-                    const listenerCountList = this._onlistenerCountList[eventName];
+                    const listenerCountList = keyboardHook._onlistenerCountList[eventName];
                     if (listenerCountList.indexOf(data)) {
-                        return this._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                        return keyboardHook._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
                     }
                 } else {
-                    this._onlistenerCountList[eventName].length = 0;
-                    return !this._onlistenerCountList[eventName].length
+                    keyboardHook._onlistenerCountList[eventName].length = 0;
+                    return !keyboardHook._onlistenerCountList[eventName].length
                 }
                 break;
             }
             case "once": {
                 if (data) {
-                    const listenerCountList = this._oncelistenerCountList[eventName];
+                    const listenerCountList = keyboardHook._oncelistenerCountList[eventName];
                     if (listenerCountList.indexOf(data)) {
-                        return this._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                        return keyboardHook._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
                     }
                 } else {
-                    this._oncelistenerCountList[eventName].length = 0;
-                    return !this._oncelistenerCountList[eventName].length
+                    keyboardHook._oncelistenerCountList[eventName].length = 0;
+                    return !keyboardHook._oncelistenerCountList[eventName].length
                 }
                 break;
             }

@@ -261,6 +261,8 @@ import  HMC = require("hmc-win32");
 - **getBasicKeys** 获取四大按钮是否按下
 - **getMouseMovePoints** 获取鼠标之前64个位置
 - **getUsbDevsInfo** 获取所有usb驱动器(不包含HUD)
+- **keyboardHook** 低级的键盘变化监听构造函数
+- **mouseHook** 低级的鼠标变化监听构造函数
 
 ### 文件链接/快捷方式
 
