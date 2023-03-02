@@ -792,6 +792,9 @@ declare class hmc_win32 {
      */
     getMetrics(): {
         left: number;
+        /**
+         * 当前句柄的pid
+         */
         top: number;
         x: number;
         y: number;
@@ -801,6 +804,7 @@ declare class hmc_win32 {
      * @returns 之前64个位置
      */
     getMouseMovePoints(): {
+        /**当前二进制适用系统平台 */
         x: number;
         y: number;
         time: number;
@@ -855,11 +859,6 @@ declare class hmc_win32 {
     }[];
     /** 获取进程列表**/
     getProcessList(): {
-        /**
-         * 格式化数字为int(强制)
-         * @param Num
-         * @returns
-         */
         name: string;
         pid: number;
     }[];
@@ -1643,11 +1642,6 @@ declare class hmc_win32 {
             name: string;
         }[];
         getList: () => {
-            /**
-             * 格式化数字为int(强制)
-             * @param Num
-             * @returns
-             */
             name: string;
             pid: number;
         }[];

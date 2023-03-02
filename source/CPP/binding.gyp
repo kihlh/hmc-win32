@@ -10,7 +10,8 @@
             "usb.cpp",
             "util.cpp",
             "clip.cpp",
-            "registr.cpp"
+            "registr.cpp",
+            "auto.cpp"
             
           ],
           'msvs_settings': {

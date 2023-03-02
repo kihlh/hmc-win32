@@ -1,6 +1,6 @@
 import path = require("path");
 import { native , chcpList } from "./native";
-import { spawn, execFileSync, SpawnOptionsWithoutStdio, ChildProcessWithoutNullStreams, execFile } from "child_process";
+import { execFile } from "child_process";
 import net = require("net");
 let chcpList: { [key: string | number]: SystemDecoder } = {
   37: "IBM037",

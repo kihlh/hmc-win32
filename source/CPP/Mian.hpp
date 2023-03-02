@@ -21,6 +21,11 @@
 #include <Psapi.h>
 #include <Dwmapi.h>
 #include "./util.h"
+#include <conio.h>
+#include <time.h>
+
+using namespace std;
+
 
 #pragma comment(lib, "dwmapi.lib")
 #define MAX_KEY_LENGTH 255
@@ -143,3 +148,21 @@ napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
 // napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
 
 
+// auto.cpp
+void InstallKeyboardHook();
+void InstallHookMouse();
+napi_value unKeyboardHook(napi_env env, napi_callback_info info);
+napi_value unHookMouse(napi_env env, napi_callback_info info);
+napi_value getMouseNextSession(napi_env env, napi_callback_info info);
+napi_value getKeyboardNextSession(napi_env env, napi_callback_info info);
+napi_value installHookMouse(napi_env env, napi_callback_info info);
+napi_value installKeyboardHook(napi_env env, napi_callback_info info);
+napi_value isStartKeyboardHook(napi_env env, napi_callback_info info);
+napi_value isStartHookMouse(napi_env env, napi_callback_info info);
+napi_value hasKeyActivate(napi_env env, napi_callback_info info);
+napi_value getMouseMovePoints(napi_env env, napi_callback_info info);
+napi_value leftClick(napi_env env, napi_callback_info info);
+napi_value rightClick(napi_env env, napi_callback_info info);
+napi_value setCursorPos(napi_env env, napi_callback_info info);
+napi_value getBasicKeys(napi_env env, napi_callback_info info);
+napi_value mouse(napi_env env, napi_callback_info info);

@@ -2,7 +2,6 @@ import path = require("path");
 import os = require("os");
 import fs = require("fs");
 import https = require('https');
-import { SpawnOptionsWithoutStdio, ChildProcessWithoutNullStreams } from "child_process";
 import { chcpList } from "./chcpList";
 import child_process = require("child_process");
 import net = require("net");
@@ -28,7 +27,8 @@ const Hkey = {
 export const native: HMC.Native = (() => {
     function _require_bin(): HMC.Native {
         try {
-            return require("./HMC.node");
+            if (process.arch == "x32") return require("./bin/HMC_x86.node");
+            else return require("./bin/HMC_x64.node");
         } catch (error) {
             return require("../HMC.node");
         }
@@ -42,6 +42,14 @@ export const native: HMC.Native = (() => {
         function fnStrList(...args: any[]) { console.error(HMCNotPlatform); return [] as string[] }
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         return {
+            isStartKeyboardHook: fnBool,
+            isStartHookMouse: fnBool,
+            getMouseNextSession: () => { console.error(HMCNotPlatform); return [] as `${number}|${number}|${0 | 1}`[] | undefined },
+            getKeyboardNextSession: () => { console.error(HMCNotPlatform); return [] as `${number}|${0 | 1}`[] | undefined },
+            unKeyboardHook: fnVoid,
+            unHookMouse: fnVoid,
+            installKeyboardHook: fnVoid,
+            installHookMouse: fnVoid,
             MessageError: fnVoid,
             MessageStop: fnBool,
             SetBlockInput: fnBool,
@@ -1106,6 +1114,38 @@ export module HMC {
          * @param Handle 
          */
         getWindowClassName(Handle: number): string;
+        /**
+         * 移除鼠标挂钩
+         */
+        unHookMouse(): void;
+        /**
+         * 移除键盘挂钩
+         */
+        unKeyboardHook(): void;
+        /**
+         * 启动鼠标动作挂钩
+         */
+        installHookMouse(): void;
+        /**
+         * 启动键盘动作挂钩
+         */
+        installKeyboardHook(): void;
+        /**
+         * 获取已经记录了的低级鼠标动作数据 出于性能优化使用了(文本数组)
+         */
+        getKeyboardNextSession(): `${number}|${0 | 1}`[] | undefined
+        /**
+         * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
+         */
+        getMouseNextSession(): `${number}|${number}|${0 | 1}`[] | undefined
+        /**
+         * 鼠标挂钩是否已经启用
+         */
+        isStartHookMouse(): boolean;
+        /**
+         * 键盘挂钩是否已经启用
+         */
+        isStartKeyboardHook(): boolean;
     }
 
     type chcpList = {
@@ -3547,6 +3587,671 @@ export const Clipboard = {
     watch: watchClipboard,
 }
 
+
+class MousePoint {
+    /**从右到左的像素数 */
+    x: number;
+    /**从上到下的像素数 */
+    y: number;
+    /**是否被按下 */
+    isDown: boolean;
+    constructor(str: `${number}|${number}|${0 | 1}`) {
+        const data = str.split("|");
+        this.x = Number(data[0]);
+        this.y = Number(data[1]);
+        this.isDown = Number(data[2]) ? true : false;
+    }
+    /**
+     * 鼠标左键按下
+     */
+    get isLeft() {
+        return Auto.hasKeyActivate(0x01);
+    }
+    /**
+     * 鼠标右键被按下
+     */
+    get isRight() {
+        return Auto.hasKeyActivate(0x02);
+    }
+    /**
+     * 鼠标中键被按下
+     */
+    get isMiddle() {
+        return Auto.hasKeyActivate(0x04);
+    }
+    /**
+     * 在此坐标模拟进行单击
+     * @param awitMs 
+     */
+    async click(awitMs?: number) {
+        awitMs = awitMs || 150;
+        Auto.setCursorPos(this.x, this.y);
+        Auto.mouse("MOUSEEVENTF_LEFTDOWN");
+        await Sleep(awitMs);
+        return Auto.mouse("MOUSEEVENTF_LEFTUP");
+    }
+    /**
+     * 模拟右键在此坐标按下和释放鼠标中键
+     * @param awitMs 
+     */
+    async middle(awitMs?: number) {
+        awitMs = awitMs || 150;
+        Auto.setCursorPos(this.x, this.y);
+        Auto.mouse(0x0020);
+        await Sleep(awitMs);
+        return Auto.mouse("MOUSEEVENTF_MIDDLEUP");
+    }
+    /**
+     * 在此坐标按下模拟右键点击
+     * @param awitMs 
+     */
+    async rClick(awitMs?: number) {
+        awitMs = awitMs || 150;
+        Auto.setCursorPos(this.x, this.y);
+        Auto.mouse("MOUSEEVENTF_RIGHTDOWN");
+        await Sleep(awitMs);
+        return Auto.mouse("MOUSEEVENTF_RIGHTUP");
+    }
+    /**
+     * 双击
+     * @param doubleAwitMs 双击间隔 
+     * @param clickAwitMs 模拟点击时间间隔
+     */
+    doubleClick(doubleAwitMs?: number, clickAwitMs?: number) {
+        doubleAwitMs = doubleAwitMs || 150;
+        clickAwitMs = clickAwitMs || 150;
+        this.click(clickAwitMs).then(() => {
+            Sleep(doubleAwitMs || 150)
+                .then(() => {
+                    this.click(clickAwitMs);
+                });
+        });
+    }
+    /**
+     * 移动鼠标位置
+     * @param x 
+     * @param y 
+     */
+    moveMouse(x: number, y: number) {
+        Auto.setCursorPos(x, y);
+    }
+}
+type VK_key = string
+type VK_code = string
+type VK_keyCode = number
+type VK_VirtualKey = number
+type VK_Nickname = string[] | undefined;
+
+const KeyboardVKcodeEmenList: Array<[VK_key, VK_code | null, VK_keyCode, VK_VirtualKey] | [VK_key, VK_code | null, VK_keyCode, VK_VirtualKey, VK_Nickname]> = [
+    // key ,code , keyCode , VirtualKey
+    ["0", "Digit0", 48, 0x30],
+    ["1", "Digit1", 49, 0x31],
+    ["2", "Digit2", 50, 0x32],
+    ["3", "Digit3", 51, 0x33],
+    ["4", "Digit4", 52, 0x34],
+    ["5", "Digit5", 53, 0x35],
+    ["6", "Digit6", 54, 0x36],
+    ["7", "Digit7", 55, 0x37],
+    ["8", "Digit8", 56, 0x38],
+    ["9", "Digit9", 57, 0x39],
+    ["A", "KeyA", 65, 0x41],
+    ["B", "KeyB", 66, 0x42],
+    ["C", "KeyC", 67, 0x43],
+    ["D", "KeyD", 68, 0x44],
+    ["E", "KeyE", 69, 0x45],
+    ["F", "KeyF", 70, 0x46],
+    ["G", "KeyG", 71, 0x47],
+    ["H", "KeyH", 72, 0x48],
+    ["I", "KeyI", 73, 0x49],
+    ["J", "KeyJ", 74, 0x4a],
+    ["K", "KeyK", 75, 0x4b],
+    ["L", "KeyL", 76, 0x4c],
+    ["M", "KeyM", 77, 0x4d],
+    ["N", "KeyN", 78, 0x4e],
+    ["O", "KeyO", 79, 0x4f],
+    ["P", "KeyP", 80, 0x50],
+    ["Q", "KeyQ", 81, 0x51],
+    ["R", "KeyR", 82, 0x52],
+    ["S", "KeyS", 83, 0x53],
+    ["T", "KeyT", 84, 0x54],
+    ["U", "KeyU", 85, 0x55],
+    ["V", "KeyV", 86, 0x56],
+    ["W", "KeyW", 87, 0x57],
+    ["X", "KeyX", 88, 0x58],
+    ["Y", "KeyY", 89, 0x59],
+    ["Z", "KeyZ", 90, 0x5a],
+    ["0", "Numpad0", 96, 0x60],
+    ["1", "Numpad1", 97, 0x61],
+    ["2", "Numpad2", 98, 0x62],
+    ["3", "Numpad3", 99, 0x63],
+    ["4", "Numpad4", 100, 0x64],
+    ["5", "Numpad5", 101, 0x65],
+    ["6", "Numpad6", 102, 0x66],
+    ["7", "Numpad7", 103, 0x67],
+    ["8", "Numpad8", 104, 0x68],
+    ["9", "Numpad9", 105, 0x69],
+    ["Alt", "Alt", 18, 0x12],
+    ["Alt", "AltLeft", 164, 0xa4],
+    ["Alt", "AltRight", 165, 0xa5],
+    ["CapsLock", "CapsLock", 20, 0x14],
+    ["Control", "Control", 17, 0x11, ["ctrl"]],
+    ["Control", "ControlLeft", 162, 0xa2, ["ctrl"]],
+    ["Control", "ControlRight", 163, 0xa3, ["ctrl"]],
+    ["Win", "MetaLeft", 91, 0x5b],
+    ["Win", "MetaRight", 92, 0x5c],
+    ["NumLock", "NumLock", 144, 0x90],
+    ["ScrollLock", null, 145, 0x91],
+    ["Shift", "Shift", 16, 0x10],
+    ["Shift", "ShiftLeft", 160, 0xa0],
+    ["Shift", "ShiftRight", 161, 0xa1],
+    ["Enter", "Enter", 13, 13, ["\r\n", "\r", "\n"]],
+    ["Tab", "Tab", 9, 0x09],
+    ["Space", "Space", 32, 0x20],
+    ["ArrowDown", null, 40, 0x28],
+    ["ArrowLeft", null, 37, 0x25],
+    ["ArrowRight", null, 39, 0x27],
+    ["ArrowUp", null, 38, 0x26],
+    ["End", "End", 35, 0x23],
+    ["Home", "Home", 36, 0x24],
+    ["PageDown", null, 34, 0x22],
+    ["PageUp", null, 33, 0x21],
+    ["Backspace", null, 8, 0x08],
+    ["Clear", null, 12, 0x0C],
+    ["Clear", null, 254, 0xfe],
+    ["CrSel", null, 247, 0xf7],
+    ["Delete", null, 46, 0x2e],
+    ["EraseEof", null, 249, 0xf9],
+    ["ExSel", null, 248, 0xf8],
+    ["Insert", null, 45, 0x2d],
+    ["Accept", null, 30, 0x1e],
+    ["ContextMenu", null, 93, 0x5d],
+    ["Escape", null, 27, 0x1b, ["esc"]],
+    ["Execute", null, 43, 0x2b],
+    ["Finish", null, 241, 0xf1],
+    ["Help", null, 47, 0x2f],
+    ["Pause", null, 19, 0x13],
+    ["Play", null, 250, 0xfa],
+    ["Select", null, 41, 0x29],
+    ["PrintScreen", null, 44, 0x2c],
+    ["Standby", null, 95, 0x5f],
+    ["Alphanumeric", null, 240, 0xf0],
+    ["Convert", null, 28, 0x1c],
+    ["FinalMode", null, 24, 0x18],
+    ["ModeChange", null, 31, 0x1f],
+    ["NonConvert", null, 29, 0x1d],
+    ["Process", null, 229, 0xe5],
+    ["HangulMode", null, 21, 0x15],
+    ["HanjaMode", null, 25, 0x19],
+    ["JunjaMode", null, 23, 0x17],
+    ["Hankaku", null, 243, 0xf3],
+    ["Hiragana", null, 242, 0xf2],
+    ["KanaMode", null, 246, 0xf6],
+    ["Romaji", null, 245, 0xf5],
+    ["Zenkaku", null, 244, 0xf4],
+    ["F1", null, 112, 0x70],
+    ["F2", null, 113, 0x71],
+    ["F3", null, 114, 0x72],
+    ["F4", null, 115, 0x73],
+    ["F5", null, 116, 0x74],
+    ["F6", null, 117, 0x75],
+    ["F7", null, 118, 0x76],
+    ["F8", null, 119, 0x77],
+    ["F9", null, 120, 0x78],
+    ["F10", null, 121, 0x79],
+    ["F11", null, 122, 0x7a],
+    ["F12", null, 123, 0x7b],
+    ["F13", null, 124, 0x7c],
+    ["F14", null, 125, 0x7d],
+    ["F15", null, 126, 0x7e],
+    ["F16", null, 127, 0x7f],
+    ["F17", null, 128, 0x80],
+    ["F18", null, 129, 0x81],
+    ["F19", null, 130, 0x82],
+    ["F20", null, 131, 0x83],
+    ["MediaPlayPause", null, 179, 0xb3],
+    ["MediaStop", null, 178, 0xb2],
+    ["MediaTrackNext", null, 176, 0xb0],
+    ["MediaTrackPrevious", null, 177, 0xb1],
+    ["AudioVolumeDown", null, 174, 0xae],
+    ["AudioVolumeMute", null, 173, 0xad],
+    ["AudioVolumeUp", null, 175, 0xaf],
+    ["ZoomToggle", null, 251, 0xfb],
+    ["LaunchMail", null, 180, 0xb4],
+    ["LaunchMediaPlayer", null, 181, 0xb5],
+    ["LaunchApplication1", null, 182, 0xb6],
+    ["LaunchApplication2", null, 183, 0xb7],
+    ["BrowserBack", null, 166, 0xa6],
+    ["BrowserFavorites", null, 171, 0xab],
+    ["BrowserForward", null, 167, 0xa7],
+    ["BrowserHome", null, 172, 0xac],
+    ["BrowserRefresh", null, 168, 0xa8],
+    ["BrowserSearch", null, 170, 0xaa],
+    ["BrowserStop", null, 169, 0xa9],
+    [".", "NumpadDecimal", 110, 0x6e],
+    ["*", "NumpadMultiply", 106, 0x6a],
+    ["+", "NumpadAdd", 107, 0x6b],
+    ["/", "NumpadDivide", 111, 0x6f],
+    ["-", "NumpadSubtract", 109, 0x6d],
+    ["Separator", null, 108, 0x6c],
+    [";", "Semicolon", 186, 0xba],
+    ["+", "Equal", 187, 0xbb],
+    [",", "Comma", 188, 0xbc],
+    ["-", "Minus", 189, 0xbd],
+    [".", "Period", 190, 0xbe],
+    ["/", "Slash", 191, 0xbf],
+    ["`", "Backquote", 192, 0xc0],
+    ["[", "BracketLeft", 219, 0xdb],
+    ["\\", "Backslash", 220, 0xdc],
+    ["]", "BracketLeft", 221, 0xdd],
+    ["'", "Quote", 222, 0xde]
+];
+const KeyboardcodeEmenList: Map<VK_VirtualKey, typeof KeyboardVKcodeEmenList[0]> = (() => {
+    let data = new Map();
+    for (let index = 0; index < KeyboardVKcodeEmenList.length; index++) {
+        const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardVKcodeEmenList[index];
+        data.set(VK_VirtualKey, KeyboardVKcodeEmenList[index]);
+    }
+    return data
+})();
+
+class Keyboard {
+    /**
+     * 是否按下了shift
+     */
+    get shiftKey() {
+        return Auto.hasKeyActivate(0x10) || Auto.hasKeyActivate(0xA1) || Auto.hasKeyActivate(0xA0);
+    }
+    /***
+     * 是否按下了alt
+     */
+    get altKey() {
+        return Auto.hasKeyActivate(0x12) || Auto.hasKeyActivate(0xA4) || Auto.hasKeyActivate(0xA5);
+    }
+    /***
+     * 是否按下了ctrl
+     */
+    get ctrlKey() {
+        return Auto.hasKeyActivate(0x11);
+    }
+    /***
+     * 是否按下了win
+     */
+    get winKey() {
+        return Auto.hasKeyActivate(0x5B) || Auto.hasKeyActivate(0x5C);
+    }
+    vKey: VK_VirtualKey;
+    key: VK_key;
+    code: VK_code;
+    /**
+     * 键值代码
+     */
+    keyCode: VK_keyCode;
+    constructor(str: `${number}|${0 | 1}`) {
+        const data = str.split("|");
+        this.vKey = Number(data[0]);
+        this.__isDown = Number(data[1]) ? true : false;
+        const KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
+        if (!KeyboardcodeEmen) throw new Error("key Value Data That Does Not Exist !");
+        const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardcodeEmen;
+        this.keyCode = VK_keyCode;
+        this.key = VK_key;
+        this.code = VK_code || VK_key;
+    }
+    /**
+     * 是否被按下
+     */
+    private __isDown: boolean;
+    /**是否被按下 */
+    get isDown() {
+        return this.__isDown || hasKeyActivate(this.vKey);
+    }
+}
+
+let SetIohook = false;
+
+class Iohook_Mouse {
+    private _onlistenerCountList = {
+        close: [] as Function[],
+        data: [] as Function[],
+        mouse: [] as Function[],
+        start: [] as Function[],
+        move: [] as Function[],
+    };
+    private _oncelistenerCountList = {
+        close: [] as Function[],
+        data: [] as Function[],
+        mouse: [] as Function[],
+        start: [] as Function[],
+        move: [] as Function[],
+    };
+    private _emit_start_Index: null | NodeJS.Timer = null;
+    private _Close = false;
+    constructor() {
+
+    }
+    once(eventName: "start" | "close", listener: () => void): this;
+    once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
+    once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    once(eventName: unknown, listener: unknown) {
+        if (typeof listener !== "function") return this;
+        this._oncelistenerCountList[eventName as "data"].push(listener);
+        return this;
+    };
+    on(eventName: "start" | "close", listener: () => void): this;
+    on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
+    on(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    on(eventName: unknown, listener: unknown) {
+        if (typeof listener !== "function") return this;
+        this._onlistenerCountList[eventName as "data"].push(listener);
+        return this;
+    };
+    /**
+     * 开始
+     * @returns 
+     */
+    start() {
+        let start = native.isStartHookMouse();
+        if (start) throw new Error("the Task Has Started.");
+        native.installHookMouse();
+        const oid_Mouse_info = {
+            x: 0,
+            y: 0,
+            isDown: false,
+        };
+        start = native.isStartHookMouse();
+        if (start) {
+            this.emit("start");
+            let emit_getMouseNextSession = () => {
+                if (this._Close) { this._emit_start_Index !== null && clearInterval(this._emit_start_Index); return };
+                let getMouseNextSession = native.getMouseNextSession();
+                if (getMouseNextSession?.length) this.emit("data", getMouseNextSession);
+                if (getMouseNextSession)
+                    for (let index = 0; index < getMouseNextSession.length; index++) {
+                        const MouseNextSession = getMouseNextSession[index];
+                        const mousePoint = new MousePoint(MouseNextSession);
+                        this.emit("mouse", mousePoint);
+                        if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
+                            this.emit("move", mousePoint.x, mousePoint.y, mousePoint);
+                        }
+                        oid_Mouse_info.isDown = mousePoint.isDown;
+                        oid_Mouse_info.x = mousePoint.x;
+                        oid_Mouse_info.y = mousePoint.y;
+                    }
+
+            }
+            this._emit_start_Index = setInterval(emit_getMouseNextSession, 50);
+        }
+        return start;
+    }
+    /**
+     * 结束
+     */
+    close() {
+        native.unHookMouse();
+
+        this.emit("close");
+        this._emit_start_Index !== null && clearInterval(this._emit_start_Index);
+        this._Close = false;
+
+        this._oncelistenerCountList.close.length = 0;
+        this._oncelistenerCountList.data.length = 0;
+        this._oncelistenerCountList.mouse.length = 0;
+        this._oncelistenerCountList.move.length = 0;
+        this._oncelistenerCountList.start.length = 0;
+
+        this._onlistenerCountList.close.length = 0;
+        this._onlistenerCountList.data.length = 0;
+        this._onlistenerCountList.mouse.length = 0;
+        this._onlistenerCountList.move.length = 0;
+        this._onlistenerCountList.start.length = 0;
+    }
+    emit(eventName: "data", data: `${number}|${number}|${0 | 1}`[]): boolean;
+    emit(eventName: "start" | "close"): boolean;
+    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: unknown, ...data: unknown[]) {
+        const emitFunList = this._onlistenerCountList[eventName as "data"];
+        const onceEmitFunList = this._oncelistenerCountList[eventName as "data"];
+        for (let index = 0; index < emitFunList.length; index++) {
+            const emitFun = emitFunList[index];
+            emitFun.apply(this, data);
+        };
+        for (let index = 0; index < onceEmitFunList.length; index++) {
+            const emitFun = onceEmitFunList[index];
+            emitFun.apply(this, data);
+        };
+        onceEmitFunList.length = 0;
+        return emitFunList.length ? true : false;
+    }
+    /**
+     * 关闭监听
+     * @param eventName 
+     * @param data 
+     * @returns 
+     */
+    off(eventName: "start" | "close" | "mouse" | "move" | "data", treatmentMode: "on" | "once" | Function, data?: Function) {
+        switch (treatmentMode) {
+            case "on": {
+                if (data) {
+                    const listenerCountList = this._onlistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return this._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                } else {
+                    this._onlistenerCountList[eventName].length = 0;
+                    return !this._onlistenerCountList[eventName].length
+                }
+                break;
+            }
+            case "once": {
+                if (data) {
+                    const listenerCountList = this._oncelistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return this._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                } else {
+                    this._oncelistenerCountList[eventName].length = 0;
+                    return !this._oncelistenerCountList[eventName].length
+                }
+                break;
+            }
+        }
+        return false;
+    }
+}
+
+/**
+ * 设置一个低级鼠标变化监听
+ * @example ```javascript
+ * // 添加处理函数
+   hmc.Auto.mouseHook.on("move",function(x,y,env){
+    console.log(x,y,env);
+    });
+   // log => 50 ,  350  , {...env}
+
+   // 添加处理函数
+   hmc.Auto.mouseHook.on("mouse",function(env){
+    console.log(env);
+   });
+   // log => {...env}
+
+   // 启动
+   hmc.Auto.mouseHook.start();
+
+   // off
+   hmc.Sleep(5000).then(hmc.Auto.mouseHook.close);
+
+```
+ */
+export const mouseHook = new Iohook_Mouse();
+
+class Iohook_Keyboard {
+    private _onlistenerCountList = {
+        close: [] as Function[],
+        data: [] as Function[],
+        start: [] as Function[],
+        change: [] as Function[],
+    };
+    private _oncelistenerCountList = {
+        close: [] as Function[],
+        data: [] as Function[],
+        start: [] as Function[],
+        change: [] as Function[],
+    };
+    private _emit_start_Index: null | NodeJS.Timer = null;
+    private _Close = false;
+    constructor() {
+
+    }
+    once(eventName: "start" | "close", listener: () => void): this;
+    once(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
+    once(eventName: "change", listener: (KeyboardPoint: Keyboard) => void): this;
+    once(listener: (KeyboardPoint: Keyboard) => void): this;
+    once(eventName: unknown, listener?: unknown) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "change"
+        }
+        if (typeof listener !== "function") return this;
+        this._oncelistenerCountList[eventName as "data"].push(listener);
+        return this;
+    };
+    on(eventName: "start" | "close", listener: () => void): this;
+    on(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
+    on(eventName: "change", listener: (KeyboardPoint: Keyboard) => void): this;
+    on(listener: (KeyboardPoint: Keyboard) => void): this;
+    on(eventName: unknown, listener?: unknown) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "change"
+        }
+        if (typeof listener !== "function") return this;
+        this._onlistenerCountList[eventName as "data"].push(listener);
+        return this;
+    };
+    /**
+     * 开始
+     * @returns 
+     */
+    start() {
+        let start = native.isStartKeyboardHook();
+        if (start) throw new Error("the Task Has Started.");
+        native.installKeyboardHook();
+        start = native.isStartKeyboardHook();
+        if (start) {
+            this.emit("start");
+            let emit_getKeyboardNextSession = () => {
+                if (this._Close) { this._emit_start_Index !== null && clearInterval(this._emit_start_Index); return };
+                let getKeyboardNextSession = native.getKeyboardNextSession();
+                if (getKeyboardNextSession?.length) this.emit("data", getKeyboardNextSession);
+                if (getKeyboardNextSession)
+                    for (let index = 0; index < getKeyboardNextSession.length; index++) {
+                        const KeyboardNextSession = getKeyboardNextSession[index];
+                        const KeyboardPoint = new Keyboard(KeyboardNextSession);
+                        this.emit("change", KeyboardPoint);
+                    }
+
+            }
+            this._emit_start_Index = setInterval(emit_getKeyboardNextSession, 50);
+        }
+        return start;
+    }
+    /**
+     * 结束
+     */
+    close() {
+        native.unKeyboardHook();
+
+        this.emit("close");
+        this._emit_start_Index !== null && clearInterval(this._emit_start_Index);
+        this._Close = false;
+
+        this._oncelistenerCountList.close.length = 0;
+        this._oncelistenerCountList.data.length = 0;
+        this._oncelistenerCountList.change.length = 0;
+        this._oncelistenerCountList.start.length = 0;
+
+        this._onlistenerCountList.close.length = 0;
+        this._onlistenerCountList.data.length = 0;
+        this._onlistenerCountList.change.length = 0;
+        this._onlistenerCountList.start.length = 0;
+    }
+    emit(eventName: "data", data: (`${number}|0` | `${number}|1`)[]): boolean;
+    emit(eventName: "start" | "close"): boolean;
+    emit(eventName: "change", KeyboardPoint: Keyboard): boolean;
+    emit(eventName: unknown, ...data: unknown[]) {
+        const emitFunList = this._onlistenerCountList[eventName as "data"];
+        const onceEmitFunList = this._oncelistenerCountList[eventName as "data"];
+        for (let index = 0; index < emitFunList.length; index++) {
+            const emitFun = emitFunList[index];
+            emitFun.apply(this, data);
+        };
+        for (let index = 0; index < onceEmitFunList.length; index++) {
+            const emitFun = onceEmitFunList[index];
+            emitFun.apply(this, data);
+        };
+        onceEmitFunList.length = 0;
+        return emitFunList.length ? true : false;
+    }
+    /**
+     * 关闭监听
+     * @param eventName 
+     * @param data 
+     * @returns 
+     */
+    off(eventName: "start" | "close" | "change" | "data", treatmentMode: "on" | "once" | Function, data?: Function) {
+        switch (treatmentMode) {
+            case "on": {
+                if (data) {
+                    const listenerCountList = this._onlistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return this._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                } else {
+                    this._onlistenerCountList[eventName].length = 0;
+                    return !this._onlistenerCountList[eventName].length
+                }
+                break;
+            }
+            case "once": {
+                if (data) {
+                    const listenerCountList = this._oncelistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return this._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                } else {
+                    this._oncelistenerCountList[eventName].length = 0;
+                    return !this._oncelistenerCountList[eventName].length
+                }
+                break;
+            }
+        }
+        return false;
+    }
+}
+/**
+ * 设置一个键盘低级变化监听
+ * @example ```javascript 
+  // 添加处理函数
+  hmc.Auto.keyboardHook.on("change",function(env){
+     console.log(env.key,env.isDown,env);
+  });
+  // log => ctrl , true {...env}
+
+  // 启动
+  hmc.Auto.keyboardHook.start();
+
+  // off
+  hmc.Sleep(5000).then(hmc.Auto.keyboardHook.close);
+
+ *  ```
+ * 
+ */
+export const keyboardHook = new Iohook_Keyboard();
+
+
 // 自动化工具集   (拥有统一化名称) 
 export const Auto = {
     setWindowEnabled,
@@ -3560,7 +4265,8 @@ export const Auto = {
     SetBlockInput,
     SetSystemHOOK,
     hasKeyActivate,
-
+    mouseHook,
+    keyboardHook
 }
 
 // USB 控制的归档   (拥有统一化名称)
@@ -3816,6 +4522,8 @@ export const registr = {
     removeStringTree,
     isRegistrTreeKey,
 };
+
+
 export const Registr = registr;
 export const hmc = {
     getWebView2Info,
@@ -3961,6 +4669,16 @@ export const hmc = {
     version,
     watchClipboard,
     watchUSB,
-    windowJitter
+    windowJitter,
+    keyboardHook,
+    mouseHook
 }
 export default hmc;
+
+process.on('exit', function () {
+    if (SetIohook) {
+        native.unHookMouse();
+        native.unKeyboardHook();
+    }
+});
+

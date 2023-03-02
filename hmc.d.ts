@@ -2,15 +2,15 @@
 /**注册表根目录 */
 declare const Hkey: {
     /**用作默认用户首选设置，也作为单个用户的首选设置 */
-    HKEY_CURRENT_CONFIG: string;
+    HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
     /**用作默认用户首选设置，也作为单个用户的首选设置 */
-    HKEY_USERS: string;
+    HKEY_USERS: "HKEY_USERS";
     /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
-    HKEY_CLASSES_ROOT: string;
+    HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
     /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
-    HKEY_LOCAL_MACHINE: string;
+    HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE";
     /**管理系统当前的用户信息 */
-    HKEY_CURRENT_USER: string;
+    HKEY_CURRENT_USER: "HKEY_CURRENT_USER";
 };
 /**
  * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
@@ -178,6 +178,11 @@ export declare module HMC {
         x: number;
         y: number;
     };
+    export type WebView2Info = {
+        version: string;
+        name: string;
+        location: string;
+    } | null;
     /**
      * C++ 中的 位置定义
      */
@@ -765,6 +770,38 @@ export declare module HMC {
          * @param Handle
          */
         getWindowClassName(Handle: number): string;
+        /**
+         * 移除鼠标挂钩
+         */
+        unHookMouse(): void;
+        /**
+         * 移除键盘挂钩
+         */
+        unKeyboardHook(): void;
+        /**
+         * 启动鼠标动作挂钩
+         */
+        installHookMouse(): void;
+        /**
+         * 启动键盘动作挂钩
+         */
+        installKeyboardHook(): void;
+        /**
+         * 获取已经记录了的低级鼠标动作数据 出于性能优化使用了(文本数组)
+         */
+        getKeyboardNextSession(): `${number}|${0 | 1}`[] | undefined;
+        /**
+         * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
+         */
+        getMouseNextSession(): `${number}|${number}|${0 | 1}`[] | undefined;
+        /**
+         * 鼠标挂钩是否已经启用
+         */
+        isStartHookMouse(): boolean;
+        /**
+         * 键盘挂钩是否已经启用
+         */
+        isStartKeyboardHook(): boolean;
     };
     type chcpList = {
         37: "IBM037";
@@ -961,15 +998,15 @@ export declare const ref: {
     /**注册表根目录 */
     HKEY: {
         /**用作默认用户首选设置，也作为单个用户的首选设置 */
-        HKEY_CURRENT_CONFIG: string;
+        HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
         /**用作默认用户首选设置，也作为单个用户的首选设置 */
-        HKEY_USERS: string;
+        HKEY_USERS: "HKEY_USERS";
         /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
-        HKEY_CLASSES_ROOT: string;
+        HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
         /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
-        HKEY_LOCAL_MACHINE: string;
+        HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE";
         /**管理系统当前的用户信息 */
-        HKEY_CURRENT_USER: string;
+        HKEY_CURRENT_USER: "HKEY_CURRENT_USER";
     };
     /**
      * 拼合buff片段
@@ -1949,6 +1986,20 @@ export declare function getWindowClassName(Handle: number | HWND): string;
  * @returns
  */
 export declare function getWindowStyle(Handle: number | HWND): number;
+/**
+ * 获取WebView2的信息
+ * @returns
+ */
+export declare function getWebView2Info(): HMC.WebView2Info;
+/**
+ * 下载并安装WebView2
+ */
+export declare function WebView2OnlineInstall(): Promise<void>;
+/**
+ * 当前系统是否安装了 WebView2
+ * @returns
+ */
+export declare function hasWebView2(): boolean;
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -1995,6 +2046,8 @@ export declare const Window: {
         get: typeof getConsoleHandle;
         blockInput: typeof SetBlockInput;
     };
+    getStyle: typeof getWindowStyle;
+    getClassName: typeof getWindowClassName;
 };
 export declare const Watch: {
     clipboard: typeof watchClipboard;
@@ -2012,6 +2065,202 @@ export declare const Clipboard: {
     sequence: typeof getClipboardSequenceNumber;
     watch: typeof watchClipboard;
 };
+declare class MousePoint {
+    /**从右到左的像素数 */
+    x: number;
+    /**从上到下的像素数 */
+    y: number;
+    /**是否被按下 */
+    isDown: boolean;
+    constructor(str: `${number}|${number}|${0 | 1}`);
+    /**
+     * 鼠标左键按下
+     */
+    get isLeft(): boolean;
+    /**
+     * 鼠标右键被按下
+     */
+    get isRight(): boolean;
+    /**
+     * 鼠标中键被按下
+     */
+    get isMiddle(): boolean;
+    /**
+     * 在此坐标模拟进行单击
+     * @param awitMs
+     */
+    click(awitMs?: number): Promise<void>;
+    /**
+     * 模拟右键在此坐标按下和释放鼠标中键
+     * @param awitMs
+     */
+    middle(awitMs?: number): Promise<void>;
+    /**
+     * 在此坐标按下模拟右键点击
+     * @param awitMs
+     */
+    rClick(awitMs?: number): Promise<void>;
+    /**
+     * 双击
+     * @param doubleAwitMs 双击间隔
+     * @param clickAwitMs 模拟点击时间间隔
+     */
+    doubleClick(doubleAwitMs?: number, clickAwitMs?: number): void;
+    /**
+     * 移动鼠标位置
+     * @param x
+     * @param y
+     */
+    moveMouse(x: number, y: number): void;
+}
+declare type VK_key = string;
+declare type VK_code = string;
+declare type VK_keyCode = number;
+declare type VK_VirtualKey = number;
+declare class Keyboard {
+    /**
+     * 是否按下了shift
+     */
+    get shiftKey(): boolean;
+    /***
+     * 是否按下了alt
+     */
+    get altKey(): boolean;
+    /***
+     * 是否按下了ctrl
+     */
+    get ctrlKey(): boolean;
+    /***
+     * 是否按下了win
+     */
+    get winKey(): boolean;
+    vKey: VK_VirtualKey;
+    key: VK_key;
+    code: VK_code;
+    /**
+     * 键值代码
+     */
+    keyCode: VK_keyCode;
+    constructor(str: `${number}|${0 | 1}`);
+    /**
+     * 是否被按下
+     */
+    private __isDown;
+    /**是否被按下 */
+    get isDown(): boolean;
+}
+declare class Iohook_Mouse {
+    private _onlistenerCountList;
+    private _oncelistenerCountList;
+    private _emit_start_Index;
+    private _Close;
+    constructor();
+    once(eventName: "start" | "close", listener: () => void): this;
+    once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
+    once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    on(eventName: "start" | "close", listener: () => void): this;
+    on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
+    on(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    /**
+     * 开始
+     * @returns
+     */
+    start(): boolean;
+    /**
+     * 结束
+     */
+    close(): void;
+    emit(eventName: "data", data: `${number}|${number}|${0 | 1}`[]): boolean;
+    emit(eventName: "start" | "close"): boolean;
+    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    /**
+     * 关闭监听
+     * @param eventName
+     * @param data
+     * @returns
+     */
+    off(eventName: "start" | "close" | "mouse" | "move" | "data", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
+}
+/**
+ * 设置一个低级鼠标变化监听
+ * @example ```javascript
+ * // 添加处理函数
+   hmc.Auto.mouseHook.on("move",function(x,y,env){
+    console.log(x,y,env);
+    });
+   // log => 50 ,  350  , {...env}
+
+   // 添加处理函数
+   hmc.Auto.mouseHook.on("mouse",function(env){
+    console.log(env);
+   });
+   // log => {...env}
+
+   // 启动
+   hmc.Auto.mouseHook.start();
+
+   // off
+   hmc.Sleep(5000).then(hmc.Auto.mouseHook.close);
+
+```
+ */
+export declare const mouseHook: Iohook_Mouse;
+declare class Iohook_Keyboard {
+    private _onlistenerCountList;
+    private _oncelistenerCountList;
+    private _emit_start_Index;
+    private _Close;
+    constructor();
+    once(eventName: "start" | "close", listener: () => void): this;
+    once(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
+    once(eventName: "change", listener: (KeyboardPoint: Keyboard) => void): this;
+    once(listener: (KeyboardPoint: Keyboard) => void): this;
+    on(eventName: "start" | "close", listener: () => void): this;
+    on(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
+    on(eventName: "change", listener: (KeyboardPoint: Keyboard) => void): this;
+    on(listener: (KeyboardPoint: Keyboard) => void): this;
+    /**
+     * 开始
+     * @returns
+     */
+    start(): boolean;
+    /**
+     * 结束
+     */
+    close(): void;
+    emit(eventName: "data", data: (`${number}|0` | `${number}|1`)[]): boolean;
+    emit(eventName: "start" | "close"): boolean;
+    emit(eventName: "change", KeyboardPoint: Keyboard): boolean;
+    /**
+     * 关闭监听
+     * @param eventName
+     * @param data
+     * @returns
+     */
+    off(eventName: "start" | "close" | "change" | "data", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
+}
+/**
+ * 设置一个键盘低级变化监听
+ * @example ```javascript
+  // 添加处理函数
+  hmc.Auto.keyboardHook.on("change",function(env){
+     console.log(env.key,env.isDown,env);
+  });
+  // log => ctrl , true {...env}
+
+  // 启动
+  hmc.Auto.keyboardHook.start();
+
+  // off
+  hmc.Sleep(5000).then(hmc.Auto.keyboardHook.close);
+
+ *  ```
+ *
+ */
+export declare const keyboardHook: Iohook_Keyboard;
 export declare const Auto: {
     setWindowEnabled: typeof setWindowEnabled;
     setCursorPos: typeof setCursorPos;
@@ -2050,6 +2299,8 @@ export declare const Auto: {
     SetBlockInput: typeof SetBlockInput;
     SetSystemHOOK: typeof SetSystemHOOK;
     hasKeyActivate: typeof hasKeyActivate;
+    mouseHook: Iohook_Mouse;
+    keyboardHook: Iohook_Keyboard;
 };
 export declare const Usb: {
     getHub: typeof getHidUsbList;
@@ -2283,8 +2534,230 @@ export declare const registr: {
      * @returns
      */
     readonly openRegKey: typeof open;
+    getRegistrQword: typeof getRegistrQword;
+    getRegistrDword: typeof getRegistrDword;
+    setRegistrQword: typeof setRegistrQword;
+    setRegistrDword: typeof setRegistrDword;
+    removeStringRegValue: typeof removeStringRegValue;
+    removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
+    removeStringTree: typeof removeStringTree;
+    isRegistrTreeKey: typeof isRegistrTreeKey;
+};
+export declare const Registr: {
+    /**
+     * 直达路径解析
+     * @param Path 全路径(直达路径)
+     * @param atkey 是否将最后一个值解释为键
+     * @returns
+     */
+    analysisDirectPath: typeof analysisDirectPath;
+    /**
+     * 判断注册表中是否有该键值
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.06591796875 ms
+     * @returns
+     */
+    has: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 获取内容(文本)
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.108ms
+     * @returns
+     */
+    get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    /**
+     * 设置键值对
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @param Value 数据
+     * @time 2.02392578125 ms
+     * @returns
+     */
+    set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    /**
+     * 删除数据
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.076904296875 ms
+     * @returns
+     */
+    remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 枚举键值
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @time 0.06689453125 ms
+     * @returns
+     */
+    keys: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+    /**
+     * 将当前的路径的注册表值转表
+     * @param HKEY
+     * @param Path
+     */
+    list: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+        [key: string]: string | Buffer;
+        "": string | Buffer;
+    };
+    /**
+     * 创建新的路径
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @time 2.02392578125 ms
+     * @returns
+     */
+    create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 打开一个注册表路径并返回一些实用方法
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @returns
+     */
+    open: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => {
+        /**
+         * 获取全路径
+         */
+        readonly path: string;
+        /**
+         * 设置一个值
+         * @param data 数据
+         */
+        set(data: string): boolean;
+        /**
+         * 获取内容
+         * @returns
+         */
+        get(): string;
+        /**
+         * 获取该内容并将其视为二进制缓冲区
+         * @returns 二进制缓冲区
+         */
+        getBuff(): Buffer;
+        /**
+         * 获取该内容并将其视为数字
+         * @returns 数字
+         */
+        getNumber(): number;
+        /**
+         * 枚举当前路径下的键
+         * @returns 键 数组
+         */
+        keys(): string[];
+        /**
+         * 将当前目录转为对象
+         */
+        list(): {
+            [key: string]: string | Buffer;
+            "": string | Buffer;
+        };
+    };
+    /**
+     * 判断注册表中是否有该键值
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.06591796875 ms
+     * @returns
+     */
+    readonly hasRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 将当前的路径的注册表值转表
+     * @param HKEY
+     * @param Path
+     */
+    readonly listRegistrPath: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+        [key: string]: string | Buffer;
+        "": string | Buffer;
+    };
+    /**
+     * 枚举键值
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @time 0.06689453125 ms
+     * @returns
+     */
+    readonly enumRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+    /**
+     * 删除数据
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.076904296875 ms
+     * @returns
+     */
+    readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 设置键值对
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @param Value 数据
+     * @time 2.02392578125 ms
+     * @returns
+     */
+    readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    /**
+     * 获取内容(文本)
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.108ms
+     * @returns
+     */
+    readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    /**
+     * 获取内容(数字)
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.10888671875 ms
+     * @returns
+     */
+    getNumberRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => number;
+    /**
+     * 创建新的路径
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @time 2.02392578125 ms
+     * @returns
+     */
+    readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    /**
+     * 获取内容(二进制 Buffer)
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @time 0.06787109375 ms
+     * @returns
+     */
+    getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+    /**
+     * 打开一个注册表路径并返回一些实用方法
+     * @param HKEY 根路径
+     * @param Path 路径
+     * @param key 键
+     * @returns
+     */
+    readonly openRegKey: typeof open;
+    getRegistrQword: typeof getRegistrQword;
+    getRegistrDword: typeof getRegistrDword;
+    setRegistrQword: typeof setRegistrQword;
+    setRegistrDword: typeof setRegistrDword;
+    removeStringRegValue: typeof removeStringRegValue;
+    removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
+    removeStringTree: typeof removeStringTree;
+    isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    getWebView2Info: typeof getWebView2Info;
+    hasWebView2: typeof hasWebView2;
     Auto: {
         setWindowEnabled: typeof setWindowEnabled;
         setCursorPos: typeof setCursorPos;
@@ -2323,6 +2796,8 @@ export declare const hmc: {
         SetBlockInput: typeof SetBlockInput;
         SetSystemHOOK: typeof SetSystemHOOK;
         hasKeyActivate: typeof hasKeyActivate;
+        mouseHook: Iohook_Mouse;
+        keyboardHook: Iohook_Keyboard;
     };
     Clipboard: {
         clear: typeof clearClipboard;
@@ -2422,6 +2897,8 @@ export declare const hmc: {
             get: typeof getConsoleHandle;
             blockInput: typeof SetBlockInput;
         };
+        getStyle: typeof getWindowStyle;
+        getClassName: typeof getWindowClassName;
     };
     alert: typeof alert;
     analysisDirectPath: typeof analysisDirectPath;
@@ -2588,15 +3065,15 @@ export declare const hmc: {
         /**注册表根目录 */
         HKEY: {
             /**用作默认用户首选设置，也作为单个用户的首选设置 */
-            HKEY_CURRENT_CONFIG: string;
+            HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
             /**用作默认用户首选设置，也作为单个用户的首选设置 */
-            HKEY_USERS: string;
+            HKEY_USERS: "HKEY_USERS";
             /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
-            HKEY_CLASSES_ROOT: string;
+            HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
             /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
-            HKEY_LOCAL_MACHINE: string;
+            HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE";
             /**管理系统当前的用户信息 */
-            HKEY_CURRENT_USER: string;
+            HKEY_CURRENT_USER: "HKEY_CURRENT_USER";
         };
         /**
          * 拼合buff片段
@@ -2808,6 +3285,14 @@ export declare const hmc: {
          * @returns
          */
         readonly openRegKey: typeof open;
+        getRegistrQword: typeof getRegistrQword;
+        getRegistrDword: typeof getRegistrDword;
+        setRegistrQword: typeof setRegistrQword;
+        setRegistrDword: typeof setRegistrDword;
+        removeStringRegValue: typeof removeStringRegValue;
+        removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
+        removeStringTree: typeof removeStringTree;
+        isRegistrTreeKey: typeof isRegistrTreeKey;
     };
     removeStringRegKey: typeof removeStringRegKey;
     removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
@@ -2842,5 +3327,7 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
+    keyboardHook: Iohook_Keyboard;
+    mouseHook: Iohook_Mouse;
 };
-export {};
+export default hmc;
