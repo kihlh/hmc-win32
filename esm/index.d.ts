@@ -3312,4 +3312,22 @@ export declare const hmc: {
     setWindowEnabled: typeof setWindowEnabled;
     setWindowFocus: typeof setWindowFocus;
     setWindowMode: typeof setWindowMode;
-    setWind
+    setWindowTitle: typeof lookHandleSetTitle;
+    setWindowTop: typeof setWindowTop;
+    showConsole: typeof showConsole;
+    showMonitors: typeof showMonitors;
+    shutMonitors: typeof shutMonitors;
+    sleep: typeof sleep;
+    system: typeof system;
+    systemChcp: typeof systemChcp;
+    systemStartTime: typeof systemStartTime;
+    trash: typeof deleteFile;
+    updateWindow: typeof updateWindow;
+    version: string;
+    watchClipboard: typeof watchClipboard;
+    watchUSB: typeof watchUSB;
+    windowJitter: typeof windowJitter;
+    keyboardHook: Iohook_Keyboard;
+    mouseHook: Iohook_Mouse;
+};
+export default hmc;
