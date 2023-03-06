@@ -26,7 +26,6 @@
 
 using namespace std;
 
-
 #pragma comment(lib, "dwmapi.lib")
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
@@ -41,25 +40,26 @@ typedef LPCSTR LPCTSTR;
 #define $napi_get_cb_info(argc, args) napi_get_cb_info(env, info, &argc, args, NULL, NULL);
 #define $runError (CharString) napi_throw_type_error(env, NULL, CharString);
 // DEFINE_GUID(UsbClassGuid, 0xa5dcbf10L, 0x6530, 0x11d2, 0x90, 0x1f, 0x00, 0xc0, 0x4f, 0xb9, 0x51, 0xed);
-
+extern bool _________HMC_DEBUG__________;
+void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message);
 BOOL EnableShutDownPriv();
 
-// 判断所有传入参数都为 
-#define hmc_is_argv_type(argv, start, size,type, Results)                         \
+// 判断所有传入参数都为
+#define hmc_is_argv_type(argv, start, size, type, Results)                      \
     for (int i = start; i < size; i++)                                          \
     {                                                                           \
         napi_valuetype value_type;                                              \
         napi_typeof(env, argv[i], &value_type);                                 \
-        if (value_type != type)                                          \
+        if (value_type != type)                                                 \
         {                                                                       \
             napi_throw_error(env, "EINVAL",                                     \
-                             string("\nThe [")                                    \
+                             string("\nThe [")                                  \
                                  .append(to_string(argc))                       \
                                  .append("] parameter passed in should read [") \
                                  .append(_NAPI_Call_Type(value_type))           \
                                  .append("] This parameter should read: ")      \
-                                 .append(_NAPI_Call_Type(type))                              \
-                                 .append("\n")                              \
+                                 .append(_NAPI_Call_Type(type))                 \
+                                 .append("\n")                                  \
                                  .c_str());                                     \
             return Results;                                                     \
         };                                                                      \
@@ -110,7 +110,6 @@ napi_value getClipboardSequenceNumber(napi_env env, napi_callback_info info);
 napi_value getClipboardHTML(napi_env env, napi_callback_info info);
 napi_value setClipboardHTML(napi_env env, napi_callback_info info);
 
-
 // registr.cpp
 
 napi_value getStringRegKey(napi_env env, napi_callback_info info);
@@ -147,7 +146,6 @@ napi_value getHidUsbList(napi_env env, napi_callback_info info);
 napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
 // napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
 
-
 // auto.cpp
 void InstallKeyboardHook();
 void InstallHookMouse();
@@ -166,3 +164,7 @@ napi_value rightClick(napi_env env, napi_callback_info info);
 napi_value setCursorPos(napi_env env, napi_callback_info info);
 napi_value getBasicKeys(napi_env env, napi_callback_info info);
 napi_value mouse(napi_env env, napi_callback_info info);
+
+// Windows.cpp
+napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);
+napi_value setForegroundWindow(napi_env env, napi_callback_info info);

@@ -1,4 +1,18 @@
 ﻿#include "./Mian.hpp";
+bool _________HMC_DEBUG__________;
+
+void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message)
+{
+    if (_________HMC_DEBUG__________)
+    {
+        napi_value run_script_result;
+        string error_message_str = string("console.error(new Error(String.raw`\n");
+        error_message_str.append(error_message);
+        error_message_str.append("`))");
+        napi_run_script(env,_create_String(env,error_message_str), &run_script_result);
+        
+    }
+}
 
 // 结束进程
 static napi_value killProcess(napi_env env, napi_callback_info info)
@@ -1764,15 +1778,16 @@ static napi_value setWindowEnabled(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, EnableWindow(Handle, is_WindowEnabledCommand));
 }
 
-
-HWND SetWindowJitter_Handle ;
+HWND SetWindowJitter_Handle;
 int SetWindowJitter_Sleep_time = 50;   // 休眠的时间，为60毫秒
 int SetWindowJitter_Move_distance = 6; // 移动5像素
-    
-void SetWindowJitter(){
+
+void SetWindowJitter()
+{
     RECT rect;
     // 获取指定窗口的位置
-    if (!GetWindowRect(SetWindowJitter_Handle, &rect)) return ;
+    if (!GetWindowRect(SetWindowJitter_Handle, &rect))
+        return;
     int DeviceCapsWidth = GetSystemMetrics(SM_CXSCREEN);
     int DeviceCapsHeight = GetSystemMetrics(SM_CYSCREEN);
     // 计算出来源来的宽高 屏幕和坐标的减法可以得到窗口大小(带阴影)
@@ -1789,7 +1804,6 @@ void SetWindowJitter(){
         Sleep(SetWindowJitter_Sleep_time);
         MoveWindow(SetWindowJitter_Handle, rect.left, rect.top, Env_width, Env_height, TRUE);
     }
-
 }
 // 窗口抖动
 static napi_value windowJitter(napi_env env, napi_callback_info info)
@@ -1915,28 +1929,7 @@ static napi_value getAllWindowsNot(napi_env env, napi_callback_info info)
     return Results;
 }
 
-// 获取所有窗口
-static napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value Results;
-    status = napi_create_array(env, &Results);
-    assert(status == napi_ok);
-    // 获取桌面句柄
-    HWND hwnd = GetDesktopWindow();
-    // 获取桌面子窗口句柄
-    hwnd = GetWindow(hwnd, GW_CHILD);
-    int counter = 0;
-    for (size_t index = 0; hwnd != NULL; index++)
-    {
-        status = napi_set_element(env, Results, counter, _create_int64_Number(env, (int64_t)hwnd));
-        assert(status == napi_ok);
-        hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
-        counter = counter + 1;
-    }
 
-    return Results;
-}
 // 隐藏托盘图标
 static napi_value SetWindowInTaskbarVisible(napi_env env, napi_callback_info info)
 {
@@ -2156,7 +2149,7 @@ napi_value openURL(napi_env env, napi_callback_info info)
     string URL_String = call_String_NAPI_WINAPI_A(env, argv[0]);
     HINSTANCE hResult = ShellExecuteA(NULL, "open", URL_String.c_str(), NULL, NULL, SW_SHOWNORMAL);
     // return  _create_int64_Number(env,long(hResult));
-  return  _create_bool_Boolean(env, long long(hResult) >= 31);
+    return _create_bool_Boolean(env, long long(hResult) >= 31);
 }
 
 napi_value openExternal(napi_env env, napi_callback_info info)
@@ -2826,7 +2819,6 @@ static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
     return NULL;
 }
 
-
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
@@ -2881,15 +2873,15 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("closedHandle", closedHandle),
         DECLARE_NAPI_METHOD("setWindowTop", setWindowTop),
         DECLARE_NAPI_METHOD("hasWindowTop", hasWindowTop),
-        DECLARE_NAPI_METHOD("windowJitter", windowJitter),                      //=>3-1UP to Asynchronous
+        DECLARE_NAPI_METHOD("windowJitter", windowJitter), //=>3-1UP to Asynchronous
         DECLARE_NAPI_METHOD("isHandle", isHandle),
         DECLARE_NAPI_METHOD("getPointWindowMain", getPointWindowMain),
         DECLARE_NAPI_METHOD("getMainWindow", getMainWindow),
         DECLARE_NAPI_METHOD("isEnabled", isEnabled),
         DECLARE_NAPI_METHOD("setWindowEnabled", setWindowEnabled),
-        DECLARE_NAPI_METHOD("setWindowFocus", setWindowFocus),
+        DECLARE_NAPI_METHODRM("setWindowFocus", setForegroundWindow),
+        DECLARE_NAPI_METHODRM("setForegroundWindow", setForegroundWindow),
         DECLARE_NAPI_METHOD("updateWindow", updateWindow),
-        DECLARE_NAPI_METHOD("getAllWindowsHandle", getAllWindowsHandle), //=>2-1ADD
         DECLARE_NAPI_METHOD("SetWindowInTaskbarVisible", SetWindowInTaskbarVisible),
         DECLARE_NAPI_METHOD("SetBlockInput", SetBlockInput),
         DECLARE_NAPI_METHOD("system", CallSystem),
@@ -2933,27 +2925,30 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
         DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
         // DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),                          //=>2-13REMOVE
-        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0},               //=>2-13ADD
+        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0}, //=>2-13ADD
         DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
         // auto.cpp
-        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                              //=>3-1UP
-        DECLARE_NAPI_METHODRM("rightClick", rightClick),                                  //=>3-1UP
-        DECLARE_NAPI_METHODRM("leftClick", leftClick),                                    //=>3-1UP
-        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),                  //=>3-1UP
-        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                          //=>3-1UP
-        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                              //=>3-1UP
-        DECLARE_NAPI_METHODRM("mouse", mouse),                                            //=>3-1UP
-        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),                //=>3-1ADD
-        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),                      //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                                //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                          //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession),          //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),                //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),                      //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),                //=>3-1ADD
+        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                     //=>3-1UP
+        DECLARE_NAPI_METHODRM("rightClick", rightClick),                         //=>3-1UP
+        DECLARE_NAPI_METHODRM("leftClick", leftClick),                           //=>3-1UP
+        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),         //=>3-1UP
+        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                 //=>3-1UP
+        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                     //=>3-1UP
+        DECLARE_NAPI_METHODRM("mouse", mouse),                                   //=>3-1UP
+        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),       //=>3-6UP
+        DECLARE_NAPI_METHODRM("setForegroundWindow", setForegroundWindow),       //=>3-6UP
     };
+    _________HMC_DEBUG__________ =true;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
     return exports;

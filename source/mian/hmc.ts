@@ -3961,6 +3961,7 @@ class Iohook_Mouse {
      * @returns 
      */
     start() {
+        SetIohook=true;
         let start = native.isStartHookMouse();
         if (start) throw new Error("the Task Has Started.");
         native.installHookMouse();
@@ -4145,6 +4146,7 @@ class Iohook_Keyboard {
      * @returns 
      */
     start() {
+        SetIohook=true;
         let start = native.isStartKeyboardHook();
         if (start) throw new Error("the Task Has Started.");
         native.installKeyboardHook();

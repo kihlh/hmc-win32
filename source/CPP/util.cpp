@@ -256,6 +256,29 @@ string _NAPI_Call_Type(napi_valuetype valuetype0)
     return Call_Type;
 }
 
+bool util_diff_napi_type(napi_env env, napi_value value, napi_valuetype valuetype)
+{
+    napi_valuetype value_type;
+    napi_typeof(env, value, &value_type);
+    if (value_type == valuetype)
+        return true;
+    return false;
+}
+
+napi_valuetype util_get_napi_type(napi_env env, napi_value value)
+{
+    napi_valuetype value_type;
+    napi_typeof(env, value, &value_type);
+    return value_type;
+}
+
+string util_get_napi_type_name(napi_env env, napi_value value)
+{
+    napi_valuetype value_type;
+    napi_typeof(env, value, &value_type);
+    return _NAPI_Call_Type(value_type);
+}
+
 struct hmcRect
 {
     int x;
@@ -268,13 +291,13 @@ struct hmcRect
 //  授权 CC 4.0 BY-SA
 /**
  * @brief 矩形相交判断
- * 
- * @param inRect 
- * @param mian 
- * @return true 
- * @return false 
+ *
+ * @param inRect
+ * @param mian
+ * @return true
+ * @return false
  */
-bool rectInRect(hmcRect mian,hmcRect inRect)
+bool rectInRect(hmcRect mian, hmcRect inRect)
 {
     bool isInRet = true;
     // 得出对比传入的边界
@@ -282,8 +305,10 @@ bool rectInRect(hmcRect mian,hmcRect inRect)
     int in_y = inRect.y;
     int in_xw = inRect.x + inRect.width;
     int in_hy = inRect.y + inRect.height;
-    if(!inRect.x)in_x=1;
-    if(!inRect.y)in_y=1;
+    if (!inRect.x)
+        in_x = 1;
+    if (!inRect.y)
+        in_y = 1;
     // 得出mian的边界
     int mian_x = mian.x;
     int mian_y = mian.y;
@@ -305,8 +330,8 @@ bool rectInRect(hmcRect mian,hmcRect inRect)
         {
             return true;
         }
-     
-       return false;
+
+        return false;
     }
     return false;
 }
@@ -315,25 +340,26 @@ bool rectInRect(hmcRect mian,hmcRect inRect)
 //  授权 CC 4.0 BY-SA
 /**
  * @brief 点在矩形中
- * 
- * @param pt 
- * @param rect 
- * @return true 
- * @return false 
+ *
+ * @param pt
+ * @param rect
+ * @return true
+ * @return false
  */
 bool pointInRect(POINT pt, hmcRect rect)
 {
-	if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height)))
-	{
-		return true;
-	}
-	return false;
+    if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height)))
+    {
+        return true;
+    }
+    return false;
 }
 
-hmcRect RECT2Rect(RECT inputRect){
-    hmcRect out ;
-    out.height =inputRect.top - inputRect.bottom;
-    out.width = inputRect.right-inputRect.left;
+hmcRect RECT2Rect(RECT inputRect)
+{
+    hmcRect out;
+    out.height = inputRect.top - inputRect.bottom;
+    out.width = inputRect.right - inputRect.left;
     out.x = inputRect.left;
     out.y = inputRect.top;
     return out;
@@ -341,31 +367,32 @@ hmcRect RECT2Rect(RECT inputRect){
 
 /**
  * @brief 矩形相交判断
- * 
- * @param inRect 
- * @param mian 
- * @return true 
- * @return false 
+ *
+ * @param inRect
+ * @param mian
+ * @return true
+ * @return false
  */
-bool RECTinRECT(RECT inRect, RECT mian){
-    return rectInRect(RECT2Rect(inRect),RECT2Rect(mian));
+bool RECTinRECT(RECT inRect, RECT mian)
+{
+    return rectInRect(RECT2Rect(inRect), RECT2Rect(mian));
 }
 
 /**
  * @brief 点在矩形中
- * 
- * @param pt 
- * @param rect 
- * @return true 
- * @return false 
+ *
+ * @param pt
+ * @param rect
+ * @return true
+ * @return false
  */
 bool pointInRECT(POINT pt, RECT inputRect)
 {
     hmcRect rect = RECT2Rect(inputRect);
-	if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height)))
-	{
-		return true;
-	}
-	return false;
+    if ((pt.x > rect.x) && (pt.y > rect.y) && (pt.x < (rect.x + rect.width)) && (pt.y < (rect.y + rect.height)))
+    {
+        return true;
+    }
+    return false;
 }
 

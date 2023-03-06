@@ -51,6 +51,9 @@ string call_String_NAPI_WINAPI_A(napi_env env, napi_value value);
 
 string call_String_NAPI_UTF8(napi_env env, napi_value value);
 
+bool util_diff_napi_type(napi_env env, napi_value value, napi_valuetype valuetype);
+napi_valuetype util_get_napi_type(napi_env env, napi_value value);
+string util_get_napi_type_name(napi_env env, napi_value value);
 
 
 struct hmcRect;

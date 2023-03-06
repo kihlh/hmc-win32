@@ -2389,6 +2389,7 @@ var Iohook_Mouse = class {
     return mouseHook;
   }
   start() {
+    SetIohook = true;
     let start = native.isStartHookMouse();
     if (start)
       throw new Error("the Task Has Started.");
@@ -2528,6 +2529,7 @@ var Iohook_Keyboard = class {
     return keyboardHook;
   }
   start() {
+    SetIohook = true;
     let start = native.isStartKeyboardHook();
     if (start)
       throw new Error("the Task Has Started.");

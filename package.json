@@ -1,6 +1,6 @@
 {
   "name": "hmc-win32",
-  "version": "1.2.4",
+  "version": "1.2.6",
   "description": "Connect to the system api in the easiest way (win-api)",
   "license": "MIT License",
   "main": "./index.js",
@@ -84,7 +84,11 @@
     "change-window",
     "has-webView2",
     "webView2",
-    "web-view2"
+    "web-view2",
+    "iohook",
+    "hook",
+    "keyboard",
+    "mouse-hook"
   ],
   "scripts": {
     "build": "cd CPP&&node-gyp rebuild",
