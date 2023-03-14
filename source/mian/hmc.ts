@@ -25,15 +25,14 @@ const Hkey = {
  * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
  */
 export const native: HMC.Native = (() => {
-    function _require_bin(): HMC.Native {
-        try {
-            if (process.arch == "x32") return require("./bin/HMC_x86.node");
-            else return require("./bin/HMC_x64.node");
-        } catch (error) {
-            return require("../HMC.node");
-        }
+    function _require_bin(): HMC.Native|null {
+        if (process.arch.match(/^x32|ia32$/)) return require("./bin/HMC_x86.node");
+        if (process.arch.match(/^x64$/)) return require("./bin/HMC_x64.node");
+        // if (process.arch.match(/^arm64$/)) return require("./bin/HMC_arm64.node");
+        // if (process.arch.match(/^arm$/)) return require("./bin/HMC_arm.node");
+        return null;
     }
-    let Native: HMC.Native = process.platform == "win32" ? _require_bin() : (() => {
+    let Native: HMC.Native = (process.platform == "win32" ? _require_bin():null)||  (() => {
         let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
         function fnBool(...args: any[]) { console.error(HMCNotPlatform); return false }
         function fnVoid(...args: any[]) { console.error(HMCNotPlatform); return undefined }

@@ -487,10 +487,10 @@ var native = (() => {
       else
         return require("./bin/HMC_x64.node");
     } catch (error) {
-      return require("../HMC.node");
+      return null;
     }
   }
-  let Native = process.platform == "win32" ? _require_bin() : (() => {
+  let Native = (process.platform == "win32" ? _require_bin() : null) || (() => {
     let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
     function fnBool(...args) {
       console.error(HMCNotPlatform);
