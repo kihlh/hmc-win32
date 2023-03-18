@@ -9,8 +9,7 @@ void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message)
         string error_message_str = string("console.error(new Error(String.raw`\n");
         error_message_str.append(error_message);
         error_message_str.append("`))");
-        napi_run_script(env,_create_String(env,error_message_str), &run_script_result);
-        
+        napi_run_script(env, _create_String(env, error_message_str), &run_script_result);
     }
 }
 
@@ -1929,7 +1928,6 @@ static napi_value getAllWindowsNot(napi_env env, napi_callback_info info)
     return Results;
 }
 
-
 // 隐藏托盘图标
 static napi_value SetWindowInTaskbarVisible(napi_env env, napi_callback_info info)
 {
@@ -2819,6 +2817,12 @@ static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
     return NULL;
 }
 
+static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
+{
+    _________HMC_DEBUG__________ = !_________HMC_DEBUG__________;
+    return _create_bool_Boolean(env, _________HMC_DEBUG__________);
+}
+
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
@@ -2827,7 +2831,7 @@ static napi_value Init(napi_env env, napi_value exports)
     // napi_create_object(env, &exportsMessage);
 
     napi_property_descriptor BIND_NAPI_METHOD[] = {
-        ADD_NAPI_METHOD_Str_VALUE("version", "1.0.5"),
+        ADD_NAPI_METHOD_Str_VALUE("version", "1.2.7"),
         ADD_NAPI_METHOD_Str_VALUE("desc", "HMC Connection System api"),
         ADD_NAPI_METHOD_Str_VALUE("platform", "win32"),
         DECLARE_NAPI_METHOD("killProcess", killProcess),
@@ -2916,6 +2920,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2-11ADD
         DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2-11ADD
         DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2-11ADD
+        DECLARE_NAPI_METHOD("_SET_HMC_DEBUG", _SET_HMC_DEBUG),                           //=>2-11ADD
         DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2-12ADD
         DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2-12ADD
         DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2-12ADD
@@ -2930,25 +2935,26 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
         // auto.cpp
-        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                     //=>3-1UP
-        DECLARE_NAPI_METHODRM("rightClick", rightClick),                         //=>3-1UP
-        DECLARE_NAPI_METHODRM("leftClick", leftClick),                           //=>3-1UP
-        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),         //=>3-1UP
-        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                 //=>3-1UP
-        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                     //=>3-1UP
-        DECLARE_NAPI_METHODRM("mouse", mouse),                                   //=>3-1UP
-        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),       //=>3-6UP
-        DECLARE_NAPI_METHODRM("setForegroundWindow", setForegroundWindow),       //=>3-6UP
+        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                       //=>3-1UP
+        DECLARE_NAPI_METHODRM("rightClick", rightClick),                           //=>3-1UP
+        DECLARE_NAPI_METHODRM("leftClick", leftClick),                             //=>3-1UP
+        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),           //=>3-1UP
+        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                   //=>3-1UP
+        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                       //=>3-1UP
+        DECLARE_NAPI_METHODRM("mouse", mouse),                                     //=>3-1UP
+        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),         //=>3-1ADD
+        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),               //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                         //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                   //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession),   //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),         //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),               //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),         //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),         //=>3-6UP
+        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore), //=>3-6UP
+
     };
-    _________HMC_DEBUG__________ =true;
+    _________HMC_DEBUG__________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
     return exports;

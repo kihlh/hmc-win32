@@ -23,9 +23,10 @@
 #include "./util.h"
 #include <conio.h>
 #include <time.h>
-
+#include <signal.h>
 using namespace std;
 
+#pragma comment(lib, "Ws2_32")
 #pragma comment(lib, "dwmapi.lib")
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
@@ -41,6 +42,9 @@ typedef LPCSTR LPCTSTR;
 #define $runError (CharString) napi_throw_type_error(env, NULL, CharString);
 // DEFINE_GUID(UsbClassGuid, 0xa5dcbf10L, 0x6530, 0x11d2, 0x90, 0x1f, 0x00, 0xc0, 0x4f, 0xb9, 0x51, 0xed);
 extern bool _________HMC_DEBUG__________;
+
+void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message);
+
 void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message);
 BOOL EnableShutDownPriv();
 
@@ -168,3 +172,4 @@ napi_value mouse(napi_env env, napi_callback_info info);
 // Windows.cpp
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);
 napi_value setForegroundWindow(napi_env env, napi_callback_info info);
+napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info);

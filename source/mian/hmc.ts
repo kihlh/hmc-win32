@@ -2,6 +2,7 @@ import path = require("path");
 import os = require("os");
 import fs = require("fs");
 import https = require('https');
+import dgram = require('dgram');
 import { chcpList } from "./chcpList";
 import child_process = require("child_process");
 import net = require("net");
@@ -24,15 +25,18 @@ const Hkey = {
  * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
  * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
  */
-export const native: HMC.Native = (() => {
-    function _require_bin(): HMC.Native|null {
-        if (process.arch.match(/^x32|ia32$/)) return require("./bin/HMC_x86.node");
-        if (process.arch.match(/^x64$/)) return require("./bin/HMC_x64.node");
-        // if (process.arch.match(/^arm64$/)) return require("./bin/HMC_arm64.node");
-        // if (process.arch.match(/^arm$/)) return require("./bin/HMC_arm.node");
+const get_native: () => HMC.Native = (binPath?: string) => {
+    function _require_bin(): HMC.Native | null {
+        try {
+            if (binPath) return require(binPath);
+            if (process.arch.match(/^x32|ia32$/)) return require("./bin/HMC_x86.node");
+            if (process.arch.match(/^x64$/)) return require("./bin/HMC_x64.node");
+        } catch (X_X) {
+
+        }
         return null;
     }
-    let Native: HMC.Native = (process.platform == "win32" ? _require_bin():null)||  (() => {
+    let Native: HMC.Native = (process.platform == "win32" ? _require_bin() : null) || (() => {
         let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
         function fnBool(...args: any[]) { console.error(HMCNotPlatform); return false }
         function fnVoid(...args: any[]) { console.error(HMCNotPlatform); return undefined }
@@ -41,6 +45,7 @@ export const native: HMC.Native = (() => {
         function fnStrList(...args: any[]) { console.error(HMCNotPlatform); return [] as string[] }
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         return {
+            _SET_HMC_DEBUG: fnBool,
             isStartKeyboardHook: fnBool,
             isStartHookMouse: fnBool,
             getMouseNextSession: () => { console.error(HMCNotPlatform); return [] as `${number}|${number}|${0 | 1}`[] | undefined },
@@ -182,7 +187,8 @@ export const native: HMC.Native = (() => {
         }
     })();
     return Native;
-})();
+};
+export const native: HMC.Native = get_native();
 
 /**
  * 句柄 可以视为是一个数字也可以视为是一个功能 {0}
@@ -676,6 +682,7 @@ export module HMC {
     };
 
     export type Native = {
+        _SET_HMC_DEBUG(): boolean;
         /**版本号 */
         version: string;
         /**功能介绍 */
@@ -905,7 +912,7 @@ export module HMC {
         /**
          * 获取所有窗口的句柄
          */
-        getAllWindowsHandle(): number[];
+        getAllWindowsHandle(isWindows?: boolean): number[];
         /**
          * 获取所有窗口的信息
          * @deprecated 已被移除 已使用js获取所有句柄模拟
@@ -2340,9 +2347,9 @@ export function MessageError(Message: string, Title?: string) {
  *  ```
  * @returns 
  */
-export function getAllWindowsHandle() {
+export function getAllWindowsHandle(isWindows: boolean) {
     let data = [];
-    let AllWindowsHandle = native.getAllWindowsHandle();
+    let AllWindowsHandle = native.getAllWindowsHandle(isWindows || false);
     for (let index = 0; index < AllWindowsHandle.length; index++) {
         const element = AllWindowsHandle[index];
         // const mydata = {
@@ -3349,7 +3356,7 @@ export function systemStartTime() {
 /**
 * 获取所有窗口的信息
 **/
-export function getAllWindows() {
+export function getAllWindows(isWindows: boolean) {
     class WINDOWS_INFO {
         handle: number;
         constructor(handle: number) {
@@ -3377,7 +3384,7 @@ export function getAllWindows() {
         }
     }
 
-    let AllWindowsHandle = native.getAllWindowsHandle();
+    let AllWindowsHandle = native.getAllWindowsHandle(isWindows === false ? false : true);
     let AllWindows: HMC.GET_ALL_WINDOWS_INFO[] = [];
     for (let index = 0; index < AllWindowsHandle.length; index++) {
         const handle = AllWindowsHandle[index];
@@ -3507,6 +3514,81 @@ export async function WebView2OnlineInstall() {
 export function hasWebView2() {
     return GetWebView2Info(true);
 }
+/**
+ * 判断TCP(服务)端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns 
+ */
+export function hasPortTCP(port: number): Promise<boolean>;
+export function hasPortTCP(port: number, callBack: (hasPort: boolean) => unknown): void;
+/**
+ * 判断TCP(服务)端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns 
+ */
+export function hasPortTCP(port: number, callBack?: (hasPort: boolean) => unknown): unknown {
+    let resolve: ((hasPort: boolean) => unknown) | null = null;
+    let prom;
+    let sock = net.createServer(function () { });
+    sock.listen(port);
+    if (typeof callBack == 'function') {
+        resolve = callBack;
+    } else {
+        prom = new Promise((Prom_resolve) => {
+            resolve = Prom_resolve;
+        });
+    }
+    sock.on("error", function (err) {
+        resolve && resolve(true);
+        sock.close();
+    });
+    sock.on("listening", function () {
+        resolve && resolve(false);
+        sock.close();
+    });
+    if (typeof callBack !== 'function') {
+        return prom;
+    }
+}
+
+
+/**
+ * 判断UDP端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns 
+ */
+export function hasPortUDP(port: number): Promise<boolean>;
+export function hasPortUDP(port: number, callBack: (hasPort: boolean) => unknown): void;
+/**
+ * 判断UDP端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns 
+ */
+export function hasPortUDP(port: number, callBack?: (hasPort: boolean) => unknown): unknown {
+    let resolve: ((hasPort: boolean) => unknown) | null = null;
+    let prom;
+    let udp4 = dgram.createSocket('udp4');
+    udp4.bind(port);
+    if (typeof callBack == 'function') {
+        resolve = callBack;
+    } else {
+        prom = new Promise((Prom_resolve) => {
+            resolve = Prom_resolve;
+        });
+    }
+    udp4.on("error", function (err) {
+        resolve && resolve(true);
+        udp4.close();
+    });
+    udp4.on("listening", function () {
+        resolve && resolve(false);
+        udp4.close();
+    });
+    if (typeof callBack !== 'function') {
+        return prom;
+    }
+}
+
 
 // hmc.node 的版本号
 export const version = native.version;
@@ -3960,7 +4042,7 @@ class Iohook_Mouse {
      * @returns 
      */
     start() {
-        SetIohook=true;
+        SetIohook = true;
         let start = native.isStartHookMouse();
         if (start) throw new Error("the Task Has Started.");
         native.installHookMouse();
@@ -3969,33 +4051,33 @@ class Iohook_Mouse {
             y: 0,
             isDown: false,
         };
-       
-            mouseHook.emit("start");
-            let emit_getMouseNextSession = () => {
-                if (mouseHook._Close) {return };
-                let getMouseNextSession = native.getMouseNextSession();
-                if (getMouseNextSession?.length) mouseHook.emit("data", getMouseNextSession);
-                if (getMouseNextSession)
-                    for (let index = 0; index < getMouseNextSession.length; index++) {
-                        const MouseNextSession = getMouseNextSession[index];
-                        const mousePoint = new MousePoint(MouseNextSession);
-                        mouseHook.emit("mouse", mousePoint);
-                        if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
-                            mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
-                        }
-                        oid_Mouse_info.isDown = mousePoint.isDown;
-                        oid_Mouse_info.x = mousePoint.x;
-                        oid_Mouse_info.y = mousePoint.y;
+
+        mouseHook.emit("start");
+        let emit_getMouseNextSession = () => {
+            if (mouseHook._Close) { return };
+            let getMouseNextSession = native.getMouseNextSession();
+            if (getMouseNextSession?.length) mouseHook.emit("data", getMouseNextSession);
+            if (getMouseNextSession)
+                for (let index = 0; index < getMouseNextSession.length; index++) {
+                    const MouseNextSession = getMouseNextSession[index];
+                    const mousePoint = new MousePoint(MouseNextSession);
+                    mouseHook.emit("mouse", mousePoint);
+                    if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
+                        mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
                     }
-                    
-            }
-            (async()=>{
-                while (true) {
-                    if(this._Close)return;
-                    await Sleep(50);
-                    emit_getMouseNextSession();
+                    oid_Mouse_info.isDown = mousePoint.isDown;
+                    oid_Mouse_info.x = mousePoint.x;
+                    oid_Mouse_info.y = mousePoint.y;
                 }
-            })();
+
+        }
+        (async () => {
+            while (true) {
+                if (this._Close) return;
+                await Sleep(50);
+                emit_getMouseNextSession();
+            }
+        })();
     }
     /**
      * 结束
@@ -4145,31 +4227,31 @@ class Iohook_Keyboard {
      * @returns 
      */
     start() {
-        SetIohook=true;
+        SetIohook = true;
         let start = native.isStartKeyboardHook();
         if (start) throw new Error("the Task Has Started.");
         native.installKeyboardHook();
-      
-        keyboardHook.emit("start");
-            let emit_getKeyboardNextSession = () => {
-                let getKeyboardNextSession = native.getKeyboardNextSession();
-                if (getKeyboardNextSession?.length) keyboardHook.emit("data", getKeyboardNextSession);
-                if (getKeyboardNextSession)
-                    for (let index = 0; index < getKeyboardNextSession.length; index++) {
-                        const KeyboardNextSession = getKeyboardNextSession[index];
-                        const KeyboardPoint = new Keyboard(KeyboardNextSession);
-                        keyboardHook.emit("change", KeyboardPoint);
-                    }
 
-            }
-            (async()=>{
-                while (true) {
-                    if(keyboardHook._Close)return;
-                    await Sleep(15);
-                    emit_getKeyboardNextSession();
+        keyboardHook.emit("start");
+        let emit_getKeyboardNextSession = () => {
+            let getKeyboardNextSession = native.getKeyboardNextSession();
+            if (getKeyboardNextSession?.length) keyboardHook.emit("data", getKeyboardNextSession);
+            if (getKeyboardNextSession)
+                for (let index = 0; index < getKeyboardNextSession.length; index++) {
+                    const KeyboardNextSession = getKeyboardNextSession[index];
+                    const KeyboardPoint = new Keyboard(KeyboardNextSession);
+                    keyboardHook.emit("change", KeyboardPoint);
                 }
-            })();
-            return start;
+
+        }
+        (async () => {
+            while (true) {
+                if (keyboardHook._Close) return;
+                await Sleep(15);
+                emit_getKeyboardNextSession();
+            }
+        })();
+        return start;
     }
     /**
      * 结束
@@ -4538,6 +4620,8 @@ export const registr = {
 
 export const Registr = registr;
 export const hmc = {
+    hasPortTCP,
+    hasPortUDP,
     getWebView2Info,
     hasWebView2,
     Auto,

@@ -44,39 +44,30 @@ napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)
     return Results;
 }
 
+void do_something_asynchronous(napi_env env, napi_deferred deferred)
+{
+    napi_value undefined;
+    napi_status status;
+    Sleep(5000);
+    status = napi_get_undefined(env, &undefined);
+    napi_resolve_deferred(env, deferred, undefined);
+
+    deferred = NULL;
+}
+
+
 // 获取所有窗口
 napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info)
 {
+    napi_deferred deferred;
+    napi_value promise;
     napi_status status;
-    napi_value Results;
-    status = napi_create_array(env, &Results);
-    assert(status == napi_ok);
-    // 取值
-    napi_value argv[2];
-    size_t argc = 2;
-    status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    assert(status == napi_ok);
-    int64_t ProcessId = 0;
-    bool expandedScope = false;
 
-    // 取值第一参数 pid
-    if (util_diff_napi_type(env, argv[0], napi_number))
-    {
-        napi_get_value_int64(env, argv[0], &ProcessId);
-    }
-    else
-    {
-        napi_throw_type_error(env, NULL, "argv[0] typeof not a number");
+    status = napi_create_promise(env, &deferred, &promise);
+    if (status != napi_ok)
         return NULL;
-    };
-
-    // 取值第二参数 是否扩大范围 (子进程 -> 进程 -> 主进程)
-    if (util_diff_napi_type(env, argv[1], napi_boolean))
-    {
-        napi_get_value_bool(env, argv[1], &expandedScope);
-    }
-
-    return Results;
+    std::thread(do_something_asynchronous, env, deferred).detach();
+    return promise;
 }
 
 // url https://www.codeproject.com/Tips/76427/How-to-Bring-Window-to-Top-with-SetForegroundWindo

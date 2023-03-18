@@ -302,6 +302,7 @@ var path = __require("path");
 var os = __require("os");
 var fs = __require("fs");
 var https = __require("https");
+var dgram = __require("dgram");
 var child_process = __require("child_process");
 var net = __require("net");
 var argvSplit = require_split();
@@ -313,16 +314,18 @@ var Hkey = {
   HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE",
   HKEY_CURRENT_USER: "HKEY_CURRENT_USER"
 };
-var native = (() => {
+var get_native = (binPath) => {
   function _require_bin() {
     try {
-      if (process.arch == "x32")
+      if (binPath)
+        return __require(binPath);
+      if (process.arch.match(/^x32|ia32$/))
         return __require("./bin/HMC_x86.node");
-      else
+      if (process.arch.match(/^x64$/))
         return __require("./bin/HMC_x64.node");
-    } catch (error) {
-      return null;
+    } catch (X_X) {
     }
+    return null;
   }
   let Native = (process.platform == "win32" ? _require_bin() : null) || (() => {
     let HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
@@ -351,6 +354,7 @@ var native = (() => {
       return "";
     }
     return {
+      _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
       isStartHookMouse: fnBool,
       getMouseNextSession: () => {
@@ -540,7 +544,8 @@ var native = (() => {
     };
   })();
   return Native;
-})();
+};
+var native = get_native();
 var HWND = class extends Number {
   constructor(hWnd) {
     super(hWnd);
@@ -1267,9 +1272,9 @@ function MessageError(Message, Title) {
     typeof Title != "string" ? getDefaultTitele() : Title
   );
 }
-function getAllWindowsHandle() {
+function getAllWindowsHandle(isWindows) {
   let data = [];
-  let AllWindowsHandle = native.getAllWindowsHandle();
+  let AllWindowsHandle = native.getAllWindowsHandle(isWindows || false);
   for (let index = 0; index < AllWindowsHandle.length; index++) {
     const element = AllWindowsHandle[index];
     data.push(new HWND(element));
@@ -1760,7 +1765,7 @@ async function Sleep(awaitTime, Sync) {
 function systemStartTime() {
   return native.systemStartTime();
 }
-function getAllWindows() {
+function getAllWindows(isWindows) {
   class WINDOWS_INFO {
     constructor(handle) {
       this.handle = handle;
@@ -1786,7 +1791,7 @@ function getAllWindows() {
       return this._title;
     }
   }
-  let AllWindowsHandle = native.getAllWindowsHandle();
+  let AllWindowsHandle = native.getAllWindowsHandle(isWindows === false ? false : true);
   let AllWindows = [];
   for (let index = 0; index < AllWindowsHandle.length; index++) {
     const handle = AllWindowsHandle[index];
@@ -1868,6 +1873,55 @@ async function WebView2OnlineInstall() {
 }
 function hasWebView2() {
   return GetWebView2Info(true);
+}
+function hasPortTCP(port, callBack) {
+  let resolve = null;
+  let prom;
+  let sock = net.createServer(function() {
+  });
+  sock.listen(port);
+  if (typeof callBack == "function") {
+    resolve = callBack;
+  } else {
+    prom = new Promise((Prom_resolve) => {
+      resolve = Prom_resolve;
+    });
+  }
+  sock.on("error", function(err) {
+    resolve && resolve(true);
+    sock.close();
+  });
+  sock.on("listening", function() {
+    resolve && resolve(false);
+    sock.close();
+  });
+  if (typeof callBack !== "function") {
+    return prom;
+  }
+}
+function hasPortUDP(port, callBack) {
+  let resolve = null;
+  let prom;
+  let udp4 = dgram.createSocket("udp4");
+  udp4.bind(port);
+  if (typeof callBack == "function") {
+    resolve = callBack;
+  } else {
+    prom = new Promise((Prom_resolve) => {
+      resolve = Prom_resolve;
+    });
+  }
+  udp4.on("error", function(err) {
+    resolve && resolve(true);
+    udp4.close();
+  });
+  udp4.on("listening", function() {
+    resolve && resolve(false);
+    udp4.close();
+  });
+  if (typeof callBack !== "function") {
+    return prom;
+  }
 }
 var version = native.version;
 var desc = native.desc;
@@ -2561,6 +2615,8 @@ var registr = {
 };
 var Registr = registr;
 var hmc = {
+  hasPortTCP,
+  hasPortUDP,
   getWebView2Info,
   hasWebView2,
   Auto,
@@ -2795,6 +2851,8 @@ export {
   getWindowStyle,
   getWindowTitle,
   hasKeyActivate,
+  hasPortTCP,
+  hasPortUDP,
   hasProcess,
   hasRegistrKey,
   hasWebView2,
