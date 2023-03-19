@@ -1564,7 +1564,7 @@ export function setWindowMode(HWND: HWND | number, x: number | null | 0 | HMC.RE
  */
 function has_reg_args(HKEY: HMC.HKEY, Path: string, funName: string) {
     let hasHKEY = new RegExp(`^${Object.keys(Hkey).join("|")}$`).exec(HKEY);
-    if (hasHKEY || !Path) {
+    if (!hasHKEY || !Path) {
         throw new Error(`
         <fun> ${funName}  
         argument size 2 or 3

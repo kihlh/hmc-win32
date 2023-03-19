@@ -880,7 +880,7 @@ function setWindowMode(HWND2, x, y, width, height) {
 }
 function has_reg_args(HKEY, Path, funName) {
   let hasHKEY = new RegExp(`^${Object.keys(Hkey).join("|")}$`).exec(HKEY);
-  if (hasHKEY || !Path) {
+  if (!hasHKEY || !Path) {
     throw new Error(`
         <fun> ${funName}  
         argument size 2 or 3
