@@ -1,9 +1,9 @@
 /// <reference types="node" />
 /**注册表根目录 */
 declare const Hkey: {
-    /**用作默认用户首选设置，也作为单个用户的首选设置 */
+    /**用作默认用户首选设置|也作为单个用户的首选设置 */
     HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
-    /**用作默认用户首选设置，也作为单个用户的首选设置 */
+    /**用作默认用户首选设置|也作为单个用户的首选设置 */
     HKEY_USERS: "HKEY_USERS";
     /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
     HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
@@ -12,10 +12,6 @@ declare const Hkey: {
     /**管理系统当前的用户信息 */
     HKEY_CURRENT_USER: "HKEY_CURRENT_USER";
 };
-/**
- * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
- * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
- */
 export declare const native: HMC.Native;
 /**
  * 句柄 可以视为是一个数字也可以视为是一个功能 {0}
@@ -316,7 +312,7 @@ export declare module HMC {
         path: string;
     }
     export type mouse_event = /**不支持的属性 请使用 setCursorPos 方法设置位置*/ 32768 | /**左键按下 */ 2 | /**左边的按钮是向上的 */ 4 | /**中间的按钮是向下的 */ 32 | /**中间的按钮是向上的 */ 64 | /**鼠标移动和按钮点击 */ 1 | /**鼠标右键按下 */ 8 | /**鼠标右键弹起 */ 16 | /**滚轮按钮被旋转 */ 2048 | /**按下了 X 按钮 */ 128 | /**X 按钮被释放 */ 256 | /**滚轮按钮倾斜*/ 4096 | /**不支持的属性 请使用 setCursorPos 方法设置位置*/ "MOUSEEVENTF_ABSOLUTE" | /**左键按下 */ "MOUSEEVENTF_LEFTDOWN" | /**左边的按钮是向上的 */ "MOUSEEVENTF_LEFTUP" | /**中间的按钮是向下的 */ "MOUSEEVENTF_MIDDLEDOWN" | /**中间的按钮是向上的 */ "MOUSEEVENTF_MIDDLEUP" | /**鼠标移动和按钮点击 */ "MOUSEEVENTF_MOVE" | /**鼠标右键按下 */ "MOUSEEVENTF_RIGHTDOWN" | /**鼠标右键弹起 */ "MOUSEEVENTF_RIGHTUP" | /**滚轮按钮被旋转 */ "MOUSEEVENTF_WHEEL" | /**按下了 X 按钮 */ "MOUSEEVENTF_XDOWN" | /**X 按钮被释放 */ "MOUSEEVENTF_XUP" | /**滚轮按钮倾斜*/ "MOUSEEVENTF_HWHEEL";
-    export type MB_UINT = /**消息框包含三个按钮：终止、重试和忽略。 */ "MB_ABORTRETRYIGNORE" | /**消息框包含三个按钮：取消、重试、继续。使用此消息框类型而不是 MB_ABORTRETRYIGNORE。 */ "MB_CANCELTRYCONTINUE" | /**向消息框 添加帮助按钮。当用户单击帮助按钮或按 F1 时，系统会向所有者 发送WM_HELP消息。 */ "MB_HELP" | /**消息框包含一个按钮：确定。这是默认设置。 */ "MB_OK" | /**消息框包含两个按钮：确定和取消。 */ "MB_YESNOCANCEL" | /**消息框包含两个按钮：是和否。 */ "MB_YESNO" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_OKCANCEL" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_RETRYCANCEL" | /**消息框包含三个按钮：Yes、No和Cancel。 一个停止标志图标出现在消息框中。*/ "MB_ICONERROR" | /**一个停止标志图标出现在消息框中。 */ "MB_ICONSTOP" | /**问号图标出现在消息框中。不再推荐使用问号消息图标，因为它不能清楚地表示特定类型的消息，并且作为问题的消息措辞可能适用于任何消息类型。此外，用户可能会将消息符号问号与帮助信息混淆。因此，请勿在消息框中使用此问号消息符号。系统继续支持它的包含只是为了向后兼容。 */ "MB_ICONQUESTION" | /**一个由圆圈中的小写字母i组成的图标出现在消息框中。 */ "MB_ICONASTERISK" | "MB_ICONINFORMATION" | /**消息框中会出现一个感叹号图标。 */ "MB_ICONEXCLAMATION" | /** 消息框中会出现一个感叹号图标。 */ "MB_ICONWARNING" | /* 消息框成为前台窗口 **/ "MB_TOPMOST" | "MB_SETFOREGROUND" | "MB_RTLREADING" | "MB_RIGHT" | "MB_DEFAULT_DESKTOP_ONLY" | "MB_TASKMODAL" | "MB_SYSTEMMODAL" | "MB_APPLMODAL" | "MB_DEFBUTTON4" | "MB_DEFBUTTON3" | "MB_DEFBUTTON2" | "MB_ICONHAND" | "MB_DEFBUTTON1";
+    export type MB_UINT = /**消息框包含三个按钮：终止、重试和忽略。 */ "MB_ABORTRETRYIGNORE" | /**消息框包含三个按钮：取消、重试、继续。使用此消息框类型而不是 MB_ABORTRETRYIGNORE。 */ "MB_CANCELTRYCONTINUE" | /**向消息框 添加帮助按钮。当用户单击帮助按钮或按 F1 时|系统会向所有者 发送WM_HELP消息。 */ "MB_HELP" | /**消息框包含一个按钮：确定。这是默认设置。 */ "MB_OK" | /**消息框包含两个按钮：确定和取消。 */ "MB_YESNOCANCEL" | /**消息框包含两个按钮：是和否。 */ "MB_YESNO" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_OKCANCEL" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_RETRYCANCEL" | /**消息框包含三个按钮：Yes、No和Cancel。 一个停止标志图标出现在消息框中。*/ "MB_ICONERROR" | /**一个停止标志图标出现在消息框中。 */ "MB_ICONSTOP" | /**问号图标出现在消息框中。不再推荐使用问号消息图标|因为它不能清楚地表示特定类型的消息|并且作为问题的消息措辞可能适用于任何消息类型。此外|用户可能会将消息符号问号与帮助信息混淆。因此|请勿在消息框中使用此问号消息符号。系统继续支持它的包含只是为了向后兼容。 */ "MB_ICONQUESTION" | /**一个由圆圈中的小写字母i组成的图标出现在消息框中。 */ "MB_ICONASTERISK" | "MB_ICONINFORMATION" | /**消息框中会出现一个感叹号图标。 */ "MB_ICONEXCLAMATION" | /** 消息框中会出现一个感叹号图标。 */ "MB_ICONWARNING" | /* 消息框成为前台窗口 **/ "MB_TOPMOST" | "MB_SETFOREGROUND" | "MB_RTLREADING" | "MB_RIGHT" | "MB_DEFAULT_DESKTOP_ONLY" | "MB_TASKMODAL" | "MB_SYSTEMMODAL" | "MB_APPLMODAL" | "MB_DEFBUTTON4" | "MB_DEFBUTTON3" | "MB_DEFBUTTON2" | "MB_ICONHAND" | "MB_DEFBUTTON1";
     export type HID_USB_INFO = {
         /**类型**/
         type: "hid" | "keyboard" | "mouse";
@@ -334,6 +330,7 @@ export declare module HMC {
         usUsagePage: number;
     };
     export type Native = {
+        _SET_HMC_DEBUG(): boolean;
         /**版本号 */
         version: string;
         /**功能介绍 */
@@ -384,7 +381,7 @@ export declare module HMC {
         /** 设置窗口位置大小**/
         setWindowMode: (Handle: number, x: number | null | 0, y: number | null | 0, width: number | null | 0, height: number | null | 0) => boolean;
         /** 获取窗口位置大小
-         *  - 高，宽，坐标大于一万以上都是不可见的
+         *  - 高|宽|坐标大于一万以上都是不可见的
          * **/
         getWindowRect: (Handle: number) => Rect;
         /** 获取屏幕大小**/
@@ -479,17 +476,17 @@ export declare module HMC {
          * @param Handle 窗口句柄
          * @param nCmdShow 操作内容
          *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
-         *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+         *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
          *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
          *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
-         *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+         *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
          *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
          *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
-         *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
-         *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
-         *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+         *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+         *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+         *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
          *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
-         *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+         *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
          * @returns
          */
         lookHandleShowWindow: (Handle: number, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11) => boolean;
@@ -562,7 +559,7 @@ export declare module HMC {
         /**
          * 获取所有窗口的句柄
          */
-        getAllWindowsHandle(): number[];
+        getAllWindowsHandle(isWindows?: boolean): number[];
         /**
          * 获取所有窗口的信息
          * @deprecated 已被移除 已使用js获取所有句柄模拟
@@ -802,6 +799,40 @@ export declare module HMC {
          * 键盘挂钩是否已经启用
          */
         isStartKeyboardHook(): boolean;
+        /**
+         * 格式化 驱动器路径  ('\\Device\\HarddiskVolume2' => "D:\\")
+         * @param VolumePath
+         */
+        formatVolumePath(VolumePath: string): string;
+        /**
+         * 获取当前文件系统的驱动器名称及路径
+         */
+        getVolumeList(): Volume[];
+        /**
+         * 内联 轮询枚举的进程句柄
+         * @param enumID 枚举id 由enumProcessHandle 提供
+         */
+        enumProcessHandlePolling(enumID: number): void | ProcessHandle[];
+        /**
+         * 内联 枚举进程的所有句柄 并返回一个枚举id
+         * @param ProcessID
+         */
+        enumProcessHandle(ProcessID: number): number;
+        /**
+         * 查询进程加载的模块
+         * @param ProcessID
+         */
+        getModulePathList(ProcessID: number): string[];
+    };
+    export type ProcessHandle = {
+        handle: number;
+        name: string;
+        type: "ALPC Port" | "Event" | "Timer" | "Mutant" | "Key" | "Section" | "File" | string;
+    };
+    export type Volume = {
+        path: string;
+        name: string;
+        device: string;
     };
     type chcpList = {
         37: "IBM037";
@@ -997,9 +1028,9 @@ export declare const ref: {
     formatArgv(...argv: Array<any>[] | any[]): string;
     /**注册表根目录 */
     HKEY: {
-        /**用作默认用户首选设置，也作为单个用户的首选设置 */
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
         HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
-        /**用作默认用户首选设置，也作为单个用户的首选设置 */
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
         HKEY_USERS: "HKEY_USERS";
         /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
         HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
@@ -1426,7 +1457,7 @@ export declare function MessageError(Message: string, Title?: string): void;
  *  ```
  * @returns
  */
-export declare function getAllWindowsHandle(): HWND[];
+export declare function getAllWindowsHandle(isWindows: boolean): HWND[];
 /**
  * 进程监听 当该进程被关闭的时候执行回调
  * @param ProcessID 进程id
@@ -1572,7 +1603,7 @@ export declare function SetWindowInTaskbarVisible(Handle: number | HWND, Visible
  */
 export declare function getHandleProcessID(Handle: number | HWND): number | null;
 /** 获取窗口位置大小
- *  - 高，宽，坐标大于一万以上都是不可见的
+ *  - 高|宽|坐标大于一万以上都是不可见的
  * **/
 export declare function getWindowRect(Handle: number | HWND): HMC.Rect;
 /**
@@ -1617,17 +1648,17 @@ export declare function lookHandleSetTitle(Handle: number | HWND, title: string)
  * @param Handle 窗口句柄
  * @param nCmdShow 操作内容
  *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
- *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
  *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
  *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
- *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
  *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
  *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
- *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
- *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
- *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
  *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
- *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
  * @returns
  */
 export declare const setShowWindow: typeof lookHandleShowWindow;
@@ -1655,17 +1686,17 @@ export declare const setWindowTitle: typeof lookHandleSetTitle;
  * @param Handle 窗口句柄
  * @param nCmdShow 操作内容
  *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
- *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
  *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
  *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
- *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
  *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
  *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
- *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
- *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
- *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
  *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
- *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
  * @returns
  */
 export declare function lookHandleShowWindow(Handle: number | HWND, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11): boolean;
@@ -1973,7 +2004,7 @@ export declare function systemStartTime(): number;
 /**
 * 获取所有窗口的信息
 **/
-export declare function getAllWindows(): HMC.GET_ALL_WINDOWS_INFO[];
+export declare function getAllWindows(isWindows: boolean): HMC.GET_ALL_WINDOWS_INFO[];
 /**
  * 检索指定窗口所属的类的名称
  * @param Handle 句柄
@@ -2000,6 +2031,48 @@ export declare function WebView2OnlineInstall(): Promise<void>;
  * @returns
  */
 export declare function hasWebView2(): boolean;
+/**
+ * 判断TCP(服务)端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns
+ */
+export declare function hasPortTCP(port: number): Promise<boolean>;
+export declare function hasPortTCP(port: number, callBack: (hasPort: boolean) => unknown): void;
+/**
+ * 判断UDP端口号正在使用/系统占用
+ * @param port TCP端口
+ * @returns
+ */
+export declare function hasPortUDP(port: number): Promise<boolean>;
+export declare function hasPortUDP(port: number, callBack: (hasPort: boolean) => unknown): void;
+/**
+ * 格式化 驱动器路径 ('\Device\HarddiskVolume2' => "D:\")
+ */
+export declare function formatVolumePath(VolumePath: string): string;
+/**
+ * 获取当前文件系统的驱动器名称及路径
+ * @returns
+ */
+export declare function getVolumeList(): HMC.Volume[];
+/**
+ * 枚举进程id 的加载的模块路径
+ * @param ProcessID
+ * @returns
+ */
+export declare function getModulePathList(ProcessID: number): string[];
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @returns
+ */
+export declare function enumProcessHandle(ProcessID: number): Promise<HMC.ProcessHandle[]>;
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @param CallBack 枚举时候的回调
+ * @returns
+ */
+export declare function enumProcessHandle(ProcessID: number, CallBack: (PHandle: HMC.ProcessHandle) => void): void;
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -2152,13 +2225,14 @@ declare class Keyboard {
 declare class Iohook_Mouse {
     private _onlistenerCountList;
     private _oncelistenerCountList;
-    private _emit_start_Index;
     private _Close;
     constructor();
     once(eventName: "start" | "close", listener: () => void): this;
     once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
     once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
@@ -2167,7 +2241,7 @@ declare class Iohook_Mouse {
      * 开始
      * @returns
      */
-    start(): boolean;
+    start(): void;
     /**
      * 结束
      */
@@ -2211,7 +2285,6 @@ export declare const mouseHook: Iohook_Mouse;
 declare class Iohook_Keyboard {
     private _onlistenerCountList;
     private _oncelistenerCountList;
-    private _emit_start_Index;
     private _Close;
     constructor();
     once(eventName: "start" | "close", listener: () => void): this;
@@ -2226,7 +2299,7 @@ declare class Iohook_Keyboard {
      * 开始
      * @returns
      */
-    start(): boolean;
+    start(): false;
     /**
      * 结束
      */
@@ -2756,8 +2829,6 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
-    getWebView2Info: typeof getWebView2Info;
-    hasWebView2: typeof hasWebView2;
     Auto: {
         setWindowEnabled: typeof setWindowEnabled;
         setCursorPos: typeof setCursorPos;
@@ -2826,6 +2897,218 @@ export declare const hmc: {
         matchDetails: typeof getDetailsProcessNameList;
         getDetailsList: typeof getDetailsProcessList;
     };
+    Registr: {
+        /**
+         * 直达路径解析
+         * @param Path 全路径(直达路径)
+         * @param atkey 是否将最后一个值解释为键
+         * @returns
+         */
+        analysisDirectPath: typeof analysisDirectPath;
+        /**
+         * 判断注册表中是否有该键值
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.06591796875 ms
+         * @returns
+         */
+        has: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 获取内容(文本)
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.108ms
+         * @returns
+         */
+        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        /**
+         * 设置键值对
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @param Value 数据
+         * @time 2.02392578125 ms
+         * @returns
+         */
+        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        /**
+         * 删除数据
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.076904296875 ms
+         * @returns
+         */
+        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 枚举键值
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @time 0.06689453125 ms
+         * @returns
+         */
+        keys: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+        /**
+         * 将当前的路径的注册表值转表
+         * @param HKEY
+         * @param Path
+         */
+        list: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+            [key: string]: string | Buffer;
+            "": string | Buffer;
+        };
+        /**
+         * 创建新的路径
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @time 2.02392578125 ms
+         * @returns
+         */
+        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 打开一个注册表路径并返回一些实用方法
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @returns
+         */
+        open: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => {
+            /**
+             * 获取全路径
+             */
+            readonly path: string;
+            /**
+             * 设置一个值
+             * @param data 数据
+             */
+            set(data: string): boolean;
+            /**
+             * 获取内容
+             * @returns
+             */
+            get(): string;
+            /**
+             * 获取该内容并将其视为二进制缓冲区
+             * @returns 二进制缓冲区
+             */
+            getBuff(): Buffer;
+            /**
+             * 获取该内容并将其视为数字
+             * @returns 数字
+             */
+            getNumber(): number;
+            /**
+             * 枚举当前路径下的键
+             * @returns 键 数组
+             */
+            keys(): string[];
+            /**
+             * 将当前目录转为对象
+             */
+            list(): {
+                [key: string]: string | Buffer;
+                "": string | Buffer;
+            };
+        };
+        /**
+         * 判断注册表中是否有该键值
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.06591796875 ms
+         * @returns
+         */
+        readonly hasRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 将当前的路径的注册表值转表
+         * @param HKEY
+         * @param Path
+         */
+        readonly listRegistrPath: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+            [key: string]: string | Buffer;
+            "": string | Buffer;
+        };
+        /**
+         * 枚举键值
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @time 0.06689453125 ms
+         * @returns
+         */
+        readonly enumRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+        /**
+         * 删除数据
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.076904296875 ms
+         * @returns
+         */
+        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 设置键值对
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @param Value 数据
+         * @time 2.02392578125 ms
+         * @returns
+         */
+        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        /**
+         * 获取内容(文本)
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.108ms
+         * @returns
+         */
+        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        /**
+         * 获取内容(数字)
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.10888671875 ms
+         * @returns
+         */
+        getNumberRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => number;
+        /**
+         * 创建新的路径
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @time 2.02392578125 ms
+         * @returns
+         */
+        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        /**
+         * 获取内容(二进制 Buffer)
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @time 0.06787109375 ms
+         * @returns
+         */
+        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+        /**
+         * 打开一个注册表路径并返回一些实用方法
+         * @param HKEY 根路径
+         * @param Path 路径
+         * @param key 键
+         * @returns
+         */
+        readonly openRegKey: typeof open;
+        getRegistrQword: typeof getRegistrQword;
+        getRegistrDword: typeof getRegistrDword;
+        setRegistrQword: typeof setRegistrQword;
+        setRegistrDword: typeof setRegistrDword;
+        removeStringRegValue: typeof removeStringRegValue;
+        removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
+        removeStringTree: typeof removeStringTree;
+        isRegistrTreeKey: typeof isRegistrTreeKey;
+    };
     SetBlockInput: typeof SetBlockInput;
     SetSystemHOOK: typeof SetSystemHOOK;
     SetWindowInTaskbarVisible: typeof SetWindowInTaskbarVisible;
@@ -2854,6 +3137,7 @@ export declare const hmc: {
     };
     WatchWindowForeground: typeof WatchWindowForeground;
     WatchWindowPoint: typeof WatchWindowPoint;
+    WebView2OnlineInstall: typeof WebView2OnlineInstall;
     Window: {
         isInMonitor: typeof isInMonitorWindow;
         isMouseMonitor: typeof isMouseMonitorWindow;
@@ -2912,7 +3196,9 @@ export declare const hmc: {
     deleteFile: typeof deleteFile;
     desc: string;
     enumChildWindows: typeof enumChildWindows;
+    enumProcessHandle: typeof enumProcessHandle;
     enumRegistrKey: typeof enumRegistrKey;
+    formatVolumePath: typeof formatVolumePath;
     freePort: typeof freePort;
     getAllWindows: typeof getAllWindows;
     getAllWindowsHandle: typeof getAllWindowsHandle;
@@ -2932,6 +3218,7 @@ export declare const hmc: {
     getHidUsbList: typeof getHidUsbList;
     getMainWindow: typeof getMainWindow;
     getMetrics: typeof getMetrics;
+    getModulePathList: typeof getModulePathList;
     getMouseMovePoints: typeof getMouseMovePoints;
     getNumberRegKey: typeof getNumberRegKey;
     getPointWindow: typeof getPointWindow;
@@ -2953,13 +3240,18 @@ export declare const hmc: {
     getSystemMetricsLen: typeof getSystemMetricsLen;
     getTrayList: typeof getTrayList;
     getUsbDevsInfo: typeof getUsbDevsInfo;
+    getVolumeList: typeof getVolumeList;
+    getWebView2Info: typeof getWebView2Info;
     getWindowClassName: typeof getWindowClassName;
     getWindowRect: typeof getWindowRect;
     getWindowStyle: typeof getWindowStyle;
     getWindowTitle: typeof lookHandleGetTitle;
     hasKeyActivate: typeof hasKeyActivate;
+    hasPortTCP: typeof hasPortTCP;
+    hasPortUDP: typeof hasPortUDP;
     hasProcess: typeof hasProcess;
     hasRegistrKey: typeof hasRegistrKey;
+    hasWebView2: typeof hasWebView2;
     hasWindowTop: typeof hasWindowTop;
     hideConsole: typeof hideConsole;
     isAdmin: typeof isAdmin;
@@ -2971,6 +3263,7 @@ export declare const hmc: {
     isProcess: typeof isProcess;
     isRegistrTreeKey: typeof isRegistrTreeKey;
     isSystemX64: typeof isSystemX64;
+    keyboardHook: Iohook_Keyboard;
     killProcess: typeof killProcess;
     killProcessName: typeof killProcessName;
     leftClick: typeof leftClick;
@@ -2981,6 +3274,7 @@ export declare const hmc: {
     lookHandleShowWindow: typeof lookHandleShowWindow;
     messageBox: typeof messageBox;
     mouse: typeof mouse;
+    mouseHook: Iohook_Mouse;
     native: HMC.Native;
     openApp: typeof openApp;
     openExternal: typeof openExternal;
@@ -3064,9 +3358,9 @@ export declare const hmc: {
         formatArgv(...argv: Array<any>[] | any[]): string;
         /**注册表根目录 */
         HKEY: {
-            /**用作默认用户首选设置，也作为单个用户的首选设置 */
+            /**用作默认用户首选设置|也作为单个用户的首选设置 */
             HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
-            /**用作默认用户首选设置，也作为单个用户的首选设置 */
+            /**用作默认用户首选设置|也作为单个用户的首选设置 */
             HKEY_USERS: "HKEY_USERS";
             /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
             HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
@@ -3327,7 +3621,5 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
-    keyboardHook: Iohook_Keyboard;
-    mouseHook: Iohook_Mouse;
 };
 export default hmc;

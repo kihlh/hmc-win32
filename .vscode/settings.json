@@ -71,6 +71,10 @@
         "stack": "cpp",
         "unordered_map": "cpp",
         "xhash": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp",
+        "regex": "cpp",
+        "array": "cpp"
     }
 }

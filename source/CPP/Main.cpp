@@ -12,40 +12,17 @@ void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message)
         napi_run_script(env, _create_String(env, error_message_str), &run_script_result);
     }
 }
-
-// 结束进程
-static napi_value killProcess(napi_env env, napi_callback_info info)
+// 判断 x64 系统
+BOOL isSystemFor64bit()
 {
-    napi_status status;
-    napi_value Kill_info;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-
-    if (argc)
-    {
-        int Process_PID;
-        status = napi_get_value_int32(env, args[0], &Process_PID);
-        assert(status == napi_ok);
-        DWORD ProcessID = (DWORD)Process_PID;
-        bool Kill_info_bool = false;
-        EnableShutDownPriv();
-        HANDLE killHandle = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE, FALSE, ProcessID);
-        if (killHandle == NULL)
-        {
-            Kill_info_bool = false;
-        }
-        else
-        {
-            bool Terminate_Kill_info_bool = TerminateProcess(killHandle, 0);
-            Kill_info_bool = Terminate_Kill_info_bool;
-        }
-        status = napi_get_boolean(env, Kill_info_bool, &Kill_info);
-        assert(status == napi_ok);
-    }
-    return Kill_info;
+    SYSTEM_INFO SystemInfo;
+    GetNativeSystemInfo(&SystemInfo);
+    if (SystemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64 || SystemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
+        return TRUE;
+    else
+        return FALSE;
 }
+
 // 系统空闲时间
 napi_value getSystemIdleTime(napi_env env, napi_callback_info info)
 {
@@ -306,54 +283,7 @@ napi_value getForegroundWindow(napi_env env, napi_callback_info info)
     napi_create_int64(env, nWnd, &napi_value_info);
     return napi_value_info;
 }
-// 获取进程可执行文件位置
-static napi_value getProcessidFilePath(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
 
-    int Process_PID;
-    status = napi_get_value_int32(env, args[0], &Process_PID);
-
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        napi_get_null(env, &FilePath);
-        return FilePath;
-    }
-    GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
-
-    CloseHandle(hProcess);
-
-    return FilePath;
-}
-string Attain_getProcessidFilePath(int ProcessID)
-{
-    string Run_lpFilename = "";
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        CloseHandle(hProcess);
-        return Run_lpFilename;
-    }
-    GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    CloseHandle(hProcess);
-    return _A2U8_(lpFilename);
-}
 // 关闭显示器
 napi_value shutMonitors(napi_env env, napi_callback_info info)
 {
@@ -376,153 +306,8 @@ napi_value showMonitors(napi_env env, napi_callback_info info)
     SendMessage(FindWindow(0, 0), WM_SYSCOMMAND, SC_MONITORPOWER, -1);
     return napi_value_info;
 }
-// 获取带有进程可执行文件的 进程列表(慢25ms) 有一个可忽略参数(快照获取延迟XXms)
-static napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    vector<DWORD> Pid_List;
-    vector<string> NameProcessList;
-    vector<string> FilePathProcessList;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    bool Set_Sleep = false;
-    int Sleep_Number;
-    if (argc == 1)
-    {
-        napi_valuetype valuetype0;
-        status = napi_typeof(env, args[0], &valuetype0);
-        assert(status == napi_ok);
-        if (valuetype0 == napi_number)
-        {
-            Set_Sleep = true;
-            status = napi_get_value_int32(env, args[0], &Sleep_Number);
-            assert(status == napi_ok);
-        }
-    }
-    // 创建快照
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    PROCESSENTRY32W entry;
-    entry.dwSize = sizeof entry;
-    if (Process32FirstW(snap, &entry))
-    {
-        do
-        {
-            string To_UTF8_cszExeFile = _W2U8_(entry.szExeFile);
-            Pid_List.emplace_back(entry.th32ProcessID);
-            NameProcessList.emplace_back(To_UTF8_cszExeFile);
-            if (Set_Sleep)
-            {
-                Sleep(Sleep_Number);
-            }
-            FilePathProcessList.emplace_back(Attain_getProcessidFilePath(entry.th32ProcessID));
 
-        } while (Process32NextW(snap, &entry));
-    }
 
-    napi_value lock_Process_ID_List;
-    status = napi_create_array(env, &lock_Process_ID_List);
-    if (Pid_List.size() < 1)
-    {
-        napi_throw_type_error(env, NULL, "Wrong GetWin32ProcessList size => 0");
-    };
-    for (unsigned index = 0; index < Pid_List.size(); index++)
-    {
-        napi_value cur_item, cur_Index, cur_Path, cur_Name, Objcet_key_Name, Objcet_key_Pid, Objcet_key_Path;
-        DWORD Index = Pid_List[index];
-        string IndexName = NameProcessList[index];
-        string FilePath = FilePathProcessList[index];
-
-        status = napi_create_int64(env, Index + 0, &cur_Index);
-        status = napi_create_string_utf8(env, IndexName.c_str(), NAPI_AUTO_LENGTH, &cur_Name);
-        status = napi_create_string_utf8(env, FilePath.c_str(), NAPI_AUTO_LENGTH, &cur_Path);
-        status = napi_create_object(env, &cur_item);
-        // {}.name
-        string key_Name = "name";
-        status = napi_create_string_utf8(env, key_Name.c_str(), NAPI_AUTO_LENGTH, &Objcet_key_Name);
-        assert(status == napi_ok);
-        // {}.pid
-        string key_Process_id = "pid";
-        status = napi_create_string_utf8(env, key_Process_id.c_str(), NAPI_AUTO_LENGTH, &Objcet_key_Pid);
-        // {}.path
-        string key_Process_Path = "path";
-        status = napi_create_string_utf8(env, key_Process_Path.c_str(), NAPI_AUTO_LENGTH, &Objcet_key_Path);
-        assert(status == napi_ok);
-        // {pid:000,name:"123.exe"}
-        status = napi_set_property(env, cur_item, Objcet_key_Name, cur_Name);
-        status = napi_set_property(env, cur_item, Objcet_key_Pid, cur_Index);
-        status = napi_set_property(env, cur_item, Objcet_key_Path, cur_Path);
-        assert(status == napi_ok);
-        // [].push({pid:000,name:"123.exe"})
-        status = napi_set_element(env, lock_Process_ID_List, index, cur_item);
-        assert(status == napi_ok);
-        if (Set_Sleep)
-        {
-            Sleep(Sleep_Number);
-        }
-    }
-
-    assert(status == napi_ok);
-    return lock_Process_ID_List;
-}
-// 获取带有进程进程列表(10ms)
-static napi_value getProcessList(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    vector<DWORD> Pid_List;
-    vector<string> NameProcessList;
-    vector<string> FilePathProcessList;
-    // 创建快照
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    PROCESSENTRY32W entry;
-    entry.dwSize = sizeof entry;
-    if (Process32FirstW(snap, &entry))
-    {
-        do
-        {
-            string To_UTF8_cszExeFile = _W2U8_(entry.szExeFile);
-            Pid_List.emplace_back(entry.th32ProcessID);
-            NameProcessList.emplace_back(To_UTF8_cszExeFile);
-            FilePathProcessList.emplace_back(Attain_getProcessidFilePath(entry.th32ProcessID));
-
-        } while (Process32NextW(snap, &entry));
-    }
-
-    napi_value lock_Process_ID_List;
-    status = napi_create_array(env, &lock_Process_ID_List);
-    if (Pid_List.size() < 1)
-    {
-        napi_throw_type_error(env, NULL, "Wrong GetWin32ProcessList size => 0");
-    };
-    for (unsigned i = 0; i < Pid_List.size(); i++)
-    {
-        napi_value cur_item, cur_Index, cur_Name, Objcet_key_Name, Objcet_key_Pid;
-        DWORD Index = Pid_List[i];
-        string IndexName = NameProcessList[i];
-        status = napi_create_int64(env, Index + 0, &cur_Index);
-        status = napi_create_string_utf8(env, IndexName.c_str(), NAPI_AUTO_LENGTH, &cur_Name);
-        status = napi_create_object(env, &cur_item);
-        // {}.name
-        string key_Name = "name";
-        status = napi_create_string_utf8(env, key_Name.c_str(), NAPI_AUTO_LENGTH, &Objcet_key_Name);
-        assert(status == napi_ok);
-        // {}.pid
-        string key_Process_id = "pid";
-        status = napi_create_string_utf8(env, key_Process_id.c_str(), NAPI_AUTO_LENGTH, &Objcet_key_Pid);
-        assert(status == napi_ok);
-        // {pid:000,name:"123.exe"}
-        status = napi_set_property(env, cur_item, Objcet_key_Name, cur_Name);
-        status = napi_set_property(env, cur_item, Objcet_key_Pid, cur_Index);
-        assert(status == napi_ok);
-        // [].push({pid:000,name:"123.exe"})
-        status = napi_set_element(env, lock_Process_ID_List, i, cur_item);
-        assert(status == napi_ok);
-    }
-
-    assert(status == napi_ok);
-    return lock_Process_ID_List;
-}
 // 设置窗口的系统右键(不考虑参数正确性 在js中会定义类型安全)
 static napi_value getSystemMenu(napi_env env, napi_callback_info info)
 {
@@ -939,16 +724,7 @@ static napi_value getProcessHandle(napi_env env, napi_callback_info info)
 
     return ProcessHandle;
 }
-// 判断 x64 系统
-BOOL isSystemFor64bit()
-{
-    SYSTEM_INFO SystemInfo;
-    GetNativeSystemInfo(&SystemInfo);
-    if (SystemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_IA64 || SystemInfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
-        return TRUE;
-    else
-        return FALSE;
-}
+
 // 判断是否是64位系统
 napi_value isSystemX64(napi_env env, napi_callback_info info)
 {
@@ -1400,40 +1176,7 @@ static napi_value getForegroundWindowProcessID(napi_env env, napi_callback_info 
     GetWindowThreadProcessId(GetForegroundWindow(), &processId);
     return _create_int64_Number(env, (int64_t)processId);
 }
-// 获取pid的名称
-static napi_value getProcessName(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
 
-    int Process_PID;
-    status = napi_get_value_int32(env, args[0], &Process_PID);
-
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        napi_get_null(env, &FilePath);
-        return FilePath;
-    }
-    GetModuleBaseNameA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
-
-    CloseHandle(hProcess);
-
-    return FilePath;
-}
 // 获取鼠标位置
 napi_value getMetrics(napi_env env, napi_callback_info info)
 {
@@ -2036,87 +1779,6 @@ static napi_value SetSystemHOOK(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, lockSystemInteraction(Set_Block));
 }
 
-static napi_value hasProcess(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    // napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    napi_value napi_TRUE = _create_bool_Boolean(env, TRUE);
-    napi_value napi_FALSE = _create_bool_Boolean(env, FALSE);
-
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
-    else
-    {
-        return napi_FALSE;
-    }
-
-    napi_valuetype valuetype0;
-    status = napi_typeof(env, args[0], &valuetype0);
-
-    // 开始处理传入的方法
-    switch (valuetype0)
-    {
-    case napi_number /*传入的如果是pid*/:
-    {
-        int Process_PID;
-        status = napi_get_value_int32(env, args[0], &Process_PID);
-        if (Process_PID == 0 || Process_PID == 4)
-            return napi_TRUE;
-        EnableShutDownPriv();
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-        if (GetLastError())
-        {
-            return napi_FALSE;
-        }
-        bool hasProcessId = hProcess != NULL;
-        if (hasProcessId)
-            CloseHandle(hProcess);
-        return _create_bool_Boolean(env, hasProcessId);
-    }
-    case napi_string /*传入的如果是名称或者路径*/:
-    {
-        string ProcessName = call_String_NAPI_WINAPI_A(env, args[0]);
-        if (ProcessName == string(""))
-            return napi_FALSE;
-        HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        PROCESSENTRY32W entry;
-        entry.dwSize = sizeof entry;
-        if (Process32FirstW(snap, &entry))
-        {
-            do
-            {
-                string ExecFileName = _W2U8_(entry.szExeFile);
-                string ExecFile = Attain_getProcessidFilePath(entry.th32ProcessID);
-                string AddExt_ProcessName = string("").append(ProcessName).append(".exe");
-
-                if (ProcessName == ExecFileName ||
-                    ExecFile == ProcessName ||
-                    AddExt_ProcessName == ExecFile ||
-                    AddExt_ProcessName == ExecFileName)
-                    return napi_TRUE;
-
-            } while (Process32NextW(snap, &entry));
-        }
-        return napi_FALSE;
-    }
-
-    default:
-        return napi_FALSE;
-    }
-}
-static napi_value isProcess(napi_env env, napi_callback_info info)
-{
-    return hasProcess(env, info);
-}
 
 napi_value openURL(napi_env env, napi_callback_info info)
 {
@@ -2834,7 +2496,6 @@ static napi_value Init(napi_env env, napi_value exports)
         ADD_NAPI_METHOD_Str_VALUE("version", "1.2.7"),
         ADD_NAPI_METHOD_Str_VALUE("desc", "HMC Connection System api"),
         ADD_NAPI_METHOD_Str_VALUE("platform", "win32"),
-        DECLARE_NAPI_METHOD("killProcess", killProcess),
         DECLARE_NAPI_METHOD("getSystemIdleTime", getSystemIdleTime),
         DECLARE_NAPI_METHOD("sleep", sleep),
         DECLARE_NAPI_METHOD("isAdmin", isAdmin),
@@ -2843,8 +2504,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("openURL", openURL),           //=>2-1ADD
         DECLARE_NAPI_METHOD("openPath", openPath),         //=>2-1ADD
         DECLARE_NAPI_METHOD("powerControl", powerControl),
-        DECLARE_NAPI_METHOD("getDetailsProcessList", getDetailsProcessList),
-        DECLARE_NAPI_METHOD("getProcessList", getProcessList),
         DECLARE_NAPI_METHOD("getForegroundWindow", getForegroundWindow),
         DECLARE_NAPI_METHOD("showMonitors", showMonitors),
         DECLARE_NAPI_METHOD("shutMonitors", shutMonitors),
@@ -2865,8 +2524,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("setHandleTransparent", setHandleTransparent),
         DECLARE_NAPI_METHOD("getHandleProcessID", getHandleProcessID),
         DECLARE_NAPI_METHOD("getForegroundWindowProcessID", getForegroundWindowProcessID),
-        DECLARE_NAPI_METHOD("getProcessidFilePath", getProcessidFilePath),
-        DECLARE_NAPI_METHOD("getProcessName", getProcessName),
         DECLARE_NAPI_METHOD("getMetrics", getMetrics),
         DECLARE_NAPI_METHOD("getPointWindowProcessId", getPointWindowProcessId),
         DECLARE_NAPI_METHOD("getPointWindowName", getPointWindowName),
@@ -2891,8 +2548,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("system", CallSystem),
         DECLARE_NAPI_METHOD("SetSystemHOOK", SetSystemHOOK),
         DECLARE_NAPI_METHOD("systemStartTime", systemStartTime),
-        DECLARE_NAPI_METHOD("hasProcess", hasProcess),
-        DECLARE_NAPI_METHOD("isProcess", isProcess), //=>2-1ADD
         DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),
         DECLARE_NAPI_METHODRM("hasRegistrKey", hasRegistrKey),
         DECLARE_NAPI_METHODRM("setRegistrKey", setRegistrKey),
@@ -2930,30 +2585,44 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
         DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
         // DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),                          //=>2-13REMOVE
-        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0}, //=>2-13ADD
+        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0},          //=>2-13ADD
         DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
         // auto.cpp
-        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                       //=>3-1UP
-        DECLARE_NAPI_METHODRM("rightClick", rightClick),                           //=>3-1UP
-        DECLARE_NAPI_METHODRM("leftClick", leftClick),                             //=>3-1UP
-        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),           //=>3-1UP
-        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                   //=>3-1UP
-        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                       //=>3-1UP
-        DECLARE_NAPI_METHODRM("mouse", mouse),                                     //=>3-1UP
-        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),         //=>3-1ADD
-        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),               //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                         //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                   //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession),   //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),         //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),               //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),         //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),         //=>3-6UP
-        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore), //=>3-6UP
-
-    };
+        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                        //=>3-1UP
+        DECLARE_NAPI_METHODRM("rightClick", rightClick),                            //=>3-1UP
+        DECLARE_NAPI_METHODRM("leftClick", leftClick),                              //=>3-1UP
+        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),            //=>3-1UP
+        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                    //=>3-1UP
+        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                        //=>3-1UP
+        DECLARE_NAPI_METHODRM("mouse", mouse),                                      //=>3-1UP
+        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),          //=>3-1ADD
+        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),                //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                          //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                    //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession),    //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),          //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),                //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),          //=>3-1ADD
+        // windows.cpp
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),          //=>3-6UP
+        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore),  //=>3-6UP
+        // process.cpp
+        DECLARE_NAPI_METHODRM("killProcess", killProcess),                          //=>4-1UP
+        DECLARE_NAPI_METHODRM("getDetailsProcessList", getDetailsProcessList),      //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessList", getProcessList),                    //=>4-1UP
+        DECLARE_NAPI_METHODRM("hasProcess", hasProcess),                            //=>4-1UP
+        DECLARE_NAPI_METHODRM("isProcess", isProcess),                              //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessidFilePath", getProcessidFilePath),        //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessName", getProcessName),                    //=>4-1UP
+        DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),              //=>4-1ADD
+        // DECLARE_NAPI_METHODRM("getLockFileProcessList", getLockFileProcessList),    //=>4-1ADD
+        DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),//=>4-1ADD
+        DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling),//=>4-2ADD
+        DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                      //=>4-1ADD
+        DECLARE_NAPI_METHODRM("formatVolumePath", formatVolumePath),                //=>4-1ADD
+    }; 
     _________HMC_DEBUG__________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);

@@ -28,6 +28,7 @@ using namespace std;
 
 #pragma comment(lib, "Ws2_32")
 #pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "psapi.lib")
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 using namespace std;
@@ -47,6 +48,13 @@ void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message);
 
 void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message);
 BOOL EnableShutDownPriv();
+
+struct util_Volume
+{
+    wstring path;
+    wstring name;
+    wstring device;
+};
 
 // 判断所有传入参数都为
 #define hmc_is_argv_type(argv, start, size, type, Results)                      \
@@ -112,7 +120,7 @@ napi_value setClipboardFilePaths(napi_env env, napi_callback_info info);
 napi_value clearClipboard(napi_env env, napi_callback_info info);
 napi_value getClipboardSequenceNumber(napi_env env, napi_callback_info info);
 napi_value getClipboardHTML(napi_env env, napi_callback_info info);
-napi_value setClipboardHTML(napi_env env, napi_callback_info info);
+// napi_value setClipboardHTML(napi_env env, napi_callback_info info);
 
 // registr.cpp
 
@@ -148,6 +156,10 @@ napi_value setRegistrQword(napi_env env, napi_callback_info info);
 napi_value getHidUsbIdList(napi_env env, napi_callback_info info);
 napi_value getHidUsbList(napi_env env, napi_callback_info info);
 napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
+wstring DisplayVolumePaths(__in PWCHAR VolumeName);
+napi_value getVolumeList(napi_env env, napi_callback_info info);
+napi_value formatVolumePath(napi_env env, napi_callback_info info);
+vector<util_Volume> util_getVolumeList();
 // napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
 
 // auto.cpp
@@ -173,3 +185,18 @@ napi_value mouse(napi_env env, napi_callback_info info);
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);
 napi_value setForegroundWindow(napi_env env, napi_callback_info info);
 napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info);
+
+
+
+// process.cpp
+napi_value killProcess(napi_env env, napi_callback_info info);
+napi_value getProcessidFilePath(napi_env env, napi_callback_info info);
+napi_value getDetailsProcessList(napi_env env, napi_callback_info info);
+napi_value getProcessList(napi_env env, napi_callback_info info);
+napi_value hasProcess(napi_env env, napi_callback_info info);
+napi_value isProcess(napi_env env, napi_callback_info info);
+napi_value getProcessName(napi_env env, napi_callback_info info);
+napi_value getModulePathList(napi_env env, napi_callback_info info);
+napi_value enumProcessHandle(napi_env env, napi_callback_info info);
+// napi_value getLockFileProcessList(napi_env env, napi_callback_info info);
+napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info);

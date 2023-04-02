@@ -10,9 +10,9 @@ const argvSplit: (str: string) => string[] = require("argv-split");
 let $_thenConsole: HWND | null = null;
 /**注册表根目录 */
 const Hkey = {
-    /**用作默认用户首选设置，也作为单个用户的首选设置 */
+    /**用作默认用户首选设置|也作为单个用户的首选设置 */
     HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG" as "HKEY_CURRENT_CONFIG",
-    /**用作默认用户首选设置，也作为单个用户的首选设置 */
+    /**用作默认用户首选设置|也作为单个用户的首选设置 */
     HKEY_USERS: "HKEY_USERS" as "HKEY_USERS",
     /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
     HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT" as "HKEY_CLASSES_ROOT",
@@ -44,6 +44,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnNum(...args: any[]) { console.error(HMCNotPlatform); return 0 }
         function fnStrList(...args: any[]) { console.error(HMCNotPlatform); return [] as string[] }
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
+        function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
             _SET_HMC_DEBUG: fnBool,
             isStartKeyboardHook: fnBool,
@@ -68,9 +69,9 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             createPathRegistr: fnBool,
             createSymlink: fnBool,
             desc: "HMC Connection System api",
-            enumRegistrKey: () => { console.error(HMCNotPlatform); return [] as string[] },
-            getAllWindows: () => { console.error(HMCNotPlatform); return [] },
-            getAllWindowsHandle: () => { console.error(HMCNotPlatform); return [] },
+            enumRegistrKey: fnStrList,
+            getAllWindows: fnAnyArr,
+            getAllWindowsHandle: fnAnyArr,
             getBasicKeys: () => {
                 console.error(HMCNotPlatform);
                 return {
@@ -82,7 +83,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             },
             getClipboardFilePaths: fnStrList,
             getClipboardText: fnStr,
-            getDetailsProcessList: () => { console.error(HMCNotPlatform); return [] },
+            getDetailsProcessList: fnAnyArr,
             getDeviceCaps: () => {
                 console.error(HMCNotPlatform);
                 return {
@@ -93,16 +94,16 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getForegroundWindow: fnNum,
             getForegroundWindowProcessID: fnNull,
             getHandleProcessID: fnNull,
-            getHidUsbList: () => { console.error(HMCNotPlatform); return [] },
+            getHidUsbList: fnAnyArr,
             getMainWindow: fnNull,
             getMetrics: () => { console.error(HMCNotPlatform); return { "left": 0, "top": 0, "x": 0, "y": 0 } },
-            getMouseMovePoints: () => { console.error(HMCNotPlatform); return [] },
+            getMouseMovePoints: fnAnyArr,
             getPointWindow: fnNull,
             getPointWindowMain: fnNum,
             getPointWindowName: fnStr,
             getPointWindowProcessId: fnNum,
             getProcessHandle: fnNull,
-            getProcessList: () => { console.error(HMCNotPlatform); return [] },
+            getProcessList: fnAnyArr,
             getProcessName: fnNull,
             getProcessidFilePath: fnNull,
             getRegistrBuffValue: fnVoid,
@@ -118,7 +119,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getStringRegKey: fnStr,
             getSystemIdleTime: fnNum,
             getSystemMenu: fnBool,
-            getTrayList: () => { console.error(HMCNotPlatform); return [] },
+            getTrayList: fnAnyArr,
             getUsbDevsInfo: fnStrList,
             getWindowRect: () => {
                 console.error(HMCNotPlatform);
@@ -172,18 +173,23 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             updateWindow: fnBool,
             version: "0.0.0",
             windowJitter: fnVoid,
-            enumChildWindows: () => { console.error(HMCNotPlatform); return [] },
+            enumChildWindows: fnAnyArr,
             deleteFile: fnNum,
             getClipboardSequenceNumber: fnNum,
-            enumClipboardFormats: () => { console.error(HMCNotPlatform); return [] },
-            getHidUsbIdList: () => { console.error(HMCNotPlatform); return [] },
-            getDeviceCapsAll: () => { console.error(HMCNotPlatform); return [] },
+            enumClipboardFormats: fnAnyArr,
+            getHidUsbIdList: fnAnyArr,
+            getDeviceCapsAll: fnAnyArr,
             isInMonitorWindow: fnBool,
             isMouseMonitorWindow: fnBool,
             getCurrentMonitorRect: () => { console.error(HMCNotPlatform); return { "bottom": 0, "left": 0, "top": 0, "right": 0, } },
             getSystemMetricsLen: fnNum,
             getWindowStyle: fnNum,
             getWindowClassName: fnStr,
+            formatVolumePath: fnStr,
+            getVolumeList: fnAnyArr,
+            enumProcessHandlePolling: fnVoid,
+            enumProcessHandle: fnNum,
+            getModulePathList: fnStrList
         }
     })();
     return Native;
@@ -661,7 +667,7 @@ export module HMC {
     export type mouse_event = /**不支持的属性 请使用 setCursorPos 方法设置位置*/ 32768 | /**左键按下 */ 2 | /**左边的按钮是向上的 */ 4 | /**中间的按钮是向下的 */ 32 | /**中间的按钮是向上的 */ 64 | /**鼠标移动和按钮点击 */ 1 | /**鼠标右键按下 */ 8 | /**鼠标右键弹起 */ 16 | /**滚轮按钮被旋转 */ 2048 | /**按下了 X 按钮 */ 128 | /**X 按钮被释放 */ 256 | /**滚轮按钮倾斜*/ 4096 | /**不支持的属性 请使用 setCursorPos 方法设置位置*/ "MOUSEEVENTF_ABSOLUTE" | /**左键按下 */ "MOUSEEVENTF_LEFTDOWN" | /**左边的按钮是向上的 */ "MOUSEEVENTF_LEFTUP" | /**中间的按钮是向下的 */ "MOUSEEVENTF_MIDDLEDOWN" | /**中间的按钮是向上的 */ "MOUSEEVENTF_MIDDLEUP" | /**鼠标移动和按钮点击 */ "MOUSEEVENTF_MOVE" | /**鼠标右键按下 */ "MOUSEEVENTF_RIGHTDOWN" | /**鼠标右键弹起 */ "MOUSEEVENTF_RIGHTUP" | /**滚轮按钮被旋转 */ "MOUSEEVENTF_WHEEL" | /**按下了 X 按钮 */ "MOUSEEVENTF_XDOWN" | /**X 按钮被释放 */ "MOUSEEVENTF_XUP" | /**滚轮按钮倾斜*/ "MOUSEEVENTF_HWHEEL";
 
     // 消息框显示方式
-    export type MB_UINT =  /**消息框包含三个按钮：终止、重试和忽略。 */ "MB_ABORTRETRYIGNORE" | /**消息框包含三个按钮：取消、重试、继续。使用此消息框类型而不是 MB_ABORTRETRYIGNORE。 */ "MB_CANCELTRYCONTINUE" | /**向消息框 添加帮助按钮。当用户单击帮助按钮或按 F1 时，系统会向所有者 发送WM_HELP消息。 */ "MB_HELP" | /**消息框包含一个按钮：确定。这是默认设置。 */ "MB_OK" | /**消息框包含两个按钮：确定和取消。 */ "MB_YESNOCANCEL" | /**消息框包含两个按钮：是和否。 */ "MB_YESNO" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_OKCANCEL" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_RETRYCANCEL" | /**消息框包含三个按钮：Yes、No和Cancel。 一个停止标志图标出现在消息框中。*/ "MB_ICONERROR" | /**一个停止标志图标出现在消息框中。 */ "MB_ICONSTOP" | /**问号图标出现在消息框中。不再推荐使用问号消息图标，因为它不能清楚地表示特定类型的消息，并且作为问题的消息措辞可能适用于任何消息类型。此外，用户可能会将消息符号问号与帮助信息混淆。因此，请勿在消息框中使用此问号消息符号。系统继续支持它的包含只是为了向后兼容。 */ "MB_ICONQUESTION" | /**一个由圆圈中的小写字母i组成的图标出现在消息框中。 */ "MB_ICONASTERISK" | "MB_ICONINFORMATION" | /**消息框中会出现一个感叹号图标。 */ "MB_ICONEXCLAMATION" | /** 消息框中会出现一个感叹号图标。 */ "MB_ICONWARNING" | /* 消息框成为前台窗口 **/ "MB_TOPMOST" | "MB_SETFOREGROUND" | "MB_RTLREADING" | "MB_RIGHT" | "MB_DEFAULT_DESKTOP_ONLY" | "MB_TASKMODAL" | "MB_SYSTEMMODAL" | "MB_APPLMODAL" | "MB_DEFBUTTON4" | "MB_DEFBUTTON3" | "MB_DEFBUTTON2" | "MB_ICONHAND" | "MB_DEFBUTTON1";
+    export type MB_UINT =  /**消息框包含三个按钮：终止、重试和忽略。 */ "MB_ABORTRETRYIGNORE" | /**消息框包含三个按钮：取消、重试、继续。使用此消息框类型而不是 MB_ABORTRETRYIGNORE。 */ "MB_CANCELTRYCONTINUE" | /**向消息框 添加帮助按钮。当用户单击帮助按钮或按 F1 时|系统会向所有者 发送WM_HELP消息。 */ "MB_HELP" | /**消息框包含一个按钮：确定。这是默认设置。 */ "MB_OK" | /**消息框包含两个按钮：确定和取消。 */ "MB_YESNOCANCEL" | /**消息框包含两个按钮：是和否。 */ "MB_YESNO" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_OKCANCEL" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_RETRYCANCEL" | /**消息框包含三个按钮：Yes、No和Cancel。 一个停止标志图标出现在消息框中。*/ "MB_ICONERROR" | /**一个停止标志图标出现在消息框中。 */ "MB_ICONSTOP" | /**问号图标出现在消息框中。不再推荐使用问号消息图标|因为它不能清楚地表示特定类型的消息|并且作为问题的消息措辞可能适用于任何消息类型。此外|用户可能会将消息符号问号与帮助信息混淆。因此|请勿在消息框中使用此问号消息符号。系统继续支持它的包含只是为了向后兼容。 */ "MB_ICONQUESTION" | /**一个由圆圈中的小写字母i组成的图标出现在消息框中。 */ "MB_ICONASTERISK" | "MB_ICONINFORMATION" | /**消息框中会出现一个感叹号图标。 */ "MB_ICONEXCLAMATION" | /** 消息框中会出现一个感叹号图标。 */ "MB_ICONWARNING" | /* 消息框成为前台窗口 **/ "MB_TOPMOST" | "MB_SETFOREGROUND" | "MB_RTLREADING" | "MB_RIGHT" | "MB_DEFAULT_DESKTOP_ONLY" | "MB_TASKMODAL" | "MB_SYSTEMMODAL" | "MB_APPLMODAL" | "MB_DEFBUTTON4" | "MB_DEFBUTTON3" | "MB_DEFBUTTON2" | "MB_ICONHAND" | "MB_DEFBUTTON1";
 
     // HID设备信息
     export type HID_USB_INFO = {
@@ -733,7 +739,7 @@ export module HMC {
         /** 设置窗口位置大小**/
         setWindowMode: (Handle: number, x: number | null | 0, y: number | null | 0, width: number | null | 0, height: number | null | 0) => boolean;
         /** 获取窗口位置大小
-         *  - 高，宽，坐标大于一万以上都是不可见的
+         *  - 高|宽|坐标大于一万以上都是不可见的
          * **/
         getWindowRect: (Handle: number) => Rect;
         /** 获取屏幕大小**/
@@ -829,17 +835,17 @@ export module HMC {
          * @param Handle 窗口句柄
          * @param nCmdShow 操作内容
          *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
-         *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+         *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
          *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
          *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
-         *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+         *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
          *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
          *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
-         *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
-         *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
-         *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+         *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+         *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+         *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
          *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
-         *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+         *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
          * @returns
          */
         lookHandleShowWindow: (Handle: number, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11) => boolean;
@@ -1152,7 +1158,47 @@ export module HMC {
          * 键盘挂钩是否已经启用
          */
         isStartKeyboardHook(): boolean;
+        /**
+         * 格式化 驱动器路径  ('\\Device\\HarddiskVolume2' => "D:\\")
+         * @param VolumePath 
+         */
+        formatVolumePath(VolumePath: string): string;
+        /**
+         * 获取当前文件系统的驱动器名称及路径
+         */
+        getVolumeList(): Volume[];
+        /**
+         * 内联 轮询枚举的进程句柄
+         * @param enumID 枚举id 由enumProcessHandle 提供
+         */
+        enumProcessHandlePolling(enumID: number): void | ProcessHandle[];
+        /**
+         * 内联 枚举进程的所有句柄 并返回一个枚举id
+         * @param ProcessID 
+         */
+        enumProcessHandle(ProcessID: number): number;
+        /**
+         * 查询进程加载的模块
+         * @param ProcessID 
+         */
+        getModulePathList(ProcessID: number): string[];
     }
+    export type ProcessHandle = {
+        // 句柄 
+        handle: number;
+        // 名称(数据)
+        name: string;
+        // 类型
+        type: "ALPC Port" | "Event" | "Timer" | "Mutant" | "Key" | "Section" | "File" | string;
+    };
+    export type Volume = {
+        // 真实的文件路径  例如： 'D:\\' 
+        path: string;
+        // 名称：驱动路径 例如： \\\\?\\Volume{f0b00a00-0000-0000-0000-000000000000}\\ 
+        name: string;
+        // 驱动器  例如：'\\Device\\HarddiskVolume2'
+        device: string;
+    };
 
     type chcpList = {
         37: "IBM037",
@@ -2708,7 +2754,7 @@ export function getHandleProcessID(Handle: number | HWND) {
 }
 
 /** 获取窗口位置大小
- *  - 高，宽，坐标大于一万以上都是不可见的
+ *  - 高|宽|坐标大于一万以上都是不可见的
  * **/
 export function getWindowRect(Handle: number | HWND) {
     return native.getWindowRect(ref.int(Handle));
@@ -2777,17 +2823,17 @@ export function lookHandleSetTitle(Handle: number | HWND, title: string) {
  * @param Handle 窗口句柄
  * @param nCmdShow 操作内容
  *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
- *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
  *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
  *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
- *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
  *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
  *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
- *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
- *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
- *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
  *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
- *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
  * @returns
  */
 export const setShowWindow = lookHandleShowWindow;
@@ -2819,17 +2865,17 @@ export const setWindowTitle = lookHandleSetTitle;
  * @param Handle 窗口句柄
  * @param nCmdShow 操作内容
  *  - "SW_HIDE" ： 0 隐藏窗口并激活另一个窗口。
- *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
+ *  - "SW_SHOWNORMAL" ： 1 激活并显示一个窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序应在第一次显示窗口时指定此标志
  *  - "SW_SHOWMINIMIZED" ：2 激活窗口并将其显示为最小化窗口
  *  - "SW_SHOWMAXIMIZED" | "SW_MAXIMIZE" ： 3 激活窗口并将其显示为最大化窗口
- *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL，除了窗口没有被激活
+ *  - "SW_SHOWNOACTIVATE" ： 4 以最近的大小和位置显示窗口。这个值类似于SW_SHOWNORMAL|除了窗口没有被激活
  *  - "SW_SHOW" ：5  激活窗口并以其当前大小和位置显示它
  *  - "SW_MINIMIZE" ：6 最小化指定窗口并激活 Z 顺序中的下一个顶级窗口
- *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED，除了窗口没有被激活
- *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW，除了窗口没有被激活
- *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化，系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
+ *  - "SW_SHOWMINNOACTIVE" ： 7 将窗口显示为最小化窗口。这个值类似于SW_SHOWMINIMIZED|除了窗口没有被激活
+ *  - "SW_SHOWNA" ： 8 以当前大小和位置显示窗口。这个值类似于SW_SHOW|除了窗口没有被激活
+ *  - "SW_RESTORE" ： 9 激活并显示窗口。如果窗口被最小化或最大化|系统会将其恢复到原来的大小和位置。应用程序在恢复最小化窗口时应指定此标志
  *  - "SW_SHOWDEFAULT" ： 10 据启动应用程序的程序传递给CreateProcess函数的STARTUPINFO结构中指定的SW_值设置显示状态。
- *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口，即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
+ *  - "SW_FORCEMINIMIZE" ： 11 最小化一个窗口|即使拥有该窗口的线程没有响应。只有在最小化来自不同线程的窗口时才应使用此标志
  * @returns
  */
 export function lookHandleShowWindow(Handle: number | HWND, SetShowType: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11) {
@@ -3588,7 +3634,92 @@ export function hasPortUDP(port: number, callBack?: (hasPort: boolean) => unknow
         return prom;
     }
 }
+/**
+ * 格式化 驱动器路径 ('\Device\HarddiskVolume2' => "D:\")
+ */
+export function formatVolumePath (VolumePath:string){
+    return native.formatVolumePath(ref.string(VolumePath))
+}
+/**
+ * 获取当前文件系统的驱动器名称及路径
+ * @returns 
+ */
+export function getVolumeList (){
+    return native.getVolumeList()
+}
 
+/**
+ * 枚举进程id 的加载的模块路径
+ * @param ProcessID 
+ * @returns 
+ */
+export function getModulePathList (ProcessID: number){
+    return native.getModulePathList(ref.int(ProcessID));
+}
+
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @returns 
+ */
+export function enumProcessHandle (ProcessID: number):Promise<HMC.ProcessHandle[]>;
+
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @param CallBack 枚举时候的回调
+ * @returns 
+ */
+export function enumProcessHandle (ProcessID: number,CallBack:(PHandle:HMC.ProcessHandle)=>void):void
+
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @param CallBack 枚举时候的回调
+ * @returns 
+ */
+export function enumProcessHandle (ProcessID: number,CallBack?:(PHandle:HMC.ProcessHandle)=>void){
+    let enumID =  native.enumProcessHandle(ref.int(ProcessID));
+    let next = true;
+    let enumProcessHandleList:HMC.ProcessHandle[] = [];
+    if(typeof enumID != "number")throw new Error("No enumerated id to query unknown error");
+    if(typeof CallBack =="function"){
+        ;(async()=>{
+            while (next) {
+                await Sleep(50);
+                let data = native.enumProcessHandlePolling(enumID);
+                if(data){
+                    for (let index = 0; index < data.length; index++) {
+                        const enumProcessHandle = data[index];
+                        if(!enumProcessHandle)continue;
+                        if(enumProcessHandle.type =='hmc::endl::'){
+                            return;
+                        }
+                        CallBack(enumProcessHandle);
+                    }
+                }
+            }
+        })();
+        return;
+    }
+    return new Promise(async(resolve, reject) => {
+        while (next) {
+            await Sleep(50);
+            let data = native.enumProcessHandlePolling(enumID);
+            if(data){
+                for (let index = 0; index < data.length; index++) {
+                    const enumProcessHandle = data[index];
+                    if(!enumProcessHandle)continue;
+                    if(enumProcessHandle.type =='hmc::endl::'){
+                        return resolve(enumProcessHandleList);
+                    }
+                    enumProcessHandleList.push(enumProcessHandle);
+                }
+            }
+        }
+        resolve(enumProcessHandleList);
+    });
+}
 
 // hmc.node 的版本号
 export const version = native.version;
@@ -4620,10 +4751,6 @@ export const registr = {
 
 export const Registr = registr;
 export const hmc = {
-    hasPortTCP,
-    hasPortUDP,
-    getWebView2Info,
-    hasWebView2,
     Auto,
     Clipboard,
     HMC,
@@ -4631,6 +4758,7 @@ export const hmc = {
     MessageError,
     MessageStop,
     Process,
+    Registr,
     SetBlockInput,
     SetSystemHOOK,
     SetWindowInTaskbarVisible,
@@ -4640,6 +4768,7 @@ export const hmc = {
     Watch,
     WatchWindowForeground,
     WatchWindowPoint,
+    WebView2OnlineInstall,
     Window,
     alert,
     analysisDirectPath,
@@ -4653,7 +4782,9 @@ export const hmc = {
     deleteFile,
     desc,
     enumChildWindows,
+    enumProcessHandle,
     enumRegistrKey,
+    formatVolumePath,
     freePort,
     getAllWindows,
     getAllWindowsHandle,
@@ -4673,6 +4804,7 @@ export const hmc = {
     getHidUsbList,
     getMainWindow,
     getMetrics,
+    getModulePathList,
     getMouseMovePoints,
     getNumberRegKey,
     getPointWindow,
@@ -4694,13 +4826,18 @@ export const hmc = {
     getSystemMetricsLen,
     getTrayList,
     getUsbDevsInfo,
+    getVolumeList,
+    getWebView2Info,
     getWindowClassName,
     getWindowRect,
     getWindowStyle,
     getWindowTitle,
     hasKeyActivate,
+    hasPortTCP,
+    hasPortUDP,
     hasProcess,
     hasRegistrKey,
+    hasWebView2,
     hasWindowTop,
     hideConsole,
     isAdmin,
@@ -4712,6 +4849,7 @@ export const hmc = {
     isProcess,
     isRegistrTreeKey,
     isSystemX64,
+    keyboardHook,
     killProcess,
     killProcessName,
     leftClick,
@@ -4722,6 +4860,7 @@ export const hmc = {
     lookHandleShowWindow,
     messageBox,
     mouse,
+    mouseHook,
     native,
     openApp,
     openExternal,
@@ -4765,9 +4904,7 @@ export const hmc = {
     version,
     watchClipboard,
     watchUSB,
-    windowJitter,
-    keyboardHook,
-    mouseHook
+    windowJitter
 }
 export default hmc;
 

@@ -185,3 +185,4 @@ napi_value setForegroundWindow(napi_env env, napi_callback_info info)
     std::thread(fnSetForegroundWindow).detach();
     return NULL;
 }
+

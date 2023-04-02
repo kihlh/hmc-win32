@@ -12,7 +12,8 @@
             "clip.cpp",
             "registr.cpp",
             "auto.cpp",
-            "windows.cpp"
+            "windows.cpp",
+            "process.cpp"
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {

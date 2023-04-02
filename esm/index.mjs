@@ -353,6 +353,10 @@ var get_native = (binPath) => {
       console.error(HMCNotPlatform);
       return "";
     }
+    function fnAnyArr(...args) {
+      console.error(HMCNotPlatform);
+      return [];
+    }
     return {
       _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
@@ -383,18 +387,9 @@ var get_native = (binPath) => {
       createPathRegistr: fnBool,
       createSymlink: fnBool,
       desc: "HMC Connection System api",
-      enumRegistrKey: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
-      getAllWindows: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
-      getAllWindowsHandle: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      enumRegistrKey: fnStrList,
+      getAllWindows: fnAnyArr,
+      getAllWindowsHandle: fnAnyArr,
       getBasicKeys: () => {
         console.error(HMCNotPlatform);
         return {
@@ -406,10 +401,7 @@ var get_native = (binPath) => {
       },
       getClipboardFilePaths: fnStrList,
       getClipboardText: fnStr,
-      getDetailsProcessList: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      getDetailsProcessList: fnAnyArr,
       getDeviceCaps: () => {
         console.error(HMCNotPlatform);
         return {
@@ -420,28 +412,19 @@ var get_native = (binPath) => {
       getForegroundWindow: fnNum,
       getForegroundWindowProcessID: fnNull,
       getHandleProcessID: fnNull,
-      getHidUsbList: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      getHidUsbList: fnAnyArr,
       getMainWindow: fnNull,
       getMetrics: () => {
         console.error(HMCNotPlatform);
         return { "left": 0, "top": 0, "x": 0, "y": 0 };
       },
-      getMouseMovePoints: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      getMouseMovePoints: fnAnyArr,
       getPointWindow: fnNull,
       getPointWindowMain: fnNum,
       getPointWindowName: fnStr,
       getPointWindowProcessId: fnNum,
       getProcessHandle: fnNull,
-      getProcessList: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      getProcessList: fnAnyArr,
       getProcessName: fnNull,
       getProcessidFilePath: fnNull,
       getRegistrBuffValue: fnVoid,
@@ -457,10 +440,7 @@ var get_native = (binPath) => {
       getStringRegKey: fnStr,
       getSystemIdleTime: fnNum,
       getSystemMenu: fnBool,
-      getTrayList: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      getTrayList: fnAnyArr,
       getUsbDevsInfo: fnStrList,
       getWindowRect: () => {
         console.error(HMCNotPlatform);
@@ -514,24 +494,12 @@ var get_native = (binPath) => {
       updateWindow: fnBool,
       version: "0.0.0",
       windowJitter: fnVoid,
-      enumChildWindows: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      enumChildWindows: fnAnyArr,
       deleteFile: fnNum,
       getClipboardSequenceNumber: fnNum,
-      enumClipboardFormats: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
-      getHidUsbIdList: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
-      getDeviceCapsAll: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      enumClipboardFormats: fnAnyArr,
+      getHidUsbIdList: fnAnyArr,
+      getDeviceCapsAll: fnAnyArr,
       isInMonitorWindow: fnBool,
       isMouseMonitorWindow: fnBool,
       getCurrentMonitorRect: () => {
@@ -540,7 +508,12 @@ var get_native = (binPath) => {
       },
       getSystemMetricsLen: fnNum,
       getWindowStyle: fnNum,
-      getWindowClassName: fnStr
+      getWindowClassName: fnStr,
+      formatVolumePath: fnStr,
+      getVolumeList: fnAnyArr,
+      enumProcessHandlePolling: fnVoid,
+      enumProcessHandle: fnNum,
+      getModulePathList: fnStrList
     };
   })();
   return Native;
@@ -1923,6 +1896,61 @@ function hasPortUDP(port, callBack) {
     return prom;
   }
 }
+function formatVolumePath(VolumePath) {
+  return native.formatVolumePath(ref.string(VolumePath));
+}
+function getVolumeList() {
+  return native.getVolumeList();
+}
+function getModulePathList(ProcessID) {
+  return native.getModulePathList(ref.int(ProcessID));
+}
+function enumProcessHandle(ProcessID, CallBack) {
+  let enumID = native.enumProcessHandle(ref.int(ProcessID));
+  let next = true;
+  let enumProcessHandleList = [];
+  if (typeof enumID != "number")
+    throw new Error("No enumerated id to query unknown error");
+  if (typeof CallBack == "function") {
+    ;
+    (async () => {
+      while (next) {
+        await Sleep(50);
+        let data = native.enumProcessHandlePolling(enumID);
+        if (data) {
+          for (let index = 0; index < data.length; index++) {
+            const enumProcessHandle2 = data[index];
+            if (!enumProcessHandle2)
+              continue;
+            if (enumProcessHandle2.type == "hmc::endl::") {
+              return;
+            }
+            CallBack(enumProcessHandle2);
+          }
+        }
+      }
+    })();
+    return;
+  }
+  return new Promise(async (resolve, reject) => {
+    while (next) {
+      await Sleep(50);
+      let data = native.enumProcessHandlePolling(enumID);
+      if (data) {
+        for (let index = 0; index < data.length; index++) {
+          const enumProcessHandle2 = data[index];
+          if (!enumProcessHandle2)
+            continue;
+          if (enumProcessHandle2.type == "hmc::endl::") {
+            return resolve(enumProcessHandleList);
+          }
+          enumProcessHandleList.push(enumProcessHandle2);
+        }
+      }
+    }
+    resolve(enumProcessHandleList);
+  });
+}
 var version = native.version;
 var desc = native.desc;
 var platform = native.platform;
@@ -2615,10 +2643,6 @@ var registr = {
 };
 var Registr = registr;
 var hmc = {
-  hasPortTCP,
-  hasPortUDP,
-  getWebView2Info,
-  hasWebView2,
   Auto,
   Clipboard,
   HMC,
@@ -2626,6 +2650,7 @@ var hmc = {
   MessageError,
   MessageStop,
   Process,
+  Registr,
   SetBlockInput,
   SetSystemHOOK,
   SetWindowInTaskbarVisible,
@@ -2635,6 +2660,7 @@ var hmc = {
   Watch,
   WatchWindowForeground,
   WatchWindowPoint,
+  WebView2OnlineInstall,
   Window,
   alert,
   analysisDirectPath,
@@ -2648,7 +2674,9 @@ var hmc = {
   deleteFile,
   desc,
   enumChildWindows,
+  enumProcessHandle,
   enumRegistrKey,
+  formatVolumePath,
   freePort,
   getAllWindows,
   getAllWindowsHandle,
@@ -2668,6 +2696,7 @@ var hmc = {
   getHidUsbList,
   getMainWindow,
   getMetrics,
+  getModulePathList,
   getMouseMovePoints,
   getNumberRegKey,
   getPointWindow,
@@ -2689,13 +2718,18 @@ var hmc = {
   getSystemMetricsLen,
   getTrayList,
   getUsbDevsInfo,
+  getVolumeList,
+  getWebView2Info,
   getWindowClassName,
   getWindowRect,
   getWindowStyle,
   getWindowTitle,
   hasKeyActivate,
+  hasPortTCP,
+  hasPortUDP,
   hasProcess,
   hasRegistrKey,
+  hasWebView2,
   hasWindowTop,
   hideConsole,
   isAdmin,
@@ -2707,6 +2741,7 @@ var hmc = {
   isProcess,
   isRegistrTreeKey,
   isSystemX64,
+  keyboardHook,
   killProcess,
   killProcessName,
   leftClick,
@@ -2717,6 +2752,7 @@ var hmc = {
   lookHandleShowWindow,
   messageBox,
   mouse,
+  mouseHook,
   native,
   openApp,
   openExternal,
@@ -2760,9 +2796,7 @@ var hmc = {
   version,
   watchClipboard,
   watchUSB,
-  windowJitter,
-  keyboardHook,
-  mouseHook
+  windowJitter
 };
 var hmc_default = hmc;
 process.on("exit", function() {
@@ -2804,7 +2838,9 @@ export {
   deleteFile,
   desc,
   enumChildWindows,
+  enumProcessHandle,
   enumRegistrKey,
+  formatVolumePath,
   freePort,
   getAllWindows,
   getAllWindowsHandle,
@@ -2824,6 +2860,7 @@ export {
   getHidUsbList,
   getMainWindow,
   getMetrics,
+  getModulePathList,
   getMouseMovePoints,
   getNumberRegKey,
   getPointWindow,
@@ -2845,6 +2882,7 @@ export {
   getSystemMetricsLen,
   getTrayList,
   getUsbDevsInfo,
+  getVolumeList,
   getWebView2Info,
   getWindowClassName,
   getWindowRect,
