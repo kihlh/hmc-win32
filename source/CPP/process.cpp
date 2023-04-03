@@ -1,5 +1,5 @@
 #include "./Mian.hpp";
-
+void util_getSubProcessList(DWORD ProcessId, vector<DWORD> &SubProcessIDList);
 vector<string> util_getModulePathList(DWORD processID)
 {
 
@@ -55,7 +55,13 @@ vector<string> util_getModulePathList(DWORD processID)
         DWORD dwSize = GetFinalPathNameByHandleW(*it, szFilePath, MAX_PATH, FILE_NAME_NORMALIZED);
         if (dwSize > 0 && dwSize < MAX_PATH)
         {
-            resultsData.push_back(_W2A_(szFilePath));
+            string szFilePathw2a = _W2A_(szFilePath);
+            string findStr = "\\\\?\\";
+            if (szFilePathw2a.find(findStr) == 0)
+            {
+                szFilePathw2a.replace(0, findStr.length(), "");
+            }
+            resultsData.push_back(szFilePathw2a);
         }
         delete[] szFilePath;
         CloseHandle(*it);
@@ -469,7 +475,7 @@ napi_value getModulePathList(napi_env env, napi_callback_info info)
     assert(status == napi_ok);
     DWORD ProcessID = (DWORD)Process_PID;
 
-    vector<string> ModulePathList = util_getModulePathList( ProcessID);
+    vector<string> ModulePathList = util_getModulePathList(ProcessID);
     // thread(util_getModulePathList, ProcessID, ModulePathList).join();
 
     for (size_t i = 0; i < ModulePathList.size(); i++)
@@ -482,6 +488,53 @@ napi_value getModulePathList(napi_env env, napi_callback_info info)
     }
 
     return resultsModulePathList;
+}
+
+vector<DWORD> ListProcessThreads(DWORD dwOwnerPID)
+{
+    vector<DWORD> ProcessThreadsList = {};
+    HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
+    // `THREADENTRY32` 是一个结构体，它定义在 `tlhelp32.h` 头文件中。它描述了在系统执行快照时正在执行的线程列表中的条目。以下是 `THREADENTRY32` 结构体中的各个变量的含义：⁴⁵
+    // - dwSize：结构体的大小，以字节为单位。
+    // - cntUsage：线程使用计数。
+    // - th32ThreadID：线程标识符，与 `CreateProcess` 函数返回的线程标识符兼容。
+    // - th32OwnerProcessID：创建线程的进程标识符。
+    // - tpBasePri：分配给线程的内核基优先级。
+    // - tpDeltaPri：线程优先级相对于基本优先级的增量。
+    // - dwFlags：保留，不再使用。
+    THREADENTRY32 te32;
+
+    // 对所有正在运行的线程进行快照
+    hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hThreadSnap == INVALID_HANDLE_VALUE)
+        return ProcessThreadsList;
+
+    // 在使用前填写结构的大小。
+    te32.dwSize = sizeof(THREADENTRY32);
+
+    // 检索第一个线程的信息、
+    // 并在不成功的情况下退出
+    if (!Thread32First(hThreadSnap, &te32))
+    {
+        CloseHandle(hThreadSnap); // 必须清理快照对象
+        return ProcessThreadsList;
+    }
+
+    // 现在走一下系统的线程列表、
+    // 并显示每个线程的信息
+    // 与指定进程相关的
+    do
+    {
+        if (te32.th32OwnerProcessID == dwOwnerPID)
+        {
+
+            ProcessThreadsList.push_back(te32.th32ThreadID);
+        }
+    } while (Thread32Next(hThreadSnap, &te32));
+
+    //  不要忘记清理快照对象。
+    CloseHandle(hThreadSnap);
+    return ProcessThreadsList;
 }
 
 // 获取该文件被哪些流氓进程占用着
@@ -651,8 +704,34 @@ typedef struct _OBJECT_TYPE_INFORMATION
 
 void EnumHandleList(DWORD ProcessId)
 {
+    vector<DWORD> ProcessThreadsList = ListProcessThreads(ProcessId);
+    vector<DWORD> ProcessIDList = ListProcessThreads(ProcessId);
     vector<util_Volume> volumeList = util_getVolumeList();
     int id = EnumHandleQueryID;
+    for (size_t i = 0; i < ProcessThreadsList.size(); i++)
+    {
+        DWORD ThreadsID = ProcessThreadsList[i];
+        enumHandleCout handleCout;
+        handleCout.id = id;
+        handleCout.handle = 0;
+        handleCout.name = to_wstring(ThreadsID);
+        handleCout.type = L"Thread";
+        resultsEnumHandleList.push_back(handleCout);
+    }
+
+    util_getSubProcessList(ProcessId, ProcessIDList);
+
+    for (size_t i = 0; i < ProcessIDList.size(); i++)
+    {
+        DWORD ThreadsID = ProcessIDList[i];
+        enumHandleCout handleCout;
+        handleCout.id = id;
+        handleCout.handle = 0;
+        handleCout.name = to_wstring(ThreadsID);
+        handleCout.type = L"Process";
+        resultsEnumHandleList.push_back(handleCout);
+    }
+
     HMODULE hNtMod = LoadLibraryW(L"ntdll.dll");
     if (!hNtMod)
     {
@@ -701,7 +780,6 @@ void EnumHandleList(DWORD ProcessId)
         }
     }
     processHandle = OpenProcess(PROCESS_DUP_HANDLE, FALSE, ProcessId);
-
     for (i = 0; i < handleInfo->HandleCount; i++)
     {
         enumHandleCout handleCout;
@@ -838,8 +916,19 @@ void EnumHandleList(DWORD ProcessId)
                 objectNameInfo = NULL;
             }
         }
-        if (!handleCout.name.empty() && !handleCout.type.empty())
+        if (!handleCout.name.empty() || !handleCout.type.empty())
         {
+            // if(handleCout.type ==L"Thread"&&!ProcessThreadsList.empty()){
+            //     enumHandleCout PushNewHandleCout ;
+            //     PushNewHandleCout.id=id;
+            //     PushNewHandleCout.type = L"Thread";
+            //     PushNewHandleCout.name = L"";
+            //     PushNewHandleCout.handle =0;
+            //     DWORD ThreadsPID = ProcessThreadsList.front();
+            //     PushNewHandleCout.name = to_wstring(ThreadsPID);
+            //     ProcessThreadsList.erase(ProcessThreadsList.begin());
+            //     resultsEnumHandleList.push_back(PushNewHandleCout);
+            // }
             resultsEnumHandleList.push_back(handleCout);
         }
         Sleep(5);
@@ -936,7 +1025,536 @@ napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info)
         {
             return resultsModulePathList;
         }
-        resultsEnumHandleList.erase(std::begin(resultsEnumHandleList) + index);
+        resultsEnumHandleList.erase(begin(resultsEnumHandleList) + index);
+    }
+    if (push_data_len == 0)
+    {
+        return NULL;
+    }
+    return resultsModulePathList;
+};
+
+napi_value getProcessThreadList(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 2;
+    napi_value args[2];
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    napi_value resultsModulePathList;
+    status = napi_create_array(env, &resultsModulePathList);
+    hmc_is_argv_type(args, 0, 1, napi_number, resultsModulePathList);
+
+    int64_t ProcessID;
+    bool returnDetail = false;
+    status = napi_get_value_int64(env, args[0], &ProcessID);
+    assert(status == napi_ok);
+    int push_data_len = 0;
+    if (argc == 2)
+    {
+        hmc_is_argv_type(args, 1, 2, napi_boolean, resultsModulePathList);
+        status = napi_get_value_bool(env, args[1], &returnDetail);
+        assert(status == napi_ok);
+    }
+    HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
+    // `THREADENTRY32` 是一个结构体，它定义在 `tlhelp32.h` 头文件中。它描述了在系统执行快照时正在执行的线程列表中的条目。以下是 `THREADENTRY32` 结构体中的各个变量的含义：⁴⁵
+    // - dwSize：结构体的大小，以字节为单位。
+    // - cntUsage：线程使用计数。
+    // - th32ThreadID：线程标识符，与 `CreateProcess` 函数返回的线程标识符兼容。
+    // - th32OwnerProcessID：创建线程的进程标识符。
+    // - tpBasePri：分配给线程的内核基优先级。
+    // - tpDeltaPri：线程优先级相对于基本优先级的增量。
+    // - dwFlags：保留，不再使用。
+    THREADENTRY32 te32;
+
+    // 对所有正在运行的线程进行快照
+    hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (hThreadSnap == INVALID_HANDLE_VALUE)
+        return resultsModulePathList;
+
+    // 在使用前填写结构的大小。
+    te32.dwSize = sizeof(THREADENTRY32);
+
+    // 检索第一个线程的信息、
+    // 并在不成功的情况下退出
+    if (!Thread32First(hThreadSnap, &te32))
+    {
+        CloseHandle(hThreadSnap); // 必须清理快照对象
+        return resultsModulePathList;
+    }
+
+    // 现在走一下系统的线程列表、
+    // 并显示每个线程的信息
+    // 与指定进程相关的
+    do
+    {
+        if (te32.th32OwnerProcessID == ProcessID)
+        {
+            if (returnDetail)
+            {
+
+                napi_value cur_item;
+                status = napi_create_object(env, &cur_item);
+                if (status != napi_ok)
+                {
+                    break;
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "cntUsage"), _create_int64_Number(env, te32.cntUsage));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "dwFlags"), _create_int64_Number(env, te32.dwFlags));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "dwSize"), _create_int64_Number(env, te32.dwSize));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "th32OwnerProcessID"), _create_int64_Number(env, te32.th32OwnerProcessID));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "th32ThreadID"), _create_int64_Number(env, te32.th32ThreadID));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "tpBasePri"), _create_int64_Number(env, te32.tpBasePri));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_property(env, cur_item, _create_char_string(env, "tpDeltaPri"), _create_int64_Number(env, te32.tpDeltaPri));
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+                status = napi_set_element(env, resultsModulePathList, push_data_len, cur_item);
+                push_data_len++;
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+            }
+            else
+            {
+                status = napi_set_element(env, resultsModulePathList, push_data_len, _create_int64_Number(env, te32.th32ThreadID));
+                push_data_len++;
+                if (status != napi_ok)
+                {
+                    return resultsModulePathList;
+                }
+            }
+        }
+    } while (Thread32Next(hThreadSnap, &te32));
+
+    //  不要忘记清理快照对象。
+    CloseHandle(hThreadSnap);
+
+    return resultsModulePathList;
+};
+
+napi_value clearEnumProcessHandle(napi_env env, napi_callback_info info)
+{
+    resultsEnumHandleList.clear();
+    return NULL;
+}
+
+#define MAX_KEY_LENGTH 255
+
+struct HMC_PROCESSENTRY32
+{
+    int pollingId;
+    DWORD dwSize;
+    DWORD cntUsage;
+    DWORD th32ProcessID; // this process
+    DWORD th32DefaultHeapID;
+    DWORD th32ModuleID; // associated exe
+    DWORD cntThreads;
+    DWORD th32ParentProcessID; // this process's parent process
+    DWORD pcPriClassBase;      // Base priority of process's threads
+    DWORD dwFlags;
+    wstring szExeFile; // Path
+};
+vector<HMC_PROCESSENTRY32> enumeratesProcessSnapshotStorage;
+int enumeratesProcessPollingId = 0;
+
+void start_enumAllProcess(int pollingId)
+{
+
+    EnableShutDownPriv();
+    vector<HMC_PROCESSENTRY32> enumProcessList;
+
+    HANDLE hProcessSnap;
+    PROCESSENTRY32 pe32;
+
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE)
+        return;
+
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    if (!Process32First(hProcessSnap, &pe32))
+    {
+        CloseHandle(hProcessSnap);
+        return;
+    }
+
+    do
+    {
+        HMC_PROCESSENTRY32 _pe32;
+        _pe32.cntThreads = pe32.cntThreads;
+        _pe32.cntUsage = pe32.cntUsage;
+        _pe32.dwFlags = pe32.dwFlags;
+        _pe32.dwSize = pe32.dwSize;
+        _pe32.pcPriClassBase = pe32.pcPriClassBase;
+        // wcout<< pe32.szExeFile<<endl;
+        // _pe32.szExeFile = (wchar_t *)&pe32.szExeFile;
+        _pe32.szExeFile = L"";
+        _pe32.th32DefaultHeapID = pe32.th32DefaultHeapID;
+        _pe32.th32ModuleID = pe32.th32ModuleID;
+        _pe32.th32ParentProcessID = pe32.th32ParentProcessID;
+        _pe32.th32ProcessID = pe32.th32ProcessID;
+        _pe32.pollingId = pollingId;
+        enumProcessList.push_back(_pe32);
+
+    } while (Process32Next(hProcessSnap, &pe32));
+
+    CloseHandle(hProcessSnap);
+    for (size_t i = 0; i < enumProcessList.size(); i++)
+    {
+        HMC_PROCESSENTRY32 p32 = enumProcessList[i];
+        p32.szExeFile = L"";
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, p32.th32ProcessID);
+
+        wchar_t processName[MAX_PATH];
+        if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
+        {
+            p32.szExeFile = processName;
+        };
+        CloseHandle(hProcess);
+        enumeratesProcessSnapshotStorage.push_back(p32);
+
+        Sleep(5);
+    }
+
+    HMC_PROCESSENTRY32 _p32end;
+    _p32end.cntThreads = 0;
+    _p32end.cntUsage = 0;
+    _p32end.dwFlags = 0;
+    _p32end.dwSize = 0;
+    _p32end.pcPriClassBase = 0;
+    _p32end.szExeFile = L"HMC::endl::";
+    _p32end.th32DefaultHeapID = 0;
+    _p32end.th32ModuleID = 0;
+    _p32end.th32ParentProcessID = 0;
+    _p32end.th32ProcessID = 0;
+    _p32end.pollingId = pollingId;
+    enumeratesProcessSnapshotStorage.push_back(_p32end);
+};
+
+// void util_enumAllProcess(vector<HMC_PROCESSENTRY32> &enumProcess)
+// {
+
+//     EnableShutDownPriv();
+//     PROCESSENTRY32 pe32;
+//     pe32.dwSize = sizeof(PROCESSENTRY32);
+
+//     // 获取进程快照
+//     HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//     if (hSnap == INVALID_HANDLE_VALUE)
+//     {
+//         return;
+//     }
+
+//     // 枚举第一个进程
+//     if (Process32First(hSnap, &pe32))
+//     {
+//         do
+//         {
+//             // 打开进程句柄
+//             HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+//             if (hProcess)
+//             {
+//                 HMC_PROCESSENTRY32 _pe32;
+//                 _pe32.cntThreads = pe32.cntThreads;
+//                 _pe32.cntUsage = pe32.cntUsage;
+//                 _pe32.dwFlags = pe32.dwFlags;
+//                 _pe32.dwSize = pe32.dwSize;
+//                 _pe32.pcPriClassBase = pe32.pcPriClassBase;
+//                 _pe32.szExeFile = pe32.szExeFile;
+//                 _pe32.th32DefaultHeapID = pe32.th32DefaultHeapID;
+//                 _pe32.th32ModuleID = pe32.th32ModuleID;
+//                 _pe32.th32ParentProcessID = pe32.th32ParentProcessID;
+//                 _pe32.th32ProcessID = pe32.th32ProcessID;
+//                 _pe32.pollingId = 0;
+//                 enumProcess.push_back(_pe32);
+//                 CloseHandle(hProcess);
+//             }
+//         } while (Process32Next(hSnap, &pe32));
+//     }
+
+//     CloseHandle(hSnap);
+// };
+
+void util_getSubProcessList(DWORD ProcessId, vector<DWORD> &SubProcessIDList)
+{
+
+    EnableShutDownPriv();
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    // 获取进程快照
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnap == INVALID_HANDLE_VALUE)
+    {
+        return;
+    }
+
+    // 枚举第一个进程
+    if (Process32First(hSnap, &pe32))
+    {
+        do
+        {
+            // 打开进程句柄
+            HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+            if (hProcess)
+            {
+                // 子进程的进程 ID
+                bool is_sub = pe32.th32ParentProcessID == ProcessId;
+
+                // 二次子进程
+                if (!is_sub)
+                {
+                    if (find(SubProcessIDList.begin(), SubProcessIDList.end(), pe32.th32ParentProcessID) != SubProcessIDList.end())
+                    {
+                        is_sub = true;
+                    }
+                }
+
+                if (is_sub)
+                {
+                    if (!(find(SubProcessIDList.begin(), SubProcessIDList.end(), pe32.th32ProcessID) != SubProcessIDList.end()))
+                    {
+                        SubProcessIDList.push_back(pe32.th32ProcessID);
+                    }
+                }
+                CloseHandle(hProcess);
+            }
+        } while (Process32Next(hSnap, &pe32));
+    }
+
+    CloseHandle(hSnap);
+};
+
+napi_value getSubProcessID(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 2;
+    napi_value args[2];
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    napi_value resultsSubProcessIDList;
+    status = napi_create_array(env, &resultsSubProcessIDList);
+    hmc_is_argv_type(args, 0, 1, napi_number, resultsSubProcessIDList);
+
+    int64_t ProcessID;
+    bool returnDetail = false;
+    status = napi_get_value_int64(env, args[0], &ProcessID);
+    assert(status == napi_ok);
+    int push_data_len = 0;
+
+    vector<DWORD> SubProcessIDList = {};
+    util_getSubProcessList(ProcessID, SubProcessIDList);
+    for (size_t i = 0; i < SubProcessIDList.size(); i++)
+    {
+        status = napi_set_element(env, resultsSubProcessIDList, push_data_len, _create_int64_Number(env, SubProcessIDList[i]));
+        push_data_len++;
+        if (status != napi_ok)
+        {
+            return resultsSubProcessIDList;
+        }
+    }
+
+    SubProcessIDList.clear();
+    return resultsSubProcessIDList;
+};
+
+napi_value getProcessParentProcessID(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    hmc_is_argv_type(args, 0, 1, napi_number, NULL);
+    int64_t ProcessID;
+    status = napi_get_value_int64(env, args[0], &ProcessID);
+    assert(status == napi_ok);
+
+    DWORD CurrentProcessId = 0;
+
+    EnableShutDownPriv();
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    // 获取进程快照
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnap == INVALID_HANDLE_VALUE)
+    {
+        return NULL;
+    }
+
+    // 枚举第一个进程
+    if (Process32First(hSnap, &pe32))
+    {
+        do
+        {
+            // 打开进程句柄
+            HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+            if (hProcess)
+            {
+                if (pe32.th32ProcessID == ProcessID)
+                {
+                    CurrentProcessId = pe32.th32ParentProcessID;
+                    CloseHandle(hProcess);
+                    break;
+                }
+                CloseHandle(hProcess);
+            }
+        } while (Process32Next(hSnap, &pe32));
+    }
+
+    CloseHandle(hSnap);
+    if (CurrentProcessId == 0)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+        return result;
+    }
+    return _create_int64_Number(env, CurrentProcessId);
+};
+
+napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info)
+{
+    enumeratesProcessSnapshotStorage.clear();
+    enumeratesProcessPollingId = 0;
+    return NULL;
+}
+
+napi_value enumAllProcess(napi_env env, napi_callback_info info)
+{
+    enumeratesProcessPollingId++;
+    thread(start_enumAllProcess, enumeratesProcessPollingId).detach();
+    return _create_int32_Number(env, enumeratesProcessPollingId);
+};
+
+napi_value enumAllProcessPolling(napi_env env, napi_callback_info info)
+{
+    if (enumeratesProcessSnapshotStorage.empty())
+    {
+        return NULL;
+    }
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    hmc_is_argv_type(args, 0, 1, napi_number, NULL);
+
+    napi_value resultsModulePathList;
+    status = napi_create_array(env, &resultsModulePathList);
+
+    int QueryID;
+    status = napi_get_value_int32(env, args[0], &QueryID);
+    assert(status == napi_ok);
+    int push_data_len = 0;
+    for (size_t index = 0; index < enumeratesProcessSnapshotStorage.size(); index++)
+    {
+        HMC_PROCESSENTRY32 th32 = enumeratesProcessSnapshotStorage[index];
+        if (th32.pollingId != QueryID)
+            continue;
+        napi_value item;
+        status = napi_create_object(env, &item);
+        if (status != napi_ok)
+        {
+            break;
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "szExeFile"), _create_W2U8_string(env, (wchar_t *)th32.szExeFile.c_str()));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32ProcessID"), _create_int64_Number(env, th32.th32ProcessID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32ParentProcessID"), _create_int64_Number(env, th32.th32ParentProcessID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "cntThreads"), _create_int64_Number(env, th32.cntThreads));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "cntUsage"), _create_int64_Number(env, th32.cntUsage));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "dwFlags"), _create_int64_Number(env, th32.dwFlags));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "dwSize"), _create_int64_Number(env, th32.dwSize));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "pcPriClassBase"), _create_int64_Number(env, th32.pcPriClassBase));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32DefaultHeapID"), _create_int64_Number(env, th32.th32DefaultHeapID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32ModuleID"), _create_int64_Number(env, th32.th32ModuleID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32ParentProcessID"), _create_int64_Number(env, th32.th32ParentProcessID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        status = napi_set_property(env, item, _create_char_string(env, "th32ProcessID"), _create_int64_Number(env, th32.th32ProcessID));
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+
+        status = napi_set_element(env, resultsModulePathList, (int)index, item);
+        push_data_len++;
+        if (status != napi_ok)
+        {
+            return resultsModulePathList;
+        }
+        enumeratesProcessSnapshotStorage.erase(begin(enumeratesProcessSnapshotStorage) + index);
     }
     if (push_data_len == 0)
     {

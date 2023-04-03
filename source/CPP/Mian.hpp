@@ -24,6 +24,7 @@
 #include <conio.h>
 #include <time.h>
 #include <signal.h>
+
 using namespace std;
 
 #pragma comment(lib, "Ws2_32")
@@ -200,3 +201,10 @@ napi_value getModulePathList(napi_env env, napi_callback_info info);
 napi_value enumProcessHandle(napi_env env, napi_callback_info info);
 // napi_value getLockFileProcessList(napi_env env, napi_callback_info info);
 napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info);
+napi_value getProcessThreadList(napi_env env, napi_callback_info info);
+napi_value clearEnumProcessHandle(napi_env env, napi_callback_info info);
+napi_value getSubProcessID(napi_env env, napi_callback_info info);
+napi_value enumAllProcess(napi_env env, napi_callback_info info);
+napi_value enumAllProcessPolling(napi_env env, napi_callback_info info);
+napi_value getProcessParentProcessID(napi_env env, napi_callback_info info);
+napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info);

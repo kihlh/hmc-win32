@@ -307,7 +307,6 @@ napi_value showMonitors(napi_env env, napi_callback_info info)
     return napi_value_info;
 }
 
-
 // 设置窗口的系统右键(不考虑参数正确性 在js中会定义类型安全)
 static napi_value getSystemMenu(napi_env env, napi_callback_info info)
 {
@@ -1779,7 +1778,6 @@ static napi_value SetSystemHOOK(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, lockSystemInteraction(Set_Block));
 }
 
-
 napi_value openURL(napi_env env, napi_callback_info info)
 {
     napi_value argv[1];
@@ -2585,44 +2583,52 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
         DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
         // DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),                          //=>2-13REMOVE
-        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0},          //=>2-13ADD
+        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0}, //=>2-13ADD
         DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
         // auto.cpp
-        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                        //=>3-1UP
-        DECLARE_NAPI_METHODRM("rightClick", rightClick),                            //=>3-1UP
-        DECLARE_NAPI_METHODRM("leftClick", leftClick),                              //=>3-1UP
-        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),            //=>3-1UP
-        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                    //=>3-1UP
-        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                        //=>3-1UP
-        DECLARE_NAPI_METHODRM("mouse", mouse),                                      //=>3-1UP
-        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),          //=>3-1ADD
-        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),                //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                          //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                    //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession),    //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),          //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),                //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),          //=>3-1ADD
+        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                     //=>3-1UP
+        DECLARE_NAPI_METHODRM("rightClick", rightClick),                         //=>3-1UP
+        DECLARE_NAPI_METHODRM("leftClick", leftClick),                           //=>3-1UP
+        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),         //=>3-1UP
+        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                 //=>3-1UP
+        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                     //=>3-1UP
+        DECLARE_NAPI_METHODRM("mouse", mouse),                                   //=>3-1UP
+        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>3-1ADD
+        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>3-1ADD
+        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),       //=>3-1ADD
         // windows.cpp
-        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),          //=>3-6UP
-        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore),  //=>3-6UP
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),         //=>3-6UP
+        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore), //=>3-6UP
         // process.cpp
-        DECLARE_NAPI_METHODRM("killProcess", killProcess),                          //=>4-1UP
-        DECLARE_NAPI_METHODRM("getDetailsProcessList", getDetailsProcessList),      //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessList", getProcessList),                    //=>4-1UP
-        DECLARE_NAPI_METHODRM("hasProcess", hasProcess),                            //=>4-1UP
-        DECLARE_NAPI_METHODRM("isProcess", isProcess),                              //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessidFilePath", getProcessidFilePath),        //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessName", getProcessName),                    //=>4-1UP
-        DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),              //=>4-1ADD
+        DECLARE_NAPI_METHODRM("killProcess", killProcess),                     //=>4-1UP
+        DECLARE_NAPI_METHODRM("getDetailsProcessList", getDetailsProcessList), //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessList", getProcessList),               //=>4-1UP
+        DECLARE_NAPI_METHODRM("hasProcess", hasProcess),                       //=>4-1UP
+        DECLARE_NAPI_METHODRM("isProcess", isProcess),                         //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessidFilePath", getProcessidFilePath),   //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessName", getProcessName),               //=>4-1UP
+        DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),         //=>4-1ADD
         // DECLARE_NAPI_METHODRM("getLockFileProcessList", getLockFileProcessList),    //=>4-1ADD
-        DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),//=>4-1ADD
-        DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling),//=>4-2ADD
-        DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                      //=>4-1ADD
-        DECLARE_NAPI_METHODRM("formatVolumePath", formatVolumePath),                //=>4-1ADD
-    }; 
+        DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),                 //=>4-1ADD
+        DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling),   //=>4-2ADD
+        DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                         //=>4-1ADD
+        DECLARE_NAPI_METHODRM("formatVolumePath", formatVolumePath),                   //=>4-1ADD
+        DECLARE_NAPI_METHODRM("getProcessThreadList", getProcessThreadList),           //=>4-3ADD
+        DECLARE_NAPI_METHODRM("clearEnumProcessHandle", clearEnumProcessHandle),       //=>4-3ADD
+        DECLARE_NAPI_METHODRM("getSubProcessID", getSubProcessID),                     //=>4-3ADD
+        DECLARE_NAPI_METHODRM("enumAllProcessPolling", enumAllProcessPolling),         //=>4-3ADD
+        DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
+        DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
+        DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
+
+    };
     _________HMC_DEBUG__________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);

@@ -4,7 +4,10 @@
 #include <assert.h>
 #include <stringapiset.h>
 #include <vector>
+#include <tchar.h>
 
+// #include <locale>
+// #include <codecvt>
 using namespace std;
 #ifdef UNICODE
 typedef LPWSTR LPTSTR;
@@ -43,6 +46,7 @@ inline string _U82A_(const char *pszText);
 inline wstring _U82W_(const char *pszText);
 inline string _W2A_(const wchar_t *pwszText);
 inline string _W2U8_(const wchar_t *pwszText);
+// inline wstring _CW2W_(const WCHAR *pszText);
 
 string _NAPI_Call_Type(napi_valuetype valuetype0);
 wstring call_String_NAPI_WINAPI_W(napi_env env, napi_value value);
@@ -54,7 +58,6 @@ string call_String_NAPI_UTF8(napi_env env, napi_value value);
 bool util_diff_napi_type(napi_env env, napi_value value, napi_valuetype valuetype);
 napi_valuetype util_get_napi_type(napi_env env, napi_value value);
 string util_get_napi_type_name(napi_env env, napi_value value);
-
 
 struct hmcRect;
 bool rectInRect(hmcRect inRect, hmcRect mian);

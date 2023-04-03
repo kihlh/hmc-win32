@@ -46,11 +46,18 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
+            getSubProcessID: fnAnyArr,
+            enumAllProcessPolling: fnVoid,
+            clearEnumAllProcessList: fnVoid,
+            getProcessParentProcessID: fnVoid,
+            enumAllProcess: fnNum,
             _SET_HMC_DEBUG: fnBool,
             isStartKeyboardHook: fnBool,
             isStartHookMouse: fnBool,
-            getMouseNextSession: () => { console.error(HMCNotPlatform); return [] as `${number}|${number}|${0 | 1}`[] | undefined },
-            getKeyboardNextSession: () => { console.error(HMCNotPlatform); return [] as `${number}|${0 | 1}`[] | undefined },
+            clearEnumProcessHandle: fnVoid,
+            getProcessThreadList: fnAnyArr,
+            getMouseNextSession: fnAnyArr,
+            getKeyboardNextSession: fnAnyArr,
             unKeyboardHook: fnVoid,
             unHookMouse: fnVoid,
             installKeyboardHook: fnVoid,
@@ -428,6 +435,50 @@ export class HWND extends Number {
 }
 // 类型
 export module HMC {
+    /**
+     * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
+     */
+    export type PROCESSENTRY = {
+        /**结构体的大小，以字节为单位。 */
+        dwSize: number;
+        /**引用计数。 */
+        cntUsage: number;
+        /**进程 ID。 */
+        th32ProcessID: number;
+        /**默认堆 ID */
+        th32DefaultHeapID: number;
+        /**模块 ID */
+        th32ModuleID: number;
+        /**线程计数器。 */
+        cntThreads: number;
+        /** 父进程 ID。 */
+        th32ParentProcessID: number;
+        /**基本优先级。 */
+        pcPriClassBase: number;
+        /**标志位。 */
+        dwFlags: number;
+        /**进程名。 */
+        szExeFile: string;
+    };
+    /**
+     * 是一个结构体，它定义在 `tlhelp32.h` 头文件中。它描述了在系统执行快照时正在执行的线程列表中的条目
+     */
+    export type THREADENTRY32 = {
+        /**线程使用计数 */
+        cntUsage: number,
+        /**保留，不再使用 */
+        dwFlags: 0,
+        /**结构体的大小，以字节为单位 */
+        dwSize: number,
+        /**创建线程的进程标识符 */
+        th32OwnerProcessID: number,
+        /**线程标识符，与 `CreateProcess` 函数返回的线程标识符兼容 */
+        th32ThreadID: number,
+        /**分配给线程的内核基优先级 */
+        tpBasePri: number,
+        /**线程优先级相对于基本优先级的增量 */
+        tpDeltaPri: number
+    }
     /**
      * 设置窗口坐标
      */
@@ -1182,6 +1233,50 @@ export module HMC {
          * @param ProcessID 
          */
         getModulePathList(ProcessID: number): string[];
+        /**
+         * 内联 清空句柄存储  不需要暴露
+         */
+        clearEnumProcessHandle(): void;
+        /**
+         * 枚举进程的线程id
+         * @param ProcessID 进程id
+         * @param returnDetail 是否返回 THREADENTRY32 为`false`或者为空则返回线程id
+         */
+        getProcessThreadList(ProcessID: number, returnDetail?: false): number[];
+        /**
+         * 
+         * @param ProcessID 进程id
+         * @param returnDetail 为`true` 则返回THREADENTRY32 
+         */
+        getProcessThreadList(ProcessID: number, returnDetail: true): HMC.THREADENTRY32[];
+        /**
+         * 枚举进程的线程id
+         * @param ProcessID 进程id
+         */
+        getProcessThreadList(ProcessID: number): number[];
+        /**
+         * 内联 清空句柄存储  不需要暴露
+         */
+        clearEnumAllProcessList(): void;
+        /**
+         * 获取进程的主进程
+         * @param ProcessID 
+         */
+        getProcessParentProcessID(ProcessID: number): number | null | void;
+        /**
+         * 内联 启动枚举进程快照
+         */
+        enumAllProcess(): number;
+        /**
+         * 内联 枚举进程快照结果查询
+         * @param enumID 枚举id
+         */
+        enumAllProcessPolling(enumID: number): Array<HMC.PROCESSENTRY | void> | void;
+        /**
+         * 获取子进程id
+         * @param ProcessID 
+         */
+        getSubProcessID(ProcessID: number): number[];
     }
     export type ProcessHandle = {
         // 句柄 
@@ -1189,7 +1284,7 @@ export module HMC {
         // 名称(数据)
         name: string;
         // 类型
-        type: "ALPC Port" | "Event" | "Timer" | "Mutant" | "Key" | "Section" | "File" | string;
+        type: "ALPC Port" | "Event" | "Timer" | "Mutant" | "Key" | "Section" | "File" | "Thread" | string;
     };
     export type Volume = {
         // 真实的文件路径  例如： 'D:\\' 
@@ -3637,14 +3732,14 @@ export function hasPortUDP(port: number, callBack?: (hasPort: boolean) => unknow
 /**
  * 格式化 驱动器路径 ('\Device\HarddiskVolume2' => "D:\")
  */
-export function formatVolumePath (VolumePath:string){
+export function formatVolumePath(VolumePath: string) {
     return native.formatVolumePath(ref.string(VolumePath))
 }
 /**
  * 获取当前文件系统的驱动器名称及路径
  * @returns 
  */
-export function getVolumeList (){
+export function getVolumeList() {
     return native.getVolumeList()
 }
 
@@ -3653,7 +3748,7 @@ export function getVolumeList (){
  * @param ProcessID 
  * @returns 
  */
-export function getModulePathList (ProcessID: number){
+export function getModulePathList(ProcessID: number) {
     return native.getModulePathList(ref.int(ProcessID));
 }
 
@@ -3662,7 +3757,7 @@ export function getModulePathList (ProcessID: number){
  * @param ProcessID 被枚举的进程id
  * @returns 
  */
-export function enumProcessHandle (ProcessID: number):Promise<HMC.ProcessHandle[]>;
+export function enumProcessHandle(ProcessID: number): Promise<HMC.ProcessHandle[]>;
 
 /**
  * 枚举进程id的句柄
@@ -3670,7 +3765,7 @@ export function enumProcessHandle (ProcessID: number):Promise<HMC.ProcessHandle[
  * @param CallBack 枚举时候的回调
  * @returns 
  */
-export function enumProcessHandle (ProcessID: number,CallBack:(PHandle:HMC.ProcessHandle)=>void):void
+export function enumProcessHandle(ProcessID: number, CallBack: (PHandle: HMC.ProcessHandle) => void): void
 
 /**
  * 枚举进程id的句柄
@@ -3678,21 +3773,21 @@ export function enumProcessHandle (ProcessID: number,CallBack:(PHandle:HMC.Proce
  * @param CallBack 枚举时候的回调
  * @returns 
  */
-export function enumProcessHandle (ProcessID: number,CallBack?:(PHandle:HMC.ProcessHandle)=>void){
-    let enumID =  native.enumProcessHandle(ref.int(ProcessID));
+export function enumProcessHandle(ProcessID: number, CallBack?: (PHandle: HMC.ProcessHandle) => void) {
+    let enumID = native.enumProcessHandle(ref.int(ProcessID));
     let next = true;
-    let enumProcessHandleList:HMC.ProcessHandle[] = [];
-    if(typeof enumID != "number")throw new Error("No enumerated id to query unknown error");
-    if(typeof CallBack =="function"){
-        ;(async()=>{
+    let enumProcessHandleList: HMC.ProcessHandle[] = [];
+    if (typeof enumID != "number") throw new Error("No enumerated id to query unknown error");
+    if (typeof CallBack == "function") {
+        ; (async () => {
             while (next) {
                 await Sleep(50);
                 let data = native.enumProcessHandlePolling(enumID);
-                if(data){
+                if (data) {
                     for (let index = 0; index < data.length; index++) {
                         const enumProcessHandle = data[index];
-                        if(!enumProcessHandle)continue;
-                        if(enumProcessHandle.type =='hmc::endl::'){
+                        if (!enumProcessHandle) continue;
+                        if (enumProcessHandle.type == 'hmc::endl::') {
                             return;
                         }
                         CallBack(enumProcessHandle);
@@ -3702,15 +3797,15 @@ export function enumProcessHandle (ProcessID: number,CallBack?:(PHandle:HMC.Proc
         })();
         return;
     }
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         while (next) {
             await Sleep(50);
             let data = native.enumProcessHandlePolling(enumID);
-            if(data){
+            if (data) {
                 for (let index = 0; index < data.length; index++) {
                     const enumProcessHandle = data[index];
-                    if(!enumProcessHandle)continue;
-                    if(enumProcessHandle.type =='hmc::endl::'){
+                    if (!enumProcessHandle) continue;
+                    if (enumProcessHandle.type == 'hmc::endl::') {
                         return resolve(enumProcessHandleList);
                     }
                     enumProcessHandleList.push(enumProcessHandle);
@@ -3719,6 +3814,102 @@ export function enumProcessHandle (ProcessID: number,CallBack?:(PHandle:HMC.Proc
         }
         resolve(enumProcessHandleList);
     });
+
+}
+/**
+* 枚举进程的线程id
+* @param ProcessID 进程id
+* @param returnDetail 是否返回 THREADENTRY32 为`false`或者为空则返回线程id
+*/
+export function getProcessThreadList(ProcessID: number, returnDetail?: false): number[];
+/**
+ * 
+ * @param ProcessID 进程id
+ * @param returnDetail 为`true` 则返回THREADENTRY32 
+ */
+export function getProcessThreadList(ProcessID: number, returnDetail: true): HMC.THREADENTRY32[];
+/**
+ * 枚举进程的线程id
+ * @param ProcessID 进程id
+ */
+export function getProcessThreadList(ProcessID: number): number[];
+
+/**
+ * 枚举子线程id
+ * @param ProcessID 进程id
+ * @returns 
+ */
+export function getProcessThreadList(ProcessID: unknown, returnDetail?: unknown): unknown {
+    const _returnDetail = returnDetail ? true : false;
+    if (_returnDetail) return native.getProcessThreadList(ref.int(ProcessID), true) || [];
+    return native.getProcessThreadList(ref.int(ProcessID),) || [];
+}
+
+/**
+ * 获取所有该进程下的 子进程id
+ * @param ProcessID 进程id
+ * @returns 
+ */
+export function getSubProcessID(ProcessID: number) {
+    return native.getSubProcessID(ref.int(ProcessID)) || [];
+}
+/**
+ * 获取进程id的主进程
+ * @param ProcessID 进程id
+ * @returns 
+ */
+export function getProcessParentProcessID(ProcessID: number) {
+    return native.getProcessParentProcessID(ref.int(ProcessID)) || null;
+}
+
+/**
+ * 枚举进程id的句柄
+ * @param ProcessID 被枚举的进程id
+ * @param CallBack 枚举时候的回调
+ * @returns 
+ */
+export function enumAllProcess(CallBack?: (PHandle: HMC.PROCESSENTRY) => void) {
+    let enumID = native.enumAllProcess();
+    let next = true;
+    let PROCESSENTRYLIST: HMC.PROCESSENTRY[] = [];
+    if (typeof enumID != "number") throw new Error("No enumerated id to query unknown error");
+    if (typeof CallBack == "function") {
+        ; (async () => {
+            while (next) {
+                await Sleep(15);
+                let data = native.enumAllProcessPolling(enumID);
+                if (data) {
+                    for (let index = 0; index < data.length; index++) {
+                        const PROCESSENTRY = data[index];
+                        if (!PROCESSENTRY) continue;
+                        if (PROCESSENTRY.szExeFile == 'HMC::endl::') {
+                            return;
+                        }
+                        CallBack(PROCESSENTRY);
+                    }
+                }
+            }
+        })();
+        return;
+    }
+    return new Promise(async (resolve, reject) => {
+        while (next) {
+            await Sleep(50);
+            let data = native.enumAllProcessPolling(enumID);
+            if (data) {
+                for (let index = 0; index < data.length; index++) {
+                    const PROCESSENTRY = data[index];
+                    if (!PROCESSENTRY) continue;
+                    if (PROCESSENTRY.szExeFile == 'HMC::endl::') {
+                        return resolve(PROCESSENTRYLIST);
+                    }
+                    PROCESSENTRYLIST.push(PROCESSENTRY);
+                }
+            }
+        }
+        resolve(PROCESSENTRYLIST);
+    });
+
 }
 
 // hmc.node 的版本号
@@ -4527,6 +4718,10 @@ export const Process = {
     match: getProcessNameList,
     matchDetails: getDetailsProcessNameList,
     getDetailsList: getDetailsProcessList,
+    parentID:getProcessParentProcessID,
+    mianPID:getProcessParentProcessID,
+    subPID:getSubProcessID,
+    threadList:getProcessThreadList
 }
 
 //注册表编辑合集   (拥有统一化名称)
@@ -4752,159 +4947,163 @@ export const registr = {
 export const Registr = registr;
 export const hmc = {
     Auto,
-    Clipboard,
-    HMC,
-    HWND,
-    MessageError,
-    MessageStop,
-    Process,
-    Registr,
-    SetBlockInput,
-    SetSystemHOOK,
-    SetWindowInTaskbarVisible,
-    Shell,
-    Sleep,
-    Usb,
-    Watch,
-    WatchWindowForeground,
-    WatchWindowPoint,
-    WebView2OnlineInstall,
-    Window,
-    alert,
-    analysisDirectPath,
-    clearClipboard,
-    closedHandle,
-    confirm,
-    createDirSymlink,
-    createHardLink,
-    createPathRegistr,
-    createSymlink,
-    deleteFile,
-    desc,
-    enumChildWindows,
-    enumProcessHandle,
-    enumRegistrKey,
-    formatVolumePath,
-    freePort,
-    getAllWindows,
-    getAllWindowsHandle,
-    getBasicKeys,
-    getClipboardFilePaths,
-    getClipboardSequenceNumber,
-    getClipboardText,
-    getConsoleHandle,
-    getCurrentMonitorRect,
-    getDetailsProcessList,
-    getDetailsProcessNameList,
-    getDeviceCaps,
-    getDeviceCapsAll,
-    getForegroundWindow,
-    getForegroundWindowProcessID,
-    getHandleProcessID,
-    getHidUsbList,
-    getMainWindow,
-    getMetrics,
-    getModulePathList,
-    getMouseMovePoints,
-    getNumberRegKey,
-    getPointWindow,
-    getPointWindowMain,
-    getPointWindowName,
-    getPointWindowProcessId,
-    getProcessHandle,
-    getProcessList,
-    getProcessName,
-    getProcessNameList,
-    getProcessidFilePath,
-    getRegistrBuffValue,
-    getRegistrDword,
-    getRegistrQword,
-    getShortcutLink,
-    getStringRegKey,
-    getSystemIdleTime,
-    getSystemMenu,
-    getSystemMetricsLen,
-    getTrayList,
-    getUsbDevsInfo,
-    getVolumeList,
-    getWebView2Info,
-    getWindowClassName,
-    getWindowRect,
-    getWindowStyle,
-    getWindowTitle,
-    hasKeyActivate,
-    hasPortTCP,
-    hasPortUDP,
-    hasProcess,
-    hasRegistrKey,
-    hasWebView2,
-    hasWindowTop,
-    hideConsole,
-    isAdmin,
-    isEnabled,
-    isHandle,
-    isHandleWindowVisible,
-    isInMonitorWindow,
-    isMouseMonitorWindow,
-    isProcess,
-    isRegistrTreeKey,
-    isSystemX64,
-    keyboardHook,
-    killProcess,
-    killProcessName,
-    leftClick,
-    listRegistrPath,
-    lookHandleCloseWindow,
-    lookHandleGetTitle,
-    lookHandleSetTitle,
-    lookHandleShowWindow,
-    messageBox,
-    mouse,
-    mouseHook,
-    native,
-    openApp,
-    openExternal,
-    openPath,
-    openRegKey,
-    openURL,
-    platform,
-    powerControl,
-    processWatchdog,
-    ref,
-    registr,
-    removeStringRegKey,
-    removeStringRegKeyWalk,
-    removeStringRegValue,
-    removeStringTree,
-    rightClick,
-    setClipboardFilePaths,
-    setClipboardText,
-    setCloseWindow,
-    setCursorPos,
-    setHandleTransparent,
-    setRegistrDword,
-    setRegistrKey,
-    setRegistrQword,
-    setShortcutLink,
-    setShowWindow,
-    setWindowEnabled,
-    setWindowFocus,
-    setWindowMode,
-    setWindowTitle,
-    setWindowTop,
-    showConsole,
-    showMonitors,
-    shutMonitors,
-    sleep,
-    system,
-    systemChcp,
-    systemStartTime,
-    trash,
-    updateWindow,
-    version,
-    watchClipboard,
-    watchUSB,
-    windowJitter
+  Clipboard,
+  HMC,
+  HWND,
+  MessageError,
+  MessageStop,
+  Process,
+  Registr,
+  SetBlockInput,
+  SetSystemHOOK,
+  SetWindowInTaskbarVisible,
+  Shell,
+  Sleep,
+  Usb,
+  Watch,
+  WatchWindowForeground,
+  WatchWindowPoint,
+  WebView2OnlineInstall,
+  Window,
+  alert,
+  analysisDirectPath,
+  clearClipboard,
+  closedHandle,
+  confirm,
+  createDirSymlink,
+  createHardLink,
+  createPathRegistr,
+  createSymlink,
+  deleteFile,
+  desc,
+  enumAllProcess,
+  enumChildWindows,
+  enumProcessHandle,
+  enumRegistrKey,
+  formatVolumePath,
+  freePort,
+  getAllWindows,
+  getAllWindowsHandle,
+  getBasicKeys,
+  getClipboardFilePaths,
+  getClipboardSequenceNumber,
+  getClipboardText,
+  getConsoleHandle,
+  getCurrentMonitorRect,
+  getDetailsProcessList,
+  getDetailsProcessNameList,
+  getDeviceCaps,
+  getDeviceCapsAll,
+  getForegroundWindow,
+  getForegroundWindowProcessID,
+  getHandleProcessID,
+  getHidUsbList,
+  getMainWindow,
+  getMetrics,
+  getModulePathList,
+  getMouseMovePoints,
+  getNumberRegKey,
+  getPointWindow,
+  getPointWindowMain,
+  getPointWindowName,
+  getPointWindowProcessId,
+  getProcessHandle,
+  getProcessList,
+  getProcessName,
+  getProcessNameList,
+  getProcessParentProcessID,
+  getProcessThreadList,
+  getProcessidFilePath,
+  getRegistrBuffValue,
+  getRegistrDword,
+  getRegistrQword,
+  getShortcutLink,
+  getStringRegKey,
+  getSubProcessID,
+  getSystemIdleTime,
+  getSystemMenu,
+  getSystemMetricsLen,
+  getTrayList,
+  getUsbDevsInfo,
+  getVolumeList,
+  getWebView2Info,
+  getWindowClassName,
+  getWindowRect,
+  getWindowStyle,
+  getWindowTitle,
+  hasKeyActivate,
+  hasPortTCP,
+  hasPortUDP,
+  hasProcess,
+  hasRegistrKey,
+  hasWebView2,
+  hasWindowTop,
+  hideConsole,
+  isAdmin,
+  isEnabled,
+  isHandle,
+  isHandleWindowVisible,
+  isInMonitorWindow,
+  isMouseMonitorWindow,
+  isProcess,
+  isRegistrTreeKey,
+  isSystemX64,
+  keyboardHook,
+  killProcess,
+  killProcessName,
+  leftClick,
+  listRegistrPath,
+  lookHandleCloseWindow,
+  lookHandleGetTitle,
+  lookHandleSetTitle,
+  lookHandleShowWindow,
+  messageBox,
+  mouse,
+  mouseHook,
+  native,
+  openApp,
+  openExternal,
+  openPath,
+  openRegKey,
+  openURL,
+  platform,
+  powerControl,
+  processWatchdog,
+  ref,
+  registr,
+  removeStringRegKey,
+  removeStringRegKeyWalk,
+  removeStringRegValue,
+  removeStringTree,
+  rightClick,
+  setClipboardFilePaths,
+  setClipboardText,
+  setCloseWindow,
+  setCursorPos,
+  setHandleTransparent,
+  setRegistrDword,
+  setRegistrKey,
+  setRegistrQword,
+  setShortcutLink,
+  setShowWindow,
+  setWindowEnabled,
+  setWindowFocus,
+  setWindowMode,
+  setWindowTitle,
+  setWindowTop,
+  showConsole,
+  showMonitors,
+  shutMonitors,
+  sleep,
+  system,
+  systemChcp,
+  systemStartTime,
+  trash,
+  updateWindow,
+  version,
+  watchClipboard,
+  watchUSB,
+  windowJitter
 }
 export default hmc;
 
@@ -4912,6 +5111,8 @@ process.on('exit', function () {
     if (SetIohook) {
         native.unHookMouse();
         native.unKeyboardHook();
+        native.clearEnumAllProcessList();
+        native.clearEnumProcessHandle();
     }
 });
 

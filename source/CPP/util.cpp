@@ -100,6 +100,17 @@ inline string _A2U8_(const char *pszText)
 {
     return _W2U8_(_A2W_(pszText).c_str());
 }
+
+// inline wstring _CW2W_(const WCHAR *pszText)
+// {
+//     int wstr_size = wcslen(pszText) + 1;
+//     int size_needed = WideCharToMultiByte(CP_UTF8, 0, pszText, wstr_size, NULL, 0, NULL, NULL);
+//     char *str = new char[size_needed];
+//     WideCharToMultiByte(CP_UTF8, 0, pszText, wstr_size, str, size_needed, NULL, NULL);
+//     wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
+//     wstring wide_str = converter.from_bytes(str);
+//     const wchar_t *result = wide_str.c_str();
+// }
 // UTF-8 To GBK
 string UTF8ToGBK(const char *str)
 {
@@ -395,4 +406,3 @@ bool pointInRECT(POINT pt, RECT inputRect)
     }
     return false;
 }
-

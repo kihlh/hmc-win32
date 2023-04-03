@@ -197,6 +197,7 @@ __export(hmc_exports, {
   default: () => hmc_default,
   deleteFile: () => deleteFile,
   desc: () => desc,
+  enumAllProcess: () => enumAllProcess,
   enumChildWindows: () => enumChildWindows,
   enumProcessHandle: () => enumProcessHandle,
   enumRegistrKey: () => enumRegistrKey,
@@ -231,12 +232,15 @@ __export(hmc_exports, {
   getProcessList: () => getProcessList,
   getProcessName: () => getProcessName,
   getProcessNameList: () => getProcessNameList,
+  getProcessParentProcessID: () => getProcessParentProcessID,
+  getProcessThreadList: () => getProcessThreadList,
   getProcessidFilePath: () => getProcessidFilePath,
   getRegistrBuffValue: () => getRegistrBuffValue,
   getRegistrDword: () => getRegistrDword,
   getRegistrQword: () => getRegistrQword,
   getShortcutLink: () => getShortcutLink,
   getStringRegKey: () => getStringRegKey,
+  getSubProcessID: () => getSubProcessID,
   getSystemIdleTime: () => getSystemIdleTime,
   getSystemMenu: () => getSystemMenu,
   getSystemMetricsLen: () => getSystemMetricsLen,
@@ -530,17 +534,18 @@ var get_native = (binPath) => {
       return [];
     }
     return {
+      getSubProcessID: fnAnyArr,
+      enumAllProcessPolling: fnVoid,
+      clearEnumAllProcessList: fnVoid,
+      getProcessParentProcessID: fnVoid,
+      enumAllProcess: fnNum,
       _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
       isStartHookMouse: fnBool,
-      getMouseNextSession: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
-      getKeyboardNextSession: () => {
-        console.error(HMCNotPlatform);
-        return [];
-      },
+      clearEnumProcessHandle: fnVoid,
+      getProcessThreadList: fnAnyArr,
+      getMouseNextSession: fnAnyArr,
+      getKeyboardNextSession: fnAnyArr,
       unKeyboardHook: fnVoid,
       unHookMouse: fnVoid,
       installKeyboardHook: fnVoid,
@@ -2123,6 +2128,64 @@ function enumProcessHandle(ProcessID, CallBack) {
     resolve(enumProcessHandleList);
   });
 }
+function getProcessThreadList(ProcessID, returnDetail) {
+  const _returnDetail = returnDetail ? true : false;
+  if (_returnDetail)
+    return native.getProcessThreadList(ref.int(ProcessID), true) || [];
+  return native.getProcessThreadList(ref.int(ProcessID)) || [];
+}
+function getSubProcessID(ProcessID) {
+  return native.getSubProcessID(ref.int(ProcessID)) || [];
+}
+function getProcessParentProcessID(ProcessID) {
+  return native.getProcessParentProcessID(ref.int(ProcessID)) || null;
+}
+function enumAllProcess(CallBack) {
+  let enumID = native.enumAllProcess();
+  let next = true;
+  let PROCESSENTRYLIST = [];
+  if (typeof enumID != "number")
+    throw new Error("No enumerated id to query unknown error");
+  if (typeof CallBack == "function") {
+    ;
+    (async () => {
+      while (next) {
+        await Sleep(15);
+        let data = native.enumAllProcessPolling(enumID);
+        if (data) {
+          for (let index = 0; index < data.length; index++) {
+            const PROCESSENTRY = data[index];
+            if (!PROCESSENTRY)
+              continue;
+            if (PROCESSENTRY.szExeFile == "HMC::endl::") {
+              return;
+            }
+            CallBack(PROCESSENTRY);
+          }
+        }
+      }
+    })();
+    return;
+  }
+  return new Promise(async (resolve, reject) => {
+    while (next) {
+      await Sleep(50);
+      let data = native.enumAllProcessPolling(enumID);
+      if (data) {
+        for (let index = 0; index < data.length; index++) {
+          const PROCESSENTRY = data[index];
+          if (!PROCESSENTRY)
+            continue;
+          if (PROCESSENTRY.szExeFile == "HMC::endl::") {
+            return resolve(PROCESSENTRYLIST);
+          }
+          PROCESSENTRYLIST.push(PROCESSENTRY);
+        }
+      }
+    }
+    resolve(PROCESSENTRYLIST);
+  });
+}
 var version = native.version;
 var desc = native.desc;
 var platform = native.platform;
@@ -2746,7 +2809,11 @@ var Process = {
   has: hasProcess,
   match: getProcessNameList,
   matchDetails: getDetailsProcessNameList,
-  getDetailsList: getDetailsProcessList
+  getDetailsList: getDetailsProcessList,
+  parentID: getProcessParentProcessID,
+  mianPID: getProcessParentProcessID,
+  subPID: getSubProcessID,
+  threadList: getProcessThreadList
 };
 var registr = {
   analysisDirectPath,
@@ -2845,6 +2912,7 @@ var hmc = {
   createSymlink,
   deleteFile,
   desc,
+  enumAllProcess,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
@@ -2879,12 +2947,15 @@ var hmc = {
   getProcessList,
   getProcessName,
   getProcessNameList,
+  getProcessParentProcessID,
+  getProcessThreadList,
   getProcessidFilePath,
   getRegistrBuffValue,
   getRegistrDword,
   getRegistrQword,
   getShortcutLink,
   getStringRegKey,
+  getSubProcessID,
   getSystemIdleTime,
   getSystemMenu,
   getSystemMetricsLen,
@@ -2975,6 +3046,8 @@ process.on("exit", function() {
   if (SetIohook) {
     native.unHookMouse();
     native.unKeyboardHook();
+    native.clearEnumAllProcessList();
+    native.clearEnumProcessHandle();
   }
 });
 // Annotate the CommonJS export names for ESM import in node:
@@ -3009,6 +3082,7 @@ process.on("exit", function() {
   createSymlink,
   deleteFile,
   desc,
+  enumAllProcess,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
@@ -3043,12 +3117,15 @@ process.on("exit", function() {
   getProcessList,
   getProcessName,
   getProcessNameList,
+  getProcessParentProcessID,
+  getProcessThreadList,
   getProcessidFilePath,
   getRegistrBuffValue,
   getRegistrDword,
   getRegistrQword,
   getShortcutLink,
   getStringRegKey,
+  getSubProcessID,
   getSystemIdleTime,
   getSystemMenu,
   getSystemMetricsLen,
