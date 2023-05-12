@@ -3883,12 +3883,12 @@ export function getProcessParentProcessID(ProcessID: number) {
 }
 
 /**
- * 枚举进程id的句柄
+ * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
  * @param CallBack 枚举时候的回调
  * @returns 
  */
-export function enumAllProcess(CallBack?: (PHandle: HMC.PROCESSENTRY) => void) {
+export function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => void) {
     let enumID = native.enumAllProcess();
     let next = true;
     let PROCESSENTRYLIST: HMC.PROCESSENTRY[] = [];
@@ -5025,7 +5025,7 @@ export const hmc = {
     createSymlink,
     deleteFile,
     desc,
-    enumAllProcess,
+    enumAllProcessHandle,
     enumChildWindows,
     enumProcessHandle,
     enumRegistrKey,

@@ -2208,12 +2208,12 @@ export declare function getSubProcessID(ProcessID: number): number[];
  */
 export declare function getProcessParentProcessID(ProcessID: number): number | null;
 /**
- * 枚举进程id的句柄
+ * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
  * @param CallBack 枚举时候的回调
  * @returns
  */
-export declare function enumAllProcess(CallBack?: (PHandle: HMC.PROCESSENTRY) => void): Promise<unknown> | undefined;
+export declare function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => void): Promise<unknown> | undefined;
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -3363,7 +3363,7 @@ export declare const hmc: {
     createSymlink: typeof createSymlink;
     deleteFile: typeof deleteFile;
     desc: string;
-    enumAllProcess: typeof enumAllProcess;
+    enumAllProcessHandle: typeof enumAllProcessHandle;
     enumChildWindows: typeof enumChildWindows;
     enumProcessHandle: typeof enumProcessHandle;
     enumRegistrKey: typeof enumRegistrKey;

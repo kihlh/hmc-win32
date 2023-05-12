@@ -154,6 +154,7 @@ import  HMC = require("hmc-win32");
 - **setForegroundWindow**  设置窗口聚焦
 - **getAllWindows** 默认使用 *isWindows* 为true
 - **getWindowStyle**  获取窗口类关联代码
+- **setWindowIconForExtract**  通过可执行文件或者带有图标的文件设置窗口图标
 
 
 ### 进程控制
@@ -173,6 +174,13 @@ import  HMC = require("hmc-win32");
 - **processWatchdog** 当监察的进程结束时候执行回调
 - **getProcessNameList**  获取该名称 /正则匹配的进程列表
 - **getDetailsProcessNameList**  获取该名称 /正则匹配的进程列表 带执行文件路径 慢20ms
+- **getModulePathList** 查询进程加载的模块
+- **getProcessThreadList** 枚举进程的线程id
+- **getProcessParentProcessID** 获取进程的主进程
+- **getSubProcessID** 获取子进程id列表
+- **enumProcessHandle**  枚举进程id的句柄
+- **enumAllProcessHandle** 枚举所有进程id的句柄
+- 
 
 
 ### 状态栏
@@ -212,6 +220,10 @@ import  HMC = require("hmc-win32");
 - **freePort** 获取一个空闲可用的端口号
 - **hasPortTCP** 判断TCP(服务)端口号正在使用/系统占用  （反向理解：为true的话不能创建端口绑定）
 - **hasPortUDP** 判断UDP端口号正在使用/系统占用（反向理解：为true的话不能创建端口绑定）
+- **_popen** 创建管道并执行命令
+- **popen** 创建管道并执行命令
+- **formatVolumePath** 格式化 驱动器路径  ('\\Device\\HarddiskVolume2' => "D:\\")
+- **getVolumeList**  获取当前文件系统的驱动器名称及路径
 ### 电源控制
 - **systemStartTime** 系统启动到现在的时间
 - **shutMonitors** 关闭显示器

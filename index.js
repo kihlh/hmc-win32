@@ -199,7 +199,7 @@ __export(hmc_exports, {
   default: () => hmc_default,
   deleteFile: () => deleteFile,
   desc: () => desc,
-  enumAllProcess: () => enumAllProcess,
+  enumAllProcessHandle: () => enumAllProcessHandle,
   enumChildWindows: () => enumChildWindows,
   enumProcessHandle: () => enumProcessHandle,
   enumRegistrKey: () => enumRegistrKey,
@@ -2320,7 +2320,7 @@ function getSubProcessID(ProcessID) {
 function getProcessParentProcessID(ProcessID) {
   return native.getProcessParentProcessID(ref.int(ProcessID)) || null;
 }
-function enumAllProcess(CallBack) {
+function enumAllProcessHandle(CallBack) {
   let enumID = native.enumAllProcess();
   let next = true;
   let PROCESSENTRYLIST = [];
@@ -3316,7 +3316,7 @@ var hmc = {
   createSymlink,
   deleteFile,
   desc,
-  enumAllProcess,
+  enumAllProcessHandle,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
@@ -3488,7 +3488,7 @@ process.on("exit", function() {
   createSymlink,
   deleteFile,
   desc,
-  enumAllProcess,
+  enumAllProcessHandle,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,

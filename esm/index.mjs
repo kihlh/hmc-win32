@@ -2141,7 +2141,7 @@ function getSubProcessID(ProcessID) {
 function getProcessParentProcessID(ProcessID) {
   return native.getProcessParentProcessID(ref.int(ProcessID)) || null;
 }
-function enumAllProcess(CallBack) {
+function enumAllProcessHandle(CallBack) {
   let enumID = native.enumAllProcess();
   let next = true;
   let PROCESSENTRYLIST = [];
@@ -3137,7 +3137,7 @@ var hmc = {
   createSymlink,
   deleteFile,
   desc,
-  enumAllProcess,
+  enumAllProcessHandle,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
@@ -3309,7 +3309,7 @@ export {
   hmc_default as default,
   deleteFile,
   desc,
-  enumAllProcess,
+  enumAllProcessHandle,
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
