@@ -918,6 +918,16 @@ export declare module HMC {
          * @param index 图标位置索引 例如文件显示的图标默认是0
          */
         setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+        /**
+         * 创建管道并执行命令
+         * @param cmd 命令
+         */
+        popen(cmd: string): string;
+        /**
+        * 创建管道并执行命令
+        * @param cmd 命令
+        */
+        _popen(cmd: string): string;
     };
     export type ProcessHandle = {
         handle: number;
@@ -2758,6 +2768,16 @@ export declare const registr: {
     removeStringTree: typeof removeStringTree;
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export declare function _popen(cmd: string): string;
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export declare function popen(cmd: string): string;
 export declare const Registr: {
     /**
      * 直达路径解析
@@ -2971,6 +2991,8 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    popen: typeof popen;
+    _popen: typeof _popen;
     Auto: {
         setWindowEnabled: typeof setWindowEnabled;
         setCursorPos: typeof setCursorPos;
