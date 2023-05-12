@@ -2566,6 +2566,37 @@ static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, _________HMC_DEBUG__________);
 }
 
+// 获取剪贴板文本
+napi_value Popen(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    string cmd = call_String_NAPI_WINAPI_A(env, args[0]);
+    napi_value napi_result;
+
+    char buffer[128];
+    string result = "";
+    FILE *pipe = _popen(cmd.c_str(), "r");
+    if (!pipe)
+    {
+        // std::cerr << "无法打开管道!" << std::endl;
+        return napi_result;
+    }
+    while (fgets(buffer, sizeof buffer, pipe) != NULL)
+    {
+        result += buffer;
+    }
+    _pclose(pipe);
+    string _A2U8_result =  _A2U8_(result.c_str());
+    napi_create_string_utf8(env, _A2U8_result.c_str(), NAPI_AUTO_LENGTH, &napi_result);
+    return napi_result;
+}
+napi_value __Popen(napi_env env, napi_callback_info info)
+{
+    return Popen(env, info);
+}
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
@@ -2710,7 +2741,9 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
         DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
-        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>4-3ADD
+        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
+        DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
+        DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
 
     };
     _________HMC_DEBUG__________ = false;

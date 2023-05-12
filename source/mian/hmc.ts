@@ -46,6 +46,8 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
+            _popen:fnStr,
+            popen:fnStr,
             getSubProcessID: fnAnyArr,
             enumAllProcessPolling: fnVoid,
             clearEnumAllProcessList: fnVoid,
@@ -1285,6 +1287,16 @@ export module HMC {
          * @param index 图标位置索引 例如文件显示的图标默认是0
          */
         setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+        /**
+         * 创建管道并执行命令
+         * @param cmd 命令
+         */
+        popen(cmd:string):string;
+         /**
+         * 创建管道并执行命令
+         * @param cmd 命令
+         */
+        _popen(cmd:string):string;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -4963,10 +4975,26 @@ export const registr = {
     removeStringTree,
     isRegistrTreeKey,
 };
+ /**
+ * 创建管道并执行命令
+ * @param cmd 命令
+ */
+export function _popen(cmd:string){
+    return native.popen(ref.string(cmd));
+}
 
+ /**
+ * 创建管道并执行命令
+ * @param cmd 命令
+ */
+ export function popen(cmd:string){
+    return native.popen(ref.string(cmd));
+}
 
 export const Registr = registr;
 export const hmc = {
+    popen,
+    _popen,
     Auto,
     Clipboard,
     HMC,
