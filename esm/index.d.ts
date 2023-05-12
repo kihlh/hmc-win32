@@ -1066,7 +1066,7 @@ export declare module HMC {
     };
     export type SystemDecoderKey = keyof chcpList;
     export type SystemDecoder = chcpList[SystemDecoderKey];
-    export {};
+    export { };
 }
 export declare const ref: {
     /**
@@ -1994,15 +1994,15 @@ export declare function openURL(URL: string): boolean;
  * 电源控制
  */
 export declare const powerControl: {
-    (Set: 
-    /**关机 */
-    1001 | 
-    /**重启 */
-    1002 | 
-    /**注销 */
-    1003 | 
-    /**锁定 */
-    1005): void;
+    (Set:
+        /**关机 */
+        1001 |
+        /**重启 */
+        1002 |
+        /**注销 */
+        1003 |
+        /**锁定 */
+        1005): void;
     /**关机 */
     1001(): void;
     /**重启 */
@@ -2467,15 +2467,15 @@ export declare const Auto: {
     getBasicKeys: typeof getBasicKeys;
     getMouseMovePoints: typeof getMouseMovePoints;
     powerControl: {
-        (Set: 
-        /**关机 */
-        1001 | 
-        /**重启 */
-        1002 | 
-        /**注销 */
-        1003 | 
-        /**锁定 */
-        1005): void;
+        (Set:
+            /**关机 */
+            1001 |
+            /**重启 */
+            1002 |
+            /**注销 */
+            1003 |
+            /**锁定 */
+            1005): void;
         /**关机 */
         1001(): void;
         /**重启 */
@@ -2966,15 +2966,15 @@ export declare const hmc: {
         getBasicKeys: typeof getBasicKeys;
         getMouseMovePoints: typeof getMouseMovePoints;
         powerControl: {
-            (Set: 
-            /**关机 */
-            1001 | 
-            /**重启 */
-            1002 | 
-            /**注销 */
-            1003 | 
-            /**锁定 */
-            1005): void;
+            (Set:
+                /**关机 */
+                1001 |
+                /**重启 */
+                1002 |
+                /**注销 */
+                1003 |
+                /**锁定 */
+                1005): void;
             /**关机 */
             1001(): void;
             /**重启 */
@@ -3419,15 +3419,15 @@ export declare const hmc: {
     openURL: typeof openURL;
     platform: string;
     powerControl: {
-        (Set: 
-        /**关机 */
-        1001 | 
-        /**重启 */
-        1002 | 
-        /**注销 */
-        1003 | 
-        /**锁定 */
-        1005): void;
+        (Set:
+            /**关机 */
+            1001 |
+            /**重启 */
+            1002 |
+            /**注销 */
+            1003 |
+            /**锁定 */
+            1005): void;
         /**关机 */
         1001(): void;
         /**重启 */

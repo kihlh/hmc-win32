@@ -2461,6 +2461,72 @@ void SetWindowTitleIcon(HWND handle, string iconStr)
     SendMessage(handle, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
     SendMessage(handle, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
 }
+void SetWindowTitleIconUs32(HWND handle, string iconStr)
+{
+    HICON hWindowIcon = NULL;
+    HICON hWindowIconBig = NULL;
+    if (hWindowIcon != NULL)
+        DestroyIcon(hWindowIcon);
+    if (hWindowIconBig != NULL)
+        DestroyIcon(hWindowIconBig);
+    hWindowIcon = (HICON)LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
+    hWindowIconBig = (HICON)LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+
+    HINSTANCE hIn = NULL;
+    hIn = LoadLibraryA("user32.dll");
+    if (hIn)
+    {
+        LRESULT(WINAPI * SendMessageA)
+        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+        SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
+        if (SendMessageA)
+        {
+
+            SendMessageA(handle, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+            SendMessageA(handle, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+    }
+}
+void SetWindowIconForExtractUs32(HWND hwnd, string iconStr, int index)
+{
+    HICON hIcon;
+    hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), index);
+    HINSTANCE hIn = NULL;
+    hIn = LoadLibraryA("user32.dll");
+    if (hIn)
+    {
+        LRESULT(WINAPI * SendMessageA)
+        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+        SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
+        if (SendMessageA)
+        {
+            SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+    }
+}
+
+void SetWindowIconForExtract(HWND hwnd, string iconStr, int index)
+{
+    HICON hIcon;
+    hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), index);
+
+    SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+}
+
 static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -2473,6 +2539,23 @@ static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
     string iconStr = call_String_NAPI_WINAPI_A(env, args[1]);
 
     SetWindowTitleIcon(handle, iconStr);
+    UpdateWindow(handle);
+    return NULL;
+}
+static napi_value setWindowIconForExtract(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 3;
+    napi_value args[3];
+    status = $napi_get_cb_info(argc, args);
+    int64_t Handle;
+    status = napi_get_value_int64(env, args[0], &Handle);
+    HWND handle = (HWND)Handle;
+    string iconStr = call_String_NAPI_WINAPI_A(env, args[1]);
+    int index;
+    status = napi_get_value_int32(env, args[2], &index);
+    SetWindowIconForExtract(handle, iconStr, index);
+    SetWindowIconForExtractUs32(handle, iconStr, index);
     UpdateWindow(handle);
     return NULL;
 }
@@ -2627,6 +2710,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
         DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
+        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>4-3ADD
 
     };
     _________HMC_DEBUG__________ = false;
