@@ -1,7 +1,7 @@
 /// <reference types="node" />
 export declare const native: Native;
 import { cRECT, HKEY, HidUsb, mouse_event, UINT, ProcessID, Rect, HandleTransparent } from './index';
-export declare type Native = {
+export type Native = {
     /**版本号 */
     version: string;
     /**功能介绍 */
@@ -496,7 +496,7 @@ export declare type Native = {
      */
     getSystemMetricsLen(): number;
 };
-export declare type chcpList = {
+export type chcpList = {
     37: "IBM037";
     437: "IBM437";
     500: "IBM500";

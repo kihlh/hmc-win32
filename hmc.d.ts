@@ -911,6 +911,13 @@ export declare module HMC {
          * @param ProcessID
          */
         getSubProcessID(ProcessID: number): number[];
+        /**
+         * 通过可执行文件或者带有图标的文件设置窗口图标
+         * @param handle 句柄
+         * @param Extract 可执行文件/Dll/文件
+         * @param index 图标位置索引 例如文件显示的图标默认是0
+         */
+        setWindowIconForExtract(handle: number, Extract: string, index: number): void;
     };
     export type ProcessHandle = {
         handle: number;
@@ -1066,7 +1073,7 @@ export declare module HMC {
     };
     export type SystemDecoderKey = keyof chcpList;
     export type SystemDecoder = chcpList[SystemDecoderKey];
-    export { };
+    export {};
 }
 export declare const ref: {
     /**
@@ -1994,15 +2001,15 @@ export declare function openURL(URL: string): boolean;
  * 电源控制
  */
 export declare const powerControl: {
-    (Set:
-        /**关机 */
-        1001 |
-        /**重启 */
-        1002 |
-        /**注销 */
-        1003 |
-        /**锁定 */
-        1005): void;
+    (Set: 
+    /**关机 */
+    1001 | 
+    /**重启 */
+    1002 | 
+    /**注销 */
+    1003 | 
+    /**锁定 */
+    1005): void;
     /**关机 */
     1001(): void;
     /**重启 */
@@ -2310,10 +2317,10 @@ declare class MousePoint {
      */
     moveMouse(x: number, y: number): void;
 }
-declare type VK_key = string;
-declare type VK_code = string;
-declare type VK_keyCode = number;
-declare type VK_VirtualKey = number;
+type VK_key = string;
+type VK_code = string;
+type VK_keyCode = number;
+type VK_VirtualKey = number;
 declare class Keyboard {
     /**
      * 是否按下了shift
@@ -2406,6 +2413,13 @@ declare class Iohook_Mouse {
 ```
  */
 export declare const mouseHook: Iohook_Mouse;
+/**
+ * 通过可执行文件或者带有图标的文件设置窗口图标
+ * @param handle 句柄
+ * @param Extract 可执行文件/Dll/文件
+ * @param index 图标位置索引 例如文件显示的图标默认是0
+ */
+export declare function setWindowIconForExtract(handle: number, Extract: string, index: number): void;
 declare class Iohook_Keyboard {
     private _onlistenerCountList;
     private _oncelistenerCountList;
@@ -2467,15 +2481,15 @@ export declare const Auto: {
     getBasicKeys: typeof getBasicKeys;
     getMouseMovePoints: typeof getMouseMovePoints;
     powerControl: {
-        (Set:
-            /**关机 */
-            1001 |
-            /**重启 */
-            1002 |
-            /**注销 */
-            1003 |
-            /**锁定 */
-            1005): void;
+        (Set: 
+        /**关机 */
+        1001 | 
+        /**重启 */
+        1002 | 
+        /**注销 */
+        1003 | 
+        /**锁定 */
+        1005): void;
         /**关机 */
         1001(): void;
         /**重启 */
@@ -2966,15 +2980,15 @@ export declare const hmc: {
         getBasicKeys: typeof getBasicKeys;
         getMouseMovePoints: typeof getMouseMovePoints;
         powerControl: {
-            (Set:
-                /**关机 */
-                1001 |
-                /**重启 */
-                1002 |
-                /**注销 */
-                1003 |
-                /**锁定 */
-                1005): void;
+            (Set: 
+            /**关机 */
+            1001 | 
+            /**重启 */
+            1002 | 
+            /**注销 */
+            1003 | 
+            /**锁定 */
+            1005): void;
             /**关机 */
             1001(): void;
             /**重启 */
@@ -3419,15 +3433,15 @@ export declare const hmc: {
     openURL: typeof openURL;
     platform: string;
     powerControl: {
-        (Set:
-            /**关机 */
-            1001 |
-            /**重启 */
-            1002 |
-            /**注销 */
-            1003 |
-            /**锁定 */
-            1005): void;
+        (Set: 
+        /**关机 */
+        1001 | 
+        /**重启 */
+        1002 | 
+        /**注销 */
+        1003 | 
+        /**锁定 */
+        1005): void;
         /**关机 */
         1001(): void;
         /**重启 */
@@ -3739,23 +3753,4 @@ export declare const hmc: {
     setRegistrQword: typeof setRegistrQword;
     setShortcutLink: typeof setShortcutLink;
     setShowWindow: typeof lookHandleShowWindow;
-    setWindowEnabled: typeof setWindowEnabled;
-    setWindowFocus: typeof setWindowFocus;
-    setWindowMode: typeof setWindowMode;
-    setWindowTitle: typeof lookHandleSetTitle;
-    setWindowTop: typeof setWindowTop;
-    showConsole: typeof showConsole;
-    showMonitors: typeof showMonitors;
-    shutMonitors: typeof shutMonitors;
-    sleep: typeof sleep;
-    system: typeof system;
-    systemChcp: typeof systemChcp;
-    systemStartTime: typeof systemStartTime;
-    trash: typeof deleteFile;
-    updateWindow: typeof updateWindow;
-    version: string;
-    watchClipboard: typeof watchClipboard;
-    watchUSB: typeof watchUSB;
-    windowJitter: typeof windowJitter;
-};
-export default hmc;
+    setWindo
