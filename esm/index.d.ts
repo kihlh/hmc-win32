@@ -3753,4 +3753,24 @@ export declare const hmc: {
     setRegistrQword: typeof setRegistrQword;
     setShortcutLink: typeof setShortcutLink;
     setShowWindow: typeof lookHandleShowWindow;
-    setWindo
+    setWindowEnabled: typeof setWindowEnabled;
+    setWindowFocus: typeof setWindowFocus;
+    setWindowMode: typeof setWindowMode;
+    setWindowTitle: typeof lookHandleSetTitle;
+    setWindowTop: typeof setWindowTop;
+    showConsole: typeof showConsole;
+    showMonitors: typeof showMonitors;
+    shutMonitors: typeof shutMonitors;
+    sleep: typeof sleep;
+    system: typeof system;
+    systemChcp: typeof systemChcp;
+    systemStartTime: typeof systemStartTime;
+    trash: typeof deleteFile;
+    updateWindow: typeof updateWindow;
+    version: string;
+    watchClipboard: typeof watchClipboard;
+    watchUSB: typeof watchUSB;
+    windowJitter: typeof windowJitter;
+    setWindowIconForExtract: typeof setWindowIconForExtract;
+};
+export default hmc;
