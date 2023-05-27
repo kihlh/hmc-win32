@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 /**注册表根目录 */
 declare const Hkey: {
     /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -928,6 +929,41 @@ export declare module HMC {
         * @param cmd 命令
         */
         _popen(cmd: string): string;
+        /**
+         * 获取屏幕上指定坐标的颜色
+         * @param x 左边开始的坐标
+         * @param y 从上面开始的坐标
+         */
+        getColor(x: number, y: number): Color;
+        /**
+         * 截屏指定的宽高坐标 并将其存储写入为文件
+         * @param FilePath 文件路径
+         * @param x 从左边的哪里开始 为空为0
+         * @param y 从顶部的哪里开始 为空为0
+         * @param width 宽度
+         * @param height 高度
+         */
+        captureBmpToFile(FilePath: string, x: number | null | 0, y: number | null | 0, width: number | null | 0, height: number | null | 0): void;
+        /**
+         * 响应标准快捷键
+         */
+        sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number): boolean;
+        /**
+         * 发送键盘事件
+         * @param keyCode 键值码
+         * @param keyDown 是否按下
+         */
+        sendKeyboard(keyCode: number, keyDown?: boolean): boolean;
+        /**
+         * 响应T2C脚本 仅支持键盘事件 异步
+         * @param T2C 脚本
+         */
+        sendKeyT2C(T2C: string): void;
+        /**
+        * 响应T2C脚本 仅支持键盘事件 同步
+        * @param T2C 脚本
+        */
+        sendKeyT2CSync(T2C: string): void;
     };
     export type ProcessHandle = {
         handle: number;
@@ -938,6 +974,30 @@ export declare module HMC {
         path: string;
         name: string;
         device: string;
+    };
+    /**取色 颜色返回值 */
+    export type Color = {
+        r: number;
+        g: number;
+        b: number;
+        hex: string;
+    };
+    /**
+     * 标准快捷键的输入表
+     */
+    export type BasicCout = {
+        /**组合中含有ctrl */
+        ctrl?: any;
+        /**组合中含有shift */
+        shift?: any;
+        /**组合中含有alt */
+        alt?: any;
+        /**组合中含有win */
+        win?: any;
+        /**键码/按键名 */
+        key?: number | string;
+        /**键码/按键名 */
+        code?: number | string;
     };
     type chcpList = {
         37: "IBM037";
@@ -1150,6 +1210,12 @@ export declare const ref: {
      * @returns
      */
     concatBuff(buffList: Buffer[]): Buffer;
+    /**
+     * 键盘值格式化为键值
+     * @param key 键值/键
+     * @returns
+     */
+    vkKey: typeof vkKey;
 };
 /**
  * 直达路径解析
@@ -1986,7 +2052,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2143,6 +2209,8 @@ export declare function hasWebView2(): boolean;
  */
 export declare function hasPortTCP(port: number): Promise<boolean>;
 export declare function hasPortTCP(port: number, callBack: (hasPort: boolean) => unknown): void;
+export declare const _KeyboardcodeEmenList: Map<number, [string, string | null, number, number] | [string, string | null, number, number, import("./vkKey").VK_Nickname]>;
+export declare const _KeyboardcodeComparisonTable: Map<string, number>;
 /**
  * 判断UDP端口号正在使用/系统占用
  * @param port TCP端口
@@ -2327,10 +2395,6 @@ declare class MousePoint {
      */
     moveMouse(x: number, y: number): void;
 }
-type VK_key = string;
-type VK_code = string;
-type VK_keyCode = number;
-type VK_VirtualKey = number;
 declare class Keyboard {
     /**
      * 是否按下了shift
@@ -2430,6 +2494,81 @@ export declare const mouseHook: Iohook_Mouse;
  * @param index 图标位置索引 例如文件显示的图标默认是0
  */
 export declare function setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+/**
+    * 截屏指定的宽高坐标 并将其存储写入为文件
+    * @param FilePath 文件路径
+    * @param x 从左边的哪里开始 为空为0
+    * @param y 从顶部的哪里开始 为空为0
+    * @param width 宽度
+    * @param height 高度
+    */
+export declare function captureBmpToFile(FilePath: string, x: number | null, y: number | null, width: number | null, height: number | null): void;
+/**
+ * 发送键盘事件
+ * @param keyCode 键值
+ * @param keyDown 是否按下
+ *
+ */
+export declare function sendKeyboard(keyCode: number | string, keyDown: boolean | null): void;
+/**
+ * 发送键盘事件序列
+ * @example ```javascript
+ * hmc.sendKey(
+ * // 数组序列
+ * ['ctrl',50] , // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',null] , // 执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',true,50] , // 50毫秒以后按下ctrl不放开
+ * ['ctrl',fasle,50] , // 50毫秒以后将ctrl放开
+ *
+ *  // 对象序列
+ * {key:"ctrl",} // ctrl键 点击事件(按下立刻放开)
+ * {key:"ctrl",ms:50} // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * {key:"ctrl",down:false,ms:50} // 50毫秒以后将ctrl放开
+ * )
+ * ```
+ */
+export declare function sendKeyboardSequence(...keys: Array<{
+    key: number | string;
+    down?: boolean;
+    ms?: number;
+} | [number | string, boolean | number | null, number]>): void;
+/**
+ * 获取屏幕指定区域的颜色
+ * @param x 左边开始的坐标
+ * @param y 从上面开始的坐标
+ * @returns
+ */
+export declare function getColor(x: number, y: number): HMC.Color;
+/**
+ * 执行标准快捷键
+ * @param basicCout 四大按键的包含表
+ * @param KeyCode 执行的键码(如果表中有可以忽略)
+ * @example ```javascript
+ * // ctrl + shift +A
+ * hmc.sendBasicKeys({"ctrl","shift",key:"A"});
+ * hmc.sendBasicKeys({"ctrl","shift"},"A");
+ *
+ * ```
+ */
+export declare function sendBasicKeys(basicCout: HMC.BasicCout, KeyCode?: number | string): void;
+/**
+ * 执行标准快捷键
+ * @param basicKeysStr 快捷键内容
+ * @example ```javascript
+ * // ctrl + shift +A
+ * hmc.sendBasicKeys("ctrl+shift+A");
+ *
+ */
+export declare function sendBasicKeys(basicKeysStr: string): void;
+/**
+ * 执行标准快捷键(标准化输入)
+ * @param ctrlKey 组合中含有ctrl
+ * @param shiftKey 组合中含有shift
+ * @param altKey 组合中含有alt
+ * @param winKey 组合中含有win
+ * @param KeyCode 键盘隐射值
+ */
+export declare function sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number | string): void;
 declare class Iohook_Keyboard {
     private _onlistenerCountList;
     private _oncelistenerCountList;
@@ -2483,6 +2622,10 @@ declare class Iohook_Keyboard {
  */
 export declare const keyboardHook: Iohook_Keyboard;
 export declare const Auto: {
+    sendKeyboard: typeof sendKeyboard;
+    sendKeyboardSequence: typeof sendKeyboardSequence;
+    getColor: typeof getColor;
+    sendBasicKeys: typeof sendBasicKeys;
     setWindowEnabled: typeof setWindowEnabled;
     setCursorPos: typeof setCursorPos;
     mouse: typeof mouse;
@@ -2991,9 +3134,11 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
-    popen: typeof popen;
-    _popen: typeof _popen;
     Auto: {
+        sendKeyboard: typeof sendKeyboard;
+        sendKeyboardSequence: typeof sendKeyboardSequence;
+        getColor: typeof getColor;
+        sendBasicKeys: typeof sendBasicKeys;
         setWindowEnabled: typeof setWindowEnabled;
         setCursorPos: typeof setCursorPos;
         mouse: typeof mouse;
@@ -3352,8 +3497,10 @@ export declare const hmc: {
         getStyle: typeof getWindowStyle;
         getClassName: typeof getWindowClassName;
     };
+    _popen: typeof _popen;
     alert: typeof alert;
     analysisDirectPath: typeof analysisDirectPath;
+    captureBmpToFile: typeof captureBmpToFile;
     clearClipboard: typeof clearClipboard;
     closedHandle: typeof closedHandle;
     confirm: typeof confirm;
@@ -3375,6 +3522,7 @@ export declare const hmc: {
     getClipboardFilePaths: typeof getClipboardFilePaths;
     getClipboardSequenceNumber: typeof getClipboardSequenceNumber;
     getClipboardText: typeof getClipboardText;
+    getColor: typeof getColor;
     getConsoleHandle: typeof getConsoleHandle;
     getCurrentMonitorRect: typeof getCurrentMonitorRect;
     getDetailsProcessList: typeof getDetailsProcessList;
@@ -3454,6 +3602,7 @@ export declare const hmc: {
     openRegKey: typeof openRegKey;
     openURL: typeof openURL;
     platform: string;
+    popen: typeof popen;
     powerControl: {
         (Set: 
         /**关机 */
@@ -3547,6 +3696,12 @@ export declare const hmc: {
          * @returns
          */
         concatBuff(buffList: Buffer[]): Buffer;
+        /**
+         * 键盘值格式化为键值
+         * @param key 键值/键
+         * @returns
+         */
+        vkKey: typeof vkKey;
     };
     registr: {
         /**
@@ -3765,6 +3920,9 @@ export declare const hmc: {
     removeStringRegValue: typeof removeStringRegValue;
     removeStringTree: typeof removeStringTree;
     rightClick: typeof rightClick;
+    sendBasicKeys: typeof sendBasicKeys;
+    sendKeyboard: typeof sendKeyboard;
+    sendKeyboardSequence: typeof sendKeyboardSequence;
     setClipboardFilePaths: typeof setClipboardFilePaths;
     setClipboardText: typeof setClipboardText;
     setCloseWindow: typeof lookHandleCloseWindow;
@@ -3777,6 +3935,7 @@ export declare const hmc: {
     setShowWindow: typeof lookHandleShowWindow;
     setWindowEnabled: typeof setWindowEnabled;
     setWindowFocus: typeof setWindowFocus;
+    setWindowIconForExtract: typeof setWindowIconForExtract;
     setWindowMode: typeof setWindowMode;
     setWindowTitle: typeof lookHandleSetTitle;
     setWindowTop: typeof setWindowTop;
@@ -3793,6 +3952,5 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
-    setWindowIconForExtract: typeof setWindowIconForExtract;
 };
 export default hmc;

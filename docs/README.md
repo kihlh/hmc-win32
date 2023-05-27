@@ -285,6 +285,13 @@ import  HMC = require("hmc-win32");
 - **getUsbDevsInfo** 获取所有usb驱动器(不包含HUD)
 - **keyboardHook** 低级的键盘变化监听构造函数
 - **mouseHook** 低级的鼠标变化监听构造函数
+- **sendBasicKeys**  向系统发送标准的快捷键  例如 ： ctrl+win+C
+- **getColor**  获取指定位置的颜色
+- **captureBmpToFile**  截图指定位置并且写入文件 （BMP）
+- **sendKeyboard** 发送键盘事件 
+- **sendKeyboardSequence**  发送键盘事件序列
+- **sendKeyT2CSync**  同步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
+- **sendKeyT2C**  异步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
 
 ### 文件链接/快捷方式
 
@@ -325,10 +332,4 @@ HMC所有API采用winapi+nodeapi实现，因此无需重新编译（允许运行
 - 每个功能模块都会经过千次以上循环调用 无出现进程崩溃
 
 - API已经通过js严格转码 只有调用native才需要 ~~但是由于C++和C语言都是严格类型，必须严格使用typeScript严格传递类型~~
-- 虽然经过疲劳测试，但是还是有可能会有无法预期的进程奔溃，所以建议在子进程下运行
-- C++ 的野指针和空指针和内存溢出 引用错误 类型错误 等 对于进程都是致命的，所以在编写新功能时候需要不断地进行模拟疲劳测试
-
-
-
-
-
+- 虽然经过疲劳测试，但是还是有可能会有无法�

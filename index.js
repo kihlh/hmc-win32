@@ -186,9 +186,12 @@ __export(hmc_exports, {
   WatchWindowPoint: () => WatchWindowPoint,
   WebView2OnlineInstall: () => WebView2OnlineInstall,
   Window: () => Window,
+  _KeyboardcodeComparisonTable: () => _KeyboardcodeComparisonTable,
+  _KeyboardcodeEmenList: () => _KeyboardcodeEmenList,
   _popen: () => _popen,
   alert: () => alert,
   analysisDirectPath: () => analysisDirectPath,
+  captureBmpToFile: () => captureBmpToFile,
   clearClipboard: () => clearClipboard,
   closedHandle: () => closedHandle,
   confirm: () => confirm,
@@ -211,6 +214,7 @@ __export(hmc_exports, {
   getClipboardFilePaths: () => getClipboardFilePaths,
   getClipboardSequenceNumber: () => getClipboardSequenceNumber,
   getClipboardText: () => getClipboardText,
+  getColor: () => getColor,
   getConsoleHandle: () => getConsoleHandle,
   getCurrentMonitorRect: () => getCurrentMonitorRect,
   getDetailsProcessList: () => getDetailsProcessList,
@@ -301,6 +305,9 @@ __export(hmc_exports, {
   removeStringRegValue: () => removeStringRegValue,
   removeStringTree: () => removeStringTree,
   rightClick: () => rightClick,
+  sendBasicKeys: () => sendBasicKeys,
+  sendKeyboard: () => sendKeyboard,
+  sendKeyboardSequence: () => sendKeyboardSequence,
   setClipboardFilePaths: () => setClipboardFilePaths,
   setClipboardText: () => setClipboardText,
   setCloseWindow: () => setCloseWindow,
@@ -476,6 +483,212 @@ var chcpList = {
   65e3: "utf-7",
   65001: "utf-8"
 };
+
+// source/mian/vkKey.ts
+var KeyboardcodeComparisonTable = /* @__PURE__ */ new Map();
+function installKeyboardcodeComparisonTable() {
+  KeyboardcodeEmenList.forEach(function(value, key) {
+    if (value.length == 5) {
+      if (value[4])
+        for (let index = 0; index < value[4].length; index++) {
+          const of_value = value[4][index];
+          KeyboardcodeComparisonTable.set(of_value.toUpperCase(), key);
+        }
+    }
+    if (typeof value[0] == "string") {
+      KeyboardcodeComparisonTable.set(value[0].toUpperCase(), key);
+    }
+    if (typeof value[1] == "string") {
+      KeyboardcodeComparisonTable.set(value[1].toUpperCase(), key);
+    }
+  });
+}
+function vkKey(key) {
+  if (typeof key == "number")
+    return key;
+  if (typeof key == "string") {
+    key = key.toUpperCase();
+    if (!KeyboardcodeComparisonTable.size)
+      installKeyboardcodeComparisonTable();
+    if (KeyboardcodeComparisonTable == null ? void 0 : KeyboardcodeComparisonTable.has(key)) {
+      return KeyboardcodeComparisonTable.get(key) || null;
+    }
+  }
+  return null;
+}
+var KeyboardVKcodeEmenList = [
+  // key ,code , keyCode , VirtualKey
+  ["0", "Digit0", 48, 48],
+  ["1", "Digit1", 49, 49],
+  ["2", "Digit2", 50, 50],
+  ["3", "Digit3", 51, 51],
+  ["4", "Digit4", 52, 52],
+  ["5", "Digit5", 53, 53],
+  ["6", "Digit6", 54, 54],
+  ["7", "Digit7", 55, 55],
+  ["8", "Digit8", 56, 56],
+  ["9", "Digit9", 57, 57],
+  ["A", "KeyA", 65, 65],
+  ["B", "KeyB", 66, 66],
+  ["C", "KeyC", 67, 67],
+  ["D", "KeyD", 68, 68],
+  ["E", "KeyE", 69, 69],
+  ["F", "KeyF", 70, 70],
+  ["G", "KeyG", 71, 71],
+  ["H", "KeyH", 72, 72],
+  ["I", "KeyI", 73, 73],
+  ["J", "KeyJ", 74, 74],
+  ["K", "KeyK", 75, 75],
+  ["L", "KeyL", 76, 76],
+  ["M", "KeyM", 77, 77],
+  ["N", "KeyN", 78, 78],
+  ["O", "KeyO", 79, 79],
+  ["P", "KeyP", 80, 80],
+  ["Q", "KeyQ", 81, 81],
+  ["R", "KeyR", 82, 82],
+  ["S", "KeyS", 83, 83],
+  ["T", "KeyT", 84, 84],
+  ["U", "KeyU", 85, 85],
+  ["V", "KeyV", 86, 86],
+  ["W", "KeyW", 87, 87],
+  ["X", "KeyX", 88, 88],
+  ["Y", "KeyY", 89, 89],
+  ["Z", "KeyZ", 90, 90],
+  ["0", "Numpad0", 96, 96],
+  ["1", "Numpad1", 97, 97],
+  ["2", "Numpad2", 98, 98],
+  ["3", "Numpad3", 99, 99],
+  ["4", "Numpad4", 100, 100],
+  ["5", "Numpad5", 101, 101],
+  ["6", "Numpad6", 102, 102],
+  ["7", "Numpad7", 103, 103],
+  ["8", "Numpad8", 104, 104],
+  ["9", "Numpad9", 105, 105],
+  ["Alt", "Alt", 18, 18],
+  ["Alt", "AltLeft", 164, 164],
+  ["Alt", "AltRight", 165, 165],
+  ["CapsLock", "CapsLock", 20, 20],
+  ["Control", "Control", 17, 17, ["ctrl"]],
+  ["Control", "ControlLeft", 162, 162, ["ctrl"]],
+  ["Control", "ControlRight", 163, 163, ["ctrl"]],
+  ["Win", "MetaLeft", 91, 91],
+  ["Win", "MetaRight", 92, 92],
+  ["NumLock", "NumLock", 144, 144],
+  ["ScrollLock", null, 145, 145],
+  ["Shift", "Shift", 16, 16],
+  ["Shift", "ShiftLeft", 160, 160],
+  ["Shift", "ShiftRight", 161, 161],
+  ["Enter", "Enter", 13, 13, ["\r\n", "\r", "\n"]],
+  ["Tab", "Tab", 9, 9],
+  ["Space", "Space", 32, 32],
+  ["ArrowDown", null, 40, 40],
+  ["ArrowLeft", null, 37, 37],
+  ["ArrowRight", null, 39, 39],
+  ["ArrowUp", null, 38, 38],
+  ["End", "End", 35, 35],
+  ["Home", "Home", 36, 36],
+  ["PageDown", null, 34, 34],
+  ["PageUp", null, 33, 33],
+  ["Backspace", null, 8, 8],
+  ["Clear", null, 12, 12],
+  ["Clear", null, 254, 254],
+  ["CrSel", null, 247, 247],
+  ["Delete", null, 46, 46],
+  ["EraseEof", null, 249, 249],
+  ["ExSel", null, 248, 248],
+  ["Insert", null, 45, 45],
+  ["Accept", null, 30, 30],
+  ["ContextMenu", null, 93, 93],
+  ["Escape", null, 27, 27, ["esc"]],
+  ["Execute", null, 43, 43],
+  ["Finish", null, 241, 241],
+  ["Help", null, 47, 47],
+  ["Pause", null, 19, 19],
+  ["Play", null, 250, 250],
+  ["Select", null, 41, 41],
+  ["PrintScreen", null, 44, 44],
+  ["Standby", null, 95, 95],
+  ["Alphanumeric", null, 240, 240],
+  ["Convert", null, 28, 28],
+  ["FinalMode", null, 24, 24],
+  ["ModeChange", null, 31, 31],
+  ["NonConvert", null, 29, 29],
+  ["Process", null, 229, 229],
+  ["HangulMode", null, 21, 21],
+  ["HanjaMode", null, 25, 25],
+  ["JunjaMode", null, 23, 23],
+  ["Hankaku", null, 243, 243],
+  ["Hiragana", null, 242, 242],
+  ["KanaMode", null, 246, 246],
+  ["Romaji", null, 245, 245],
+  ["Zenkaku", null, 244, 244],
+  ["F1", null, 112, 112],
+  ["F2", null, 113, 113],
+  ["F3", null, 114, 114],
+  ["F4", null, 115, 115],
+  ["F5", null, 116, 116],
+  ["F6", null, 117, 117],
+  ["F7", null, 118, 118],
+  ["F8", null, 119, 119],
+  ["F9", null, 120, 120],
+  ["F10", null, 121, 121],
+  ["F11", null, 122, 122],
+  ["F12", null, 123, 123],
+  ["F13", null, 124, 124],
+  ["F14", null, 125, 125],
+  ["F15", null, 126, 126],
+  ["F16", null, 127, 127],
+  ["F17", null, 128, 128],
+  ["F18", null, 129, 129],
+  ["F19", null, 130, 130],
+  ["F20", null, 131, 131],
+  ["MediaPlayPause", null, 179, 179],
+  ["MediaStop", null, 178, 178],
+  ["MediaTrackNext", null, 176, 176],
+  ["MediaTrackPrevious", null, 177, 177],
+  ["AudioVolumeDown", null, 174, 174],
+  ["AudioVolumeMute", null, 173, 173],
+  ["AudioVolumeUp", null, 175, 175],
+  ["ZoomToggle", null, 251, 251],
+  ["LaunchMail", null, 180, 180],
+  ["LaunchMediaPlayer", null, 181, 181],
+  ["LaunchApplication1", null, 182, 182],
+  ["LaunchApplication2", null, 183, 183],
+  ["BrowserBack", null, 166, 166],
+  ["BrowserFavorites", null, 171, 171],
+  ["BrowserForward", null, 167, 167],
+  ["BrowserHome", null, 172, 172],
+  ["BrowserRefresh", null, 168, 168],
+  ["BrowserSearch", null, 170, 170],
+  ["BrowserStop", null, 169, 169],
+  [".", "NumpadDecimal", 110, 110],
+  ["*", "NumpadMultiply", 106, 106],
+  ["+", "NumpadAdd", 107, 107],
+  ["/", "NumpadDivide", 111, 111],
+  ["-", "NumpadSubtract", 109, 109],
+  ["Separator", null, 108, 108],
+  [";", "Semicolon", 186, 186],
+  ["+", "Equal", 187, 187],
+  [",", "Comma", 188, 188],
+  ["-", "Minus", 189, 189],
+  [".", "Period", 190, 190],
+  ["/", "Slash", 191, 191],
+  ["`", "Backquote", 192, 192],
+  ["[", "BracketLeft", 219, 219],
+  ["\\", "Backslash", 220, 220],
+  ["]", "BracketLeft", 221, 221],
+  ["'", "Quote", 222, 222],
+  ["Win", "MetaLeft", 91, 91],
+  ["Win", "MetaRight", 92, 92]
+];
+var KeyboardcodeEmenList = (() => {
+  let data = /* @__PURE__ */ new Map();
+  for (let index = 0; index < KeyboardVKcodeEmenList.length; index++) {
+    const [VK_key2, VK_code2, VK_keyCode2, VK_VirtualKey2, VK_Nickname] = KeyboardVKcodeEmenList[index];
+    data.set(VK_VirtualKey2, KeyboardVKcodeEmenList[index]);
+  }
+  return data;
+})();
 
 // source/mian/hmc.ts
 var path = require("path");
@@ -702,7 +915,15 @@ var get_native = (binPath) => {
       getVolumeList: fnAnyArr,
       enumProcessHandlePolling: fnVoid,
       enumProcessHandle: fnNum,
-      getModulePathList: fnStrList
+      getModulePathList: fnStrList,
+      getColor() {
+        return { r: 0, g: 0, b: 0, hex: "#000000" };
+      },
+      captureBmpToFile: fnVoid,
+      sendKeyboard: fnBool,
+      sendBasicKeys: fnBool,
+      sendKeyT2C: fnVoid,
+      sendKeyT2CSync: fnVoid
     };
   })();
   return Native;
@@ -1096,7 +1317,13 @@ var ref = {
     }
     let ResponseData = Buffer.concat([...buffList], buffSize);
     return ResponseData;
-  }
+  },
+  /**
+   * 键盘值格式化为键值
+   * @param key 键值/键
+   * @returns 
+   */
+  vkKey
 };
 function getDefaultTitele() {
   try {
@@ -2229,6 +2456,8 @@ function hasPortTCP(port, callBack) {
     return prom;
   }
 }
+var _KeyboardcodeEmenList = KeyboardcodeEmenList;
+var _KeyboardcodeComparisonTable = KeyboardcodeComparisonTable;
 function hasPortUDP(port, callBack) {
   let resolve = null;
   let prom;
@@ -2512,177 +2741,6 @@ var MousePoint = class {
     Auto.setCursorPos(x, y);
   }
 };
-var KeyboardVKcodeEmenList = [
-  // key ,code , keyCode , VirtualKey
-  ["0", "Digit0", 48, 48],
-  ["1", "Digit1", 49, 49],
-  ["2", "Digit2", 50, 50],
-  ["3", "Digit3", 51, 51],
-  ["4", "Digit4", 52, 52],
-  ["5", "Digit5", 53, 53],
-  ["6", "Digit6", 54, 54],
-  ["7", "Digit7", 55, 55],
-  ["8", "Digit8", 56, 56],
-  ["9", "Digit9", 57, 57],
-  ["A", "KeyA", 65, 65],
-  ["B", "KeyB", 66, 66],
-  ["C", "KeyC", 67, 67],
-  ["D", "KeyD", 68, 68],
-  ["E", "KeyE", 69, 69],
-  ["F", "KeyF", 70, 70],
-  ["G", "KeyG", 71, 71],
-  ["H", "KeyH", 72, 72],
-  ["I", "KeyI", 73, 73],
-  ["J", "KeyJ", 74, 74],
-  ["K", "KeyK", 75, 75],
-  ["L", "KeyL", 76, 76],
-  ["M", "KeyM", 77, 77],
-  ["N", "KeyN", 78, 78],
-  ["O", "KeyO", 79, 79],
-  ["P", "KeyP", 80, 80],
-  ["Q", "KeyQ", 81, 81],
-  ["R", "KeyR", 82, 82],
-  ["S", "KeyS", 83, 83],
-  ["T", "KeyT", 84, 84],
-  ["U", "KeyU", 85, 85],
-  ["V", "KeyV", 86, 86],
-  ["W", "KeyW", 87, 87],
-  ["X", "KeyX", 88, 88],
-  ["Y", "KeyY", 89, 89],
-  ["Z", "KeyZ", 90, 90],
-  ["0", "Numpad0", 96, 96],
-  ["1", "Numpad1", 97, 97],
-  ["2", "Numpad2", 98, 98],
-  ["3", "Numpad3", 99, 99],
-  ["4", "Numpad4", 100, 100],
-  ["5", "Numpad5", 101, 101],
-  ["6", "Numpad6", 102, 102],
-  ["7", "Numpad7", 103, 103],
-  ["8", "Numpad8", 104, 104],
-  ["9", "Numpad9", 105, 105],
-  ["Alt", "Alt", 18, 18],
-  ["Alt", "AltLeft", 164, 164],
-  ["Alt", "AltRight", 165, 165],
-  ["CapsLock", "CapsLock", 20, 20],
-  ["Control", "Control", 17, 17, ["ctrl"]],
-  ["Control", "ControlLeft", 162, 162, ["ctrl"]],
-  ["Control", "ControlRight", 163, 163, ["ctrl"]],
-  ["Win", "MetaLeft", 91, 91],
-  ["Win", "MetaRight", 92, 92],
-  ["NumLock", "NumLock", 144, 144],
-  ["ScrollLock", null, 145, 145],
-  ["Shift", "Shift", 16, 16],
-  ["Shift", "ShiftLeft", 160, 160],
-  ["Shift", "ShiftRight", 161, 161],
-  ["Enter", "Enter", 13, 13, ["\r\n", "\r", "\n"]],
-  ["Tab", "Tab", 9, 9],
-  ["Space", "Space", 32, 32],
-  ["ArrowDown", null, 40, 40],
-  ["ArrowLeft", null, 37, 37],
-  ["ArrowRight", null, 39, 39],
-  ["ArrowUp", null, 38, 38],
-  ["End", "End", 35, 35],
-  ["Home", "Home", 36, 36],
-  ["PageDown", null, 34, 34],
-  ["PageUp", null, 33, 33],
-  ["Backspace", null, 8, 8],
-  ["Clear", null, 12, 12],
-  ["Clear", null, 254, 254],
-  ["CrSel", null, 247, 247],
-  ["Delete", null, 46, 46],
-  ["EraseEof", null, 249, 249],
-  ["ExSel", null, 248, 248],
-  ["Insert", null, 45, 45],
-  ["Accept", null, 30, 30],
-  ["ContextMenu", null, 93, 93],
-  ["Escape", null, 27, 27, ["esc"]],
-  ["Execute", null, 43, 43],
-  ["Finish", null, 241, 241],
-  ["Help", null, 47, 47],
-  ["Pause", null, 19, 19],
-  ["Play", null, 250, 250],
-  ["Select", null, 41, 41],
-  ["PrintScreen", null, 44, 44],
-  ["Standby", null, 95, 95],
-  ["Alphanumeric", null, 240, 240],
-  ["Convert", null, 28, 28],
-  ["FinalMode", null, 24, 24],
-  ["ModeChange", null, 31, 31],
-  ["NonConvert", null, 29, 29],
-  ["Process", null, 229, 229],
-  ["HangulMode", null, 21, 21],
-  ["HanjaMode", null, 25, 25],
-  ["JunjaMode", null, 23, 23],
-  ["Hankaku", null, 243, 243],
-  ["Hiragana", null, 242, 242],
-  ["KanaMode", null, 246, 246],
-  ["Romaji", null, 245, 245],
-  ["Zenkaku", null, 244, 244],
-  ["F1", null, 112, 112],
-  ["F2", null, 113, 113],
-  ["F3", null, 114, 114],
-  ["F4", null, 115, 115],
-  ["F5", null, 116, 116],
-  ["F6", null, 117, 117],
-  ["F7", null, 118, 118],
-  ["F8", null, 119, 119],
-  ["F9", null, 120, 120],
-  ["F10", null, 121, 121],
-  ["F11", null, 122, 122],
-  ["F12", null, 123, 123],
-  ["F13", null, 124, 124],
-  ["F14", null, 125, 125],
-  ["F15", null, 126, 126],
-  ["F16", null, 127, 127],
-  ["F17", null, 128, 128],
-  ["F18", null, 129, 129],
-  ["F19", null, 130, 130],
-  ["F20", null, 131, 131],
-  ["MediaPlayPause", null, 179, 179],
-  ["MediaStop", null, 178, 178],
-  ["MediaTrackNext", null, 176, 176],
-  ["MediaTrackPrevious", null, 177, 177],
-  ["AudioVolumeDown", null, 174, 174],
-  ["AudioVolumeMute", null, 173, 173],
-  ["AudioVolumeUp", null, 175, 175],
-  ["ZoomToggle", null, 251, 251],
-  ["LaunchMail", null, 180, 180],
-  ["LaunchMediaPlayer", null, 181, 181],
-  ["LaunchApplication1", null, 182, 182],
-  ["LaunchApplication2", null, 183, 183],
-  ["BrowserBack", null, 166, 166],
-  ["BrowserFavorites", null, 171, 171],
-  ["BrowserForward", null, 167, 167],
-  ["BrowserHome", null, 172, 172],
-  ["BrowserRefresh", null, 168, 168],
-  ["BrowserSearch", null, 170, 170],
-  ["BrowserStop", null, 169, 169],
-  [".", "NumpadDecimal", 110, 110],
-  ["*", "NumpadMultiply", 106, 106],
-  ["+", "NumpadAdd", 107, 107],
-  ["/", "NumpadDivide", 111, 111],
-  ["-", "NumpadSubtract", 109, 109],
-  ["Separator", null, 108, 108],
-  [";", "Semicolon", 186, 186],
-  ["+", "Equal", 187, 187],
-  [",", "Comma", 188, 188],
-  ["-", "Minus", 189, 189],
-  [".", "Period", 190, 190],
-  ["/", "Slash", 191, 191],
-  ["`", "Backquote", 192, 192],
-  ["[", "BracketLeft", 219, 219],
-  ["\\", "Backslash", 220, 220],
-  ["]", "BracketLeft", 221, 221],
-  ["'", "Quote", 222, 222]
-];
-var KeyboardcodeEmenList = (() => {
-  let data = /* @__PURE__ */ new Map();
-  for (let index = 0; index < KeyboardVKcodeEmenList.length; index++) {
-    const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardVKcodeEmenList[index];
-    data.set(VK_VirtualKey, KeyboardVKcodeEmenList[index]);
-  }
-  return data;
-})();
 var Keyboard = class {
   /**
    * 是否按下了shift
@@ -2712,13 +2770,14 @@ var Keyboard = class {
     const data = str.split("|");
     this.vKey = Number(data[0]);
     this.__isDown = Number(data[1]) ? true : false;
-    const KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
-    if (!KeyboardcodeEmen)
-      throw new Error("key Value Data That Does Not Exist !");
-    const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardcodeEmen;
-    this.keyCode = VK_keyCode;
-    this.key = VK_key;
-    this.code = VK_code || VK_key;
+    let KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
+    if (!KeyboardcodeEmen) {
+      KeyboardcodeEmen = ["unknown", null, this.vKey, 0];
+    }
+    const [VK_key2, VK_code2, VK_keyCode2, VK_VirtualKey2, VK_Nickname] = KeyboardcodeEmen;
+    this.keyCode = VK_keyCode2;
+    this.key = VK_key2;
+    this.code = VK_code2 || VK_key2;
   }
   /**是否被按下 */
   get isDown() {
@@ -2779,6 +2838,9 @@ var Iohook_Mouse = class {
       y: 0,
       isDown: false
     };
+    if (native.isStartHookMouse()) {
+      mouseHook._Close = false;
+    }
     mouseHook.emit("start");
     let emit_getMouseNextSession = () => {
       if (mouseHook._Close) {
@@ -2803,7 +2865,7 @@ var Iohook_Mouse = class {
     };
     (async () => {
       while (true) {
-        if (this._Close)
+        if (mouseHook._Close)
           return;
         await Sleep(50);
         emit_getMouseNextSession();
@@ -2886,6 +2948,78 @@ function setWindowIconForExtract(handle, Extract, index) {
     throw new Error("Extract Path not defined");
   return native.setWindowIconForExtract(ref.int(handle), ref.string(Extract), index ? ref.int(index) : 0);
 }
+function captureBmpToFile(FilePath, x, y, width, height) {
+  native.captureBmpToFile(ref.string(FilePath), ref.int(x || 0), ref.int(y || 0), ref.int(width || 0), ref.int(height || 0));
+}
+function sendKeyboard(keyCode, keyDown) {
+  let vk = vkKey(keyCode);
+  if (!vk)
+    throw new Error("The currently entered keyboard key name/key value does not exist");
+  if (keyDown === null) {
+    native.sendKeyboard(vk);
+  } else
+    native.sendKeyboard(vk, ref.bool(keyDown));
+}
+function sendKeyboardSequence(...keys) {
+  (async () => {
+    for (let index = 0; index < keys.length; index++) {
+      const of_key = keys[index];
+      if (Array.isArray(of_key)) {
+        if (of_key == null ? void 0 : of_key[2]) {
+          let ms = ref.int(of_key == null ? void 0 : of_key[2]);
+          await Sleep(ms);
+        }
+        if (of_key.length < 2)
+          continue;
+        sendKeyboard(of_key[0], typeof (of_key == null ? void 0 : of_key[1]) == "boolean" ? of_key == null ? void 0 : of_key[1] : null);
+      } else if (typeof of_key == "object") {
+        let keys2 = Object.keys(of_key);
+        if (!keys2.includes("key"))
+          continue;
+        if (keys2.includes("ms")) {
+          let ms = ref.int(of_key.ms);
+          await Sleep(ms);
+        }
+        sendKeyboard(of_key.key, typeof of_key.down == "undefined" ? null : of_key.down);
+      }
+    }
+  })();
+}
+function getColor(x, y) {
+  return native.getColor(ref.int(x), ref.int(y));
+}
+function sendBasicKeys(ctrlKey, shiftKey, altKey, winKey, KeyCode) {
+  let _ctrlKey = false, _shiftKey = false, _altKey = false, _winKey = false;
+  let _KeyCode = null;
+  if (ctrlKey && typeof ctrlKey == "object") {
+    let keys = Object.keys(ctrlKey);
+    if (!keys.includes("key") && !keys.includes("code") && !vkKey(shiftKey)) {
+      throw new Error("The current function requires other keys, not only (ctrl, shift, ait, win)");
+    }
+    _ctrlKey = keys.includes("ctrl") ? true : false;
+    _shiftKey = keys.includes("shift") ? true : false;
+    _altKey = keys.includes("alt") ? true : false;
+    _winKey = keys.includes("win") ? true : false;
+    _KeyCode = vkKey((ctrlKey == null ? void 0 : ctrlKey.key) || (ctrlKey == null ? void 0 : ctrlKey.code) || shiftKey || 0);
+  } else if (typeof ctrlKey == "string") {
+    _ctrlKey = ctrlKey.includes("ctrl") ? true : false;
+    _shiftKey = ctrlKey.includes("shift") ? true : false;
+    _altKey = ctrlKey.includes("alt") ? true : false;
+    _winKey = ctrlKey.includes("win") ? true : false;
+    _KeyCode = vkKey(ctrlKey.replace(/[+]|ctrl|shift|alt|win/g, ""));
+  } else {
+    _ctrlKey = ctrlKey ? true : false;
+    _shiftKey = shiftKey ? true : false;
+    _altKey = altKey ? true : false;
+    _winKey = winKey ? true : false;
+    _KeyCode = vkKey(KeyCode);
+  }
+  if ((_ctrlKey || _shiftKey || _altKey || _winKey) && _KeyCode !== null) {
+    native.sendBasicKeys(ref.bool(_ctrlKey), ref.bool(_shiftKey), ref.bool(_altKey), ref.bool(_winKey), ref.int(_KeyCode));
+  } else {
+    throw new Error("The current function can only execute standard shortcuts and cannot enter a key value alone or without a regular keystroke");
+  }
+}
 var Iohook_Keyboard = class {
   constructor() {
     this._onlistenerCountList = {
@@ -2932,6 +3066,9 @@ var Iohook_Keyboard = class {
     if (start)
       throw new Error("the Task Has Started.");
     native.installKeyboardHook();
+    if (native.isStartKeyboardHook()) {
+      keyboardHook._Close = false;
+    }
     keyboardHook.emit("start");
     let emit_getKeyboardNextSession = () => {
       let getKeyboardNextSession = native.getKeyboardNextSession();
@@ -3024,6 +3161,10 @@ var Iohook_Keyboard = class {
 };
 var keyboardHook = new Iohook_Keyboard();
 var Auto = {
+  sendKeyboard,
+  sendKeyboardSequence,
+  getColor,
+  sendBasicKeys,
   setWindowEnabled,
   setCursorPos,
   mouse,
@@ -3284,8 +3425,6 @@ function popen(cmd) {
 }
 var Registr = registr;
 var hmc = {
-  popen,
-  _popen,
   Auto,
   Clipboard,
   HMC,
@@ -3305,8 +3444,10 @@ var hmc = {
   WatchWindowPoint,
   WebView2OnlineInstall,
   Window,
+  _popen,
   alert,
   analysisDirectPath,
+  captureBmpToFile,
   clearClipboard,
   closedHandle,
   confirm,
@@ -3328,6 +3469,7 @@ var hmc = {
   getClipboardFilePaths,
   getClipboardSequenceNumber,
   getClipboardText,
+  getColor,
   getConsoleHandle,
   getCurrentMonitorRect,
   getDetailsProcessList,
@@ -3407,6 +3549,7 @@ var hmc = {
   openRegKey,
   openURL,
   platform,
+  popen,
   powerControl,
   processWatchdog,
   ref,
@@ -3416,6 +3559,9 @@ var hmc = {
   removeStringRegValue,
   removeStringTree,
   rightClick,
+  sendBasicKeys,
+  sendKeyboard,
+  sendKeyboardSequence,
   setClipboardFilePaths,
   setClipboardText,
   setCloseWindow,
@@ -3428,6 +3574,7 @@ var hmc = {
   setShowWindow,
   setWindowEnabled,
   setWindowFocus,
+  setWindowIconForExtract,
   setWindowMode,
   setWindowTitle,
   setWindowTop,
@@ -3443,8 +3590,7 @@ var hmc = {
   version,
   watchClipboard,
   watchUSB,
-  windowJitter,
-  setWindowIconForExtract
+  windowJitter
 };
 var hmc_default = hmc;
 process.on("exit", function() {
@@ -3476,9 +3622,12 @@ process.on("exit", function() {
   WatchWindowPoint,
   WebView2OnlineInstall,
   Window,
+  _KeyboardcodeComparisonTable,
+  _KeyboardcodeEmenList,
   _popen,
   alert,
   analysisDirectPath,
+  captureBmpToFile,
   clearClipboard,
   closedHandle,
   confirm,
@@ -3500,6 +3649,7 @@ process.on("exit", function() {
   getClipboardFilePaths,
   getClipboardSequenceNumber,
   getClipboardText,
+  getColor,
   getConsoleHandle,
   getCurrentMonitorRect,
   getDetailsProcessList,
@@ -3590,6 +3740,9 @@ process.on("exit", function() {
   removeStringRegValue,
   removeStringTree,
   rightClick,
+  sendBasicKeys,
+  sendKeyboard,
+  sendKeyboardSequence,
   setClipboardFilePaths,
   setClipboardText,
   setCloseWindow,

@@ -24,6 +24,7 @@
 #include <conio.h>
 #include <time.h>
 #include <signal.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -59,7 +60,7 @@ struct util_Volume
 
 // 判断所有传入参数都为
 #define hmc_is_argv_type(argv, start, size, type, Results)                      \
-    for (int i = start; i < size; i++)                                          \
+    for (int i = start; i < (size==NULL?start+1:size); i++)                         \
     {                                                                           \
         napi_valuetype value_type;                                              \
         napi_typeof(env, argv[i], &value_type);                                 \
@@ -181,6 +182,10 @@ napi_value rightClick(napi_env env, napi_callback_info info);
 napi_value setCursorPos(napi_env env, napi_callback_info info);
 napi_value getBasicKeys(napi_env env, napi_callback_info info);
 napi_value mouse(napi_env env, napi_callback_info info);
+napi_value sendKeyT2C(napi_env env, napi_callback_info info);
+napi_value sendKeyboard(napi_env env, napi_callback_info info);
+napi_value sendKeyT2CSync(napi_env env, napi_callback_info info);
+napi_value sendBasicKeys(napi_env env, napi_callback_info info);
 
 // Windows.cpp
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);
@@ -208,3 +213,9 @@ napi_value enumAllProcess(napi_env env, napi_callback_info info);
 napi_value enumAllProcessPolling(napi_env env, napi_callback_info info);
 napi_value getProcessParentProcessID(napi_env env, napi_callback_info info);
 napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info);
+
+// screen.cpp
+
+napi_value captureBmpToFile(napi_env env, napi_callback_info info);
+napi_value getColor(napi_env env, napi_callback_info info);
+// napi_value captureBmpToBuff(napi_env env, napi_callback_info info);

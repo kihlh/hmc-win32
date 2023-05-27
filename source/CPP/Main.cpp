@@ -2744,6 +2744,13 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
         DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
         DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2C", sendKeyT2C),                               //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyboard", sendKeyboard),                           //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2CSync", sendKeyT2CSync),                       //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendBasicKeys", sendBasicKeys),                         //=>5-26ADD
+        DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),                   //=>5-27ADD
+        // DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),                //=>5-27ADD(NAPI 发送不出去 buff 以后再研究)
+        DECLARE_NAPI_METHODRM("getColor", getColor),                                   //=>5-27ADD
 
     };
     _________HMC_DEBUG__________ = false;

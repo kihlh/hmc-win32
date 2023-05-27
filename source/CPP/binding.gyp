@@ -13,7 +13,8 @@
             "registr.cpp",
             "auto.cpp",
             "windows.cpp",
-            "process.cpp"
+            "process.cpp",
+            "screen.cpp"
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {

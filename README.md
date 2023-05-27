@@ -285,6 +285,13 @@ import  HMC = require("hmc-win32");
 - **getUsbDevsInfo** 获取所有usb驱动器(不包含HUD)
 - **keyboardHook** 低级的键盘变化监听构造函数
 - **mouseHook** 低级的鼠标变化监听构造函数
+- **sendBasicKeys**  向系统发送标准的快捷键  例如 ： ctrl+win+C
+- **getColor**  获取指定位置的颜色
+- **captureBmpToFile**  截图指定位置并且写入文件 （BMP）
+- **sendKeyboard** 发送键盘事件 
+- **sendKeyboardSequence**  发送键盘事件序列
+- **sendKeyT2CSync**  同步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
+- **sendKeyT2C**  异步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
 
 ### 文件链接/快捷方式
 
