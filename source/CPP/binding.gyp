@@ -14,8 +14,7 @@
             "auto.cpp",
             "windows.cpp",
             "process.cpp",
-            "screen.cpp",
-            "lib.hpp"
+            "screen.cpp"
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {

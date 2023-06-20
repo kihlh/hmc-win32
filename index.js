@@ -36,6 +36,7 @@ var require_split = __commonJS({
     module2.exports = split;
     var MATRIX = {
       // object is more readable than multi-dim array.
+      // object is more readable than multi-dim array.
       0: [a, suq, a, a, a, EOF],
       1: [eaue, aue, eaue, aue, aue, ue],
       2: [e, a, duq, a, a, EOF],

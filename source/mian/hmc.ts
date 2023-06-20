@@ -5,6 +5,7 @@ import https = require('https');
 import dgram = require('dgram');
 import { chcpList } from "./chcpList";
 import { KeyboardcodeComparisonTable, KeyboardcodeEmenList, VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
+import { KeyboardcodeComparisonTable, KeyboardcodeEmenList, VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 import child_process = require("child_process");
 import net = require("net");
 const argvSplit: (str: string) => string[] = require("argv-split");
@@ -50,6 +51,8 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             _popen: fnStr,
             popen: fnStr,
             createMutex:fnBool,
+            _popen: fnStr,
+            popen: fnStr,
             getSubProcessID: fnAnyArr,
             enumAllProcessPolling: fnVoid,
             clearEnumAllProcessList: fnVoid,
