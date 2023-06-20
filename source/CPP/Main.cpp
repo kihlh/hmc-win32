@@ -2461,6 +2461,72 @@ void SetWindowTitleIcon(HWND handle, string iconStr)
     SendMessage(handle, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
     SendMessage(handle, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
 }
+void SetWindowTitleIconUs32(HWND handle, string iconStr)
+{
+    HICON hWindowIcon = NULL;
+    HICON hWindowIconBig = NULL;
+    if (hWindowIcon != NULL)
+        DestroyIcon(hWindowIcon);
+    if (hWindowIconBig != NULL)
+        DestroyIcon(hWindowIconBig);
+    hWindowIcon = (HICON)LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
+    hWindowIconBig = (HICON)LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+
+    HINSTANCE hIn = NULL;
+    hIn = LoadLibraryA("user32.dll");
+    if (hIn)
+    {
+        LRESULT(WINAPI * SendMessageA)
+        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+        SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
+        if (SendMessageA)
+        {
+
+            SendMessageA(handle, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+            SendMessageA(handle, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+    }
+}
+void SetWindowIconForExtractUs32(HWND hwnd, string iconStr, int index)
+{
+    HICON hIcon;
+    hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), index);
+    HINSTANCE hIn = NULL;
+    hIn = LoadLibraryA("user32.dll");
+    if (hIn)
+    {
+        LRESULT(WINAPI * SendMessageA)
+        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+        SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
+        if (SendMessageA)
+        {
+            SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+            SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+        }
+        else
+        {
+        }
+    }
+    else
+    {
+    }
+}
+
+void SetWindowIconForExtract(HWND hwnd, string iconStr, int index)
+{
+    HICON hIcon;
+    hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), index);
+
+    SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+}
+
 static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -2476,6 +2542,23 @@ static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
     UpdateWindow(handle);
     return NULL;
 }
+static napi_value setWindowIconForExtract(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 3;
+    napi_value args[3];
+    status = $napi_get_cb_info(argc, args);
+    int64_t Handle;
+    status = napi_get_value_int64(env, args[0], &Handle);
+    HWND handle = (HWND)Handle;
+    string iconStr = call_String_NAPI_WINAPI_A(env, args[1]);
+    int index;
+    status = napi_get_value_int32(env, args[2], &index);
+    SetWindowIconForExtract(handle, iconStr, index);
+    SetWindowIconForExtractUs32(handle, iconStr, index);
+    UpdateWindow(handle);
+    return NULL;
+}
 
 static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
 {
@@ -2483,6 +2566,100 @@ static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, _________HMC_DEBUG__________);
 }
 
+// 获取剪贴板文本
+napi_value Popen(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    string cmd = call_String_NAPI_WINAPI_A(env, args[0]);
+    napi_value napi_result;
+
+    char buffer[128];
+    string result = "";
+    FILE *pipe = _popen(cmd.c_str(), "r");
+    if (!pipe)
+    {
+        // std::cerr << "无法打开管道!" << std::endl;
+        return napi_result;
+    }
+    while (fgets(buffer, sizeof buffer, pipe) != NULL)
+    {
+        result += buffer;
+    }
+    _pclose(pipe);
+    string _A2U8_result =  _A2U8_(result.c_str());
+    napi_create_string_utf8(env, _A2U8_result.c_str(), NAPI_AUTO_LENGTH, &napi_result);
+    return napi_result;
+}
+
+bool CreateMutex(std::string MutexName) {
+    bool has_mut_exist = false;
+
+    HANDLE hMutex = CreateMutexA(NULL, FALSE, MutexName.c_str());
+    
+    if (hMutex == NULL)
+    {
+        has_mut_exist = true;
+    }
+    // 检查是否已经存在同名的互斥体
+    if (GetLastError() == ERROR_ALREADY_EXISTS)
+    {
+        has_mut_exist = true;
+        CloseHandle(hMutex);
+    }
+    
+
+    return !has_mut_exist;
+}
+
+bool HasMutex(std::string MutexName) {
+    bool has_mut_exist = true;
+
+    HANDLE hMutex;
+
+	hMutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE,MutexName.c_str());
+	if (NULL == hMutex)
+	{
+        has_mut_exist = false;
+    }
+
+    CloseHandle(hMutex);
+    return has_mut_exist;
+}
+
+napi_value createMutex(napi_env env, napi_callback_info info){
+
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    hmc_is_argv_type(args, 0, 1, napi_string, NULL);
+    
+    string MutexName = call_String_NAPI_WINAPI_A(env, args[0]);
+
+    return  _create_bool_Boolean(env, CreateMutex(MutexName));
+}
+
+napi_value hasMutex(napi_env env, napi_callback_info info){
+
+    napi_status status;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    hmc_is_argv_type(args, 0, 1, napi_string, NULL);
+    
+    string MutexName = call_String_NAPI_WINAPI_A(env, args[0]);
+
+    return  _create_bool_Boolean(env, HasMutex(MutexName));
+}
+
+napi_value __Popen(napi_env env, napi_callback_info info)
+{
+    return Popen(env, info);
+}
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 static napi_value Init(napi_env env, napi_value exports)
@@ -2627,6 +2804,18 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
         DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
+        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
+        DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
+        DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2C", sendKeyT2C),                               //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyboard", sendKeyboard),                           //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2CSync", sendKeyT2CSync),                       //=>5-26ADD
+        DECLARE_NAPI_METHODRM("sendBasicKeys", sendBasicKeys),                         //=>5-26ADD
+        DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),                   //=>5-27ADD
+        // DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),                //=>5-27ADD(NAPI 发送不出去 buff 以后再研究)
+        DECLARE_NAPI_METHODRM("getColor", getColor),                                   //=>5-27ADD
+        DECLARE_NAPI_METHOD("createMutex", createMutex),                               //=>6-21ADD
+        DECLARE_NAPI_METHOD("hasMutex", hasMutex),                                     //=>6-21ADD
 
     };
     _________HMC_DEBUG__________ = false;

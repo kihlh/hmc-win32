@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 /**注册表根目录 */
 declare const Hkey: {
     /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -911,6 +912,66 @@ export declare module HMC {
          * @param ProcessID
          */
         getSubProcessID(ProcessID: number): number[];
+        /**
+         * 通过可执行文件或者带有图标的文件设置窗口图标
+         * @param handle 句柄
+         * @param Extract 可执行文件/Dll/文件
+         * @param index 图标位置索引 例如文件显示的图标默认是0
+         */
+        setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+        /**
+         * 创建管道并执行命令
+         * @param cmd 命令
+         */
+        popen(cmd: string): string;
+        /**
+        * 创建管道并执行命令
+        * @param cmd 命令
+        */
+        _popen(cmd: string): string;
+        /**
+         * 获取屏幕上指定坐标的颜色
+         * @param x 左边开始的坐标
+         * @param y 从上面开始的坐标
+         */
+        getColor(x: number, y: number): Color;
+        /**
+         * 截屏指定的宽高坐标 并将其存储写入为文件
+         * @param FilePath 文件路径
+         * @param x 从左边的哪里开始 为空为0
+         * @param y 从顶部的哪里开始 为空为0
+         * @param width 宽度
+         * @param height 高度
+         */
+        captureBmpToFile(FilePath: string, x: number | null | 0, y: number | null | 0, width: number | null | 0, height: number | null | 0): void;
+        /**
+         * 响应标准快捷键
+         */
+        sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number): boolean;
+        /**
+         * 发送键盘事件
+         * @param keyCode 键值码
+         * @param keyDown 是否按下
+         */
+        sendKeyboard(keyCode: number, keyDown?: boolean): boolean;
+        /**
+         * 响应T2C脚本 仅支持键盘事件 异步
+         * @param T2C 脚本
+         */
+        sendKeyT2C(T2C: string): void;
+        /**
+        * 响应T2C脚本 仅支持键盘事件 同步
+        * @param T2C 脚本
+        */
+        sendKeyT2CSync(T2C: string): void;
+        /**
+         * 创建一个互斥体 (如果当前进程还在 互斥体就不会消失) 返回的是互斥体是否成功创建
+         */
+        createMutex(MutexName: string): boolean;
+        /**
+        * 检查一个互斥体 如果互斥体存在
+        */
+        hasMutex(MutexName: string): boolean;
     };
     export type ProcessHandle = {
         handle: number;
@@ -921,6 +982,30 @@ export declare module HMC {
         path: string;
         name: string;
         device: string;
+    };
+    /**取色 颜色返回值 */
+    export type Color = {
+        r: number;
+        g: number;
+        b: number;
+        hex: string;
+    };
+    /**
+     * 标准快捷键的输入表
+     */
+    export type BasicCout = {
+        /**组合中含有ctrl */
+        ctrl?: any;
+        /**组合中含有shift */
+        shift?: any;
+        /**组合中含有alt */
+        alt?: any;
+        /**组合中含有win */
+        win?: any;
+        /**键码/按键名 */
+        key?: number | string;
+        /**键码/按键名 */
+        code?: number | string;
     };
     type chcpList = {
         37: "IBM037";
@@ -1133,6 +1218,12 @@ export declare const ref: {
      * @returns
      */
     concatBuff(buffList: Buffer[]): Buffer;
+    /**
+     * 键盘值格式化为键值
+     * @param key 键值/键
+     * @returns
+     */
+    vkKey: typeof vkKey;
 };
 /**
  * 直达路径解析
@@ -1930,7 +2021,7 @@ export declare function hasKeyActivate(KeysEvent: number): boolean;
  * @param ProcessID 进程id
  * @returns
  */
-export declare function hasProcess(ProcessID: number): boolean;
+export declare function hasProcess(...ProcessMatch: Array<number | string | Array<number | string>>): boolean;
 /**
  * 当前程序是否拥有管理员权限
  * @returns
@@ -2126,6 +2217,8 @@ export declare function hasWebView2(): boolean;
  */
 export declare function hasPortTCP(port: number): Promise<boolean>;
 export declare function hasPortTCP(port: number, callBack: (hasPort: boolean) => unknown): void;
+export declare const _KeyboardcodeEmenList: Map<number, [string, string | null, number, number] | [string, string | null, number, number, import("./vkKey").VK_Nickname]>;
+export declare const _KeyboardcodeComparisonTable: Map<string, number>;
 /**
  * 判断UDP端口号正在使用/系统占用
  * @param port TCP端口
@@ -2191,12 +2284,12 @@ export declare function getSubProcessID(ProcessID: number): number[];
  */
 export declare function getProcessParentProcessID(ProcessID: number): number | null;
 /**
- * 枚举进程id的句柄
+ * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
  * @param CallBack 枚举时候的回调
  * @returns
  */
-export declare function enumAllProcess(CallBack?: (PHandle: HMC.PROCESSENTRY) => void): Promise<unknown> | undefined;
+export declare function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => void): Promise<unknown> | undefined;
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -2310,10 +2403,6 @@ declare class MousePoint {
      */
     moveMouse(x: number, y: number): void;
 }
-declare type VK_key = string;
-declare type VK_code = string;
-declare type VK_keyCode = number;
-declare type VK_VirtualKey = number;
 declare class Keyboard {
     /**
      * 是否按下了shift
@@ -2406,6 +2495,88 @@ declare class Iohook_Mouse {
 ```
  */
 export declare const mouseHook: Iohook_Mouse;
+/**
+ * 通过可执行文件或者带有图标的文件设置窗口图标
+ * @param handle 句柄
+ * @param Extract 可执行文件/Dll/文件
+ * @param index 图标位置索引 例如文件显示的图标默认是0
+ */
+export declare function setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+/**
+    * 截屏指定的宽高坐标 并将其存储写入为文件
+    * @param FilePath 文件路径
+    * @param x 从左边的哪里开始 为空为0
+    * @param y 从顶部的哪里开始 为空为0
+    * @param width 宽度
+    * @param height 高度
+    */
+export declare function captureBmpToFile(FilePath: string, x: number | null, y: number | null, width: number | null, height: number | null): void;
+/**
+ * 发送键盘事件
+ * @param keyCode 键值
+ * @param keyDown 是否按下
+ *
+ */
+export declare function sendKeyboard(keyCode: number | string, keyDown: boolean | null): void;
+/**
+ * 发送键盘事件序列
+ * @example ```javascript
+ * hmc.sendKey(
+ * // 数组序列
+ * ['ctrl',50] , // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',null] , // 执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',true,50] , // 50毫秒以后按下ctrl不放开
+ * ['ctrl',fasle,50] , // 50毫秒以后将ctrl放开
+ *
+ *  // 对象序列
+ * {key:"ctrl",} // ctrl键 点击事件(按下立刻放开)
+ * {key:"ctrl",ms:50} // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * {key:"ctrl",down:false,ms:50} // 50毫秒以后将ctrl放开
+ * )
+ * ```
+ */
+export declare function sendKeyboardSequence(...keys: Array<{
+    key: number | string;
+    down?: boolean;
+    ms?: number;
+} | [number | string, boolean | number | null, number]>): void;
+/**
+ * 获取屏幕指定区域的颜色
+ * @param x 左边开始的坐标
+ * @param y 从上面开始的坐标
+ * @returns
+ */
+export declare function getColor(x: number, y: number): HMC.Color;
+/**
+ * 执行标准快捷键
+ * @param basicCout 四大按键的包含表
+ * @param KeyCode 执行的键码(如果表中有可以忽略)
+ * @example ```javascript
+ * // ctrl + shift +A
+ * hmc.sendBasicKeys({"ctrl","shift",key:"A"});
+ * hmc.sendBasicKeys({"ctrl","shift"},"A");
+ *
+ * ```
+ */
+export declare function sendBasicKeys(basicCout: HMC.BasicCout, KeyCode?: number | string): void;
+/**
+ * 执行标准快捷键
+ * @param basicKeysStr 快捷键内容
+ * @example ```javascript
+ * // ctrl + shift +A
+ * hmc.sendBasicKeys("ctrl+shift+A");
+ *
+ */
+export declare function sendBasicKeys(basicKeysStr: string): void;
+/**
+ * 执行标准快捷键(标准化输入)
+ * @param ctrlKey 组合中含有ctrl
+ * @param shiftKey 组合中含有shift
+ * @param altKey 组合中含有alt
+ * @param winKey 组合中含有win
+ * @param KeyCode 键盘隐射值
+ */
+export declare function sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number | string): void;
 declare class Iohook_Keyboard {
     private _onlistenerCountList;
     private _oncelistenerCountList;
@@ -2459,6 +2630,10 @@ declare class Iohook_Keyboard {
  */
 export declare const keyboardHook: Iohook_Keyboard;
 export declare const Auto: {
+    sendKeyboard: typeof sendKeyboard;
+    sendKeyboardSequence: typeof sendKeyboardSequence;
+    getColor: typeof getColor;
+    sendBasicKeys: typeof sendBasicKeys;
     setWindowEnabled: typeof setWindowEnabled;
     setCursorPos: typeof setCursorPos;
     mouse: typeof mouse;
@@ -2744,6 +2919,30 @@ export declare const registr: {
     removeStringTree: typeof removeStringTree;
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export declare function _popen(cmd: string): string;
+/**
+ * 判断互斥体文本是否存在
+ * @param MutexName 互斥体文本
+ * @returns
+ */
+export declare function hasMutex(MutexName: string): boolean;
+/**
+ * 创建互斥体文本并返回结果
+ * ?(无法移除 除非当前进程退出 互斥体具有唯一性)
+ * ? 可以用于判断进程是否重复启动
+ * @param MutexName 互斥体文本
+ * @returns
+ */
+export declare function createMutex(MutexName: string): boolean;
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export declare function popen(cmd: string): string;
 export declare const Registr: {
     /**
      * 直达路径解析
@@ -2957,7 +3156,13 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    createMutex: typeof createMutex;
+    hasMutex: typeof hasMutex;
     Auto: {
+        sendKeyboard: typeof sendKeyboard;
+        sendKeyboardSequence: typeof sendKeyboardSequence;
+        getColor: typeof getColor;
+        sendBasicKeys: typeof sendBasicKeys;
         setWindowEnabled: typeof setWindowEnabled;
         setCursorPos: typeof setCursorPos;
         mouse: typeof mouse;
@@ -3316,8 +3521,10 @@ export declare const hmc: {
         getStyle: typeof getWindowStyle;
         getClassName: typeof getWindowClassName;
     };
+    _popen: typeof _popen;
     alert: typeof alert;
     analysisDirectPath: typeof analysisDirectPath;
+    captureBmpToFile: typeof captureBmpToFile;
     clearClipboard: typeof clearClipboard;
     closedHandle: typeof closedHandle;
     confirm: typeof confirm;
@@ -3327,7 +3534,7 @@ export declare const hmc: {
     createSymlink: typeof createSymlink;
     deleteFile: typeof deleteFile;
     desc: string;
-    enumAllProcess: typeof enumAllProcess;
+    enumAllProcessHandle: typeof enumAllProcessHandle;
     enumChildWindows: typeof enumChildWindows;
     enumProcessHandle: typeof enumProcessHandle;
     enumRegistrKey: typeof enumRegistrKey;
@@ -3339,6 +3546,7 @@ export declare const hmc: {
     getClipboardFilePaths: typeof getClipboardFilePaths;
     getClipboardSequenceNumber: typeof getClipboardSequenceNumber;
     getClipboardText: typeof getClipboardText;
+    getColor: typeof getColor;
     getConsoleHandle: typeof getConsoleHandle;
     getCurrentMonitorRect: typeof getCurrentMonitorRect;
     getDetailsProcessList: typeof getDetailsProcessList;
@@ -3418,6 +3626,7 @@ export declare const hmc: {
     openRegKey: typeof openRegKey;
     openURL: typeof openURL;
     platform: string;
+    popen: typeof popen;
     powerControl: {
         (Set: 
         /**关机 */
@@ -3511,6 +3720,12 @@ export declare const hmc: {
          * @returns
          */
         concatBuff(buffList: Buffer[]): Buffer;
+        /**
+         * 键盘值格式化为键值
+         * @param key 键值/键
+         * @returns
+         */
+        vkKey: typeof vkKey;
     };
     registr: {
         /**
@@ -3729,6 +3944,9 @@ export declare const hmc: {
     removeStringRegValue: typeof removeStringRegValue;
     removeStringTree: typeof removeStringTree;
     rightClick: typeof rightClick;
+    sendBasicKeys: typeof sendBasicKeys;
+    sendKeyboard: typeof sendKeyboard;
+    sendKeyboardSequence: typeof sendKeyboardSequence;
     setClipboardFilePaths: typeof setClipboardFilePaths;
     setClipboardText: typeof setClipboardText;
     setCloseWindow: typeof lookHandleCloseWindow;
@@ -3741,6 +3959,7 @@ export declare const hmc: {
     setShowWindow: typeof lookHandleShowWindow;
     setWindowEnabled: typeof setWindowEnabled;
     setWindowFocus: typeof setWindowFocus;
+    setWindowIconForExtract: typeof setWindowIconForExtract;
     setWindowMode: typeof setWindowMode;
     setWindowTitle: typeof lookHandleSetTitle;
     setWindowTop: typeof setWindowTop;

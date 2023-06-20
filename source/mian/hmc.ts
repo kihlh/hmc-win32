@@ -4,6 +4,7 @@ import fs = require("fs");
 import https = require('https');
 import dgram = require('dgram');
 import { chcpList } from "./chcpList";
+import { KeyboardcodeComparisonTable, KeyboardcodeEmenList, VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 import child_process = require("child_process");
 import net = require("net");
 const argvSplit: (str: string) => string[] = require("argv-split");
@@ -46,6 +47,9 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
+            _popen: fnStr,
+            popen: fnStr,
+            createMutex:fnBool,
             getSubProcessID: fnAnyArr,
             enumAllProcessPolling: fnVoid,
             clearEnumAllProcessList: fnVoid,
@@ -147,6 +151,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             lookHandleCloseWindow: fnBool,
             lookHandleGetTitle: fnNull,
             lookHandleSetTitle: fnBool,
+            setWindowIconForExtract: fnVoid,
             lookHandleShowWindow: fnBool,
             messageBox: fnNum as () => 1,
             mouse: fnBool,
@@ -196,7 +201,13 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getVolumeList: fnAnyArr,
             enumProcessHandlePolling: fnVoid,
             enumProcessHandle: fnNum,
-            getModulePathList: fnStrList
+            getModulePathList: fnStrList,
+            getColor() { return { r: 0, g: 0, b: 0, hex: "#000000" } as HMC.Color },
+            captureBmpToFile: fnVoid,
+            sendKeyboard: fnBool,
+            sendBasicKeys: fnBool,
+            sendKeyT2C: fnVoid,
+            sendKeyT2CSync: fnVoid,
         }
     })();
     return Native;
@@ -1277,6 +1288,66 @@ export module HMC {
          * @param ProcessID 
          */
         getSubProcessID(ProcessID: number): number[];
+        /**
+         * 通过可执行文件或者带有图标的文件设置窗口图标
+         * @param handle 句柄
+         * @param Extract 可执行文件/Dll/文件
+         * @param index 图标位置索引 例如文件显示的图标默认是0
+         */
+        setWindowIconForExtract(handle: number, Extract: string, index: number): void;
+        /**
+         * 创建管道并执行命令
+         * @param cmd 命令
+         */
+        popen(cmd: string): string;
+        /**
+        * 创建管道并执行命令
+        * @param cmd 命令
+        */
+        _popen(cmd: string): string;
+        /**
+         * 获取屏幕上指定坐标的颜色
+         * @param x 左边开始的坐标
+         * @param y 从上面开始的坐标
+         */
+        getColor(x: number, y: number): Color;
+        /**
+         * 截屏指定的宽高坐标 并将其存储写入为文件 
+         * @param FilePath 文件路径
+         * @param x 从左边的哪里开始 为空为0
+         * @param y 从顶部的哪里开始 为空为0
+         * @param width 宽度
+         * @param height 高度
+         */
+        captureBmpToFile(FilePath: string, x: number | null | 0, y: number | null | 0, width: number | null | 0, height: number | null | 0): void;
+        /**
+         * 响应标准快捷键
+         */
+        sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number): boolean;
+        /**
+         * 发送键盘事件
+         * @param keyCode 键值码 
+         * @param keyDown 是否按下
+         */
+        sendKeyboard(keyCode: number, keyDown?: boolean): boolean;
+        /**
+         * 响应T2C脚本 仅支持键盘事件 异步
+         * @param T2C 脚本
+         */
+        sendKeyT2C(T2C: string): void;
+        /**
+        * 响应T2C脚本 仅支持键盘事件 同步
+        * @param T2C 脚本
+        */
+        sendKeyT2CSync(T2C: string): void;
+        /**
+         * 创建一个互斥体 (如果当前进程还在 互斥体就不会消失) 返回的是互斥体是否成功创建
+         */
+        createMutex(MutexName:string):boolean;
+         /**
+         * 检查一个互斥体 如果互斥体存在
+         */
+        hasMutex(MutexName:string):boolean;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -1294,7 +1365,31 @@ export module HMC {
         // 驱动器  例如：'\\Device\\HarddiskVolume2'
         device: string;
     };
-
+    /**取色 颜色返回值 */
+    export type Color = {
+        r: number;
+        g: number;
+        b: number;
+        // #000000 16进制色码
+        hex: string;
+    };
+    /**
+     * 标准快捷键的输入表
+     */
+    export type BasicCout = {
+        /**组合中含有ctrl */
+        ctrl?: any,
+        /**组合中含有shift */
+        shift?: any,
+        /**组合中含有alt */
+        alt?: any,
+        /**组合中含有win */
+        win?: any,
+        /**键码/按键名 */
+        key?: number | string,
+        /**键码/按键名 */
+        code?: number | string
+    };
     type chcpList = {
         37: "IBM037",
         437: "IBM437",
@@ -1592,7 +1687,13 @@ export const ref = {
         }
         let ResponseData = Buffer.concat([...buffList], buffSize);
         return ResponseData;
-    }
+    },
+    /**
+     * 键盘值格式化为键值
+     * @param key 键值/键
+     * @returns 
+     */
+    vkKey: vkKey
 };
 
 /**
@@ -3217,8 +3318,40 @@ export function hasKeyActivate(KeysEvent: number) {
  * @param ProcessID 进程id
  * @returns
  */
-export function hasProcess(ProcessID: number) {
-    return native.isProcess(ref.int(ProcessID));
+export function hasProcess(...ProcessMatch: Array<number|string|Array<number|string>>):boolean{
+    // 只有一个参数 而且是数字 直接打开句柄 不枚举
+    if(ProcessMatch.length==1){
+        return native.isProcess(ref.int(ProcessMatch[0]));
+    }
+    let _ProcessMatch :Array<number|string> = [];
+    let isString = false;
+    // 多个参数 压入缓冲数组
+    for (let index = 0; index < ProcessMatch.length; index++) {
+        const ProcessID = ProcessMatch[index];
+        if(Array.isArray(ProcessID)){
+            for (let index = 0; index < ProcessID.length; index++){
+                if(typeof ProcessID[index] =="string")isString=true;
+                _ProcessMatch.push(ProcessID[index]);
+            }
+        }
+        if(typeof ProcessID =="string"){
+            isString=true;
+            _ProcessMatch.push(ProcessID);
+        }
+        if(typeof ProcessID =="number")_ProcessMatch.push(ProcessID);
+    }
+    // 开始处理  如果全是数字 就不枚举进程列表 因为直接打开句柄更快
+    let ProcessList = isString?getProcessList():[];
+    for (let index = 0; index < _ProcessMatch.length; index++) {
+        if(!isString){
+            if(native.isProcess(ref.int(_ProcessMatch[index])))return true;
+        }
+        for (let index = 0; index < ProcessList.length; index++) {
+            const elp = ProcessList[index];
+            if(elp.name===_ProcessMatch[index]||elp.pid===_ProcessMatch[index])return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -3691,7 +3824,8 @@ export function hasPortTCP(port: number, callBack?: (hasPort: boolean) => unknow
         return prom;
     }
 }
-
+export const _KeyboardcodeEmenList =KeyboardcodeEmenList;
+export const _KeyboardcodeComparisonTable =KeyboardcodeComparisonTable;
 
 /**
  * 判断UDP端口号正在使用/系统占用
@@ -3863,12 +3997,12 @@ export function getProcessParentProcessID(ProcessID: number) {
 }
 
 /**
- * 枚举进程id的句柄
+ * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
  * @param CallBack 枚举时候的回调
  * @returns 
  */
-export function enumAllProcess(CallBack?: (PHandle: HMC.PROCESSENTRY) => void) {
+export function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => void) {
     let enumID = native.enumAllProcess();
     let next = true;
     let PROCESSENTRYLIST: HMC.PROCESSENTRY[] = [];
@@ -4079,183 +4213,7 @@ class MousePoint {
         Auto.setCursorPos(x, y);
     }
 }
-type VK_key = string
-type VK_code = string
-type VK_keyCode = number
-type VK_VirtualKey = number
-type VK_Nickname = string[] | undefined;
 
-const KeyboardVKcodeEmenList: Array<[VK_key, VK_code | null, VK_keyCode, VK_VirtualKey] | [VK_key, VK_code | null, VK_keyCode, VK_VirtualKey, VK_Nickname]> = [
-    // key ,code , keyCode , VirtualKey
-    ["0", "Digit0", 48, 0x30],
-    ["1", "Digit1", 49, 0x31],
-    ["2", "Digit2", 50, 0x32],
-    ["3", "Digit3", 51, 0x33],
-    ["4", "Digit4", 52, 0x34],
-    ["5", "Digit5", 53, 0x35],
-    ["6", "Digit6", 54, 0x36],
-    ["7", "Digit7", 55, 0x37],
-    ["8", "Digit8", 56, 0x38],
-    ["9", "Digit9", 57, 0x39],
-    ["A", "KeyA", 65, 0x41],
-    ["B", "KeyB", 66, 0x42],
-    ["C", "KeyC", 67, 0x43],
-    ["D", "KeyD", 68, 0x44],
-    ["E", "KeyE", 69, 0x45],
-    ["F", "KeyF", 70, 0x46],
-    ["G", "KeyG", 71, 0x47],
-    ["H", "KeyH", 72, 0x48],
-    ["I", "KeyI", 73, 0x49],
-    ["J", "KeyJ", 74, 0x4a],
-    ["K", "KeyK", 75, 0x4b],
-    ["L", "KeyL", 76, 0x4c],
-    ["M", "KeyM", 77, 0x4d],
-    ["N", "KeyN", 78, 0x4e],
-    ["O", "KeyO", 79, 0x4f],
-    ["P", "KeyP", 80, 0x50],
-    ["Q", "KeyQ", 81, 0x51],
-    ["R", "KeyR", 82, 0x52],
-    ["S", "KeyS", 83, 0x53],
-    ["T", "KeyT", 84, 0x54],
-    ["U", "KeyU", 85, 0x55],
-    ["V", "KeyV", 86, 0x56],
-    ["W", "KeyW", 87, 0x57],
-    ["X", "KeyX", 88, 0x58],
-    ["Y", "KeyY", 89, 0x59],
-    ["Z", "KeyZ", 90, 0x5a],
-    ["0", "Numpad0", 96, 0x60],
-    ["1", "Numpad1", 97, 0x61],
-    ["2", "Numpad2", 98, 0x62],
-    ["3", "Numpad3", 99, 0x63],
-    ["4", "Numpad4", 100, 0x64],
-    ["5", "Numpad5", 101, 0x65],
-    ["6", "Numpad6", 102, 0x66],
-    ["7", "Numpad7", 103, 0x67],
-    ["8", "Numpad8", 104, 0x68],
-    ["9", "Numpad9", 105, 0x69],
-    ["Alt", "Alt", 18, 0x12],
-    ["Alt", "AltLeft", 164, 0xa4],
-    ["Alt", "AltRight", 165, 0xa5],
-    ["CapsLock", "CapsLock", 20, 0x14],
-    ["Control", "Control", 17, 0x11, ["ctrl"]],
-    ["Control", "ControlLeft", 162, 0xa2, ["ctrl"]],
-    ["Control", "ControlRight", 163, 0xa3, ["ctrl"]],
-    ["Win", "MetaLeft", 91, 0x5b],
-    ["Win", "MetaRight", 92, 0x5c],
-    ["NumLock", "NumLock", 144, 0x90],
-    ["ScrollLock", null, 145, 0x91],
-    ["Shift", "Shift", 16, 0x10],
-    ["Shift", "ShiftLeft", 160, 0xa0],
-    ["Shift", "ShiftRight", 161, 0xa1],
-    ["Enter", "Enter", 13, 13, ["\r\n", "\r", "\n"]],
-    ["Tab", "Tab", 9, 0x09],
-    ["Space", "Space", 32, 0x20],
-    ["ArrowDown", null, 40, 0x28],
-    ["ArrowLeft", null, 37, 0x25],
-    ["ArrowRight", null, 39, 0x27],
-    ["ArrowUp", null, 38, 0x26],
-    ["End", "End", 35, 0x23],
-    ["Home", "Home", 36, 0x24],
-    ["PageDown", null, 34, 0x22],
-    ["PageUp", null, 33, 0x21],
-    ["Backspace", null, 8, 0x08],
-    ["Clear", null, 12, 0x0C],
-    ["Clear", null, 254, 0xfe],
-    ["CrSel", null, 247, 0xf7],
-    ["Delete", null, 46, 0x2e],
-    ["EraseEof", null, 249, 0xf9],
-    ["ExSel", null, 248, 0xf8],
-    ["Insert", null, 45, 0x2d],
-    ["Accept", null, 30, 0x1e],
-    ["ContextMenu", null, 93, 0x5d],
-    ["Escape", null, 27, 0x1b, ["esc"]],
-    ["Execute", null, 43, 0x2b],
-    ["Finish", null, 241, 0xf1],
-    ["Help", null, 47, 0x2f],
-    ["Pause", null, 19, 0x13],
-    ["Play", null, 250, 0xfa],
-    ["Select", null, 41, 0x29],
-    ["PrintScreen", null, 44, 0x2c],
-    ["Standby", null, 95, 0x5f],
-    ["Alphanumeric", null, 240, 0xf0],
-    ["Convert", null, 28, 0x1c],
-    ["FinalMode", null, 24, 0x18],
-    ["ModeChange", null, 31, 0x1f],
-    ["NonConvert", null, 29, 0x1d],
-    ["Process", null, 229, 0xe5],
-    ["HangulMode", null, 21, 0x15],
-    ["HanjaMode", null, 25, 0x19],
-    ["JunjaMode", null, 23, 0x17],
-    ["Hankaku", null, 243, 0xf3],
-    ["Hiragana", null, 242, 0xf2],
-    ["KanaMode", null, 246, 0xf6],
-    ["Romaji", null, 245, 0xf5],
-    ["Zenkaku", null, 244, 0xf4],
-    ["F1", null, 112, 0x70],
-    ["F2", null, 113, 0x71],
-    ["F3", null, 114, 0x72],
-    ["F4", null, 115, 0x73],
-    ["F5", null, 116, 0x74],
-    ["F6", null, 117, 0x75],
-    ["F7", null, 118, 0x76],
-    ["F8", null, 119, 0x77],
-    ["F9", null, 120, 0x78],
-    ["F10", null, 121, 0x79],
-    ["F11", null, 122, 0x7a],
-    ["F12", null, 123, 0x7b],
-    ["F13", null, 124, 0x7c],
-    ["F14", null, 125, 0x7d],
-    ["F15", null, 126, 0x7e],
-    ["F16", null, 127, 0x7f],
-    ["F17", null, 128, 0x80],
-    ["F18", null, 129, 0x81],
-    ["F19", null, 130, 0x82],
-    ["F20", null, 131, 0x83],
-    ["MediaPlayPause", null, 179, 0xb3],
-    ["MediaStop", null, 178, 0xb2],
-    ["MediaTrackNext", null, 176, 0xb0],
-    ["MediaTrackPrevious", null, 177, 0xb1],
-    ["AudioVolumeDown", null, 174, 0xae],
-    ["AudioVolumeMute", null, 173, 0xad],
-    ["AudioVolumeUp", null, 175, 0xaf],
-    ["ZoomToggle", null, 251, 0xfb],
-    ["LaunchMail", null, 180, 0xb4],
-    ["LaunchMediaPlayer", null, 181, 0xb5],
-    ["LaunchApplication1", null, 182, 0xb6],
-    ["LaunchApplication2", null, 183, 0xb7],
-    ["BrowserBack", null, 166, 0xa6],
-    ["BrowserFavorites", null, 171, 0xab],
-    ["BrowserForward", null, 167, 0xa7],
-    ["BrowserHome", null, 172, 0xac],
-    ["BrowserRefresh", null, 168, 0xa8],
-    ["BrowserSearch", null, 170, 0xaa],
-    ["BrowserStop", null, 169, 0xa9],
-    [".", "NumpadDecimal", 110, 0x6e],
-    ["*", "NumpadMultiply", 106, 0x6a],
-    ["+", "NumpadAdd", 107, 0x6b],
-    ["/", "NumpadDivide", 111, 0x6f],
-    ["-", "NumpadSubtract", 109, 0x6d],
-    ["Separator", null, 108, 0x6c],
-    [";", "Semicolon", 186, 0xba],
-    ["+", "Equal", 187, 0xbb],
-    [",", "Comma", 188, 0xbc],
-    ["-", "Minus", 189, 0xbd],
-    [".", "Period", 190, 0xbe],
-    ["/", "Slash", 191, 0xbf],
-    ["`", "Backquote", 192, 0xc0],
-    ["[", "BracketLeft", 219, 0xdb],
-    ["\\", "Backslash", 220, 0xdc],
-    ["]", "BracketLeft", 221, 0xdd],
-    ["'", "Quote", 222, 0xde]
-];
-const KeyboardcodeEmenList: Map<VK_VirtualKey, typeof KeyboardVKcodeEmenList[0]> = (() => {
-    let data = new Map();
-    for (let index = 0; index < KeyboardVKcodeEmenList.length; index++) {
-        const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardVKcodeEmenList[index];
-        data.set(VK_VirtualKey, KeyboardVKcodeEmenList[index]);
-    }
-    return data
-})();
 
 class Keyboard {
     /**
@@ -4293,8 +4251,11 @@ class Keyboard {
         const data = str.split("|");
         this.vKey = Number(data[0]);
         this.__isDown = Number(data[1]) ? true : false;
-        const KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
-        if (!KeyboardcodeEmen) throw new Error("key Value Data That Does Not Exist !");
+        let KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
+        if (!KeyboardcodeEmen) {
+            KeyboardcodeEmen = ["unknown", null, this.vKey, 0];
+            // throw new Error("key Value Data That Does Not Exist !");
+        }
         const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardcodeEmen;
         this.keyCode = VK_keyCode;
         this.key = VK_key;
@@ -4373,7 +4334,9 @@ class Iohook_Mouse {
             y: 0,
             isDown: false,
         };
-
+        if (native.isStartHookMouse()) {
+            mouseHook._Close = false;
+        }
         mouseHook.emit("start");
         let emit_getMouseNextSession = () => {
             if (mouseHook._Close) { return };
@@ -4395,7 +4358,7 @@ class Iohook_Mouse {
         }
         (async () => {
             while (true) {
-                if (this._Close) return;
+                if (mouseHook._Close) return;
                 await Sleep(50);
                 emit_getMouseNextSession();
             }
@@ -4501,6 +4464,221 @@ class Iohook_Mouse {
  */
 export const mouseHook = new Iohook_Mouse();
 
+/**
+ * 通过可执行文件或者带有图标的文件设置窗口图标
+ * @param handle 句柄
+ * @param Extract 可执行文件/Dll/文件
+ * @param index 图标位置索引 例如文件显示的图标默认是0
+ */
+export function setWindowIconForExtract(handle: number, Extract: string, index: number): void {
+    if (!Extract) throw new Error("Extract Path not defined");
+    return native.setWindowIconForExtract(ref.int(handle), ref.string(Extract), index ? ref.int(index) : 0)
+};
+// /**
+//  * 执行t2c 脚本 (异步)
+//  * - 第一位是事件名称 例如 点击：click 按键A：A 按键Ctrl：ctrl 鼠标移动：60,50 
+//  * - 第二位是按下或者松开 NULL为按下立刻松开
+//  * - 第三位是延迟时间ms 为0立刻执行
+//  * -----------------------
+//  * - 单击键盘事件T2C语法： click|NULL|500  事件名称|NULL=单击|延迟时间
+//  * 
+//  * @example ```javascript
+//  * hmc.sendKeyT2C(
+//  * `
+//  * 50,72|NULL|500
+//  * ctrl|true|50
+//  * A|NULL|0
+//  * ctrl|false|50
+//  * `
+//  * )
+//  * ```
+//  * @param t2cStr 
+//  */
+// export function sendKeyT2C(...t2cStr: string[]) {
+
+// }
+// /**
+//  * 执行t2c 脚本 (同步)
+//  * - 第一位是事件名称 例如 点击：click 按键A：A 按键Ctrl：ctrl 鼠标移动：60,50 
+//  * - 第二位是按下或者松开 NULL为按下立刻松开
+//  * - 第三位是延迟时间ms 为0立刻执行
+//  * -----------------------
+//  * - 单击键盘事件T2C语法： click|NULL|500  事件名称|NULL=单击|延迟时间
+//  * 
+//  * @example ```javascript
+//  * hmc.sendKeyT2C(
+//  * `
+//  * 50,72|NULL|500
+//  * ctrl|true|50
+//  * A|NULL|0
+//  * ctrl|false|50
+//  * `
+//  * )
+//  * ```
+//  * @param t2cStr 
+//  */
+// export function sendKeyT2CSync(...t2cStr: string[]) {
+
+// }
+/**
+    * 截屏指定的宽高坐标 并将其存储写入为文件 
+    * @param FilePath 文件路径
+    * @param x 从左边的哪里开始 为空为0
+    * @param y 从顶部的哪里开始 为空为0
+    * @param width 宽度
+    * @param height 高度
+    */
+export function captureBmpToFile(FilePath: string, x: number | null, y: number | null, width: number | null, height: number | null) {
+    native.captureBmpToFile(ref.string(FilePath), ref.int(x || 0), ref.int(y || 0), ref.int(width || 0), ref.int(height || 0))
+}
+/**
+ * 发送键盘事件
+ * @param keyCode 键值
+ * @param keyDown 是否按下
+ * 
+ */
+export function sendKeyboard(keyCode: number | string, keyDown: boolean | null) {
+    let vk = vkKey(keyCode);
+    if (!vk) throw new Error("The currently entered keyboard key name/key value does not exist");
+    if (keyDown === null) {
+        native.sendKeyboard(vk);
+
+    } else
+        native.sendKeyboard(vk, ref.bool(keyDown));
+};
+
+/**
+ * 发送键盘事件序列
+ * @example ```javascript
+ * hmc.sendKey(
+ * // 数组序列 
+ * ['ctrl',50] , // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',null] , // 执行ctrl 点击事件(按下立刻放开)
+ * ['ctrl',true,50] , // 50毫秒以后按下ctrl不放开
+ * ['ctrl',fasle,50] , // 50毫秒以后将ctrl放开
+ * 
+ *  // 对象序列
+ * {key:"ctrl",} // ctrl键 点击事件(按下立刻放开)
+ * {key:"ctrl",ms:50} // 50毫秒以后执行ctrl 点击事件(按下立刻放开)
+ * {key:"ctrl",down:false,ms:50} // 50毫秒以后将ctrl放开
+ * )
+ * ```
+ */
+export function sendKeyboardSequence(...keys: Array<{ key: number | string, down?: boolean, ms?: number } | [number | string, boolean | number | null, number]>) {
+    (async () => {
+        for (let index = 0; index < keys.length; index++) {
+            const of_key = keys[index];
+            if (Array.isArray(of_key)) {
+                if(of_key?.[2]){
+                    let ms = ref.int(of_key?.[2]);
+                    await Sleep(ms);
+                }
+                if(of_key.length<2)continue;
+                sendKeyboard(of_key[0], typeof of_key?.[1] == "boolean" ? of_key?.[1] : null);
+            }
+            else if (typeof of_key == "object") {
+                let keys = Object.keys(of_key);
+                if(!keys.includes("key"))continue;
+                if(keys.includes("ms")){
+                    let ms = ref.int(of_key.ms);
+                    await Sleep(ms);
+                }
+                sendKeyboard(of_key.key,typeof of_key.down== "undefined"?null:of_key.down);
+            }
+        }
+
+    })();
+
+};
+/**
+ * 获取屏幕指定区域的颜色
+ * @param x 左边开始的坐标
+ * @param y 从上面开始的坐标
+ * @returns 
+ */
+export function getColor(x: number, y: number) {
+    return native.getColor(ref.int(x), ref.int(y));
+}
+/**
+ * 执行标准快捷键
+ * @param basicCout 四大按键的包含表
+ * @param KeyCode 执行的键码(如果表中有可以忽略) 
+ * @example ```javascript
+ * // ctrl + shift +A 
+ * hmc.sendBasicKeys({"ctrl","shift",key:"A"});
+ * hmc.sendBasicKeys({"ctrl","shift"},"A");
+ * 
+ * ```
+ */
+export function sendBasicKeys(basicCout: HMC.BasicCout, KeyCode?: number | string): void;
+/**
+ * 执行标准快捷键
+ * @param basicKeysStr 快捷键内容
+ * @example ```javascript
+ * // ctrl + shift +A 
+ * hmc.sendBasicKeys("ctrl+shift+A");
+ * 
+ */
+export function sendBasicKeys(basicKeysStr: string): void;
+/**
+ * 执行标准快捷键(标准化输入)
+ * @param ctrlKey 组合中含有ctrl
+ * @param shiftKey 组合中含有shift
+ * @param altKey 组合中含有alt
+ * @param winKey 组合中含有win
+ * @param KeyCode 键盘隐射值
+ */
+export function sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number | string): void;
+
+/**
+ * 执行标准快捷键
+ * @param ctrlKey 组合中含有ctrl
+ * @param shiftKey 组合中含有shift
+ * @param altKey 组合中含有alt
+ * @param winKey 组合中含有win
+ * @param KeyCode 键盘隐射值
+ * @returns 
+ */
+export function sendBasicKeys(ctrlKey: unknown, shiftKey?: unknown, altKey?: unknown, winKey?: unknown, KeyCode?: unknown): void {
+    let _ctrlKey = false, _shiftKey = false, _altKey = false, _winKey = false;
+    let _KeyCode: number | null = null;
+
+    // hmc.sendBasicKeys({"ctrl","shift",key:"A"});   or   hmc.sendBasicKeys({"ctrl","shift"},"A");
+    if (ctrlKey && typeof ctrlKey == "object") {
+        let keys = Object.keys(ctrlKey);
+        if (!keys.includes("key") && !keys.includes("code") && !vkKey(shiftKey)) {
+            throw new Error("The current function requires other keys, not only (ctrl, shift, ait, win)");
+        }
+        _ctrlKey = keys.includes("ctrl") ? true : false;
+        _shiftKey = keys.includes("shift") ? true : false;
+        _altKey = keys.includes("alt") ? true : false;
+        _winKey = keys.includes("win") ? true : false;
+        // @ts-expect-error
+        _KeyCode = vkKey(ctrlKey?.key || ctrlKey?.code || shiftKey || 0);
+    }
+    // hmc.sendBasicKeys("ctrl+shift+A");
+    else
+        if (typeof ctrlKey == "string") {
+            _ctrlKey = ctrlKey.includes("ctrl") ? true : false;
+            _shiftKey = ctrlKey.includes("shift") ? true : false;
+            _altKey = ctrlKey.includes("alt") ? true : false;
+            _winKey = ctrlKey.includes("win") ? true : false;
+            _KeyCode = vkKey(ctrlKey.replace(/[+]|ctrl|shift|alt|win/g, ''));
+        }
+        else {
+            _ctrlKey = ctrlKey ? true : false;
+            _shiftKey = shiftKey ? true : false;
+            _altKey = altKey ? true : false;
+            _winKey = winKey ? true : false;
+            _KeyCode = vkKey(KeyCode);
+        }
+    if ((_ctrlKey || _shiftKey || _altKey || _winKey) && _KeyCode !== null) {
+        native.sendBasicKeys(ref.bool(_ctrlKey), ref.bool(_shiftKey), ref.bool(_altKey), ref.bool(_winKey), ref.int(_KeyCode));
+    } else {
+        throw new Error("The current function can only execute standard shortcuts and cannot enter a key value alone or without a regular keystroke")
+    }
+}
+
 class Iohook_Keyboard {
     private _onlistenerCountList = {
         close: [] as Function[],
@@ -4553,7 +4731,9 @@ class Iohook_Keyboard {
         let start = native.isStartKeyboardHook();
         if (start) throw new Error("the Task Has Started.");
         native.installKeyboardHook();
-
+        if (native.isStartKeyboardHook()) {
+            keyboardHook._Close = false;
+        }
         keyboardHook.emit("start");
         let emit_getKeyboardNextSession = () => {
             let getKeyboardNextSession = native.getKeyboardNextSession();
@@ -4670,6 +4850,10 @@ export const keyboardHook = new Iohook_Keyboard();
 
 // 自动化工具集   (拥有统一化名称) 
 export const Auto = {
+    sendKeyboard,
+    sendKeyboardSequence,
+    getColor,
+    sendBasicKeys,
     setWindowEnabled,
     setCursorPos,
     mouse,
@@ -4718,10 +4902,10 @@ export const Process = {
     match: getProcessNameList,
     matchDetails: getDetailsProcessNameList,
     getDetailsList: getDetailsProcessList,
-    parentID:getProcessParentProcessID,
-    mianPID:getProcessParentProcessID,
-    subPID:getSubProcessID,
-    threadList:getProcessThreadList
+    parentID: getProcessParentProcessID,
+    mianPID: getProcessParentProcessID,
+    subPID: getSubProcessID,
+    threadList: getProcessThreadList
 }
 
 //注册表编辑合集   (拥有统一化名称)
@@ -4942,168 +5126,210 @@ export const registr = {
     removeStringTree,
     isRegistrTreeKey,
 };
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export function _popen(cmd: string) {
+    return native.popen(ref.string(cmd));
+}
+/**
+ * 判断互斥体文本是否存在
+ * @param MutexName 互斥体文本
+ * @returns 
+ */
+export function hasMutex(MutexName: string){
+    return native.hasMutex(ref.string(MutexName));
+}
+/**
+ * 创建互斥体文本并返回结果 
+ * ?(无法移除 除非当前进程退出 互斥体具有唯一性) 
+ * ? 可以用于判断进程是否重复启动
+ * @param MutexName 互斥体文本
+ * @returns 
+ */
+export function createMutex(MutexName: string){
+    return native.createMutex(ref.string(MutexName));
+}
 
+/**
+* 创建管道并执行命令
+* @param cmd 命令
+*/
+export function popen(cmd: string) {
+    return native.popen(ref.string(cmd));
+}
 
 export const Registr = registr;
 export const hmc = {
+    createMutex,
+    hasMutex,
     Auto,
-  Clipboard,
-  HMC,
-  HWND,
-  MessageError,
-  MessageStop,
-  Process,
-  Registr,
-  SetBlockInput,
-  SetSystemHOOK,
-  SetWindowInTaskbarVisible,
-  Shell,
-  Sleep,
-  Usb,
-  Watch,
-  WatchWindowForeground,
-  WatchWindowPoint,
-  WebView2OnlineInstall,
-  Window,
-  alert,
-  analysisDirectPath,
-  clearClipboard,
-  closedHandle,
-  confirm,
-  createDirSymlink,
-  createHardLink,
-  createPathRegistr,
-  createSymlink,
-  deleteFile,
-  desc,
-  enumAllProcess,
-  enumChildWindows,
-  enumProcessHandle,
-  enumRegistrKey,
-  formatVolumePath,
-  freePort,
-  getAllWindows,
-  getAllWindowsHandle,
-  getBasicKeys,
-  getClipboardFilePaths,
-  getClipboardSequenceNumber,
-  getClipboardText,
-  getConsoleHandle,
-  getCurrentMonitorRect,
-  getDetailsProcessList,
-  getDetailsProcessNameList,
-  getDeviceCaps,
-  getDeviceCapsAll,
-  getForegroundWindow,
-  getForegroundWindowProcessID,
-  getHandleProcessID,
-  getHidUsbList,
-  getMainWindow,
-  getMetrics,
-  getModulePathList,
-  getMouseMovePoints,
-  getNumberRegKey,
-  getPointWindow,
-  getPointWindowMain,
-  getPointWindowName,
-  getPointWindowProcessId,
-  getProcessHandle,
-  getProcessList,
-  getProcessName,
-  getProcessNameList,
-  getProcessParentProcessID,
-  getProcessThreadList,
-  getProcessidFilePath,
-  getRegistrBuffValue,
-  getRegistrDword,
-  getRegistrQword,
-  getShortcutLink,
-  getStringRegKey,
-  getSubProcessID,
-  getSystemIdleTime,
-  getSystemMenu,
-  getSystemMetricsLen,
-  getTrayList,
-  getUsbDevsInfo,
-  getVolumeList,
-  getWebView2Info,
-  getWindowClassName,
-  getWindowRect,
-  getWindowStyle,
-  getWindowTitle,
-  hasKeyActivate,
-  hasPortTCP,
-  hasPortUDP,
-  hasProcess,
-  hasRegistrKey,
-  hasWebView2,
-  hasWindowTop,
-  hideConsole,
-  isAdmin,
-  isEnabled,
-  isHandle,
-  isHandleWindowVisible,
-  isInMonitorWindow,
-  isMouseMonitorWindow,
-  isProcess,
-  isRegistrTreeKey,
-  isSystemX64,
-  keyboardHook,
-  killProcess,
-  killProcessName,
-  leftClick,
-  listRegistrPath,
-  lookHandleCloseWindow,
-  lookHandleGetTitle,
-  lookHandleSetTitle,
-  lookHandleShowWindow,
-  messageBox,
-  mouse,
-  mouseHook,
-  native,
-  openApp,
-  openExternal,
-  openPath,
-  openRegKey,
-  openURL,
-  platform,
-  powerControl,
-  processWatchdog,
-  ref,
-  registr,
-  removeStringRegKey,
-  removeStringRegKeyWalk,
-  removeStringRegValue,
-  removeStringTree,
-  rightClick,
-  setClipboardFilePaths,
-  setClipboardText,
-  setCloseWindow,
-  setCursorPos,
-  setHandleTransparent,
-  setRegistrDword,
-  setRegistrKey,
-  setRegistrQword,
-  setShortcutLink,
-  setShowWindow,
-  setWindowEnabled,
-  setWindowFocus,
-  setWindowMode,
-  setWindowTitle,
-  setWindowTop,
-  showConsole,
-  showMonitors,
-  shutMonitors,
-  sleep,
-  system,
-  systemChcp,
-  systemStartTime,
-  trash,
-  updateWindow,
-  version,
-  watchClipboard,
-  watchUSB,
-  windowJitter
+    Clipboard,
+    HMC,
+    HWND,
+    MessageError,
+    MessageStop,
+    Process,
+    Registr,
+    SetBlockInput,
+    SetSystemHOOK,
+    SetWindowInTaskbarVisible,
+    Shell,
+    Sleep,
+    Usb,
+    Watch,
+    WatchWindowForeground,
+    WatchWindowPoint,
+    WebView2OnlineInstall,
+    Window,
+    _popen,
+    alert,
+    analysisDirectPath,
+    captureBmpToFile,
+    clearClipboard,
+    closedHandle,
+    confirm,
+    createDirSymlink,
+    createHardLink,
+    createPathRegistr,
+    createSymlink,
+    deleteFile,
+    desc,
+    enumAllProcessHandle,
+    enumChildWindows,
+    enumProcessHandle,
+    enumRegistrKey,
+    formatVolumePath,
+    freePort,
+    getAllWindows,
+    getAllWindowsHandle,
+    getBasicKeys,
+    getClipboardFilePaths,
+    getClipboardSequenceNumber,
+    getClipboardText,
+    getColor,
+    getConsoleHandle,
+    getCurrentMonitorRect,
+    getDetailsProcessList,
+    getDetailsProcessNameList,
+    getDeviceCaps,
+    getDeviceCapsAll,
+    getForegroundWindow,
+    getForegroundWindowProcessID,
+    getHandleProcessID,
+    getHidUsbList,
+    getMainWindow,
+    getMetrics,
+    getModulePathList,
+    getMouseMovePoints,
+    getNumberRegKey,
+    getPointWindow,
+    getPointWindowMain,
+    getPointWindowName,
+    getPointWindowProcessId,
+    getProcessHandle,
+    getProcessList,
+    getProcessName,
+    getProcessNameList,
+    getProcessParentProcessID,
+    getProcessThreadList,
+    getProcessidFilePath,
+    getRegistrBuffValue,
+    getRegistrDword,
+    getRegistrQword,
+    getShortcutLink,
+    getStringRegKey,
+    getSubProcessID,
+    getSystemIdleTime,
+    getSystemMenu,
+    getSystemMetricsLen,
+    getTrayList,
+    getUsbDevsInfo,
+    getVolumeList,
+    getWebView2Info,
+    getWindowClassName,
+    getWindowRect,
+    getWindowStyle,
+    getWindowTitle,
+    hasKeyActivate,
+    hasPortTCP,
+    hasPortUDP,
+    hasProcess,
+    hasRegistrKey,
+    hasWebView2,
+    hasWindowTop,
+    hideConsole,
+    isAdmin,
+    isEnabled,
+    isHandle,
+    isHandleWindowVisible,
+    isInMonitorWindow,
+    isMouseMonitorWindow,
+    isProcess,
+    isRegistrTreeKey,
+    isSystemX64,
+    keyboardHook,
+    killProcess,
+    killProcessName,
+    leftClick,
+    listRegistrPath,
+    lookHandleCloseWindow,
+    lookHandleGetTitle,
+    lookHandleSetTitle,
+    lookHandleShowWindow,
+    messageBox,
+    mouse,
+    mouseHook,
+    native,
+    openApp,
+    openExternal,
+    openPath,
+    openRegKey,
+    openURL,
+    platform,
+    popen,
+    powerControl,
+    processWatchdog,
+    ref,
+    registr,
+    removeStringRegKey,
+    removeStringRegKeyWalk,
+    removeStringRegValue,
+    removeStringTree,
+    rightClick,
+    sendBasicKeys,
+    sendKeyboard,
+    sendKeyboardSequence,
+    setClipboardFilePaths,
+    setClipboardText,
+    setCloseWindow,
+    setCursorPos,
+    setHandleTransparent,
+    setRegistrDword,
+    setRegistrKey,
+    setRegistrQword,
+    setShortcutLink,
+    setShowWindow,
+    setWindowEnabled,
+    setWindowFocus,
+    setWindowIconForExtract,
+    setWindowMode,
+    setWindowTitle,
+    setWindowTop,
+    showConsole,
+    showMonitors,
+    shutMonitors,
+    sleep,
+    system,
+    systemChcp,
+    systemStartTime,
+    trash,
+    updateWindow,
+    version,
+    watchClipboard,
+    watchUSB,
+    windowJitter
 }
 export default hmc;
 

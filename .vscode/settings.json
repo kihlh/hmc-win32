@@ -75,6 +75,9 @@
         "codecvt": "cpp",
         "filesystem": "cpp",
         "regex": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "xmemory0": "cpp",
+        "string_view": "cpp",
+        "xthread": "cpp"
     }
 }

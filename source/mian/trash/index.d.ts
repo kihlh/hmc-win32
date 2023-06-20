@@ -10,14 +10,14 @@ declare function systemChcp(): Promise<{
 /**
  * C++中的坐标
  */
-export declare type cPOINT = {
+export type cPOINT = {
     x: number;
     y: number;
 };
 /**
  * C++ 中的 位置定义
  */
-export declare type cRECT = {
+export type cRECT = {
     left: number;
     top: number;
     right: number;
@@ -951,7 +951,7 @@ declare class hmc_win32 {
      * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
      * @returns
      */
-    messageBox(message: string, title: string, UINT_String: UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+    messageBox(message: string, title: string, UINT_String: UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
     /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
     mouse(mouse_event: mouse_event, ms?: number): void;
     /**
@@ -1444,7 +1444,7 @@ declare class hmc_win32 {
         isInMonitor: (Handle: number | HWND) => boolean;
         isMouseMonitor: (Handle: number) => boolean;
         HWND: typeof HWND;
-        setMode: (HWND: number | HWND, x: number | null | 0 | SetWindowRect, y?: number | null | 0, width?: number | null | 0, height?: number | null | 0) => boolean;
+        setMode: (HWND: HWND | number, x: number | null | 0 | SetWindowRect, y?: number | null | 0, width?: number | null | 0, height?: number | null | 0) => boolean;
         getAllWindows: () => {
             className: string;
             handle: number;
@@ -1828,7 +1828,7 @@ export declare let mouse_event_list: {
 /**
  * 设置窗口坐标
  */
-export declare type SetWindowRect = {
+export type SetWindowRect = {
     /**
      * (right) 从屏幕右边到所在位置得像素数
      */
@@ -2630,5 +2630,5 @@ export declare const window: hmc_win32["window"];
 export declare const watch: hmc_win32["watch"];
 export { native };
 export default hmc;
-declare type SystemDecoderKey = keyof chcpList;
-declare type SystemDecoder = chcpList[SystemDecoderKey];
+type SystemDecoderKey = keyof chcpList;
+type SystemDecoder = chcpList[SystemDecoderKey];

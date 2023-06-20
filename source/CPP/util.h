@@ -64,3 +64,5 @@ bool rectInRect(hmcRect inRect, hmcRect mian);
 hmcRect RECT2Rect(RECT inputRect);
 bool RECTinRECT(RECT inRect, RECT mian);
 bool pointInRect(POINT pt, hmcRect rect);
+bool isInside(int x1, int y1, int x2, int y2, int x, int y);
+vector<RECT> GetDeviceCapsAll();

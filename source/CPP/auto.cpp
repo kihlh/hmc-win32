@@ -10,15 +10,8 @@ vector<vector<int>> MouseRecordList;
 int oid_is_key_Down = 0;
 int oid_is_key_vkCode = 0;
 
-LRESULT CALLBACK LowLevelKeyboardProc(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
+void asyncLowLevelKeyboardProc(KBDLLHOOKSTRUCT *ks)
 {
-    // 没有键值
-    if (nCode < 0)
-    {
-        return CallNextHookEx(NULL, nCode, wParam, lParam);
-    }
-
-    KBDLLHOOKSTRUCT *ks = (KBDLLHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
     bool is_Down = false;
     if (ks->flags < 128)
     {
@@ -35,6 +28,17 @@ LRESULT CALLBACK LowLevelKeyboardProc(_In_ int nCode, _In_ WPARAM wParam, _In_ L
         oid_is_key_vkCode = vkCode;
         KeyboardRecordList.push_back(push);
     }
+}
+LRESULT CALLBACK LowLevelKeyboardProc(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+    // 没有键值
+    if (nCode < 0)
+    {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+
+    KBDLLHOOKSTRUCT *ks = (KBDLLHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
+    std::thread(asyncLowLevelKeyboardProc, ks).detach();
 
     // 将消息传递给钩子链中的下一个钩子
     return CallNextHookEx(NULL, nCode, wParam, lParam);
@@ -45,18 +49,12 @@ int oid_MouseRecord_y = 0;
 int oid_MouseRecord_isDown = 0;
 clock_t MouseRecord_update_time = clock();
 
-LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
+void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
 {
-    // 没有键值
-    if (nCode < 0)
-    {
-        return CallNextHookEx(NULL, nCode, wParam, lParam);
-    }
 
-    MOUSEHOOKSTRUCT *ms = (MOUSEHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
     int x = 0;
     int y = 0;
-    int isDown = 0;
+    int isDown = wParam == WM_LBUTTONDOWN ? 1 : 0;
     if (ms->pt.x > 0 && ms->pt.x < 400000000)
     {
         x = ms->pt.x;
@@ -66,9 +64,6 @@ LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM 
         y = ms->pt.y;
     }
 
-    // 按下了
-    if (wParam == WM_LBUTTONDOWN)
-        isDown = 1;
     // 降低反馈的刷新激进程度 为每次相距10px以上（且间隔15ms）  或者有松放变化 或者超过45ms 数据无变化时拒绝反馈
     clock_t end = clock();
 
@@ -94,6 +89,18 @@ LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM 
         }
     // cout << x << "-" << y << "-" << isDown << endl;
     // 将消息传递给钩子链中的下一个钩子
+}
+
+LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+    // 没有键值
+    if (nCode < 0)
+    {
+        return CallNextHookEx(NULL, nCode, wParam, lParam);
+    }
+    WPARAM _wParam = wParam + 0;
+    MOUSEHOOKSTRUCT *ms = (MOUSEHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
+    std::thread(asyncCallMouseHook, _wParam, ms).detach();
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
@@ -190,14 +197,38 @@ napi_value installHookMouse(napi_env env, napi_callback_info info)
 napi_value unKeyboardHook(napi_env env, napi_callback_info info)
 {
     Keyboard_HOOK_next = false;
-    KeyboardRecordList.clear();
+    if (KeyboardRecordList.size() > 0)
+    {
+        for (size_t i = 0; i < KeyboardRecordList.size(); i++)
+        {
+            // 释放数组 里的int数组内存
+            KeyboardRecordList[i].clear();
+        }
+        // 释放数组
+        for (size_t i = 0; i < KeyboardRecordList.size(); i++)
+        {
+            KeyboardRecordList.erase(KeyboardRecordList.begin());
+        }
+    }
     return NULL;
 }
 
 napi_value unHookMouse(napi_env env, napi_callback_info info)
 {
     Mouse_HOOK_next = false;
-    MouseRecordList.clear();
+    if (MouseRecordList.size() > 0)
+    {
+        for (size_t i = 0; i < MouseRecordList.size(); i++)
+        {
+            // 释放数组 里的int数组内存
+            MouseRecordList[i].clear();
+        }
+        // 释放数组
+        for (size_t i = 0; i < MouseRecordList.size(); i++)
+        {
+            MouseRecordList.erase(MouseRecordList.begin());
+        }
+    }
     return NULL;
 }
 
@@ -500,3 +531,500 @@ napi_value mouse(napi_env env, napi_callback_info info)
     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     return NULL;
 }
+
+UINT _sendInput(UINT cInputs, LPINPUT pInputs, int cbSize)
+{
+    HMODULE hUser32 = LoadLibraryA("user32.dll");
+    UINT uSent;
+    uSent = 0;
+    if (hUser32)
+    {
+        UINT(_stdcall * pSendInput)
+        (UINT cInputs, LPINPUT pInputs, int cbSize);
+
+        pSendInput = (UINT(_stdcall *)(UINT cInputs, LPINPUT pInputs, int cbSize))GetProcAddress(hUser32, "SendInput");
+        if (pSendInput)
+        {
+            uSent = pSendInput(cInputs, pInputs, cbSize);
+        }
+        FreeLibrary(hUser32);
+    }
+    return uSent;
+}
+
+bool util_sendKeyboardSingle(WORD keyCode, bool keyDown)
+{
+
+    // sendInput很奇怪的bug 当调用取消Win按下的时候他主动按下了一次
+    // Keyboard {vKey: 91, __isDown: true, keyCode: 91, key: 'Win', code: 'MetaLeft'}
+    //  Keyboard {vKey: 82, __isDown: true, keyCode: 82, key: 'R', code: 'KeyR'}
+    //  Keyboard {vKey: 82, __isDown: false, keyCode: 82, key: 'R', code: 'KeyR'}
+    //  Keyboard {vKey: 91, __isDown: true, keyCode: 91, key: 'Win', code: 'MetaLeft'}
+    //  Keyboard {vKey: 91, __isDown: false, keyCode: 91, key: 'Win', code: 'MetaLeft'}
+    if (keyDown == NULL)
+    {
+        INPUT inputs[2] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = keyCode;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = keyCode;
+        inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+        UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    INPUT inputs[1] = {};
+    ZeroMemory(inputs, sizeof(inputs));
+
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = keyCode;
+
+    if (!keyDown)
+    {
+        inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+    }
+
+    UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    if (uSent != ARRAYSIZE(inputs))
+    {
+        return false;
+    }
+
+    return true;
+    // keybd_event还是一样 留着以后解决  三金刚按键的响应单独的api完成
+    // if (keyDown == NULL)
+    // {
+    //     INPUT inputs[2] = {};
+    //     ZeroMemory(inputs, sizeof(inputs));
+    //     inputs[0].type = INPUT_KEYBOARD;
+    //     inputs[0].ki.wVk = keyCode;
+
+    //     inputs[1].type = INPUT_KEYBOARD;
+    //     inputs[1].ki.wVk = keyCode;
+    //     inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+    //     UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    //     if (uSent != ARRAYSIZE(inputs))
+    //     {
+    //         return false;
+    //     }
+    //     return true;
+    // }
+    // else if (!keyDown)
+    // {
+    //     keybd_event(keyCode, KEYEVENTF_KEYUP, 0, 0); // 放开C键
+    //     return true;
+    // }
+
+    // INPUT inputs[1] = {};
+    // ZeroMemory(inputs, sizeof(inputs));
+
+    // inputs[0].type = INPUT_KEYBOARD;
+    // inputs[0].ki.wVk = keyCode;
+
+    // UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    // if (uSent != ARRAYSIZE(inputs))
+    // {
+    //     return false;
+    // }
+
+    // return true;
+}
+
+// 自定义点击事件
+napi_value sendKeyboard(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    const size_t M_Size = 2;
+    size_t argc = M_Size;
+    napi_value argv[M_Size];
+    status = $napi_get_cb_info(argc, argv);
+    napi_value results = _create_bool_Boolean(env, false);
+
+    // argv ...
+    int32_t keyCode;
+    bool keyDown = NULL;
+
+    // 检测参数合法性
+
+    switch (argc)
+    {
+    case 0:
+        hmc_is_argc_size(argc, 1, results);
+        break;
+    case 1:
+        napi_get_value_int32(env, argv[0], &keyCode);
+        hmc_is_argv_type(argv, 0, NULL, napi_number, results);
+        break;
+    case 2:
+        napi_get_value_int32(env, argv[0], &keyCode);
+        hmc_is_argv_type(argv, 1, NULL, napi_boolean, results);
+        napi_get_value_bool(env, argv[1], &keyDown);
+        break;
+    }
+
+    results = _create_bool_Boolean(env, util_sendKeyboardSingle(keyCode, keyDown));
+
+    return results;
+}
+
+struct keyDown_T2C_Conte
+{
+    int keyCode;
+    bool isDown;
+    int ms;
+};
+
+// 判断内容是否为全数字
+bool is_digits(const string &str)
+{
+    return all_of(str.begin(), str.end(), ::isdigit);
+}
+
+// 执行t2c指令 因为napi序列化 数组和对象很容易导致进程噶掉 直接使用 文本转数组安全高效
+// t2c =>  keyCode|keyCode|
+// HMC_x64.sendKeyT2C(`0|true|50
+// 92|false|100
+// 98|true|200
+// 0x68|true|20
+// 0x53|true|40
+// `)
+
+void textKeyCode2Vector(string input, vector<keyDown_T2C_Conte> *T2C_List)
+{
+    size_t line_pos = 0;
+    string line_token;
+
+    while ((line_pos = input.find("\n")) != string::npos)
+    {
+        line_token = input.substr(0, line_pos);
+        line_token.append("|");
+        vector<string> arr;
+        size_t single_pos = 0;
+        string single_token;
+
+        // line_token => 0|true|50|
+
+        while ((single_pos = line_token.find("|")) != string::npos)
+        {
+            single_token = line_token.substr(0, single_pos);
+            arr.push_back(single_token);
+            line_token.erase(0, single_pos + 1);
+        }
+
+        //   arr =>  [0,true,50]
+        if (arr.size() >= 3)
+        {
+            if (is_digits(arr[2]) && is_digits(arr[0]))
+            {
+                keyDown_T2C_Conte t2c;
+                // t2c.ms = stoll(arr[2].c_str());
+                // t2c.keyCode = stoll(arr[0].c_str());
+                try
+                {
+                    //  此处不使用 stoll  因为 key值肯定没那么大 超过int了 必然是错误的
+                    t2c.ms = atoi(arr[2].c_str());
+                    t2c.keyCode = atoi(arr[0].c_str());
+                }
+                catch (const std::exception &e)
+                {
+                    t2c.ms = 0;
+                    t2c.keyCode = 0;
+                };
+
+                // bool = .isDown
+                if (arr[1] == "true")
+                {
+                    t2c.isDown = true;
+                }
+                else if (arr[1] == "false")
+                {
+                    t2c.isDown = false;
+                }
+                else
+                {
+                    t2c.isDown = NULL;
+                }
+                if (t2c.ms < 9999999 && t2c.ms >= 0 && t2c.keyCode > 0 && t2c.keyCode < 9999)
+                    T2C_List->push_back(t2c);
+            }
+        }
+        input.erase(0, line_pos + 1);
+    }
+}
+
+int util_sendKeyT2C(string send_t2cStrA)
+{
+    vector<keyDown_T2C_Conte> T2C_List;
+    textKeyCode2Vector(send_t2cStrA, &T2C_List);
+
+    for (size_t i = 0; i < T2C_List.size(); i++)
+    {
+        keyDown_T2C_Conte t2c = T2C_List[i];
+        // cout << "t2c=>"
+        //      << "key:" << t2c.keyCode << ",down:" << t2c.isDown << ",ms:" << t2c.ms << endl;
+        if (t2c.ms != 0)
+        {
+            Sleep(t2c.ms);
+        }
+        util_sendKeyboardSingle(t2c.keyCode, t2c.isDown);
+    }
+}
+// 自定t2c指令解析
+napi_value sendKeyT2CSync(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    const size_t M_Size = 2;
+    size_t argc = M_Size;
+    napi_value argv[M_Size];
+    status = $napi_get_cb_info(argc, argv);
+    string send_textA;
+    // argv ...
+    char sendCodeStr;
+    switch (argc)
+    {
+    case 0:
+        hmc_is_argc_size(argc, 1, NULL);
+        break;
+    case 1:
+        send_textA = call_String_NAPI_WINAPI_A(env, argv[0]);
+        hmc_is_argv_type(argv, 0, NULL, napi_string, NULL);
+        break;
+    }
+    util_sendKeyT2C(send_textA);
+    return NULL;
+}
+
+// 自定t2c指令解析
+napi_value sendKeyT2C(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    const size_t M_Size = 2;
+    size_t argc = M_Size;
+    napi_value argv[M_Size];
+    status = $napi_get_cb_info(argc, argv);
+    string send_textA;
+    // argv ...
+    char sendCodeStr;
+    switch (argc)
+    {
+    case 0:
+        hmc_is_argc_size(argc, 1, NULL);
+        break;
+    case 1:
+        send_textA = call_String_NAPI_WINAPI_A(env, argv[0]);
+        hmc_is_argv_type(argv, 0, NULL, napi_string, NULL);
+        break;
+    }
+    std::thread(util_sendKeyT2C, send_textA).detach();
+    // util_sendKeyT2C(send_textA);
+    return NULL;
+}
+
+// 自定义 标准快捷键响应
+napi_value sendBasicKeys(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    const size_t M_Size = 5;
+    size_t argc = M_Size;
+    napi_value argv[M_Size];
+    status = $napi_get_cb_info(argc, argv);
+    hmc_is_argc_size(argc, 5, NULL);
+    hmc_is_argv_type(argv, 0, 4, napi_boolean, NULL);
+    hmc_is_argv_type(argv, 4, NULL, napi_number, NULL);
+    napi_value results = _create_bool_Boolean(env, false);
+    bool ctrlKey, shiftKey, altKey, winKey;
+    int keyCode;
+    // sendBasicKeys(ctrlKey, shiftKey, altKey, winKey , keyCode);
+    napi_get_value_bool(env, argv[0], &ctrlKey);
+    napi_get_value_bool(env, argv[1], &shiftKey);
+    napi_get_value_bool(env, argv[2], &altKey);
+    napi_get_value_bool(env, argv[3], &winKey);
+    napi_get_value_int32(env, argv[4], &keyCode);
+    WORD _ctrlKey = 162;
+    WORD _shiftKey = 160;
+    WORD _winKey = 91;
+    WORD _altKey = 164;
+    
+    if(!ctrlKey)_ctrlKey=NULL;
+    if(!shiftKey)_shiftKey=NULL;
+    if(!winKey)_winKey=NULL;
+    if(!altKey)_altKey=NULL;
+
+    if (keyCode > 9999 || keyCode < 0)
+    {
+        napi_throw_type_error(env, 0, "The number of parameters >9999 and <0 ");
+    }
+    const int hp_size = int(ctrlKey) + int(shiftKey) + int(altKey) + int(winKey);
+ 
+    switch (hp_size)
+    {
+    case 0:
+    {
+        napi_throw_type_error(env, 0, "The ctrlKey,shiftKey,altKey,winKey is All false");
+        return NULL;
+    }
+    case 1:
+    {
+        // 动态创建很容易嘎掉 只能固定了 人和程序有一个能跑就行了
+        INPUT inputs[4] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+        WORD BasicKeys_wVk = ctrlKey ? 162 : shiftKey ? 160
+                                         : altKey     ? 164
+                                                      : 91;
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = BasicKeys_wVk;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = keyCode;
+
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].ki.wVk = keyCode;
+        inputs[2].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[3].type = INPUT_KEYBOARD;
+        inputs[3].ki.wVk = BasicKeys_wVk;
+        inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            return results;
+        }
+        break;
+    }
+    case 2:
+    {
+        INPUT inputs[6] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+        WORD BasicKeys_wVk2 = _altKey?_altKey:_winKey?_winKey:_shiftKey?_shiftKey:_ctrlKey;
+        WORD BasicKeys_wVk1 = _ctrlKey?_ctrlKey:_shiftKey?_shiftKey:_winKey?_winKey:_altKey;
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = BasicKeys_wVk2;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = BasicKeys_wVk1;
+
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].ki.wVk = keyCode;
+
+        inputs[3].type = INPUT_KEYBOARD;
+        inputs[3].ki.wVk = keyCode;
+        inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[4].type = INPUT_KEYBOARD;
+        inputs[4].ki.wVk = BasicKeys_wVk1;
+        inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[5].type = INPUT_KEYBOARD;
+        inputs[5].ki.wVk = BasicKeys_wVk2;
+        inputs[5].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            return results;
+        }
+        break;
+    }
+    case 3:
+    {
+        INPUT inputs[8] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+        WORD BasicKeys_wVk1 = _ctrlKey?_ctrlKey:_shiftKey?_shiftKey:_winKey?_winKey:_altKey;
+        WORD BasicKeys_wVk2 = _altKey?_altKey:_winKey?_winKey:_shiftKey?_shiftKey:_ctrlKey;
+        WORD BasicKeys_wVk3 = _winKey?_winKey:_shiftKey;
+        
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = BasicKeys_wVk2;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = BasicKeys_wVk1;
+
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].ki.wVk = BasicKeys_wVk3;
+
+        inputs[3].type = INPUT_KEYBOARD;
+        inputs[3].ki.wVk = keyCode;
+
+        inputs[4].type = INPUT_KEYBOARD;
+        inputs[4].ki.wVk = keyCode;
+        inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[5].type = INPUT_KEYBOARD;
+        inputs[5].ki.wVk = BasicKeys_wVk1;
+        inputs[5].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[6].type = INPUT_KEYBOARD;
+        inputs[6].ki.wVk = BasicKeys_wVk3;
+        inputs[6].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[7].type = INPUT_KEYBOARD;
+        inputs[7].ki.wVk = BasicKeys_wVk2;
+        inputs[7].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            return results;
+        }
+        break;
+    }
+    case 4:
+    {
+        INPUT inputs[10] = {};
+        ZeroMemory(inputs, sizeof(inputs));
+
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = 162;
+
+        inputs[1].type = INPUT_KEYBOARD;
+        inputs[1].ki.wVk = 160;
+
+        inputs[2].type = INPUT_KEYBOARD;
+        inputs[2].ki.wVk = 164;
+
+        inputs[3].type = INPUT_KEYBOARD;
+        inputs[3].ki.wVk = 91;
+
+        inputs[4].type = INPUT_KEYBOARD;
+        inputs[4].ki.wVk = keyCode;
+
+        inputs[5].type = INPUT_KEYBOARD;
+        inputs[5].ki.wVk = keyCode;
+        inputs[5].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[6].type = INPUT_KEYBOARD;
+        inputs[6].ki.wVk = 162;
+        inputs[6].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[7].type = INPUT_KEYBOARD;
+        inputs[7].ki.wVk = 160;
+        inputs[7].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[8].type = INPUT_KEYBOARD;
+        inputs[8].ki.wVk = 164;
+        inputs[8].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        inputs[9].type = INPUT_KEYBOARD;
+        inputs[9].ki.wVk = 91;
+        inputs[9].ki.dwFlags = KEYEVENTF_KEYUP;
+
+        UINT uSent = _sendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        if (uSent != ARRAYSIZE(inputs))
+        {
+            return results;
+        }
+        break;
+    }
+    }
+
+    results = _create_bool_Boolean(env, true);
+    return results;
+}
+

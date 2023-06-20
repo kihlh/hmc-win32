@@ -406,3 +406,12 @@ bool pointInRECT(POINT pt, RECT inputRect)
     }
     return false;
 }
+
+bool isInside(int x1, int y1, int x2, int y2, int x, int y)
+{
+    if (x > x1 && x < x2 && y > y1 && y < y2)
+        return true;
+    return false;
+}
+
+
