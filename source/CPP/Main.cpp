@@ -2620,7 +2620,7 @@ bool HasMutex(std::string MutexName) {
 
     HANDLE hMutex;
 
-	hMutex = OpenMutex(MUTEX_ALL_ACCESS, FALSE,MutexName.c_str());
+	hMutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE,MutexName.c_str());
 	if (NULL == hMutex)
 	{
         has_mut_exist = false;
