@@ -78,6 +78,20 @@
         "array": "cpp",
         "xmemory0": "cpp",
         "string_view": "cpp",
-        "xthread": "cpp"
+        "xthread": "cpp",
+        "cinttypes": "cpp",
+        "complex": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "numeric": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "shared_mutex": "cpp",
+        "typeindex": "cpp",
+        "unordered_set": "cpp",
+        "variant": "cpp",
+        "any": "cpp"
     }
 }

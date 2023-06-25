@@ -1,0 +1,22 @@
+{
+    "sourceFile": ".vscode/settings.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1687656729302,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1687659351844,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -90,7 +90,8 @@\n         \"set\": \"cpp\",\r\n         \"shared_mutex\": \"cpp\",\r\n         \"typeindex\": \"cpp\",\r\n         \"unordered_set\": \"cpp\",\r\n-        \"variant\": \"cpp\"\r\n+        \"variant\": \"cpp\",\r\n+        \"any\": \"cpp\"\r\n     }\r\n }\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1687656729301,
+            "name": "Commit-0",
+            "content": "{\r\n    \"files.associations\": {\r\n        \"*.hm\": \"json\",\r\n        \"*.javascript\": \"javascript\",\r\n        \"chrono\": \"cpp\",\r\n        \"functional\": \"cpp\",\r\n        \"optional\": \"cpp\",\r\n        \"system_error\": \"cpp\",\r\n        \"type_traits\": \"cpp\",\r\n        \"xlocmon\": \"cpp\",\r\n        \"xlocnum\": \"cpp\",\r\n        \"xtr1common\": \"cpp\",\r\n        \"vector\": \"cpp\",\r\n        \"string\": \"cpp\",\r\n        \"xstring\": \"cpp\",\r\n        \"algorithm\": \"cpp\",\r\n        \"atomic\": \"cpp\",\r\n        \"bit\": \"cpp\",\r\n        \"cctype\": \"cpp\",\r\n        \"charconv\": \"cpp\",\r\n        \"clocale\": \"cpp\",\r\n        \"cmath\": \"cpp\",\r\n        \"compare\": \"cpp\",\r\n        \"concepts\": \"cpp\",\r\n        \"cstddef\": \"cpp\",\r\n        \"cstdint\": \"cpp\",\r\n        \"cstdio\": \"cpp\",\r\n        \"cstdlib\": \"cpp\",\r\n        \"cstring\": \"cpp\",\r\n        \"ctime\": \"cpp\",\r\n        \"cwchar\": \"cpp\",\r\n        \"exception\": \"cpp\",\r\n        \"format\": \"cpp\",\r\n        \"forward_list\": \"cpp\",\r\n        \"initializer_list\": \"cpp\",\r\n        \"iomanip\": \"cpp\",\r\n        \"ios\": \"cpp\",\r\n        \"iosfwd\": \"cpp\",\r\n        \"iostream\": \"cpp\",\r\n        \"istream\": \"cpp\",\r\n        \"iterator\": \"cpp\",\r\n        \"limits\": \"cpp\",\r\n        \"locale\": \"cpp\",\r\n        \"map\": \"cpp\",\r\n        \"memory\": \"cpp\",\r\n        \"mutex\": \"cpp\",\r\n        \"new\": \"cpp\",\r\n        \"ostream\": \"cpp\",\r\n        \"ratio\": \"cpp\",\r\n        \"sstream\": \"cpp\",\r\n        \"stdexcept\": \"cpp\",\r\n        \"stop_token\": \"cpp\",\r\n        \"streambuf\": \"cpp\",\r\n        \"thread\": \"cpp\",\r\n        \"tuple\": \"cpp\",\r\n        \"typeinfo\": \"cpp\",\r\n        \"utility\": \"cpp\",\r\n        \"xfacet\": \"cpp\",\r\n        \"xiosbase\": \"cpp\",\r\n        \"xlocale\": \"cpp\",\r\n        \"xlocbuf\": \"cpp\",\r\n        \"xlocinfo\": \"cpp\",\r\n        \"xlocmes\": \"cpp\",\r\n        \"xloctime\": \"cpp\",\r\n        \"xmemory\": \"cpp\",\r\n        \"xstddef\": \"cpp\",\r\n        \"xtree\": \"cpp\",\r\n        \"xutility\": \"cpp\",\r\n        \"deque\": \"cpp\",\r\n        \"list\": \"cpp\",\r\n        \"stack\": \"cpp\",\r\n        \"unordered_map\": \"cpp\",\r\n        \"xhash\": \"cpp\",\r\n        \"fstream\": \"cpp\",\r\n        \"codecvt\": \"cpp\",\r\n        \"filesystem\": \"cpp\",\r\n        \"regex\": \"cpp\",\r\n        \"array\": \"cpp\",\r\n        \"xmemory0\": \"cpp\",\r\n        \"string_view\": \"cpp\",\r\n        \"xthread\": \"cpp\",\r\n        \"cinttypes\": \"cpp\",\r\n        \"complex\": \"cpp\",\r\n        \"condition_variable\": \"cpp\",\r\n        \"csignal\": \"cpp\",\r\n        \"cstdarg\": \"cpp\",\r\n        \"cwctype\": \"cpp\",\r\n        \"numeric\": \"cpp\",\r\n        \"queue\": \"cpp\",\r\n        \"set\": \"cpp\",\r\n        \"shared_mutex\": \"cpp\",\r\n        \"typeindex\": \"cpp\",\r\n        \"unordered_set\": \"cpp\",\r\n        \"variant\": \"cpp\"\r\n    }\r\n}"
+        }
+    ]
+}
