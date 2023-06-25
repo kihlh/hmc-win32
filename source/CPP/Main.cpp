@@ -34,6 +34,7 @@ napi_value getSystemIdleTime(napi_env env, napi_callback_info info)
     napi_create_int64(env, SystemIdleTime, &sum);
     return sum;
 }
+
 static napi_value systemStartTime(napi_env env, napi_callback_info info)
 {
     // napi_status status;
@@ -2656,6 +2657,23 @@ napi_value hasMutex(napi_env env, napi_callback_info info){
     return  _create_bool_Boolean(env, HasMutex(MutexName));
 }
 
+static napi_value putenv(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value MessageBoxInfo;
+    size_t argc = 2;
+    napi_value args[2];
+    status = $napi_get_cb_info(argc, args);
+    hmc_is_argv_type(args, 0, 2, napi_string, NULL);
+
+    string lpkey = call_String_NAPI_WINAPI_A(env, args[0]);
+    string lpdata = call_String_NAPI_WINAPI_A(env, args[1]);
+
+    int b_Result = _putenv_s(lpkey.c_str(),lpdata.c_str());
+
+    return _create_bool_Boolean(env,b_Result==0);
+}
+
 napi_value __Popen(napi_env env, napi_callback_info info)
 {
     return Popen(env, info);
@@ -2816,6 +2834,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getColor", getColor),                                   //=>5-27ADD
         DECLARE_NAPI_METHOD("createMutex", createMutex),                               //=>6-21ADD
         DECLARE_NAPI_METHOD("hasMutex", hasMutex),                                     //=>6-21ADD
+        DECLARE_NAPI_METHOD("putenv", putenv),                                     //=>6-21ADD
 
     };
     _________HMC_DEBUG__________ = false;

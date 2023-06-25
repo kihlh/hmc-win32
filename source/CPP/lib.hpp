@@ -73,6 +73,20 @@ namespace hmc
             _setIcon((HWND)hWnd, NULL, index);
         }
 
+        void setIcon(HWND hWnd, string iconPath, int index = 0)
+        {
+            HICON hIcon = NULL;
+            HINSTANCE hInst = LoadLibraryA("Shell32.dll");
+            if (hInst)
+            {
+                HICON(WINAPI * ExtractIconA)
+                (HINSTANCE hInst, LPCSTR pszExeFileName, UINT nIconIndex);
+                ExtractIconA = (HICON(WINAPI *)(HINSTANCE hInst, LPCSTR pszExeFileName, UINT nIconIndex))GetProcAddress(hInst, "ExtractIconA");
+                hIcon = ExtractIconA(hInst, iconPath.c_str(), index);
+                FreeLibrary(hInst);
+            }
+        }
+
         void setIcon(long lhWnd, HICON hIcon = NULL)
         {
             _setIcon((HWND)lhWnd, hIcon);
@@ -93,10 +107,23 @@ namespace hmc
         {
             return GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle);
         }
-        HWND getMainWindow() {
+        struct WindowEnv
+        {
+            string title;
+            string execName;
+            string execPath;
+            DWORD pid;
+            HWND hwnd;
+            DWORD dHwnd;
+            
+        };
 
+        WindowEnv getWindowEnv()
+        {
+            WindowEnv winenv;
         }
     }
+
     namespace gui
     {
         /**
@@ -108,20 +135,21 @@ namespace hmc
          */
         string prompt(string info, string input = "")
         {
-            string output ;
-            //std::thread(_prompt, info, input, output).detach();
+            string output;
+            // std::thread(_prompt, info, input, output).detach();
             //_prompt("","", output);
 
-            return  output;
+            return output;
         }
 
     }
-    namespace process {
-        
-     /*   getProcess() {
-            DWORD dwMainThreadId = GetCurrentThreadId();
-            DWORD dwProcessId = GetCurrentProcessId();
+    namespace process
+    {
 
-        }*/
+        /*   getProcess() {
+               DWORD dwMainThreadId = GetCurrentThreadId();
+               DWORD dwProcessId = GetCurrentProcessId();
+
+           }*/
     }
 }

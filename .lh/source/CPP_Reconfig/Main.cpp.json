@@ -1,0 +1,26 @@
+{
+    "sourceFile": "source/CPP_Reconfig/Main.cpp",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 2,
+            "patches": [
+                {
+                    "date": 1687630530611,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1687630575335,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-﻿#include <windows.h>\r\n+#include <windows.h>\r\n #include <assert.h>\r\n #define NAPI_EXPERIMENTAL // 开启实验性功能 比如异步(多线程)\r\n #include <node_api.h>\r\n #include \"./lib/napi_util.hpp\";\r\n"
+                },
+                {
+                    "date": 1687630857892,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,5 @@\n-﻿#include <windows.h>\r\n+#include <windows.h>\r\n #include <assert.h>\r\n #define NAPI_EXPERIMENTAL // 开启实验性功能 比如异步(多线程)\r\n #include <node_api.h>\r\n #include \"./lib/napi_util.hpp\";\r\n"
+                }
+            ],
+            "date": 1687630530611,
+            "name": "Commit-0",
+            "content": "#include <windows.h>\r\n#include <assert.h>\r\n#define NAPI_EXPERIMENTAL // 开启实验性功能 比如异步(多线程)\r\n#include <node_api.h>\r\n#include \".\"\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nstatic napi_value Init(napi_env env, napi_value exports)\r\n{\r\n\r\n    napi_property_descriptor BIND_NAPI_METHOD[] = {\r\n        ADD_NAPI_METHOD_Str_VALUE(\"version\", \"0.0.0\"),\r\n \r\n    };\r\n\r\n    napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);\r\n    return exports;\r\n}\r\n\r\nNAPI_MODULE(NODE_GYP_MODULE_NAME, Init);\r\n"
+        }
+    ]
+}

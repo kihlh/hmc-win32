@@ -4,9 +4,10 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "~\\AppData\\Local\\node-gyp\\Cache\\16.16.0\\include\\node\\**",
-                "~\\AppData\\Local\\node-gyp\\Cache\\**",
-                "~\\AppData\\Local\\node-gyp\\Cache\\\\16.19.1\\include\\node\\**"
+                "${vcpkgRoot}/x64-windows/include",
+                "${vcpkgRoot}/x86-windows/include",
+                "${USERPROFILE}\\AppData\\Local\\node-gyp\\Cache\\**",
+                "D:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\atlmfc\\include"
             ],
             "defines": [
                 "_DEBUG",

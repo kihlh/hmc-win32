@@ -490,7 +490,7 @@ var chcpList = {
 // source/mian/vkKey.ts
 var KeyboardcodeComparisonTable = /* @__PURE__ */ new Map();
 function installKeyboardcodeComparisonTable() {
-  KeyboardcodeEmenList.forEach(function(value, key) {
+  KeyboardcodeEmenList.forEach(function (value, key) {
     if (value.length == 5) {
       if (value[4])
         for (let index = 0; index < value[4].length; index++) {
@@ -1356,7 +1356,7 @@ function analysisDirectPath(Path, atkey) {
 function systemChcp() {
   let result = { code: 437, chcp: chcpList[437] };
   return new Promise((resolve) => {
-    child_process.execFile("chcp", function(err, data) {
+    child_process.execFile("chcp", function (err, data) {
       if (!data || err)
         return resolve(result);
       let sy_Chcp = data.match(/^.+?(\d+)[\r\n]+$/);
@@ -1629,7 +1629,7 @@ function system(str) {
 }
 function freePort() {
   return new Promise((resolve, reject) => {
-    let sock = net.createServer(function() {
+    let sock = net.createServer(function () {
     });
     sock.listen(0, () => {
       var _a;
@@ -1705,7 +1705,7 @@ function watchClipboard(CallBack, nextAwaitMs) {
   let NextAwaitMs = nextAwaitMs || 150;
   let Next = true;
   let oidClipboardSequenceNumber = getClipboardSequenceNumber();
-  (async function() {
+  (async function () {
     while (Next) {
       await Sleep(NextAwaitMs);
       let clipboardSequenceNumber = getClipboardSequenceNumber();
@@ -1739,7 +1739,7 @@ function watchUSB(CallBack, nextAwaitMs, watchType) {
   let start = true;
   if (typeof watchType == "string")
     watchType = [watchType];
-  (async function() {
+  (async function () {
     while (Next) {
       await Sleep(NextAwaitMs);
       let GET_ID_List = new Set(watchType ? [
@@ -1854,7 +1854,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
         }
       }
     );
-    Prom.quit = function() {
+    Prom.quit = function () {
       quit = true;
     };
     return Prom;
@@ -1869,7 +1869,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
     }
   })();
   return {
-    quit: function() {
+    quit: function () {
       quit = true;
     }
   };
@@ -1901,7 +1901,7 @@ function WatchWindowPoint(callback, awaitMs) {
   })();
   return {
     /**结束监听 */
-    quit: function() {
+    quit: function () {
       quit = true;
     },
     /**设置每次延迟事件 */
@@ -1937,7 +1937,7 @@ function WatchWindowForeground(callback, awaitMs) {
   })();
   return {
     /**结束监听 */
-    quit: function() {
+    quit: function () {
       quit = true;
     },
     /**设置每次延迟事件 */
@@ -2451,11 +2451,11 @@ async function WebView2OnlineInstall() {
         buffList.length = 0;
         fs.promises.writeFile(webView2Path, buff).then(() => {
           const spawn = child_process.spawn(webView2Path, webView2InstallCommand, { "windowsHide": true });
-          spawn.on("error", function() {
+          spawn.on("error", function () {
             reject(new Error("Install  WebView2 failure Installation process creation failed"));
             spawn.kill();
           });
-          spawn.once("exit", function() {
+          spawn.once("exit", function () {
             resolve(void 0);
           });
         }).catch((err) => {
@@ -2471,7 +2471,7 @@ function hasWebView2() {
 function hasPortTCP(port, callBack) {
   let resolve = null;
   let prom;
-  let sock = net.createServer(function() {
+  let sock = net.createServer(function () {
   });
   sock.listen(port);
   if (typeof callBack == "function") {
@@ -2481,11 +2481,11 @@ function hasPortTCP(port, callBack) {
       resolve = Prom_resolve;
     });
   }
-  sock.on("error", function(err) {
+  sock.on("error", function (err) {
     resolve && resolve(true);
     sock.close();
   });
-  sock.on("listening", function() {
+  sock.on("listening", function () {
     resolve && resolve(false);
     sock.close();
   });
@@ -2507,11 +2507,11 @@ function hasPortUDP(port, callBack) {
       resolve = Prom_resolve;
     });
   }
-  udp4.on("error", function(err) {
+  udp4.on("error", function (err) {
     resolve && resolve(true);
     udp4.close();
   });
-  udp4.on("listening", function() {
+  udp4.on("listening", function () {
     resolve && resolve(false);
     udp4.close();
   });
@@ -3638,7 +3638,7 @@ var hmc = {
   windowJitter
 };
 var hmc_default = hmc;
-process.on("exit", function() {
+process.on("exit", function () {
   if (SetIohook) {
     native.unHookMouse();
     native.unKeyboardHook();
