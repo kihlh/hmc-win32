@@ -6,137 +6,15 @@ using namespace std;
 
 namespace hmc_text_regexp
 {
-    /**
-     * @brief 文本是否匹配
-     *
-     * @param text
-     * @param RegExpTarget
-     * @return true
-     * @return false
-     */
-    bool hasStrMatch(const string &text, const string &RegExpTarget)
-    {
-
-        regex re(RegExpTarget);
-
-        sregex_iterator it(text.begin(), text.end(), re);
-        sregex_iterator end;
-
-        for (; it != end; ++it)
-        {
-            return true;
-        }
-
-        return false;
-    }
-    /**
-     * @brief 查找一个文本里面有多少个target数量
-     *
-     * @param text 文本
-     * @param target 查找的内容
-     * @return int 匹配次数
-     */
-    int matchCount(const string &text, const string &RegExpTarget)
-    {
-
-        regex re(RegExpTarget);
-        int result = 0;
-
-        sregex_iterator it(text.begin(), text.end(), re);
-        sregex_iterator end;
-
-        for (; it != end; ++it)
-        {
-            result++;
-        }
-
-        return result;
-    }
-    /**
-     * @brief 判断一个或者多个文本是否符合第一个参数的正则表达式
-     *
-     * @tparam Args
-     * @param RegExpTarget 正则
-     * @param first 文本
-     * @param args 查找
-     * @return true
-     * @return false
-     */
-    template <typename... Args>
-    bool hasAllStrMatch(string &RegExpTarget, const string &first, const Args &...args)
-    {
-        regex re(RegExpTarget);
-        // int result = 0;
-        string temp[] = {first, args...};
-        bool res = false;
-        for_each(begin(temp), end(temp), [&](const string &s)
-                 {
-				 if (res)
-				 {
-					 return true;
-				 }
-				 sregex_iterator it(s.begin(), s.end(), re);
-				 sregex_iterator end;
-
-				 for (; it != end; ++it)
-				 {
-					 res = true;
-					 return true;
-				 } });
-        return res;
-    }
-    /**
-     * @brief 替换文本内容
-     *
-     * @param source 源文本
-     * @param from 查找
-     * @param to 替换为
-     * @param countLength 替换次数 默认全部
-     * @return string 替换完成的文本
-     */
-    string replaceAll(const string &source, const string &from, const string &to)
-    {
-
-        regex re(from);
-        string result = source;
-        int i = 0;
-        int countLen = 0;
-
-        sregex_iterator it(source.begin(), source.end(), re);
-        sregex_iterator end;
-
-        for (; it != end; ++it)
-        {
-            countLen++;
-        }
-
-        while (i < countLen)
-        {
-            smatch match;
-            if (regex_search(result, match, re))
-            {
-                result.replace(match.position(), match.length(), to);
-                i++;
-            }
-            else
-            {
-                break;
-            }
-        }
-        return result;
-    }
 
 }
 
 // 文本工具
 namespace hmc_text_util
 {
-    namespace regexp
-    {
-        using namespace hmc_text_regexp;
-    }
+
     //  WIDE to ANSI
-    inline string W2A(const wstring &pwText)
+    string W2A(const wstring &pwText)
     {
         string strResult = string();
         if (pwText.empty())
@@ -160,7 +38,7 @@ namespace hmc_text_util
     }
 
     //  ANSI to WIDE
-    inline wstring A2W(const string &paText)
+    wstring A2W(const string &paText)
     {
         wstring strResult = wstring();
 
@@ -184,7 +62,7 @@ namespace hmc_text_util
     }
 
     // 宽字符字符串转UTF-8字符串
-    inline string W2U8(wstring pwText)
+    string W2U8(wstring pwText)
     {
         string strResult = string();
         if (pwText.empty())
@@ -205,7 +83,7 @@ namespace hmc_text_util
     }
 
     // UTF-8字符串转宽字符
-    inline wstring U82W(const string &pszText)
+    wstring U82W(const string &pszText)
     {
         wstring strResult = wstring();
         if (pszText.size() == 0)
@@ -224,18 +102,21 @@ namespace hmc_text_util
 
         return strResult;
     }
+
     // 多字节字符串转UTF-8字符串
-    inline string A2U8(const string &pText)
+    string A2U8(const string &pText)
     {
         return W2U8(A2W(pText));
     }
+
     // UTF-8字符串转多字节字符串
-    inline string U82A(const string &pText)
+    string U82A(const string &pText)
     {
         return W2A(U82W(pText));
     }
+
     // UFT8 字符转为GBK(中文)
-    inline string UTF8ToGBK(string u8str)
+    string UTF8ToGBK(string u8str)
     {
         string Result;
         TCHAR *pTempTstr;
@@ -258,7 +139,7 @@ namespace hmc_text_util
     }
 
     // 文本中是否有数字 并且是否是安全的 int32
-    inline bool hasIntStr(string Value)
+    bool hasIntStr(string Value)
     {
         bool Result = false;
         if (Value.empty())
@@ -277,14 +158,14 @@ namespace hmc_text_util
     }
 
     // 文本中是否有数字 并且是否是安全的 long
-    inline bool haslongStr(string Value)
+    bool haslongStr(string Value)
     {
         bool Result = false;
         if (Value.empty())
             return Result;
         try
         {
-            int n = stol(Value);
+            long n = stol(Value);
             Result = true;
         }
         catch (const std::exception &e)
@@ -296,14 +177,14 @@ namespace hmc_text_util
     }
 
     // 文本中是否有数字 并且是否是安全的 long long
-    inline bool haslonglongStr(string Value)
+    bool haslonglongStr(string Value)
     {
         bool Result = false;
         if (Value.empty())
             return Result;
         try
         {
-            int n = stoll(Value);
+            long long n = stoll(Value);
             Result = true;
         }
         catch (const std::exception &e)

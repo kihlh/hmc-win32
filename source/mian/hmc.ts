@@ -208,6 +208,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             sendBasicKeys: fnBool,
             sendKeyT2C: fnVoid,
             sendKeyT2CSync: fnVoid,
+            hasMutex:fnBool,
         }
     })();
     return Native;
@@ -5166,7 +5167,6 @@ export const hmc = {
     hasMutex,
     Auto,
     Clipboard,
-    HMC,
     HWND,
     MessageError,
     MessageStop,

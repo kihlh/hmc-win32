@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 4,
             "patches": [
                 {
                     "date": 1687729375635,
@@ -12,6 +12,18 @@
                 {
                     "date": 1687729458955,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,4 +8,9 @@\n \r\n using namespace std;\r\n \r\n \r\n+namespace hmc_process\r\n+{\r\n+    \r\n+\r\n+}\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1687738636401,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,10 +7,44 @@\n using namespace hmc_env;\r\n \r\n using namespace std;\r\n \r\n-\r\n namespace hmc_process\r\n {\r\n-    \r\n+    DWORD getParentProcessID(DWORD matchProcessID)\r\n+    {\r\n+        DWORD CurrentProcessId = 0;\r\n+        PROCESSENTRY32 pe32;\r\n+        pe32.dwSize = sizeof(PROCESSENTRY32);\r\n \r\n+        // 获取进程快照\r\n+        HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);\r\n+        if (hSnap == INVALID_HANDLE_VALUE)\r\n+        {\r\n+            return NULL;\r\n+        }\r\n+\r\n+        // 枚举第一个进程\r\n+        if (Process32First(hSnap, &pe32))\r\n+        {\r\n+            do\r\n+            {\r\n+                // 打开进程句柄\r\n+                HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);\r\n+                if (hProcess)\r\n+                {\r\n+                    if (pe32.th32ProcessID == matchProcessID)\r\n+                    {\r\n+                        CurrentProcessId = pe32.th32ParentProcessID;\r\n+                        CloseHandle(hProcess);\r\n+                        break;\r\n+                    }\r\n+                    CloseHandle(hProcess);\r\n+                }\r\n+            } while (Process32Next(hSnap, &pe32));\r\n+        }\r\n+\r\n+        CloseHandle(hSnap);\r\n+        return CurrentProcessId;\r\n+    }\r\n+\r\n }\n\\ No newline at end of file\n"
+                },
+                {
+                    "date": 1687738840811,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -36,8 +36,14 @@\n             return FALSE;\r\n         }\r\n         return TRUE;\r\n     }\r\n+    /**\r\n+     * @brief Get the Parent Process I D object\r\n+     * \r\n+     * @param matchProcessID \r\n+     * @return DWORD \r\n+     */\r\n     DWORD getParentProcessID(DWORD matchProcessID)\r\n     {\r\n         DWORD CurrentProcessId = 0;\r\n         PROCESSENTRY32 pe32;\r\n"
+                },
+                {
+                    "date": 1687739722107,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -142,9 +142,9 @@\n         }\r\n \r\n         CloseHandle(hSnap);\r\n     };\r\n-    \r\n+    /\r\n     string getFilePath(DWORD ProcessID)\r\n     {\r\n         LPSTR lpFilename;\r\n         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessID);\r\n"
                 }
             ],
             "date": 1687729375635,

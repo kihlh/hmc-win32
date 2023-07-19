@@ -5,6 +5,9 @@
 #include <stringapiset.h>
 #include <vector>
 #include <tchar.h>
+#include <map>
+#include <any>
+
 
 // #include <locale>
 // #include <codecvt>

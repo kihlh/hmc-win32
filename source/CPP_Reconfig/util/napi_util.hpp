@@ -7,19 +7,11 @@
 
 #define _HMC_ALL_UTIL 0x0666
 using namespace std;
-using namespace hmc_text_util;
+// using namespace hmc_text_util;
 using namespace hmc_env;
 
 namespace napi_util
 {
-    namespace text_util
-    {
-        using namespace hmc_text_util;
-    };
-    namespace env
-    {
-        using namespace hmc_env;
-    };
 
     namespace create_value
     {
@@ -136,14 +128,6 @@ namespace napi_util
             assert(status == napi_ok);
             return result;
         }
-        napi_value Number(napi_env env, unsigned long number)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_int64(env, (long)number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
         /**
          * @brief 返回一个 number到js
          *
@@ -229,7 +213,7 @@ namespace napi_util
 
             status = napi_set_property(env, ResultforObject, create_value::String(env, "top"), create_value::Number(env, rect.top));
             assert(status == napi_ok);
-            
+
             return ResultforObject;
         }
         /**
@@ -402,11 +386,8 @@ namespace napi_util
                 assert(status == napi_ok);
                 for (unsigned index = 0; index < stringVector.size(); index++)
                 {
-                    napi_value push_item;
                     string push_item_data = stringVector[index];
-                    status = napi_create_string_utf8(env, push_item_data.c_str(), NAPI_AUTO_LENGTH, &push_item);
-                    assert(status == napi_ok);
-                    status = napi_set_element(env, ResultforArray, index, push_item);
+                    status = napi_set_element(env, ResultforArray, index, create_value::String(env, push_item_data));
                     assert(status == napi_ok);
                 }
                 return ResultforArray;
@@ -419,11 +400,8 @@ namespace napi_util
                 assert(status == napi_ok);
                 for (unsigned index = 0; index < wstringVector.size(); index++)
                 {
-                    napi_value push_item;
                     wstring push_item_data = wstringVector[index];
-                    status = napi_create_string_utf8(env, W2U8(push_item_data).c_str(), NAPI_AUTO_LENGTH, &push_item);
-                    assert(status == napi_ok);
-                    status = napi_set_element(env, ResultforArray, index, push_item);
+                    status = napi_set_element(env, ResultforArray, index, create_value::String(env, push_item_data));
                     assert(status == napi_ok);
                 }
                 return ResultforArray;
@@ -619,27 +597,12 @@ namespace napi_util
 
                 return Object(env, mapObject);
             }
-            napi_value New(napi_env env, map<string, any> mapObject)
-            {
 
-                return Object(env, mapObject);
-            }
             napi_value New(napi_env env)
             {
                 return Object(env, map<string, int>{});
             }
         }
-    };
-
-    namespace get_value
-    {
-        string Astring(napi_env env, napi_value nodeValue)
-        {
-            if (!nodeValue)
-            {
-            }
-        }
-
     };
 
     namespace assert
@@ -680,12 +643,26 @@ namespace napi_util
             }
             return getTypeName;
         }
+        /**
+         * @brief 获取napi类型变量名称（人话）
+         *
+         * @param env
+         * @param valuetype
+         * @return string
+         */
         string TypeName(napi_env env, napi_value valuetype)
         {
             napi_valuetype value_type;
             napi_typeof(env, valuetype, &value_type);
             return TypeName(value_type);
         }
+        /**
+         * @brief 对比两个变量类型是否相等
+         *
+         * @param valuetype
+         * @param valuetype2
+         * @return BOOL
+         */
         BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2)
         {
             return (valuetype == valuetype2);
@@ -706,4 +683,37 @@ namespace napi_util
         }
 
     }
+
+    namespace get_value
+    {
+        string stringU8(napi_env env, napi_value nodeValue)
+        {
+            string result = string("");
+            if (!nodeValue)
+            {
+                return result;
+            }
+            if (napi_util::assert::diff(env, nodeValue, napi_string))
+            {
+                size_t str_len = 0;
+                napi_get_value_string_utf8(env, nodeValue, nullptr, 0, &str_len);
+                result.reserve(str_len + 1);
+                result.resize(str_len);
+                napi_get_value_string_utf8(env, nodeValue, &result[0], result.capacity(), nullptr);
+                return result;
+            }
+        }
+        string stringA(napi_env env, napi_value nodeValue)
+        {
+            return hmc_text_util::U82A(stringU8(env, nodeValue));
+        }
+
+        wstring stringW(napi_env env, napi_value nodeValue)
+        {
+            return hmc_text_util::U82W(stringU8(env, nodeValue));
+        }
+    };
+
+    bool _hmc_debug = false;
+
 }

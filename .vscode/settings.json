@@ -92,6 +92,7 @@
         "typeindex": "cpp",
         "unordered_set": "cpp",
         "variant": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "future": "cpp"
     }
 }

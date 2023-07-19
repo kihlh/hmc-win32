@@ -1,2 +1,2 @@
-PlatformToolSet=v143:VCToolArchitecture=Native64Bit:VCToolsVersion=14.35.32215:TargetPlatformVersion=10.0.22621.0:VcpkgTriplet=x64-windows:
-Release|x64|D:\source\CPP\hmc-win32\source\CPP_Reconfig\build\|
+PlatformToolSet=v142:VCToolArchitecture=Native64Bit:VCToolsVersion=14.29.30133:VCServicingVersionMFC=14.29.30136:TargetPlatformVersion=10.0.22000.0:VcpkgTriplet=x64-windows:
+Release|x64|F:\source\CPP\hmc-win32\source\CPP_Reconfig\build\|

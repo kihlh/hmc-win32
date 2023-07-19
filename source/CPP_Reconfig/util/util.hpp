@@ -7,3 +7,6 @@ using namespace hmc_env;
 
 #include "./process.hpp"
 using namespace hmc_process;
+
+#include "./window.hpp"
+using namespace hmc_window;

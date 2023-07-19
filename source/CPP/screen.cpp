@@ -5,8 +5,8 @@
 #include <fstream>
 
 // 获取指定坐标的颜色
-#include <gdiplus.h>
-using namespace Gdiplus;
+// #include <gdiplus.h>
+// using namespace Gdiplus;
 
 // 小写转换
 #include <algorithm>

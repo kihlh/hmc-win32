@@ -10,9 +10,8 @@
 #include <Tlhelp32.h>
 
 #pragma comment(lib, "psapi.lib")
+#pragma comment(lib, "Shlwapi.lib")
 
-#include "./text.hpp"
-using namespace hmc_text_util;
 
 using namespace std;
 
@@ -67,27 +66,39 @@ map<string, string> getVariableAll()
     map<string, string> envStrMap;
 
     // 注意这里A字符很乱 请勿改成A （OEM ，Unicode ，ANSI）
-    LPWSTR env = GetEnvironmentStringsW();
-
-    while (*env)
+    try
     {
-        string strEnv = hmc_text_util::W2A(env);
+        LPWSTR env = GetEnvironmentStringsW();
 
-        if (strEnv.empty() && strEnv.find(L'=') == 0)
-            continue;
-
-        if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
+        while (*env)
         {
-            size_t pos = strEnv.find('=');
-            if (pos != string::npos)
+            string strEnv = hmc_text_util::W2A(env);
+
+            if (strEnv.empty() && strEnv.find(L'=') == 0)
+                continue;
+
+            if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
             {
-                string name = strEnv.substr(0, pos);
-                string value = strEnv.substr(pos + 1);
-                envStrMap.insert(pair<string, string>(name, value));
+                size_t pos = strEnv.find('=');
+                if (pos != string::npos)
+                {
+                    string name = strEnv.substr(0, pos);
+                    string value = strEnv.substr(pos + 1);
+                    if (!name.empty())
+                    {
+                        envStrMap.insert(pair<string, string>(name, value));
+                    }
+                }
             }
+            env += wcslen(env) + 1;
         }
-        env += wcslen(env) + 1;
     }
+    catch (const std::exception &e)
+    {
+       
+    }
+
+    return envStrMap;
 }
 
 namespace hmc_env
@@ -364,7 +375,7 @@ namespace hmc_env
                 CloseHandle(it->second);
                 it++;
             }
-            return has(MutexName);
+            return !has(MutexName);
         }
         /**
          * @brief 获取当前已经创建的互斥体内容

@@ -1,0 +1,5 @@
+
+namespace hmc_ipc
+{
+
+}

@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import { VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
-import { VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 /**注册表根目录 */
 declare const Hkey: {
     /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -3213,7 +3212,6 @@ export declare const hmc: {
         sequence: typeof getClipboardSequenceNumber;
         watch: typeof watchClipboard;
     };
-    HMC: typeof HMC;
     HWND: typeof HWND;
     MessageError: typeof MessageError;
     MessageStop: typeof MessageStop;
