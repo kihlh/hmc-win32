@@ -5,6 +5,7 @@
 using namespace std;
 
 #include "./text.hpp"
+using namespace hmc_text_util;
 
 namespace hmc_window
 {

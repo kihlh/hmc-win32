@@ -9,9 +9,11 @@
 #include <process.h>
 #include <Tlhelp32.h>
 
+
+
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")
-
+#define MAX_KEY_LENGTH 255
 
 using namespace std;
 
@@ -95,7 +97,45 @@ map<string, string> getVariableAll()
     }
     catch (const std::exception &e)
     {
-       
+    }
+
+    return envStrMap;
+}
+
+map<string, string> getGlobalVariableAll()
+{
+    map<string, string> envStrMap;
+
+    // 注意这里A字符很乱 请勿改成A （OEM ，Unicode ，ANSI）
+    try
+    {
+        LPWSTR env = GetEnvironmentStringsW();
+
+        while (*env)
+        {
+            string strEnv = hmc_text_util::W2A(env);
+
+            if (strEnv.empty() && strEnv.find(L'=') == 0)
+                continue;
+
+            if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
+            {
+                size_t pos = strEnv.find('=');
+                if (pos != string::npos)
+                {
+                    string name = strEnv.substr(0, pos);
+                    string value = strEnv.substr(pos + 1);
+                    if (!name.empty())
+                    {
+                        envStrMap.insert(pair<string, string>(name, value));
+                    }
+                }
+            }
+            env += wcslen(env) + 1;
+        }
+    }
+    catch (const std::exception &e)
+    {
     }
 
     return envStrMap;
@@ -205,6 +245,7 @@ namespace hmc_env
         return CurrentProcessId;
     }
 
+
     /**
      * @brief 获取工作目录
      *
@@ -293,13 +334,23 @@ namespace hmc_env
     }
 
     /**
-     * @brief Get the Env object
+     * @brief 获取当前的变量环境列表
      *
      * @return map<string, string>
      */
     map<string, string> getEnvList()
     {
         return getVariableAll();
+    }
+
+    /**
+     * @brief 获取当前的变量环境列表（强制从注册表实时读取）
+     *
+     * @return map<string, string>
+     */
+    map<string, string> getGlobalEnvList()
+    {
+        return getGlobalVariableAll();
     }
 
     namespace Mutex
@@ -333,6 +384,7 @@ namespace hmc_env
 
             return !has_mut_exist;
         }
+
         /**
          * @brief 判断是否有这个互斥体
          *
@@ -355,6 +407,7 @@ namespace hmc_env
             CloseHandle(hMutex);
             return has_mut_exist;
         }
+
         /**
          * @brief 删除通过此方法创建的互斥体
          *
@@ -377,6 +430,7 @@ namespace hmc_env
             }
             return !has(MutexName);
         }
+        
         /**
          * @brief 获取当前已经创建的互斥体内容
          *

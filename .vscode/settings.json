@@ -93,6 +93,8 @@
         "unordered_set": "cpp",
         "variant": "cpp",
         "any": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "*.ipp": "cpp",
+        "xxatomic": "cpp"
     }
 }

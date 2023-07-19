@@ -3,10 +3,8 @@
 #include <Psapi.h>
 #include <Shellapi.h>
 
-
-
-#include "./environment.hpp"
-using namespace hmc_env;
+#include "./text.hpp"
+using namespace hmc_text_util;
 
 using namespace std;
 

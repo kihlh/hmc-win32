@@ -12,6 +12,16 @@ namespace hmc_text_regexp
 // 文本工具
 namespace hmc_text_util
 {
+    string W2A(const wstring &pwText);
+    string A2U8(const string &pText);
+    string UTF8ToGBK(string u8str);
+    bool haslongStr(string Value);
+    string W2U8(wstring pwText);
+    wstring A2W(const string &paText);
+    wstring U82W(const string &pszText);
+    string U82A(const string &pText);
+    bool haslonglongStr(string Value);
+    bool hasIntStr(string Value);
 
     //  WIDE to ANSI
     string W2A(const wstring &pwText)

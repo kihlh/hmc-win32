@@ -4,13 +4,15 @@
 #include <any>
 #include "./text.hpp"
 #include "./environment.hpp"
+#include <vector>
 
 #define _HMC_ALL_UTIL 0x0666
-using namespace std;
-// using namespace hmc_text_util;
-using namespace hmc_env;
+#define napi_ass_false -66666666
+bool _hmc_debug = false;
 
-namespace napi_util
+using namespace std;
+
+namespace hmc_napi_util
 {
 
     namespace create_value
@@ -606,12 +608,23 @@ namespace napi_util
     };
 
     namespace assert
-    { /**
-       * @brief 获取napi数据的类型文本
-       *
-       * @param valuetype
-       * @return string
-       */
+    {
+        template <typename... Args>
+        int expect(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args);
+        template <typename... Args>
+        int expect(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args);
+        string TypeName(napi_valuetype valuetype);
+        string TypeName(napi_env env, napi_value valuetype);
+        BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2);
+        BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype);
+        BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2);
+
+        /**
+         * @brief 获取napi数据的类型文本
+         *
+         * @param valuetype
+         * @return string
+         */
         string TypeName(napi_valuetype valuetype)
         {
             string getTypeName = string();
@@ -643,6 +656,7 @@ namespace napi_util
             }
             return getTypeName;
         }
+
         /**
          * @brief 获取napi类型变量名称（人话）
          *
@@ -656,6 +670,7 @@ namespace napi_util
             napi_typeof(env, valuetype, &value_type);
             return TypeName(value_type);
         }
+
         /**
          * @brief 对比两个变量类型是否相等
          *
@@ -667,12 +682,14 @@ namespace napi_util
         {
             return (valuetype == valuetype2);
         }
+
         BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype)
         {
             napi_valuetype value_type;
             napi_typeof(env, jsValue, &value_type);
             return (valuetype == value_type);
         }
+
         BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2)
         {
             napi_valuetype value_type;
@@ -682,38 +699,633 @@ namespace napi_util
             return (value_type2 == value_type);
         }
 
+        /**
+         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
+         *
+         * @return int
+         */
+        template <typename... Args>
+        int expect(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
+        {
+            int result = napi_ass_false;
+            try
+            {
+                napi_valuetype temp[] = {first, args...};
+                size_t length = sizeof(temp) / sizeof(temp[0]);
+
+                for (size_t i = 0; i < length; i++)
+                {
+                    if (temp[i] == valuetype)
+                        return temp[i];
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+            return result;
+        }
+
+        /**
+         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
+         *
+         * @return int
+         */
+        template <typename... Args>
+        int expect(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args)
+        {
+            napi_valuetype value_type;
+            napi_typeof(env, nodeValue, &value_type);
+            int result = napi_ass_false;
+            try
+            {
+                napi_valuetype temp[] = {first, args...};
+                size_t length = sizeof(temp) / sizeof(temp[0]);
+
+                for (size_t i = 0; i < length; i++)
+                {
+                    if (temp[i] == value_type)
+                        return temp[i];
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+            if (_hmc_debug)
+            {
+            }
+            return result;
+        }
     }
 
     namespace get_value
     {
-        string stringU8(napi_env env, napi_value nodeValue)
+        int number_int(napi_env env, napi_value nodeValue);
+        string string_utf8(napi_env env, napi_value nodeValue);
+        string string_ansi(napi_env env, napi_value nodeValue);
+        wstring string_wide(napi_env env, napi_value nodeValue);
+        int number_int(napi_env env, napi_value nodeValue);
+        int64_t number_int64(napi_env env, napi_value nodeValue);
+        long long bigint_longlong(napi_env env, napi_value nodeValue);
+        double number_double(napi_env env, napi_value nodeValue);
+        vector<string> array_string_utf8(napi_env env, napi_value nodeValue);
+        vector<double> array_double(napi_env env, napi_value nodeValue);
+        vector<int> array_int(napi_env env, napi_value nodeValue);
+        UINT showType_UINT(napi_env env, napi_value nodeValue);
+        HWND number_HWND(napi_env env, napi_value nodeValue);
+        DWORD number_DWORD(napi_env env, napi_value nodeValue);
+
+        /**
+         * @brief 获取为utf8标准的文本
+         *
+         * @param env
+         * @param nodeValue
+         * @return string
+         */
+        string string_utf8(napi_env env, napi_value nodeValue)
         {
             string result = string("");
-            if (!nodeValue)
+            try
             {
-                return result;
+                if (!nodeValue)
+                {
+                    return result;
+                }
+                if (hmc_napi_util::assert::diff(env, nodeValue, napi_string))
+                {
+                    size_t str_len = 0;
+                    napi_get_value_string_utf8(env, nodeValue, nullptr, 0, &str_len);
+                    result.reserve(str_len + 1);
+                    result.resize(str_len);
+                    napi_get_value_string_utf8(env, nodeValue, &result[0], result.capacity(), nullptr);
+                    return result;
+                }
+                else if (hmc_napi_util::assert::diff(env, nodeValue, napi_number))
+                {
+                    result.append(to_string(hmc_napi_util::get_value::number_int(env, nodeValue)));
+                    return result;
+                }
+                else if (hmc_napi_util::assert::diff(env, nodeValue, napi_undefined))
+                {
+                    return result;
+                }
+                else
+                {
+                    if (_hmc_debug)
+                    {
+                    }
+                }
             }
-            if (napi_util::assert::diff(env, nodeValue, napi_string))
+            catch (const std::exception &e)
             {
-                size_t str_len = 0;
-                napi_get_value_string_utf8(env, nodeValue, nullptr, 0, &str_len);
-                result.reserve(str_len + 1);
-                result.resize(str_len);
-                napi_get_value_string_utf8(env, nodeValue, &result[0], result.capacity(), nullptr);
-                return result;
+                if (_hmc_debug)
+                {
+                }
             }
-        }
-        string stringA(napi_env env, napi_value nodeValue)
-        {
-            return hmc_text_util::U82A(stringU8(env, nodeValue));
+
+            return result;
         }
 
-        wstring stringW(napi_env env, napi_value nodeValue)
+        /**
+         * @brief 获取为窄(A)文本
+         *
+         * @param env
+         * @param nodeValue
+         * @return string
+         */
+        string string_ansi(napi_env env, napi_value nodeValue)
         {
-            return hmc_text_util::U82W(stringU8(env, nodeValue));
+            return hmc_text_util::U82A(string_utf8(env, nodeValue));
         }
+
+        /**
+         * @brief 获取为宽(W)文本
+         *
+         * @param env
+         * @param nodeValue
+         * @return wstring
+         */
+        wstring string_wide(napi_env env, napi_value nodeValue)
+        {
+            return hmc_text_util::U82W(string_utf8(env, nodeValue));
+        }
+
+        /**
+         * @brief 数字转int
+         *
+         * @param env
+         * @param nodeValue
+         * @return int
+         */
+        int number_int(napi_env env, napi_value nodeValue)
+        {
+            int result = 0;
+            try
+            {
+                if (hmc_napi_util::assert::expect(env, nodeValue, napi_number, napi_boolean))
+                {
+                    napi_get_value_int32(env, nodeValue, &result);
+                    return result;
+                }
+
+                else if (hmc_napi_util::assert::expect(env, nodeValue, napi_undefined, napi_null))
+                {
+                    return result;
+                }
+                else
+                {
+                    if (_hmc_debug)
+                    {
+                    }
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+            return result;
+        }
+
+        /**
+         * @brief 数字转int64
+         *
+         * @param env
+         * @param nodeValue
+         * @return int64_t
+         */
+        int64_t number_int64(napi_env env, napi_value nodeValue)
+        {
+            int64_t result = 0;
+            try
+            {
+                if (hmc_napi_util::assert::diff(env, nodeValue, napi_number) || hmc_napi_util::assert::diff(env, nodeValue, napi_boolean))
+                {
+                    napi_get_value_int64(env, nodeValue, &result);
+                    return result;
+                }
+                else if (hmc_napi_util::assert::expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
+                {
+                    return result;
+                }
+                else
+                {
+                    if (_hmc_debug)
+                    {
+                    }
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return result;
+        }
+
+        /**
+         * @brief 数字转64位浮点
+         *
+         * @param env
+         * @param nodeValue
+         * @return double
+         */
+        double number_double(napi_env env, napi_value nodeValue)
+        {
+            double result = 0;
+            try
+            {
+                if (hmc_napi_util::assert::diff(env, nodeValue, napi_number) || hmc_napi_util::assert::diff(env, nodeValue, napi_boolean))
+                {
+                    napi_get_value_double(env, nodeValue, &result);
+                    return result;
+                }
+                else if (hmc_napi_util::assert::expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
+                {
+                    return result;
+                }
+                else
+                {
+                    if (_hmc_debug)
+                    {
+                    }
+                }
+            }
+            catch (const std::exception &e)
+            {
+                return result;
+            }
+        }
+
+        /**
+         * @brief bigint转long
+         *
+         * @param env
+         * @param nodeValue
+         * @return long long
+         */
+        long long bigint_longlong(napi_env env, napi_value nodeValue)
+        {
+            long long result = 0;
+            try
+            {
+                if (hmc_napi_util::assert::diff(env, nodeValue, napi_bigint) || hmc_napi_util::assert::diff(env, nodeValue, napi_boolean))
+                {
+                    return result;
+                }
+                else if (hmc_napi_util::assert::expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
+                {
+                    return result;
+                }
+                else
+                {
+                    if (_hmc_debug)
+                    {
+                    }
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+            return result;
+        }
+
+        /**
+         * @brief 获取为布尔值
+         *
+         * @param env
+         * @param nodeValue
+         * @return true
+         * @return false
+         */
+        bool boolean_bool(napi_env env, napi_value nodeValue)
+        {
+            bool result = 0;
+            try
+            {
+                if (hmc_napi_util::assert::diff(env, nodeValue, napi_number) || hmc_napi_util::assert::diff(env, nodeValue, napi_boolean))
+                {
+                    napi_get_value_bool(env, nodeValue, &result);
+                    return result;
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return result;
+        }
+
+        /**
+         * @brief 获取文本数组
+         *
+         * @param env
+         * @param nodeValue
+         * @return vector<string>
+         */
+        vector<string> array_string_utf8(napi_env env, napi_value nodeValue)
+        {
+            vector<string> unicode_str;
+
+            try
+            {
+                napi_status status;
+                uint32_t size = 0;
+                status = napi_get_array_length(env, nodeValue, &size);
+                if (status != napi_ok)
+                    return unicode_str;
+
+                napi_value value;
+
+                for (size_t i = 0; i < size; i++)
+                {
+                    status = napi_get_element(env, nodeValue, i, &value);
+                    if (status != napi_ok)
+                    {
+                        if (_hmc_debug)
+                        {
+                        }
+                        return unicode_str;
+                    }
+                    unicode_str.push_back(string_utf8(env, value));
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return unicode_str;
+        }
+
+        /**
+         * @brief 获取数字数组
+         *
+         * @param env
+         * @param nodeValue
+         * @return vector<int>
+         */
+        vector<int> array_int(napi_env env, napi_value nodeValue)
+        {
+            vector<int> num_list;
+
+            try
+            {
+                napi_status status;
+                uint32_t size = 0;
+                status = napi_get_array_length(env, nodeValue, &size);
+                if (status != napi_ok)
+                    return num_list;
+
+                napi_value value;
+
+                for (size_t i = 0; i < size; i++)
+                {
+                    status = napi_get_element(env, nodeValue, i, &value);
+                    if (status != napi_ok)
+                    {
+                        if (_hmc_debug)
+                        {
+                        }
+                        return num_list;
+                    }
+                    num_list.push_back(number_int(env, value));
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return num_list;
+        }
+
+        /**
+         * @brief 获取数字数组
+         *
+         * @param env
+         * @param nodeValue
+         * @return vector<int>
+         */
+        vector<int64_t> array_int64(napi_env env, napi_value nodeValue)
+        {
+            vector<int64_t> num_list;
+
+            try
+            {
+                napi_status status;
+                uint32_t size = 0;
+                status = napi_get_array_length(env, nodeValue, &size);
+                if (status != napi_ok)
+                    return num_list;
+
+                napi_value value;
+
+                for (size_t i = 0; i < size; i++)
+                {
+                    status = napi_get_element(env, nodeValue, i, &value);
+                    if (status != napi_ok)
+                    {
+                        if (_hmc_debug)
+                        {
+                        }
+                        return num_list;
+                    }
+                    num_list.push_back(number_int64(env, value));
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return num_list;
+        }
+
+        /**
+         * @brief 获取数字数组
+         *
+         * @param env
+         * @param nodeValue
+         * @return vector<int>
+         */
+        vector<double> array_double(napi_env env, napi_value nodeValue)
+        {
+            vector<double> num_list;
+
+            try
+            {
+                napi_status status;
+                uint32_t size = 0;
+                status = napi_get_array_length(env, nodeValue, &size);
+                if (status != napi_ok)
+                    return num_list;
+
+                napi_value value;
+
+                for (size_t i = 0; i < size; i++)
+                {
+                    status = napi_get_element(env, nodeValue, i, &value);
+                    if (status != napi_ok)
+                    {
+                        if (_hmc_debug)
+                        {
+                        }
+                        return num_list;
+                    }
+                    num_list.push_back(number_double(env, value));
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+
+            return num_list;
+        }
+
+        /**
+         * @brief 将文本的显示状态转为CPP的显示状态代码
+         *
+         * @param env
+         * @param nodeValue
+         * @return UINT
+         */
+        UINT showType_UINT(napi_env env, napi_value nodeValue)
+        {
+
+            string key = string_ansi(env, nodeValue);
+            if (key == "MB_OK")
+                return MB_OK;
+            if (key == "MB_ABORTRETRYIGNORE")
+                return MB_ABORTRETRYIGNORE;
+            if (key == "MB_SERVICE_NOTIFICATION")
+                return MB_SERVICE_NOTIFICATION;
+            if (key == "MB_TOPMOST")
+                return MB_TOPMOST;
+            if (key == "MB_SETFOREGROUND")
+                return MB_SETFOREGROUND;
+            if (key == "MB_RTLREADING")
+                return MB_RTLREADING;
+            if (key == "MB_RIGHT")
+                return MB_RIGHT;
+            if (key == "MB_DEFAULT_DESKTOP_ONLY")
+                return MB_DEFAULT_DESKTOP_ONLY;
+            if (key == "MB_TASKMODAL")
+                return MB_TASKMODAL;
+            if (key == "MB_SYSTEMMODAL")
+                return MB_SYSTEMMODAL;
+            if (key == "MB_APPLMODAL")
+                return MB_APPLMODAL;
+            if (key == "MB_DEFBUTTON4")
+                return MB_DEFBUTTON4;
+            if (key == "MB_DEFBUTTON3")
+                return MB_DEFBUTTON3;
+            if (key == "MB_DEFBUTTON2")
+                return MB_DEFBUTTON2;
+            if (key == "MB_ICONHAND")
+                return MB_ICONHAND;
+            if (key == "MB_DEFBUTTON1")
+                return MB_DEFBUTTON1;
+            if (key == "MB_ICONERROR")
+                return MB_ICONERROR;
+            if (key == "MB_ICONSTOP")
+                return MB_ICONSTOP;
+            if (key == "MB_ICONQUESTION")
+                return MB_ICONQUESTION;
+            if (key == "MB_ICONASTERISK")
+                return MB_ICONASTERISK;
+            if (key == "MB_ICONINFORMATION")
+                return MB_ICONINFORMATION;
+            if (key == "MB_ICONWARNING")
+                return MB_ICONWARNING;
+            if (key == "MB_ICONEXCLAMATION")
+                return MB_ICONEXCLAMATION;
+            if (key == "MB_YESNOCANCEL")
+                return MB_YESNOCANCEL;
+            if (key == "MB_YESNO")
+                return MB_YESNO;
+            if (key == "MB_RETRYCANCEL")
+                return MB_RETRYCANCEL;
+            if (key == "MB_OKCANCEL")
+                return MB_OKCANCEL;
+            if (key == "MB_HELP")
+                return MB_HELP;
+            if (key == "MB_CANCELTRYCONTINUE")
+                return MB_CANCELTRYCONTINUE;
+
+            return MB_OK;
+        }
+
+        /**
+         * @brief 转 DWORD
+         *
+         * @param env
+         * @param nodeValue
+         * @return DWORD
+         */
+        DWORD number_DWORD(napi_env env, napi_value nodeValue)
+        {
+            DWORD result = (DWORD)number_int64(env, nodeValue);
+            return result;
+        }
+
+        /**
+         * @brief 转窗口句柄
+         *
+         * @param env
+         * @param nodeValue
+         * @return HWND
+         */
+        HWND number_HWND(napi_env env, napi_value nodeValue)
+        {
+            HWND result = (HWND)number_int64(env, nodeValue);
+            return result;
+        }
+
     };
 
-    bool _hmc_debug = false;
+    /**
+     * @brief 启用hmc的开发者模式 将会对所有传递值和错误进行报错 而不是尽可能完成任务
+     *
+     * @param is_debug
+     */
+    void set_hmc_debug(bool is_debug)
+    {
+        _hmc_debug = is_debug;
+        return;
+    }
+    /**
+     * @brief 判断是否处于debug
+     *
+     * @return true
+     * @return false
+     */
+    bool has_hmc_debug()
+    {
+        return _hmc_debug;
+    }
 
 }
