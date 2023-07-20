@@ -224,6 +224,11 @@ import  HMC = require("hmc-win32");
 - **popen** 创建管道并执行命令
 - **formatVolumePath** 格式化 驱动器路径  ('\\Device\\HarddiskVolume2' => "D:\\")
 - **getVolumeList**  获取当前文件系统的驱动器名称及路径
+- **getTCPPortProcessID** 获取指定TCP端口的pid
+- **getTCPPortProcessID** 获取指定UDP端口的pid
+- **createMutex** 创建进程互斥体(全局)
+- **hasMutex** 判断进程互斥体(全局)
+
 ### 电源控制
 - **systemStartTime** 系统启动到现在的时间
 - **shutMonitors** 关闭显示器

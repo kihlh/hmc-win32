@@ -972,6 +972,33 @@ export declare module HMC {
         * 检查一个互斥体 如果互斥体存在
         */
         hasMutex(MutexName: string): boolean;
+        /**
+         * 获取占用指定TCP的进程id
+         * @param Port
+         */
+        getTCPPortProcessID(Port: number): ProcessID | null;
+        /**
+         * 添加环境变量
+         * @param key
+         * @param data
+         */
+        putenv(key: string, data: string): void;
+        /**
+         * 获取占用指定UDP的进程id
+         * @param Port
+         */
+        getUDPPortProcessID(Port: number): ProcessID | null;
+        /**
+         * 获取指定的变量环境
+         * @param key
+         */
+        getenv(key: string): string;
+        /**
+         * 获取变量环境
+         */
+        getAllEnv(): {
+            [key: string]: string;
+        };
     };
     export type ProcessHandle = {
         handle: number;
@@ -2943,6 +2970,38 @@ export declare function createMutex(MutexName: string): boolean;
 * @param cmd 命令
 */
 export declare function popen(cmd: string): string;
+/**
+ * 获取当前进程的环境变量
+ * @returns
+ */
+export declare function getAllEnv(): {
+    [key: string]: string;
+};
+/**
+ * 获取指定key的环境变量
+ * @param key
+ * @returns
+ */
+export declare function getenv(key: string): string;
+/**
+ * 获取指定UDP端口的pid
+ * @param Port
+ * @returns
+ */
+export declare function getUDPPortProcessID(Port: number): number | null;
+/**
+ * 添加环境变量(不写入系统)
+ * @param key
+ * @param data
+ * @returns
+ */
+export declare function putenv(key: string, data: string | string[]): void;
+/**
+ * 获取指定TCP端口的pid
+ * @param Port
+ * @returns
+ */
+export declare function getTCPPortProcessID(Port: number): number | null;
 export declare const Registr: {
     /**
      * 直达路径解析
@@ -3156,6 +3215,11 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    getAllEnv: typeof getAllEnv;
+    getenv: typeof getenv;
+    getUDPPortProcessID: typeof getUDPPortProcessID;
+    getTCPPortProcessID: typeof getTCPPortProcessID;
+    putenv: typeof putenv;
     createMutex: typeof createMutex;
     hasMutex: typeof hasMutex;
     Auto: {

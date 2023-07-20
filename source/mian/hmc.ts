@@ -49,7 +49,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         return {
             _popen: fnStr,
             popen: fnStr,
-            createMutex:fnBool,
+            createMutex: fnBool,
             getSubProcessID: fnAnyArr,
             enumAllProcessPolling: fnVoid,
             clearEnumAllProcessList: fnVoid,
@@ -208,7 +208,12 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             sendBasicKeys: fnBool,
             sendKeyT2C: fnVoid,
             sendKeyT2CSync: fnVoid,
-            hasMutex:fnBool,
+            hasMutex: fnBool,
+            getAllEnv() { return process.env as any },
+            getTCPPortProcessID: fnNull,
+            getenv: fnStr,
+            getUDPPortProcessID: fnNull,
+            putenv: fnVoid,
         }
     })();
     return Native;
@@ -1344,11 +1349,37 @@ export module HMC {
         /**
          * 创建一个互斥体 (如果当前进程还在 互斥体就不会消失) 返回的是互斥体是否成功创建
          */
-        createMutex(MutexName:string):boolean;
-         /**
-         * 检查一个互斥体 如果互斥体存在
+        createMutex(MutexName: string): boolean;
+        /**
+        * 检查一个互斥体 如果互斥体存在
+        */
+        hasMutex(MutexName: string): boolean;
+        /**
+         * 获取占用指定TCP的进程id
+         * @param Port 
          */
-        hasMutex(MutexName:string):boolean;
+        getTCPPortProcessID(Port: number): ProcessID | null;
+        /**
+         * 添加环境变量
+         * @param key 
+         * @param data 
+         */
+        putenv(key: string, data: string): void;
+        /**
+         * 获取占用指定UDP的进程id
+         * @param Port 
+         */
+        getUDPPortProcessID(Port: number): ProcessID | null;
+        /**
+         * 获取指定的变量环境
+         * @param key 
+         */
+        getenv(key: string): string;
+        /**
+         * 获取变量环境
+         */
+        getAllEnv(): { [key: string]: string };
+
     }
     export type ProcessHandle = {
         // 句柄 
@@ -3319,37 +3350,37 @@ export function hasKeyActivate(KeysEvent: number) {
  * @param ProcessID 进程id
  * @returns
  */
-export function hasProcess(...ProcessMatch: Array<number|string|Array<number|string>>):boolean{
+export function hasProcess(...ProcessMatch: Array<number | string | Array<number | string>>): boolean {
     // 只有一个参数 而且是数字 直接打开句柄 不枚举
-    if(ProcessMatch.length==1){
+    if (ProcessMatch.length == 1) {
         return native.isProcess(ref.int(ProcessMatch[0]));
     }
-    let _ProcessMatch :Array<number|string> = [];
+    let _ProcessMatch: Array<number | string> = [];
     let isString = false;
     // 多个参数 压入缓冲数组
     for (let index = 0; index < ProcessMatch.length; index++) {
         const ProcessID = ProcessMatch[index];
-        if(Array.isArray(ProcessID)){
-            for (let index = 0; index < ProcessID.length; index++){
-                if(typeof ProcessID[index] =="string")isString=true;
+        if (Array.isArray(ProcessID)) {
+            for (let index = 0; index < ProcessID.length; index++) {
+                if (typeof ProcessID[index] == "string") isString = true;
                 _ProcessMatch.push(ProcessID[index]);
             }
         }
-        if(typeof ProcessID =="string"){
-            isString=true;
+        if (typeof ProcessID == "string") {
+            isString = true;
             _ProcessMatch.push(ProcessID);
         }
-        if(typeof ProcessID =="number")_ProcessMatch.push(ProcessID);
+        if (typeof ProcessID == "number") _ProcessMatch.push(ProcessID);
     }
     // 开始处理  如果全是数字 就不枚举进程列表 因为直接打开句柄更快
-    let ProcessList = isString?getProcessList():[];
+    let ProcessList = isString ? getProcessList() : [];
     for (let index = 0; index < _ProcessMatch.length; index++) {
-        if(!isString){
-            if(native.isProcess(ref.int(_ProcessMatch[index])))return true;
+        if (!isString) {
+            if (native.isProcess(ref.int(_ProcessMatch[index]))) return true;
         }
         for (let index = 0; index < ProcessList.length; index++) {
             const elp = ProcessList[index];
-            if(elp.name===_ProcessMatch[index]||elp.pid===_ProcessMatch[index])return true;
+            if (elp.name === _ProcessMatch[index] || elp.pid === _ProcessMatch[index]) return true;
         }
     }
     return false;
@@ -3825,8 +3856,8 @@ export function hasPortTCP(port: number, callBack?: (hasPort: boolean) => unknow
         return prom;
     }
 }
-export const _KeyboardcodeEmenList =KeyboardcodeEmenList;
-export const _KeyboardcodeComparisonTable =KeyboardcodeComparisonTable;
+export const _KeyboardcodeEmenList = KeyboardcodeEmenList;
+export const _KeyboardcodeComparisonTable = KeyboardcodeComparisonTable;
 
 /**
  * 判断UDP端口号正在使用/系统占用
@@ -4570,21 +4601,21 @@ export function sendKeyboardSequence(...keys: Array<{ key: number | string, down
         for (let index = 0; index < keys.length; index++) {
             const of_key = keys[index];
             if (Array.isArray(of_key)) {
-                if(of_key?.[2]){
+                if (of_key?.[2]) {
                     let ms = ref.int(of_key?.[2]);
                     await Sleep(ms);
                 }
-                if(of_key.length<2)continue;
+                if (of_key.length < 2) continue;
                 sendKeyboard(of_key[0], typeof of_key?.[1] == "boolean" ? of_key?.[1] : null);
             }
             else if (typeof of_key == "object") {
                 let keys = Object.keys(of_key);
-                if(!keys.includes("key"))continue;
-                if(keys.includes("ms")){
+                if (!keys.includes("key")) continue;
+                if (keys.includes("ms")) {
                     let ms = ref.int(of_key.ms);
                     await Sleep(ms);
                 }
-                sendKeyboard(of_key.key,typeof of_key.down== "undefined"?null:of_key.down);
+                sendKeyboard(of_key.key, typeof of_key.down == "undefined" ? null : of_key.down);
             }
         }
 
@@ -5139,7 +5170,7 @@ export function _popen(cmd: string) {
  * @param MutexName 互斥体文本
  * @returns 
  */
-export function hasMutex(MutexName: string){
+export function hasMutex(MutexName: string) {
     return native.hasMutex(ref.string(MutexName));
 }
 /**
@@ -5149,7 +5180,7 @@ export function hasMutex(MutexName: string){
  * @param MutexName 互斥体文本
  * @returns 
  */
-export function createMutex(MutexName: string){
+export function createMutex(MutexName: string) {
     return native.createMutex(ref.string(MutexName));
 }
 
@@ -5161,8 +5192,59 @@ export function popen(cmd: string) {
     return native.popen(ref.string(cmd));
 }
 
+/**
+ * 获取当前进程的环境变量
+ * @returns 
+ */
+export function getAllEnv() {
+    return native.getAllEnv();
+}
+
+/**
+ * 获取指定key的环境变量
+ * @param key 
+ * @returns 
+ */
+export function getenv(key: string) {
+    return native.getenv(ref.string(key));
+}
+
+/**
+ * 获取指定UDP端口的pid
+ * @param Port 
+ * @returns 
+ */
+export function getUDPPortProcessID(Port: number) {
+    return native.getUDPPortProcessID(ref.int(Port));
+}
+
+/**
+ * 添加环境变量(不写入系统)
+ * @param key 
+ * @param data 
+ * @returns 
+ */
+export function putenv(key: string, data: string | string[]) {
+    return native.putenv(ref.string(key), ref.string(Array.isArray(data) ? data.join(";") : data));
+}
+
+/**
+ * 获取指定TCP端口的pid
+ * @param Port 
+ * @returns 
+ */
+export function getTCPPortProcessID(Port: number) {
+    return native.getTCPPortProcessID(ref.int(Port));
+
+}
+
 export const Registr = registr;
 export const hmc = {
+    getAllEnv,
+    getenv,
+    getUDPPortProcessID,
+    getTCPPortProcessID,
+    putenv,
     createMutex,
     hasMutex,
     Auto,

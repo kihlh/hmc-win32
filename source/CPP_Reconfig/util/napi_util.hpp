@@ -761,6 +761,88 @@ namespace hmc_napi_util
             }
             return result;
         }
+        /**
+         * @brief 断言传入的指定位置的值是否符合指定条件的
+         *
+         * @tparam Args
+         * @param env
+         * @param nodeValue
+         * @param first
+         * @param args
+         * @return true
+         * @return false
+         */
+        template <typename... Args>
+        bool argsExpect(napi_env env, napi_value nodeValue, size_t argLength, int index, const napi_valuetype &first, const Args &...args)
+        {
+            string expectTypeNames = string("");
+            bool has_expect = false;
+            try
+            {
+                napi_valuetype value_type;
+                napi_typeof(env, argv[index], &value_type);
+
+                napi_valuetype temp[] = {first, args...};
+                size_t length = sizeof(temp) / sizeof(temp[0]);
+
+                for (size_t i = 0; i < length; i++)
+                {
+                    if (temp[i] == value_type)
+                    {
+                        expectTypeNames.append(hmc_napi_util::assert::TypeName(temp[i])).append(" , ");
+                    }
+                }
+
+                if (!has_expect)
+                {
+                    napi_throw_error(env, "EINVAL",
+                                     string("\nThe type of the [")
+                                         .append(to_string(index))
+                                         .append("] parameter passed in should be read as [")
+                                         .append(hmc_napi_util::assert::TypeName(value_type))
+                                         .append("] This parameter should read: [")
+                                         .append(expectTypeNames)
+                                         .append("]\n")
+                                         .c_str());
+                }
+            }
+            catch (const std::exception &e)
+            {
+                return has_expect;
+            }
+
+            return has_expect;
+        }
+        template <typename... Args>
+        bool argsExpect(napi_env env, napi_value nodeValue, size_t argLength, int index[], const napi_valuetype &first, const Args &...args)
+        {
+        }
+        /**
+         * @brief 判断传入的值数量是否符合当前的要求
+         *
+         * @param env
+         * @param nodeValue
+         * @param argLength
+         * @param index
+         * @return true
+         * @return false
+         */
+        bool argsSize(napi_env env, napi_value nodeValue, size_t argLength, int ExpectLength[])
+        {
+        }
+        /**
+         * @brief 判断传入的值数量是否符合当前的要求
+         *
+         * @param env
+         * @param nodeValue
+         * @param argLength
+         * @param index
+         * @return true
+         * @return false
+         */
+        bool argsSize(napi_env env, napi_value nodeValue, size_t argLength, int ExpectLength)
+        {
+        }
     }
 
     namespace get_value

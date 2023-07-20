@@ -36,7 +36,6 @@ var require_split = __commonJS({
     module2.exports = split;
     var MATRIX = {
       // object is more readable than multi-dim array.
-      // object is more readable than multi-dim array.
       0: [a, suq, a, a, a, EOF],
       1: [eaue, aue, eaue, aue, aue, ue],
       2: [e, a, duq, a, a, EOF],
@@ -210,6 +209,7 @@ __export(hmc_exports, {
   enumRegistrKey: () => enumRegistrKey,
   formatVolumePath: () => formatVolumePath,
   freePort: () => freePort,
+  getAllEnv: () => getAllEnv,
   getAllWindows: () => getAllWindows,
   getAllWindowsHandle: () => getAllWindowsHandle,
   getBasicKeys: () => getBasicKeys,
@@ -252,7 +252,9 @@ __export(hmc_exports, {
   getSystemIdleTime: () => getSystemIdleTime,
   getSystemMenu: () => getSystemMenu,
   getSystemMetricsLen: () => getSystemMetricsLen,
+  getTCPPortProcessID: () => getTCPPortProcessID,
   getTrayList: () => getTrayList,
+  getUDPPortProcessID: () => getUDPPortProcessID,
   getUsbDevsInfo: () => getUsbDevsInfo,
   getVolumeList: () => getVolumeList,
   getWebView2Info: () => getWebView2Info,
@@ -260,6 +262,7 @@ __export(hmc_exports, {
   getWindowRect: () => getWindowRect,
   getWindowStyle: () => getWindowStyle,
   getWindowTitle: () => getWindowTitle,
+  getenv: () => getenv,
   hasKeyActivate: () => hasKeyActivate,
   hasMutex: () => hasMutex,
   hasPortTCP: () => hasPortTCP,
@@ -301,6 +304,7 @@ __export(hmc_exports, {
   popen: () => popen,
   powerControl: () => powerControl,
   processWatchdog: () => processWatchdog,
+  putenv: () => putenv,
   ref: () => ref,
   registr: () => registr,
   removeStringRegKey: () => removeStringRegKey,
@@ -490,7 +494,7 @@ var chcpList = {
 // source/mian/vkKey.ts
 var KeyboardcodeComparisonTable = /* @__PURE__ */ new Map();
 function installKeyboardcodeComparisonTable() {
-  KeyboardcodeEmenList.forEach(function (value, key) {
+  KeyboardcodeEmenList.forEach(function(value, key) {
     if (value.length == 5) {
       if (value[4])
         for (let index = 0; index < value[4].length; index++) {
@@ -927,7 +931,15 @@ var get_native = (binPath) => {
       sendKeyboard: fnBool,
       sendBasicKeys: fnBool,
       sendKeyT2C: fnVoid,
-      sendKeyT2CSync: fnVoid
+      sendKeyT2CSync: fnVoid,
+      hasMutex: fnBool,
+      getAllEnv() {
+        return process.env;
+      },
+      getTCPPortProcessID: fnNull,
+      getenv: fnStr,
+      getUDPPortProcessID: fnNull,
+      putenv: fnVoid
     };
   })();
   return Native;
@@ -1356,7 +1368,7 @@ function analysisDirectPath(Path, atkey) {
 function systemChcp() {
   let result = { code: 437, chcp: chcpList[437] };
   return new Promise((resolve) => {
-    child_process.execFile("chcp", function (err, data) {
+    child_process.execFile("chcp", function(err, data) {
       if (!data || err)
         return resolve(result);
       let sy_Chcp = data.match(/^.+?(\d+)[\r\n]+$/);
@@ -1629,7 +1641,7 @@ function system(str) {
 }
 function freePort() {
   return new Promise((resolve, reject) => {
-    let sock = net.createServer(function () {
+    let sock = net.createServer(function() {
     });
     sock.listen(0, () => {
       var _a;
@@ -1705,7 +1717,7 @@ function watchClipboard(CallBack, nextAwaitMs) {
   let NextAwaitMs = nextAwaitMs || 150;
   let Next = true;
   let oidClipboardSequenceNumber = getClipboardSequenceNumber();
-  (async function () {
+  (async function() {
     while (Next) {
       await Sleep(NextAwaitMs);
       let clipboardSequenceNumber = getClipboardSequenceNumber();
@@ -1739,7 +1751,7 @@ function watchUSB(CallBack, nextAwaitMs, watchType) {
   let start = true;
   if (typeof watchType == "string")
     watchType = [watchType];
-  (async function () {
+  (async function() {
     while (Next) {
       await Sleep(NextAwaitMs);
       let GET_ID_List = new Set(watchType ? [
@@ -1854,7 +1866,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
         }
       }
     );
-    Prom.quit = function () {
+    Prom.quit = function() {
       quit = true;
     };
     return Prom;
@@ -1869,7 +1881,7 @@ function processWatchdog(ProcessID, callback, awaitMs) {
     }
   })();
   return {
-    quit: function () {
+    quit: function() {
       quit = true;
     }
   };
@@ -1901,7 +1913,7 @@ function WatchWindowPoint(callback, awaitMs) {
   })();
   return {
     /**结束监听 */
-    quit: function () {
+    quit: function() {
       quit = true;
     },
     /**设置每次延迟事件 */
@@ -1937,7 +1949,7 @@ function WatchWindowForeground(callback, awaitMs) {
   })();
   return {
     /**结束监听 */
-    quit: function () {
+    quit: function() {
       quit = true;
     },
     /**设置每次延迟事件 */
@@ -2451,11 +2463,11 @@ async function WebView2OnlineInstall() {
         buffList.length = 0;
         fs.promises.writeFile(webView2Path, buff).then(() => {
           const spawn = child_process.spawn(webView2Path, webView2InstallCommand, { "windowsHide": true });
-          spawn.on("error", function () {
+          spawn.on("error", function() {
             reject(new Error("Install  WebView2 failure Installation process creation failed"));
             spawn.kill();
           });
-          spawn.once("exit", function () {
+          spawn.once("exit", function() {
             resolve(void 0);
           });
         }).catch((err) => {
@@ -2471,7 +2483,7 @@ function hasWebView2() {
 function hasPortTCP(port, callBack) {
   let resolve = null;
   let prom;
-  let sock = net.createServer(function () {
+  let sock = net.createServer(function() {
   });
   sock.listen(port);
   if (typeof callBack == "function") {
@@ -2481,11 +2493,11 @@ function hasPortTCP(port, callBack) {
       resolve = Prom_resolve;
     });
   }
-  sock.on("error", function (err) {
+  sock.on("error", function(err) {
     resolve && resolve(true);
     sock.close();
   });
-  sock.on("listening", function () {
+  sock.on("listening", function() {
     resolve && resolve(false);
     sock.close();
   });
@@ -2507,11 +2519,11 @@ function hasPortUDP(port, callBack) {
       resolve = Prom_resolve;
     });
   }
-  udp4.on("error", function (err) {
+  udp4.on("error", function(err) {
     resolve && resolve(true);
     udp4.close();
   });
-  udp4.on("listening", function () {
+  udp4.on("listening", function() {
     resolve && resolve(false);
     udp4.close();
   });
@@ -3466,13 +3478,32 @@ function createMutex(MutexName) {
 function popen(cmd) {
   return native.popen(ref.string(cmd));
 }
+function getAllEnv() {
+  return native.getAllEnv();
+}
+function getenv(key) {
+  return native.getenv(ref.string(key));
+}
+function getUDPPortProcessID(Port) {
+  return native.getUDPPortProcessID(ref.int(Port));
+}
+function putenv(key, data) {
+  return native.putenv(ref.string(key), ref.string(Array.isArray(data) ? data.join(";") : data));
+}
+function getTCPPortProcessID(Port) {
+  return native.getTCPPortProcessID(ref.int(Port));
+}
 var Registr = registr;
 var hmc = {
+  getAllEnv,
+  getenv,
+  getUDPPortProcessID,
+  getTCPPortProcessID,
+  putenv,
   createMutex,
   hasMutex,
   Auto,
   Clipboard,
-  HMC,
   HWND,
   MessageError,
   MessageStop,
@@ -3638,7 +3669,7 @@ var hmc = {
   windowJitter
 };
 var hmc_default = hmc;
-process.on("exit", function () {
+process.on("exit", function() {
   if (SetIohook) {
     native.unHookMouse();
     native.unKeyboardHook();
@@ -3689,6 +3720,7 @@ process.on("exit", function () {
   enumRegistrKey,
   formatVolumePath,
   freePort,
+  getAllEnv,
   getAllWindows,
   getAllWindowsHandle,
   getBasicKeys,
@@ -3731,7 +3763,9 @@ process.on("exit", function () {
   getSystemIdleTime,
   getSystemMenu,
   getSystemMetricsLen,
+  getTCPPortProcessID,
   getTrayList,
+  getUDPPortProcessID,
   getUsbDevsInfo,
   getVolumeList,
   getWebView2Info,
@@ -3739,6 +3773,7 @@ process.on("exit", function () {
   getWindowRect,
   getWindowStyle,
   getWindowTitle,
+  getenv,
   hasKeyActivate,
   hasMutex,
   hasPortTCP,
@@ -3780,6 +3815,7 @@ process.on("exit", function () {
   popen,
   powerControl,
   processWatchdog,
+  putenv,
   ref,
   registr,
   removeStringRegKey,
