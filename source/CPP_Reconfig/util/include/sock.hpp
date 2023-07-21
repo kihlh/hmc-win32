@@ -27,7 +27,7 @@ DWORD GetTCPPortProcessID(unsigned short port)
 {
     try
     {
-        EnableShutDownPriv();
+        hmc_EnableShutDownPriv();
         ULONG ulSize = sizeof(MIB_TCPTABLE2);
         PMIB_TCPTABLE2 pTcpTable = (PMIB_TCPTABLE2)MALLOC(ulSize);
 
@@ -91,7 +91,7 @@ DWORD GetUDPPortProcessID(unsigned short port)
 {
     try
     {
-        EnableShutDownPriv();
+        hmc_EnableShutDownPriv();
         MIB_UDPTABLE_OWNER_PID *pUdpTable = nullptr;
         ULONG ulSize = 0;
         DWORD dwRetVal = 0;
@@ -235,7 +235,7 @@ string GetStateName(DWORD dwState)
  */
 void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool udp = true)
 {
-    EnableShutDownPriv();
+    hmc_EnableShutDownPriv();
 
     if (tcp)
     {
@@ -310,7 +310,7 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
     {
         try
         {
-            EnableShutDownPriv();
+            hmc_EnableShutDownPriv();
             MIB_UDPTABLE_OWNER_PID *pUdpTable = nullptr;
             ULONG ulSize = 0;
             DWORD dwRetVal = 0;

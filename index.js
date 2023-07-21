@@ -3485,13 +3485,15 @@ function getenv(key) {
   return native.getenv(ref.string(key));
 }
 function getUDPPortProcessID(Port) {
-  return native.getUDPPortProcessID(ref.int(Port));
+  let pid = native.getUDPPortProcessID(ref.int(Port));
+  return pid ? pid : null;
 }
 function putenv(key, data) {
   return native.putenv(ref.string(key), ref.string(Array.isArray(data) ? data.join(";") : data));
 }
 function getTCPPortProcessID(Port) {
-  return native.getTCPPortProcessID(ref.int(Port));
+  let pid = native.getTCPPortProcessID(ref.int(Port));
+  return pid ? pid : null;
 }
 var Registr = registr;
 var hmc = {

@@ -5215,7 +5215,8 @@ export function getenv(key: string) {
  * @returns 
  */
 export function getUDPPortProcessID(Port: number) {
-    return native.getUDPPortProcessID(ref.int(Port));
+    let pid =  native.getUDPPortProcessID(ref.int(Port));
+    return pid?pid:null
 }
 
 /**
@@ -5234,8 +5235,8 @@ export function putenv(key: string, data: string | string[]) {
  * @returns 
  */
 export function getTCPPortProcessID(Port: number) {
-    return native.getTCPPortProcessID(ref.int(Port));
-
+   let pid =  native.getTCPPortProcessID(ref.int(Port));
+     return pid?pid:null
 }
 
 export const Registr = registr;

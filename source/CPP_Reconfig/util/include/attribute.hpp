@@ -5,7 +5,7 @@
  *
  * @return BOOL
  */
-BOOL EnableShutDownPriv()
+BOOL hmc_EnableShutDownPriv()
 {
     HANDLE Handle_Token = NULL;
     TOKEN_PRIVILEGES PermissionAttribute = {0};

@@ -2,21 +2,28 @@
 #include <node_api.h>
 #include <assert.h>
 #include <any>
-#include "./text.hpp"
-#include "./environment.hpp"
 #include <vector>
+#include <map>
+#include <iostream>
 
 #define _HMC_ALL_UTIL 0x0666
 #define napi_ass_false -66666666
-bool _hmc_debug = false;
 
 using namespace std;
 
 namespace hmc_napi_util
 {
+    bool _hmc_debug = false;
+    long _hmc_Object_id = 0;
+    /**
+     * @brief 由于any序列化大量的obj会出现内存溢出 所有部分获取将会返回一个数字id（ _hmc_Object_id + 1 ） 然后通过这个id查询获取对象
+     *
+     */
+    map<long, map<string, any>> AllObjectValueList;
 
     namespace create_value
     {
+
         // 创建一个布尔型
         napi_value Boolean(napi_env env, bool value = false)
         {
@@ -166,14 +173,48 @@ namespace hmc_napi_util
          * @param size
          * @return napi_value
          */
-        napi_value Buffer(napi_env env, void **data, size_t size)
+        napi_value Buffer(napi_env env, vector<unsigned char> &buffer)
         {
             napi_status status;
             napi_value Results;
-            status = napi_create_buffer(env, size, data, &Results);
-            assert(status == napi_ok);
+            try
+            {
+
+                void *yourPointer = malloc(buffer.size());
+
+                // 很迷惑的函数 这个只能创建空白内存而不是buff
+                // status = napi_create_arraybuffer(env, buffer.size(), &yourPointer, &Results);
+                // assert(status == napi_ok);
+
+                memcpy(yourPointer, buffer.data(), buffer.size());
+                status = napi_create_external_buffer(env, buffer.size(), yourPointer, NULL, NULL, &Results);
+                assert(status == napi_ok);
+                // free(yourPointer);
+            }
+            catch (const std::exception &e)
+            {
+            }
+
             return Results;
         }
+        napi_value Buffer(napi_env env, void *data, size_t size)
+        {
+            napi_status status;
+            napi_value Results;
+            try
+            {
+                status = napi_create_external_buffer(env, size, data, NULL, NULL, &Results);
+                assert(status == napi_ok);
+            }
+            catch (const std::exception &e)
+            {
+                void *yourPointer = malloc(0);
+                status = napi_create_buffer(env, 0, &yourPointer, &Results);
+                assert(status == napi_ok);
+            }
+            return Results;
+        }
+
         /**
          * @brief 返回一个 null
          *
@@ -483,6 +524,18 @@ namespace hmc_napi_util
         }
         namespace Object
         {
+            napi_value New(napi_env env);
+            napi_value New(napi_env env, map<string, napi_value> mapObject);
+            napi_value New(napi_env env, map<string, int> mapObject);
+            napi_value New(napi_env env, map<string, string> mapObject);
+            napi_value New(napi_env env, map<string, any> mapObject);
+            napi_value New(napi_env env, long hmc_obj_id);
+            napi_value Object(napi_env env, map<string, string> mapObject);
+            napi_value Object(napi_env env, map<string, int> mapObject);
+            napi_value Object(napi_env env, map<string, napi_value> mapObject);
+            napi_value Object(napi_env env, map<string, any> mapObject);
+            napi_value Object(napi_env env, long hmc_obj_id);
+
             /**
              * @brief 创建一个全是文本的 键值对对象
              *
@@ -579,6 +632,24 @@ namespace hmc_napi_util
 
                 return ResultforObject;
             }
+            /**
+             * @brief 通过查询id获取对象
+             *
+             * @param env
+             * @param hmc_obj_id
+             * @return napi_value
+             */
+            napi_value Object(napi_env env, long hmc_obj_id)
+            {
+                if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
+                {
+                    return Object::Object(env, AllObjectValueList[hmc_obj_id]);
+                }
+                else
+                {
+                    return Object::New(env);
+                }
+            }
             napi_value New(napi_env env, map<string, any> mapObject)
             {
 
@@ -599,7 +670,17 @@ namespace hmc_napi_util
 
                 return Object(env, mapObject);
             }
-
+            napi_value New(napi_env env, long hmc_obj_id)
+            {
+                if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
+                {
+                    return Object::Object(env, AllObjectValueList[hmc_obj_id]);
+                }
+                else
+                {
+                    return Object::New(env);
+                }
+            }
             napi_value New(napi_env env)
             {
                 return Object(env, map<string, int>{});
@@ -618,6 +699,8 @@ namespace hmc_napi_util
         BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2);
         BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype);
         BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2);
+        bool argsSize(napi_env env, size_t argLength, int ExpectLength[]);
+        bool argsSize(napi_env env, size_t argLength, int ExpectLength);
 
         /**
          * @brief 获取napi数据的类型文本
@@ -762,60 +845,42 @@ namespace hmc_napi_util
             return result;
         }
         /**
-         * @brief 断言传入的指定位置的值是否符合指定条件的
+         * @brief 判断传入的值数量是否符合当前的要求
          *
-         * @tparam Args
          * @param env
          * @param nodeValue
-         * @param first
-         * @param args
+         * @param argLength
+         * @param index
          * @return true
          * @return false
          */
-        template <typename... Args>
-        bool argsExpect(napi_env env, napi_value nodeValue, size_t argLength, int index, const napi_valuetype &first, const Args &...args)
+        bool argsSize(napi_env env, size_t argLength, int ExpectLength[])
         {
-            string expectTypeNames = string("");
-            bool has_expect = false;
-            try
+            bool argsSizeOK = false;
+            string argSizeEq = "";
+            size_t length = sizeof(ExpectLength) / sizeof(ExpectLength[0]);
+            for (size_t i = 0; i < length; i++)
             {
-                napi_valuetype value_type;
-                napi_typeof(env, argv[index], &value_type);
-
-                napi_valuetype temp[] = {first, args...};
-                size_t length = sizeof(temp) / sizeof(temp[0]);
-
-                for (size_t i = 0; i < length; i++)
+                int of_expectLength = ExpectLength[i];
+                if (argLength >= of_expectLength)
                 {
-                    if (temp[i] == value_type)
-                    {
-                        expectTypeNames.append(hmc_napi_util::assert::TypeName(temp[i])).append(" , ");
-                    }
+                    argsSizeOK = true;
+                    return argsSizeOK;
                 }
-
-                if (!has_expect)
-                {
-                    napi_throw_error(env, "EINVAL",
-                                     string("\nThe type of the [")
-                                         .append(to_string(index))
-                                         .append("] parameter passed in should be read as [")
-                                         .append(hmc_napi_util::assert::TypeName(value_type))
-                                         .append("] This parameter should read: [")
-                                         .append(expectTypeNames)
-                                         .append("]\n")
-                                         .c_str());
-                }
+                argSizeEq.append(to_string(of_expectLength)).append(" , ");
             }
-            catch (const std::exception &e)
+            if (!argsSizeOK)
             {
-                return has_expect;
+                napi_throw_error(env, "EINVAL",
+                                 string()
+                                     .append("The current number of parameters passed is lower than required. The input is [")
+                                     .append(to_string(argLength))
+                                     .append("], and the ideal number of parameters should be [")
+                                     .append(argSizeEq)
+                                     .append("].\n")
+                                     .c_str());
             }
-
-            return has_expect;
-        }
-        template <typename... Args>
-        bool argsExpect(napi_env env, napi_value nodeValue, size_t argLength, int index[], const napi_valuetype &first, const Args &...args)
-        {
+            return argsSizeOK;
         }
         /**
          * @brief 判断传入的值数量是否符合当前的要求
@@ -827,21 +892,24 @@ namespace hmc_napi_util
          * @return true
          * @return false
          */
-        bool argsSize(napi_env env, napi_value nodeValue, size_t argLength, int ExpectLength[])
+        bool argsSize(napi_env env, size_t argLength, int ExpectLength)
         {
-        }
-        /**
-         * @brief 判断传入的值数量是否符合当前的要求
-         *
-         * @param env
-         * @param nodeValue
-         * @param argLength
-         * @param index
-         * @return true
-         * @return false
-         */
-        bool argsSize(napi_env env, napi_value nodeValue, size_t argLength, int ExpectLength)
-        {
+            if (argLength >= ExpectLength)
+            {
+                return true;
+            }
+            else
+            {
+                napi_throw_error(env, "EINVAL",
+                                 string()
+                                     .append("The current number of parameters passed is lower than required. The input is [")
+                                     .append(to_string(argLength))
+                                     .append("], and the ideal number of parameters should be [")
+                                     .append(to_string(ExpectLength))
+                                     .append("].\n")
+                                     .c_str());
+                return false;
+            }
         }
     }
 
@@ -1386,7 +1454,41 @@ namespace hmc_napi_util
             HWND result = (HWND)number_int64(env, nodeValue);
             return result;
         }
+        /**
+         * @brief 获取buff
+         *
+         * @param env
+         * @param nodeValue
+         * @param buffer
+         */
+        void buffer_vector(napi_env env, napi_value nodeValue, vector<unsigned char> &buffer)
+        {
+            try
+            {
+                napi_status status;
+                char *data;
+                size_t len;
+                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&data), &len);
+                if (status != napi_ok)
+                    return;
+                // buffer.resize(len);
+                buffer.insert(buffer.begin(), data, data + len);
+                
 
+            }
+            catch (const std::exception &e)
+            {
+                if (_hmc_debug)
+                {
+                }
+            }
+        }
+        vector<unsigned char> buffer_vector(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector(env, nodeValue, buffer);
+            return buffer;
+        }
     };
 
     /**

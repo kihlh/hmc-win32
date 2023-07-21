@@ -18,7 +18,7 @@
 using namespace std;
 
 // 获取指定的环境变量
-string GetVariable(string const &name)
+static string GetVariable(string const &name)
 {
 #if defined(_MSC_VER)
     size_t size;
@@ -41,7 +41,7 @@ string GetVariable(string const &name)
 }
 
 // 二进制编译的版本
-string GetBinaryArch()
+static string GetBinaryArch()
 {
 #if _WIN32
     return string("x32");
@@ -53,7 +53,7 @@ string GetBinaryArch()
 }
 
 // 判断 x64 系统
-BOOL isSystemFor64bit()
+static BOOL isSystemFor64bit()
 {
     SYSTEM_INFO SystemInfo;
     ::GetNativeSystemInfo(&SystemInfo);
@@ -63,7 +63,7 @@ BOOL isSystemFor64bit()
         return FALSE;
 }
 
-map<string, string> getVariableAll()
+static map<string, string> getVariableAll()
 {
     map<string, string> envStrMap;
 
@@ -102,7 +102,7 @@ map<string, string> getVariableAll()
     return envStrMap;
 }
 
-map<string, string> getGlobalVariableAll()
+static map<string, string> getGlobalVariableAll()
 {
     map<string, string> envStrMap;
 

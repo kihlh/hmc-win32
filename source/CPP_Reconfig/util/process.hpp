@@ -3,8 +3,7 @@
 #include <Psapi.h>
 #include <Shellapi.h>
 
-#include "./text.hpp"
-using namespace hmc_text_util;
+#include "./include/attribute.hpp"
 
 using namespace std;
 
@@ -17,29 +16,7 @@ namespace hmc_process
      */
     BOOL EnableShutDownPriv()
     {
-        HANDLE Handle_Token = NULL;
-        TOKEN_PRIVILEGES PermissionAttribute = {0};
-        // 打开当前程序的权限令牌
-        bool is_Open_Process_Token = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &Handle_Token);
-        if (!is_Open_Process_Token)
-        {
-            return FALSE;
-        }
-        // 获得某一特定权限的权限标识LUID 保存到权限属性中
-        if (!LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &PermissionAttribute.Privileges[0].Luid))
-        {
-            CloseHandle(Handle_Token);
-            return FALSE;
-        }
-        PermissionAttribute.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-        PermissionAttribute.PrivilegeCount = 1;
-        // 提升到系统权限
-        if (!AdjustTokenPrivileges(Handle_Token, FALSE, &PermissionAttribute, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
-        {
-            CloseHandle(Handle_Token);
-            return FALSE;
-        }
-        return TRUE;
+        return hmc_EnableShutDownPriv();
     }
 
     /**
@@ -412,5 +389,72 @@ namespace hmc_process
     {
         return getBaseName(getFocusWindowProcessID());
     }
-
+    struct ProcessEnumDetailsCont
+    {
+        DWORD pid;
+        string baseName;
+        string path;
+    };
+      struct ProcessEnumCont
+    {
+        DWORD pid;
+        string baseName;
+    };
+    /**
+     * @brief 枚举进程列表
+     *
+     * @param resultsData
+     */
+    void getProcessList(vector<ProcessEnumCont> &resultsData)
+    {
+        EnableShutDownPriv();
+        DWORD processList[1024], cbNeeded;
+        if (!EnumProcesses(processList, sizeof(processList), &cbNeeded))
+        {
+        }
+        int numProcesses = cbNeeded / sizeof(DWORD);
+        for (int i = 0; i < numProcesses; ++i)
+        {
+            DWORD processID = processList[i];
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+            if (hProcess)
+            {
+                char processName[MAX_PATH];
+                GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
+                ProcessEnumCont processEnumCont;
+                processEnumCont.pid = processID;
+                processEnumCont.baseName = processName;
+                resultsData.push_back(processEnumCont);
+                CloseHandle(hProcess);
+            }
+        }
+    }
+    void getProcessList(vector<ProcessEnumDetailsCont> &resultsData)
+    {
+        EnableShutDownPriv();
+        DWORD processList[1024], cbNeeded;
+        if (!EnumProcesses(processList, sizeof(processList), &cbNeeded))
+        {
+        }
+        int numProcesses = cbNeeded / sizeof(DWORD);
+        for (int i = 0; i < numProcesses; ++i)
+        {
+            DWORD processID = processList[i];
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+            if (hProcess)
+            {
+                char processName[MAX_PATH];
+                char Filename[1024];
+                GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
+                GetModuleFileNameExA(hProcess, NULL, Filename, 1024);
+                ProcessEnumDetailsCont processEnumCont;
+                processEnumCont.pid = processID;
+                processEnumCont.baseName = processName;
+                processEnumCont.path = Filename;
+                resultsData.push_back(processEnumCont);
+                CloseHandle(hProcess);
+            }
+        }
+    }
+    
 }

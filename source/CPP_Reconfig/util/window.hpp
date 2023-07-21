@@ -4,9 +4,6 @@
 #include <Shellapi.h>
 using namespace std;
 
-#include "./text.hpp"
-using namespace hmc_text_util;
-
 namespace hmc_window
 {
     HWND toHWND(DWORD hwnd)
