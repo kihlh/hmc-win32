@@ -27,7 +27,8 @@ namespace hmc_console
             warn = 8008,
             debug = 8007,
             info = 8000,
-            all = 0
+            all = 0,
+            stop = 99999
         } level;
     }
 
@@ -59,29 +60,28 @@ namespace hmc_console
             switch (ch)
             {
             case '\"':
-                output += "\\\"";
+                output.append("\\\"");
                 break;
             case '\\':
-                output += "\\\\";
+                output.append("\\\\");
                 break;
             case '\b':
-                output += "\\b";
+                output.append("\\b");
                 break;
             case '\f':
-                output += "\\f";
+                output.append("\\f");
                 break;
             case '\n':
-                output += "\\n";
+                output.append("\\n");
                 break;
             case '\r':
-                output += "\\r";
+                output.append("\\r");
                 break;
             case '\t':
-                output += "\\t";
+                output.append("\\t");
                 break;
-                // Add more special characters to escape if needed
             default:
-                output += ch;
+                output.push_back(ch);
                 break;
             }
         }
@@ -592,9 +592,7 @@ namespace hmc_console
         for (size_t i = 0; i < data.size(); i++)
         {
             string newdata = "\"";
-            string eqjsonText = data[i];
-            escapeJson(eqjsonText);
-            newdata.append(eqjsonText);
+            newdata.append(escapeJson(data[i]));
             message.append("\"");
             if (i != data.size() - 1)
                 message.append(",");
@@ -678,13 +676,11 @@ namespace hmc_console
         {
             message.append("\"");
             string eqjsonKeyText;
-            eqjsonKeyText.append(entry.first);
-            escapeJson(eqjsonKeyText);
+            eqjsonKeyText.append(escapeJson(entry.first));
 
             message.append("\" : \"");
             string eqjsonText;
-            eqjsonText.append(entry.second);
-            escapeJson(eqjsonText);
+            eqjsonText.append(escapeJson(entry.second));
             message.append(eqjsonText);
             message.append("\"");
             message.append(",");
@@ -710,8 +706,7 @@ namespace hmc_console
 
             message.append("\" : \"");
             string eqjsonText;
-            eqjsonText.append(entry.second);
-            escapeJson(eqjsonText);
+            eqjsonText.append(escapeJson(entry.second));
             message.append(eqjsonText);
             message.append("\"");
             message.append(",");
@@ -735,8 +730,58 @@ namespace hmc_console
             eqjsonKeyText.append(to_string(entry.first));
             message.append(" : \"");
             string eqjsonText;
-            eqjsonText.append(entry.second);
-            escapeJson(eqjsonText);
+            eqjsonText.append(escapeJson(entry.second));
+            message.append(eqjsonText);
+            message.append("\"");
+            message.append(",");
+        }
+        // 如果最后一位是逗号，移除它
+        if (!message.empty() && message.back() == ',')
+        {
+            message.pop_back();
+        }
+        message.append("}");
+
+        _hmc_send_anyStr(level::debug, locaName, message, type);
+    }
+
+    // --------------------------------
+    void debug(string locaName, map<string, double> &data)
+    {
+        string type = "map<string, double>";
+        string message = "{";
+        for (const auto &entry : data)
+        {
+            message.append("\"");
+            string eqjsonKeyText;
+            eqjsonKeyText.append(escapeJson(entry.first));
+            message.append("\" : \"");
+            string eqjsonText;
+            eqjsonText.append(escapeJson(to_string(entry.second)));
+            message.append(eqjsonText);
+            message.append("\"");
+            message.append(",");
+        }
+        // 如果最后一位是逗号，移除它
+        if (!message.empty() && message.back() == ',')
+        {
+            message.pop_back();
+        }
+        message.append("}");
+
+        _hmc_send_anyStr(level::debug, locaName, message, type);
+    }
+    void debug(string locaName, map<string, DWORD> &data)
+    {
+        string type = "map<string, DWORD>";
+        string message = "{";
+        for (const auto &entry : data)
+        {
+            string eqjsonKeyText;
+            eqjsonKeyText.append(escapeJson(entry.first));
+            message.append(" : \"");
+            string eqjsonText;
+            eqjsonText.append(escapeJson(to_string(entry.second)));
             message.append(eqjsonText);
             message.append("\"");
             message.append(",");
@@ -789,7 +834,9 @@ namespace hmc_console
     }
 }
 
-int main()
+/**
+
+ int main()
 {
     hmc_console::setCoutLevel(hmc_console::level::all);
 
@@ -800,7 +847,10 @@ int main()
         Sleep(100);
         // 结束计时
         hmc_console::timeEnd();
-        // TODO
+
     }
     return 0;
 }
+
+ *
+ */

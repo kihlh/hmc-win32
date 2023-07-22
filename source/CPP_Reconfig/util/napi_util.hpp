@@ -5,6 +5,12 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include "./include/json.hpp"
+using json = nlohmann::json;
+
+#include "./text.hpp"
+using namespace hmc_text_util;
+using namespace hmc_text_regexp;
 
 #define _HMC_ALL_UTIL 0x0666
 #define napi_ass_false -66666666
@@ -72,7 +78,19 @@ namespace hmc_napi_util
         {
             return String(env, "");
         }
-
+        /**
+         * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
+         * 
+         * @param env 
+         * @param jsonValue 
+         * @return napi_value 
+         */
+        napi_value JSON(napi_env env, json jsonValue)
+        {
+            string jsonValuetoString = string("hmc::api::::json::::");
+            jsonValue.get_to(jsonValuetoString);
+            return String(env, jsonValuetoString);
+        }
         /**
          * @brief 返回一个 number到js
          *
@@ -372,6 +390,19 @@ namespace hmc_napi_util
             }
 
             return ResultForAny;
+        }
+        /**
+         * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
+         * 
+         * @param env 
+         * @param jsonValue 
+         * @return napi_value 
+         */
+        napi_value New(napi_env env, json jsonValue)
+        {
+            string jsonValuetoString = string("hmc::api::::json::::");
+            jsonValue.get_to(jsonValuetoString);
+            return String(env, jsonValuetoString);
         }
         napi_value New(napi_env env)
         {
@@ -1473,8 +1504,6 @@ namespace hmc_napi_util
                     return;
                 // buffer.resize(len);
                 buffer.insert(buffer.begin(), data, data + len);
-                
-
             }
             catch (const std::exception &e)
             {

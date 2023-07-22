@@ -8,14 +8,13 @@
 #include "./attribute.hpp";
 #include <string>
 #include <vector>
+using namespace std;
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
+#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "iphlpapi.lib")
 
-using namespace std;
-
-#define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
-#define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
 
 /**
  * @brief 获取占用指定TCP端口的进程id
@@ -119,7 +118,7 @@ DWORD GetUDPPortProcessID(unsigned short port)
                 // dwOwningPid：发出此 UDP 连接的上下文绑定的进程 PID。
 
                 MIB_UDPROW_OWNER_PID mibUdprowOwnerPid = pUdpTable->table[i];
-                
+
                 unsigned short localPort = ntohs((u_short)mibUdprowOwnerPid.dwLocalPort);
                 if (localPort == port)
                 {
@@ -172,6 +171,7 @@ struct ConnectNet
     string remoteIP;    // 解析出来的实际远程ip
     string state;       // 状态码 "CLOSED"|"LISTEN"|"SYN-SENT"|"SYN-RECEIVED"|"ESTABLISHED"|"FIN-WAIT-1"|"FIN-WAIT-2"|"CLOSE-WAIT"|"CLOSING"|"LAST-ACK"|"TIME-WAIT"|"DELETE-TCB"|"UNKNOWN"
 };
+
 /**
  * @brief 将状态码转为人可以读取的UDP
  *
@@ -228,8 +228,8 @@ string GetStateName(DWORD dwState)
 
 /**
  * @brief 枚举本机所有的已经打开的端口信息
- * 
- * @param ConnectNetList 
+ *
+ * @param ConnectNetList
  * @param tcp 是否返回tcp
  * @param udp 是否返回udp
  */
@@ -295,7 +295,8 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
                         // 端口
                         connectNet.port = ntohs((u_short)mibTcprow2.dwLocalPort);
                         connectNet.remotePort = ntohs((u_short)mibTcprow2.dwRemotePort);
-                         if(connectNet.port!=0)ConnectNetList.push_back(connectNet);
+                        if (connectNet.port != 0)
+                            ConnectNetList.push_back(connectNet);
                     }
                 }
             }
@@ -353,7 +354,8 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
                     connectNet.pid = mibUdprowOwnerPid.dwOwningPid;
                     connectNet.ipAddr = mibUdprowOwnerPid.dwLocalAddr;
                     connectNet.ip = dwLocalAddrToIP(mibUdprowOwnerPid.dwLocalAddr);
-                    if(connectNet.port!=0)ConnectNetList.push_back(connectNet);
+                    if (connectNet.port != 0)
+                        ConnectNetList.push_back(connectNet);
                 }
             }
             else
@@ -374,4 +376,118 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
             return;
         }
     }
+}
+
+struct hmc_NetParams
+{
+    string hostName;           // 主机名称
+    string domainName;         // 域名名称
+    vector<string> dnsServers; // dns服务器列表
+    /**
+     * @brief 节点类型
+     * - BROADCAST_NODETYPE;
+     * - HYBRID_NODETYPE
+     * - MIXED_NODETYPE
+     * - PEER_TO_PEER_NODETYPE
+     * - UNKNOWN:<UINT>
+     */
+    string nodeType;
+    string dhcpScopeName; // dhcp 范围名称
+    bool enableRouting;   // 是否启用路由选择
+    bool enableArpProxy;  // 是否ARP代理
+    bool enableDns;       // 是否启用dns
+};
+
+/**
+ * @brief 获取当前的dns网络适配器信息
+ * 
+ * @return hmc_NetParams 
+ */
+hmc_NetParams getNetParams()
+{
+    hmc_NetParams NetParams;
+    NetParams.enableArpProxy = false;
+    NetParams.enableDns = false;
+    NetParams.dnsServers = {};
+    NetParams.dhcpScopeName = "";
+    NetParams.hostName = "";
+    NetParams.nodeType = "";
+    NetParams.enableRouting = false;
+
+    try
+    {
+        FIXED_INFO *pFixedInfo;
+        ULONG ulOutBufLen;
+        DWORD dwRetVal;
+        IP_ADDR_STRING *pIPAddr;
+
+        pFixedInfo = (FIXED_INFO *)MALLOC(sizeof(FIXED_INFO));
+        if (pFixedInfo == NULL)
+        {
+            return NetParams;
+        }
+        ulOutBufLen = sizeof(FIXED_INFO);
+
+        if (GetNetworkParams(pFixedInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
+        {
+            FREE(pFixedInfo);
+            pFixedInfo = (FIXED_INFO *)MALLOC(ulOutBufLen);
+            if (pFixedInfo == NULL)
+            {
+                return NetParams;
+            }
+        }
+
+        if (dwRetVal = GetNetworkParams(pFixedInfo, &ulOutBufLen) == NO_ERROR)
+        {
+
+            NetParams.hostName = pFixedInfo->HostName;
+            NetParams.domainName = pFixedInfo->DomainName;
+
+            NetParams.dnsServers.push_back(pFixedInfo->DnsServerList.IpAddress.String);
+
+            pIPAddr = pFixedInfo->DnsServerList.Next;
+            while (pIPAddr)
+            {
+                NetParams.dnsServers.push_back(pIPAddr->IpAddress.String);
+                pIPAddr = pIPAddr->Next;
+            }
+
+            switch (pFixedInfo->NodeType)
+            {
+            case BROADCAST_NODETYPE:
+                NetParams.nodeType = "BROADCAST_NODETYPE";
+                break;
+            case PEER_TO_PEER_NODETYPE:
+                NetParams.nodeType = "PEER_TO_PEER_NODETYPE";
+                break;
+            case MIXED_NODETYPE:
+                NetParams.nodeType = "MIXED_NODETYPE";
+                break;
+            case HYBRID_NODETYPE:
+                NetParams.nodeType = "HYBRID_NODETYPE";
+                break;
+            default:
+                NetParams.nodeType = string("UNKNOWN:").append(to_string(pFixedInfo->NodeType));
+                break;
+            }
+
+            NetParams.domainName = pFixedInfo->ScopeId;
+            NetParams.enableArpProxy = pFixedInfo->EnableProxy ? true : false;
+            NetParams.enableRouting = pFixedInfo->EnableRouting ? true : false;
+            NetParams.enableDns = pFixedInfo->EnableDns ? true : false;
+        }
+        else
+        {
+            return NetParams;
+        }
+
+        if (pFixedInfo)
+            FREE(pFixedInfo);
+    }
+    catch (const std::exception &e)
+    {
+    }
+
+    return NetParams;
 }

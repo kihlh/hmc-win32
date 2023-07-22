@@ -12,6 +12,7 @@
 #include <thread>
 #include <chrono>
 #include <iosfwd>
+#include <set>
 
 
 #include <Shellapi.h>
@@ -27,7 +28,6 @@
 #include <signal.h>
 #include <algorithm>
 
-using namespace std;
 
 #pragma comment(lib, "Ws2_32")
 #pragma comment(lib, "dwmapi.lib")

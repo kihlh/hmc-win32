@@ -10,16 +10,6 @@ using namespace std;
 namespace hmc_process
 {
     /**
-     * @brief 临时提权令牌
-     *
-     * @return BOOL
-     */
-    BOOL EnableShutDownPriv()
-    {
-        return hmc_EnableShutDownPriv();
-    }
-
-    /**
      * @brief 获取当前进程的父进程id
      *
      * @param matchProcessID

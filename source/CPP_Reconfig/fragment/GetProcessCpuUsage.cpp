@@ -1,6 +1,5 @@
 #include <iostream>
 #include <windows.h>
-#include <string.h>
 #include <Psapi.h>
 
 // 时间格式转换

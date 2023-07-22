@@ -95,6 +95,7 @@
         "any": "cpp",
         "future": "cpp",
         "*.ipp": "cpp",
-        "xxatomic": "cpp"
+        "xxatomic": "cpp",
+        "valarray": "cpp"
     }
 }
