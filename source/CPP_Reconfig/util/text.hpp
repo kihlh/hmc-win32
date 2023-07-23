@@ -125,6 +125,18 @@ namespace hmc_text_util
         return W2A(U82W(pText));
     }
 
+    // unicode 转A
+    string U82A(UNICODE_STRING unicodeString)
+    {
+        return W2A(unicodeStringToWString(unicodeString));
+    }
+    
+    // unicode 转W
+    wstring U82W(UNICODE_STRING unicodeString)
+    {
+        return unicodeStringToWString(unicodeString);
+    }
+
     // UFT8 字符转为GBK(中文)
     string UTF8ToGBK(string u8str)
     {
@@ -203,6 +215,16 @@ namespace hmc_text_util
         }
 
         return Result;
+    }
+
+    wstring unicodeStringToWString(UNICODE_STRING unicodeString)
+    {
+        wstring result;
+        if (unicodeString.Buffer)
+        {
+            result = wstring(unicodeString.Buffer, unicodeString.Length / sizeof(wchar_t));
+        }
+        return result;
     }
 
 #ifdef defined(_MFC_VER)

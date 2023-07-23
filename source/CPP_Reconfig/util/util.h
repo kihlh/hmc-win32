@@ -24,3 +24,5 @@ using namespace hmc_screen;
 #include "./console.hpp"
 using namespace hmc_console;
 
+#include "./usb.hpp"
+using namespace hmc_usb;

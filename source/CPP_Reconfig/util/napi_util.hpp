@@ -8,10 +8,6 @@
 #include "./include/json.hpp"
 using json = nlohmann::json;
 
-#include "./text.hpp"
-using namespace hmc_text_util;
-using namespace hmc_text_regexp;
-
 #define _HMC_ALL_UTIL 0x0666
 #define napi_ass_false -66666666
 
@@ -21,11 +17,22 @@ namespace hmc_napi_util
 {
     bool _hmc_debug = false;
     long _hmc_Object_id = 0;
+    
+    /**
+     * @brief 获取一个内容id
+     * 
+     * @return long 
+     */
+    long getContextID(){
+        _hmc_Object_id++;
+        return _hmc_Object_id;
+    }
+    
     /**
      * @brief 由于any序列化大量的obj会出现内存溢出 所有部分获取将会返回一个数字id（ _hmc_Object_id + 1 ） 然后通过这个id查询获取对象
      *
      */
-    map<long, map<string, any>> AllObjectValueList;
+    map<long, json> AllObjectValueList;
 
     namespace create_value
     {
@@ -80,10 +87,10 @@ namespace hmc_napi_util
         }
         /**
          * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
-         * 
-         * @param env 
-         * @param jsonValue 
-         * @return napi_value 
+         *
+         * @param env
+         * @param jsonValue
+         * @return napi_value
          */
         napi_value JSON(napi_env env, json jsonValue)
         {
@@ -393,16 +400,54 @@ namespace hmc_napi_util
         }
         /**
          * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
-         * 
-         * @param env 
-         * @param jsonValue 
-         * @return napi_value 
+         *
+         * @param env
+         * @param jsonValue
+         * @return napi_value
          */
         napi_value New(napi_env env, json jsonValue)
         {
-            string jsonValuetoString = string("hmc::api::::json::::");
-            jsonValue.get_to(jsonValuetoString);
-            return String(env, jsonValuetoString);
+            try
+            {
+                if (jsonValue.is_array() || jsonValue.is_object())
+                {
+                    string jsonValuetoString = string("hmc::api::::json::::");
+                    jsonValue.get_to(jsonValuetoString);
+                    return String(env, jsonValuetoString);
+                }
+                else if (jsonValue.is_boolean())
+                {
+                    return Boolean(env, jsonValue.template get<bool>());
+                }
+                else if (jsonValue.is_null())
+                {
+                    return Null(env);
+                }
+                else if (jsonValue.is_string())
+                {
+                    return String(env, hmc_text_util::A2U8(jsonValue.template get<string>()));
+                }
+                else if (jsonValue.is_number())
+                {
+                    if (jsonValue.is_number_float())
+                    {
+                        return Number(env, jsonValue.template get<double>());
+                    }
+                    else
+                    {
+                        return Number(env, jsonValue.template get<long long>());
+                    }
+                }
+                else if (jsonValue.is_binary())
+                {
+                    return Buffer(env, jsonValue.template get<vector<unsigned char>>());
+                }
+            }
+            catch (char *e)
+            {
+            }
+
+            return Undefined(env);
         }
         napi_value New(napi_env env)
         {
@@ -561,6 +606,7 @@ namespace hmc_napi_util
             napi_value New(napi_env env, map<string, string> mapObject);
             napi_value New(napi_env env, map<string, any> mapObject);
             napi_value New(napi_env env, long hmc_obj_id);
+            napi_value New(napi_env env, map<string, napi_value> mapObject);
             napi_value Object(napi_env env, map<string, string> mapObject);
             napi_value Object(napi_env env, map<string, int> mapObject);
             napi_value Object(napi_env env, map<string, napi_value> mapObject);
@@ -674,7 +720,7 @@ namespace hmc_napi_util
             {
                 if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
                 {
-                    return Object::Object(env, AllObjectValueList[hmc_obj_id]);
+                    return create_value::New(env, AllObjectValueList[hmc_obj_id]);
                 }
                 else
                 {
@@ -705,7 +751,7 @@ namespace hmc_napi_util
             {
                 if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
                 {
-                    return Object::Object(env, AllObjectValueList[hmc_obj_id]);
+                    return create_value::New(env, AllObjectValueList[hmc_obj_id]);
                 }
                 else
                 {
@@ -730,7 +776,8 @@ namespace hmc_napi_util
         BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2);
         BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype);
         BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2);
-        bool argsSize(napi_env env, size_t argLength, int ExpectLength[]);
+         template <typename... Args>
+        bool argsSize(napi_env env, size_t argLength,const Args &...ExpectLength );
         bool argsSize(napi_env env, size_t argLength, int ExpectLength);
 
         /**
@@ -885,11 +932,15 @@ namespace hmc_napi_util
          * @return true
          * @return false
          */
-        bool argsSize(napi_env env, size_t argLength, int ExpectLength[])
+        template <typename... Args>
+        bool argsSize(napi_env env, size_t argLength,const Args &..._ExpectLength )
         {
             bool argsSizeOK = false;
             string argSizeEq = "";
+
+            int ExpectLength[] = {_ExpectLength ...};
             size_t length = sizeof(ExpectLength) / sizeof(ExpectLength[0]);
+
             for (size_t i = 0; i < length; i++)
             {
                 int of_expectLength = ExpectLength[i];
@@ -913,6 +964,7 @@ namespace hmc_napi_util
             }
             return argsSizeOK;
         }
+        
         /**
          * @brief 判断传入的值数量是否符合当前的要求
          *

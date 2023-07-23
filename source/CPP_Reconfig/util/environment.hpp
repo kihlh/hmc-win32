@@ -8,8 +8,7 @@
 #include <regex>
 #include <process.h>
 #include <Tlhelp32.h>
-
-
+#include <ShlObj.h>
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -245,7 +244,6 @@ namespace hmc_env
         return CurrentProcessId;
     }
 
-
     /**
      * @brief 获取工作目录
      *
@@ -430,7 +428,7 @@ namespace hmc_env
             }
             return !has(MutexName);
         }
-        
+
         /**
          * @brief 获取当前已经创建的互斥体内容
          *
@@ -448,6 +446,32 @@ namespace hmc_env
             }
             return list;
         }
+    }
+
+    /**
+     * @brief 判断当前执行的环境是否符合
+     *
+     * @return true
+     * @return false
+     */
+    bool hasEnvcorrect()
+    {
+        if (isSystemFor64bit() && GetBinaryArch() == "x86")
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @brief 判断当前进程是否拥有管理员权限
+     *
+     * @return true
+     * @return false
+     */
+    bool isAdmin()
+    {
+        return IsUserAnAdmin();
     }
 
 }
