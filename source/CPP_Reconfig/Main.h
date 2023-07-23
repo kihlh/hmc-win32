@@ -2,9 +2,7 @@
 #include <assert.h>
 #define NAPI_EXPERIMENTAL // 开启实验性功能 比如异步(多线程)
 #include <node_api.h>
-#include "./util/util.h";
 
-using namespace hmc_napi_util;
 using namespace std;
 
 #include <windows.h>

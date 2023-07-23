@@ -5424,4 +5424,3 @@ process.on('exit', function () {
         native.clearEnumProcessHandle();
     }
 });
-

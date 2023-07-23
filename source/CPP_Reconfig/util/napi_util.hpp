@@ -6,6 +6,8 @@
 #include <map>
 #include <iostream>
 #include "./include/json.hpp"
+#include "./include/global.hpp"
+
 using json = nlohmann::json;
 
 #define _HMC_ALL_UTIL 0x0666
@@ -16,18 +18,7 @@ using namespace std;
 namespace hmc_napi_util
 {
     bool _hmc_debug = false;
-    long _hmc_Object_id = 0;
-    
-    /**
-     * @brief 获取一个内容id
-     * 
-     * @return long 
-     */
-    long getContextID(){
-        _hmc_Object_id++;
-        return _hmc_Object_id;
-    }
-    
+
     /**
      * @brief 由于any序列化大量的obj会出现内存溢出 所有部分获取将会返回一个数字id（ _hmc_Object_id + 1 ） 然后通过这个id查询获取对象
      *

@@ -1,9 +1,150 @@
+#include <string>
+#include <windows.h>
+#include <Psapi.h>
+#include <Shellapi.h>
+#include <vector>
+#include <map>
+using namespace std;
 
-#include "./include/process.h"
-#include "./include/attribute.hpp"
+#include "include/attribute.hpp"
+#include "./include/global.hpp"
+
+#include "process.h"
 
 namespace hmc_process
 {
+
+#define NT_SUCCESS(x) ((x) >= 0)
+#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
+
+#define SystemHandleInformation 16
+#define ObjectBasicInformation 0
+#define ObjectNameInformation 1
+#define ObjectTypeInformation 2
+
+    typedef NTSTATUS(NTAPI *NTQUERYSYSTEMINFORMATION)(
+        // 检索的信息类型
+        ULONG SystemInformationClass,
+        // 指向缓冲区的指针 有关系统信息的结构体
+        PVOID SystemInformation,
+        // 缓冲区的大小
+        ULONG SystemInformationLength,
+        // 实际返回的信息大小
+        PULONG ReturnLength);
+
+    typedef NTSTATUS(NTAPI *NTDUPLICATEOBJECT)(
+        // 源进程的句柄
+        HANDLE SourceProcessHandle,
+        // 复制的内核对象的句柄
+        HANDLE SourceHandle,
+        // 目标进程的句柄
+        HANDLE TargetProcessHandle,
+        // 目标进程中新对象的指针
+        PHANDLE TargetHandle,
+        // 新对象的访问权限
+        ACCESS_MASK DesiredAccess,
+        // 新对象的属性
+        ULONG Attributes,
+        // 复制操作的选项
+        ULONG Options);
+
+    typedef NTSTATUS(NTAPI *NTQUERYOBJECT)(
+        HANDLE ObjectHandle,
+        ULONG ObjectInformationClass,
+        PVOID ObjectInformation,
+        ULONG ObjectInformationLength,
+        PULONG ReturnLength);
+
+    typedef struct _SYSTEM_HANDLE
+    {
+        ULONG ProcessId;
+        BYTE ObjectTypeNumber;
+        BYTE Flags;
+        USHORT Handle;
+        PVOID Object;
+        ACCESS_MASK GrantedAccess;
+    } SYSTEM_HANDLE, *PSYSTEM_HANDLE;
+
+    typedef struct _SYSTEM_HANDLE_INFORMATION
+    {
+        ULONG HandleCount;
+        SYSTEM_HANDLE Handles[1];
+    } SYSTEM_HANDLE_INFORMATION, *PSYSTEM_HANDLE_INFORMATION;
+
+    typedef enum _POOL_TYPE
+    {
+        NonPagedPool,
+        PagedPool,
+        NonPagedPoolMustSucceed,
+        DontUseThisType,
+        NonPagedPoolCacheAligned,
+        PagedPoolCacheAligned,
+        NonPagedPoolCacheAlignedMustS
+    } POOL_TYPE,
+        *PPOOL_TYPE;
+
+    typedef struct _UNICODE_STRING
+    {
+        USHORT Length;
+        USHORT MaximumLength;
+#ifdef MIDL_PASS
+        [ size_is(MaximumLength / 2), length_is((Length) / 2) ] USHORT *Buffer;
+#else  // MIDL_PASS
+        _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
+#endif // MIDL_PASS
+    } UNICODE_STRING;
+
+    typedef UNICODE_STRING *PUNICODE_STRING;
+    typedef const UNICODE_STRING *PCUNICODE_STRING;
+
+    typedef struct _OBJECT_TYPE_INFORMATION
+    {
+        // 对象名称。
+        UNICODE_STRING Name;
+        // 对象的总数。
+        ULONG TotalNumberOfObjects;
+        // 对象句柄的总数。
+        ULONG TotalNumberOfHandles;
+        // 对象使用的分页池内存总量。
+        ULONG TotalPagedPoolUsage;
+        // 对象使用的非分页池内存总量。
+        ULONG TotalNonPagedPoolUsage;
+        // 对象名称使用的内存总量。
+        ULONG TotalNamePoolUsage;
+        // 对象句柄表使用的内存总量。
+        ULONG TotalHandleTableUsage;
+        // 对象的最大数量。
+        ULONG HighWaterNumberOfObjects;
+        // 对象句柄的最大数量。
+        ULONG HighWaterNumberOfHandles;
+        // 对象使用的分页池内存的最大值。
+        ULONG HighWaterPagedPoolUsage;
+        // 对象使用的非分页池内存的最大值。
+        ULONG HighWaterNonPagedPoolUsage;
+        // 对象名称使用的内存的最大值。
+        ULONG HighWaterNamePoolUsage;
+        // 对象句柄表使用的内存的最大值。
+        ULONG HighWaterHandleTableUsage;
+        // 无效属性标志。
+        ULONG InvalidAttributes;
+        // 通用映射结构体。
+        GENERIC_MAPPING GenericMapping;
+        // 有效访问标志。
+        ULONG ValidAccess;
+        // 安全性要求标志。
+        BOOLEAN SecurityRequired;
+        // 维护句柄计数标志。
+        BOOLEAN MaintainHandleCount;
+        // 维护类型列表标志。
+        USHORT MaintainTypeList;
+        // 池类型。
+        POOL_TYPE PoolType;
+        // 分页池内存使用量。
+        ULONG PagedPoolUsage;
+        // 非分页池内存使用量。
+        ULONG NonPagedPoolUsage;
+    } OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
     /**
      * @brief 获取当前进程的父进程id
      *
@@ -499,6 +640,15 @@ namespace hmc_process
         }
     }
 
+    wstring __unicodeStringToWString(UNICODE_STRING unicodeString)
+    {
+        wstring result;
+        if (unicodeString.Buffer)
+        {
+            result = wstring(unicodeString.Buffer, unicodeString.Length / sizeof(wchar_t));
+        }
+        return result;
+    }
     /**
      * @brief 获取窗口句柄对应的pid
      *
@@ -519,6 +669,7 @@ namespace hmc_process
         string name; // string
         string type; // "ALPC Port" | "Event" | "Timer" | "Mutant" | "Key" | "Section" | "File" | "Thread" | string;
     };
+
     vector<hmc_ProcessHandleContext> _enumProcessHandleList;
     /**
      * @brief 枚举所有进程的句柄信息
@@ -527,12 +678,12 @@ namespace hmc_process
      */
     long enumProcessHandle(DWORD dwProcessID = 0)
     {
-        long queryId = hmc_napi_util::getContextID();
+        long queryId = getContextNextID();
 
         vector<THREADENTRY32> ProcessThreadsList;
         getThreadList(dwProcessID, ProcessThreadsList);
 
-        vector<hmc_Volume> volumeList = util_getVolumeList();
+        vector<hmc_usb::hmc_Volume> volumeList = util_getVolumeList();
 
         int id = queryId;
         for (size_t i = 0; i < ProcessThreadsList.size(); i++)
@@ -565,7 +716,7 @@ namespace hmc_process
         HMODULE hNtMod = LoadLibraryW(L"ntdll.dll");
         if (!hNtMod)
         {
-            return;
+            return queryId;
         }
         NTQUERYSYSTEMINFORMATION NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtMod, "NtQuerySystemInformation");
         NTDUPLICATEOBJECT NtDuplicateObject = (NTDUPLICATEOBJECT)GetProcAddress(hNtMod, "NtDuplicateObject");
@@ -573,7 +724,7 @@ namespace hmc_process
 
         if (!NtQuerySystemInformation || !NtDuplicateObject || !NtQueryObject)
         {
-            return;
+            return queryId;
         }
 
         PSYSTEM_HANDLE_INFORMATION handleInfo = NULL;
@@ -586,7 +737,7 @@ namespace hmc_process
 
         if (!handleInfo)
         {
-            return;
+            return queryId;
         }
 
         // 一直查询 直到成功
@@ -606,7 +757,7 @@ namespace hmc_process
             if (!handleInfo)
             {
 
-                return;
+                return queryId;
             }
         }
         processHandle = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessID);
@@ -674,7 +825,7 @@ namespace hmc_process
                     // 获取对象类型名成功
                     if (NT_SUCCESS(Status))
                     {
-                        handleCout.type = hmc_text_util::U82A(objectTypeInfo->Name);
+                        handleCout.type = hmc_text_util::W2A(__unicodeStringToWString(objectTypeInfo->Name));
                     }
                     if (handle.GrantedAccess == 0x0012019f)
                     {
@@ -715,12 +866,12 @@ namespace hmc_process
 
                         UNICODE_STRING objectName = *(PUNICODE_STRING)objectNameInfo;
 
-                        handleCout.name = hmc_text_util::U82A(objectName);
+                        handleCout.name = hmc_text_util::W2A(__unicodeStringToWString(objectName));
                         if (handleCout.type == "File")
                         {
                             for (size_t i = 0; i < volumeList.size(); i++)
                             {
-                                hmc_Volume volume = volumeList[i];
+                                hmc_usb::hmc_Volume volume = volumeList[i];
                                 if (handleCout.name.find(volume.device) == 0)
                                 {
                                     handleCout.name.replace(0, volume.device.length(), volume.path);
@@ -769,7 +920,7 @@ namespace hmc_process
 
         return queryId;
     }
-    
+
     // 时间格式转换
     __int64 _hmc_FileTimeToInt64(const FILETIME &time)
     {

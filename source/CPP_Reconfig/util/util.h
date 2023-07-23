@@ -6,6 +6,9 @@ using namespace hmc_text_regexp;
 #include "./environment.hpp"
 using namespace hmc_env;
 
+#include "./usb.hpp"
+using namespace hmc_usb;
+
 #include "./process.hpp"
 using namespace hmc_process;
 
@@ -23,6 +26,3 @@ using namespace hmc_screen;
 
 #include "./console.hpp"
 using namespace hmc_console;
-
-#include "./usb.hpp"
-using namespace hmc_usb;
