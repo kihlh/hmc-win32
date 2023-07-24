@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -13,6 +14,8 @@
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #define MAX_KEY_LENGTH 255
+#define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
+#define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
 
 using namespace std;
 
@@ -21,7 +24,7 @@ static string GetVariable(string const &name)
 {
 #if defined(_MSC_VER)
     size_t size;
-    getenv_s(&size, nullptr, 0, name.c_str());
+    getenv_s(&size, NULL, 0, name.c_str());
     if (size > 0)
     {
         vector<char> tmpvar(size);
@@ -31,11 +34,11 @@ static string GetVariable(string const &name)
     }
     else
     {
-        return "";
+        return "*;;;;hmc_not_env;;;;*";
     }
 #else
     char const *variable = getenv(name.c_str());
-    return variable ? string(variable) : string("");
+    return variable ? string(variable) : string("*;;;;hmc_not_env;;;;*");
 #endif
 }
 
@@ -69,32 +72,30 @@ static map<string, string> getVariableAll()
     // 注意这里A字符很乱 请勿改成A （OEM ，Unicode ，ANSI）
     try
     {
-        LPWSTR env = GetEnvironmentStringsW();
+        LPWSTR lpszVariable;
+        LPWCH lpvEnv;
 
-        while (*env)
+        lpvEnv = GetEnvironmentStringsW();
+        if (lpvEnv != nullptr)
         {
-            string strEnv = hmc_text_util::W2A(env);
 
-            if (strEnv.empty() && strEnv.find(L'=') == 0)
-                continue;
-
-            if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
+            lpszVariable = reinterpret_cast<LPWSTR>(lpvEnv);
+            while (*lpszVariable)
             {
-                size_t pos = strEnv.find('=');
-                if (pos != string::npos)
-                {
-                    string name = strEnv.substr(0, pos);
-                    string value = strEnv.substr(pos + 1);
-                    if (!name.empty())
-                    {
-                        envStrMap.insert(pair<string, string>(name, value));
-                    }
-                }
+                string strEnv(hmc_text_util::W2A(lpszVariable));
+
+                int sep = strEnv.rfind("=");
+                string key = strEnv.substr(0, sep);
+                string value = strEnv.substr(sep + 1);
+                if (!key.empty() && string(&key.at(0)) != string("="))
+                    envStrMap.insert(pair<string, string>(key, value));
+                lpszVariable += lstrlenW(lpszVariable) + 1;
             }
-            env += wcslen(env) + 1;
+
+            FreeEnvironmentStringsW(lpvEnv);
         }
     }
-    catch (const std::exception &e)
+    catch (const exception &e)
     {
     }
 
@@ -133,7 +134,7 @@ static map<string, string> getGlobalVariableAll()
             env += wcslen(env) + 1;
         }
     }
-    catch (const std::exception &e)
+    catch (const exception &e)
     {
     }
 
@@ -171,22 +172,21 @@ namespace hmc_env
     vector<string> getcmd()
     {
         vector<string> cmdList;
-        LPWSTR *szArglist;
-        int nArgs;
-        int i;
+        int n_cmd_args = 0;
+        LPWSTR *cmd_arg_list = CommandLineToArgvW(GetCommandLineW(), &n_cmd_args);
 
-        szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-        if (NULL == szArglist)
+        for (size_t i = 1; i < n_cmd_args; ++i)
         {
+            LPWSTR arg = cmd_arg_list[i];
+            cmdList.push_back(hmc_text_util::W2A(arg));
+        }
+
+        if (!n_cmd_args)
             return cmdList;
-        }
 
-        for (i = 0; i < nArgs; i++)
-        {
-            cmdList.push_back(hmc_text_util::W2A(szArglist[i]));
-        }
+        FREE(cmd_arg_list);
 
-        LocalFree(szArglist);
+        return cmdList;
     }
 
     /**
@@ -275,8 +275,8 @@ namespace hmc_env
     string getexecPath()
     {
         string execFilePath = string();
-        LPSTR lpFilename;
-        ::GetModuleFileNameA(nullptr, lpFilename, MAX_PATH);
+        CHAR lpFilename[MAX_PATH];
+        ::GetModuleFileNameA(NULL, lpFilename, MAX_PATH);
         execFilePath.append(lpFilename);
         return execFilePath;
     }
@@ -290,8 +290,8 @@ namespace hmc_env
     {
         string execDirPath = string();
 
-        LPSTR lpFilename;
-        ::GetModuleFileNameA(nullptr, lpFilename, MAX_PATH);
+        CHAR lpFilename[MAX_PATH];
+        ::GetModuleFileNameA(NULL, lpFilename, MAX_PATH);
         ::PathRemoveFileSpecA(lpFilename);
 
         execDirPath.append(lpFilename);
@@ -318,6 +318,24 @@ namespace hmc_env
     }
 
     /**
+     * @brief 判断是否存在此环境变量的键值
+     *
+     * @param key
+     * @return true
+     * @return false
+     */
+    bool hasEnvKey(string key)
+    {
+
+        if (GetEnvironmentVariableA(key.c_str(), NULL, 0) > 0 ||
+            GetLastError() == ERROR_SUCCESS)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @brief 添加环境变量 请注意这会传递到所有子进程
      *
      * @param key
@@ -328,6 +346,53 @@ namespace hmc_env
     bool putenv(string key, string Value)
     {
         int b_Result = _putenv_s(key.c_str(), Value.c_str());
+        return b_Result == 0;
+    }
+    
+    /**
+     * @brief 添加环境变量 请注意这会传递到所有子进程
+     *
+     * @param key
+     * @param Value
+     * @return true
+     * @return false
+     */
+    bool putenv(string key, string Value,bool append)
+    {
+        string newValue ;
+        
+        if(append){
+            newValue.append(getenv(key));
+            newValue.append(";");
+            newValue.append(Value);
+
+            return putenv(key,newValue);
+        }
+        
+        return false;
+    }
+    
+    /**
+     * @brief 添加环境变量内容数组
+     *
+     * @param key
+     * @param Value
+     * @return true
+     * @return false
+     */
+    bool putenv(string key, vector<string> Value)
+    {
+        string ValueStr = string();
+        for (auto &&data : Value)
+        {
+            ValueStr.append(data);
+            ValueStr.append(";");
+        }
+
+        if (!ValueStr.empty() && ValueStr.back() == ';')
+            ValueStr.pop_back();
+
+        int b_Result = _putenv_s(key.c_str(), ValueStr.c_str());
         return b_Result == 0;
     }
 
@@ -341,6 +406,24 @@ namespace hmc_env
         return getVariableAll();
     }
 
+    /**
+     * @brief 删除指定的变量值
+     *
+     * @param key
+     * @return true
+     * @return false
+     */
+    bool removeEnv(string key)
+    {
+        bool rc = true;
+        if (key.at(0) == '=' || !SetEnvironmentVariableA(key.c_str(), NULL))
+        {
+
+            rc = GetEnvironmentVariableA(key.c_str(), NULL, NULL) == 0 &&
+                 GetLastError() != ERROR_SUCCESS;
+        }
+        return rc;
+    }
     /**
      * @brief 获取当前的变量环境列表（强制从注册表实时读取）
      *
@@ -426,7 +509,13 @@ namespace hmc_env
                 CloseHandle(it->second);
                 it++;
             }
-            return !has(MutexName);
+
+            if (!has(MutexName))
+            {
+                AllMutexHandles.erase(MutexName);
+                return true;
+            }
+            return false;
         }
 
         /**
@@ -446,21 +535,6 @@ namespace hmc_env
             }
             return list;
         }
-    }
-
-    /**
-     * @brief 判断当前执行的环境是否符合
-     *
-     * @return true
-     * @return false
-     */
-    bool hasEnvcorrect()
-    {
-        if (isSystemFor64bit() && GetBinaryArch() == "x86")
-        {
-            return false;
-        }
-        return true;
     }
 
     /**

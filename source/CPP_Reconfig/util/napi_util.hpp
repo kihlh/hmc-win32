@@ -5,10 +5,9 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include "./include/json.hpp"
 #include "./include/global.hpp"
 
-using json = nlohmann::json;
+
 
 #define _HMC_ALL_UTIL 0x0666
 #define napi_ass_false -66666666

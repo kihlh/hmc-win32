@@ -119,6 +119,39 @@ namespace hmc_console
     }
 
     /**
+     * @brief 判断是否打印内容到控制台
+     *
+     * @param level
+     * @return true
+     * @return false
+     */
+    bool _is_cout_log(level::level level)
+    {
+        if (!_is_cout)
+            return false;
+        if (level != 0 && _cout_level != 0 && level < _cout_level)
+            return false;
+        return true;
+    }
+
+    /**
+     * @brief 判断是否运行将日志输出到文件
+     *
+     * @param level
+     * @return true
+     * @return false
+     */
+    bool _is_file_log(level::level level)
+    {
+        if (!_is_tofile)
+            return false;
+        if (level != 0 && _file_level != 0 && level < _file_level)
+            return false;
+
+        return true;
+    }
+
+    /**
      * @brief 打印到控制台中
      *
      * @param level
@@ -127,9 +160,8 @@ namespace hmc_console
      */
     void _coutLine(level::level level, string locaName, string message)
     {
-        if (!_is_cout)
-            return;
-        if (level != 0 && _cout_level != 0 && level < _cout_level)
+
+        if (!_is_cout_log(level))
             return;
         try
         {
@@ -196,11 +228,8 @@ namespace hmc_console
      */
     void _writeLine(level::level level, string locaName, string message)
     {
-        if (!_is_tofile)
+        if (!_is_file_log(level))
             return;
-        if (level != 0 && _file_level != 0 && level < _file_level)
-            return;
-
         try
         {
             if (!logFile.is_open())
@@ -254,6 +283,45 @@ namespace hmc_console
     }
 
     /**
+     * @brief 分割线
+     *
+     */
+    void separator()
+    {
+
+        try
+        {
+            string messageLine = get_time();
+            messageLine.append(" ");
+            for (size_t i = 0; i < 60; i++)
+                messageLine.append("---");
+
+            messageLine.append("\n");
+
+            if (_is_file_log(level::info))
+            {
+
+                if (!logFile.is_open())
+                {
+                    logFile.open(_tofilePath, ios_base::app);
+                    if (!logFile.is_open())
+                        return;
+                }
+
+                logFile << messageLine;
+            }
+
+            if (_is_cout_log(level::info))
+            {
+                cout << messageLine;
+            }
+        }
+        catch (char *e)
+        {
+        }
+    }
+
+    /**
      * @brief 设置是否启用控制台打印(node控制台 而不是Chrome控制台)
      *
      * @param level
@@ -279,7 +347,7 @@ namespace hmc_console
     }
 
     /**
-     * @brief 设置日志文件路径 默认 cwd/hmc_debug.log
+     * @brief 日志存储设置路径
      *
      * @param tofilePath
      */
@@ -394,6 +462,8 @@ namespace hmc_console
         message.append("< number[");
         message.append(type);
         message.append("] >");
+         message.append("   ");
+        message.append(num);
         _coutLine(level, locaName, message);
         _writeLine(level, locaName, message);
     }
@@ -455,47 +525,59 @@ namespace hmc_console
     }
 
     // debug ->  处理数字类型
-    void debug(string locaName, const long long &data)
+    void debug(string locaName, long long data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "long long");
     }
-    void debug(string locaName, const int &data)
+    
+    void debug(string locaName, nullptr_t data)
+    {
+        _hmc_send_number(level::debug, locaName,string("NULL"), "NULL");
+    }
+    void debug(string locaName, bool data)
+    {
+        _hmc_send_number(level::debug, locaName,string(data? "true":"false"), "bool");
+    }
+    void debug(string locaName, int data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "int");
     }
-    void debug(string locaName, const long &data)
+    void debug(string locaName, long data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "long");
     }
-    void debug(string locaName, const DWORD &data)
+    void debug(string locaName, DWORD data)
     {
-        _hmc_send_number(level::debug, locaName, to_string(data), "DWORD");
+        _hmc_send_string(level::debug, locaName, to_string(data), "DWORD");
     }
-    void debug(string locaName, const double &data)
+    void debug(string locaName, double data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "double");
     }
-    void debug(string locaName, const unsigned long long &data)
+    void debug(string locaName, unsigned long long data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "unsigned long long");
     }
-    void debug(string locaName, const unsigned int &data)
+    void debug(string locaName, unsigned int data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "unsigned int");
     }
-    void debug(string locaName, const long double &data)
+    void debug(string locaName, long double data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "long double");
     }
-    void debug(string locaName, const float &data)
+    void debug(string locaName, float data)
     {
         _hmc_send_number(level::debug, locaName, to_string(data), "float");
     }
-    void debug(string locaName, const HWND &data)
+    void debug(string locaName, HWND data)
     {
         _hmc_send_number(level::debug, locaName, to_string((long long)data), "HWND");
     }
-
+    void debug()
+    {
+        separator();
+    }
     /**
      * @brief 处理数组类型
      *
@@ -503,7 +585,7 @@ namespace hmc_console
      * @param data
      * @param type
      */
-    void debug(string locaName, vector<HWND> &data, string type = "vector<HWND> [")
+    void debug(string locaName, vector<HWND> data, string type = "vector<HWND> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -519,7 +601,7 @@ namespace hmc_console
         message.append("]");
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, vector<long> &data, string type = "vector<long> [")
+    void debug(string locaName, vector<long> data, string type = "vector<long> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -535,7 +617,7 @@ namespace hmc_console
         message.append("]");
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, vector<int> &data, string type = "vector<int> [")
+    void debug(string locaName, vector<int> data, string type = "vector<int> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -551,7 +633,7 @@ namespace hmc_console
         message.append("]");
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, vector<DWORD> &data, string type = "vector<DWORD> [")
+    void debug(string locaName, vector<DWORD> data, string type = "vector<DWORD> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -567,7 +649,7 @@ namespace hmc_console
         message.append("]");
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, vector<double> &data, string type = "vector<double> [")
+    void debug(string locaName, vector<double> data, string type = "vector<double> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -583,7 +665,7 @@ namespace hmc_console
         message.append("]");
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, vector<string> &data, string type = "vector<string> [")
+    void debug(string locaName, vector<string> data, string type = "vector<string> [")
     {
         string message = "[";
         type.append(to_string(data.size()));
@@ -593,7 +675,9 @@ namespace hmc_console
         {
             string newdata = "\"";
             newdata.append(escapeJson(data[i]));
-            message.append("\"");
+            newdata.append("\"");
+
+            message.append(newdata);
             if (i != data.size() - 1)
                 message.append(",");
         }
@@ -607,7 +691,7 @@ namespace hmc_console
      * @param locaName
      * @param data
      */
-    void debug(string locaName, set<HWND> &data)
+    void debug(string locaName, set<HWND> data)
     {
         vector<HWND> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -616,7 +700,7 @@ namespace hmc_console
         }
         debug(locaName, new_data, "set<HWND> [");
     }
-    void debug(string locaName, set<long> &data)
+    void debug(string locaName, set<long> data)
     {
         vector<long> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -625,7 +709,7 @@ namespace hmc_console
         }
         debug(locaName, new_data, "set<long> [");
     }
-    void debug(string locaName, set<int> &data)
+    void debug(string locaName, set<int> data)
     {
         vector<int> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -634,7 +718,7 @@ namespace hmc_console
         }
         debug(locaName, new_data, "set<int> [");
     }
-    void debug(string locaName, set<double> &data)
+    void debug(string locaName, set<double> data)
     {
         vector<double> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -643,7 +727,7 @@ namespace hmc_console
         }
         debug(locaName, new_data, "set<double> [");
     }
-    void debug(string locaName, set<DWORD> &data)
+    void debug(string locaName, set<DWORD> data)
     {
         vector<DWORD> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -652,7 +736,7 @@ namespace hmc_console
         }
         debug(locaName, new_data, "set<DWORD> [");
     }
-    void debug(string locaName, set<string> &data)
+    void debug(string locaName, set<string> data)
     {
         vector<string> new_data;
         for (auto it = data.rbegin(); it != data.rend(); ++it)
@@ -668,12 +752,14 @@ namespace hmc_console
      * @param locaName
      * @param data
      */
-    void debug(string locaName, map<string, string> &data)
+    void debug(string locaName, map<string, string> data)
     {
         string type = "map<string, string>";
         string message = "{";
+        int size = 0;
         for (const auto &entry : data)
         {
+            size++;
             message.append("\"");
             string eqjsonKeyText;
             eqjsonKeyText.append(escapeJson(entry.first));
@@ -683,6 +769,10 @@ namespace hmc_console
             eqjsonText.append(escapeJson(entry.second));
             message.append(eqjsonText);
             message.append("\"");
+            if(size>=15){
+                message.append("...");
+                break;
+            }
             message.append(",");
         }
         // 如果最后一位是逗号，移除它
@@ -694,7 +784,7 @@ namespace hmc_console
 
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, map<double, string> &data)
+    void debug(string locaName, map<double, string> data)
     {
         string type = "map<double, string>";
         string message = "{";
@@ -720,7 +810,7 @@ namespace hmc_console
 
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, map<DWORD, string> &data)
+    void debug(string locaName, map<DWORD, string> data)
     {
         string type = "map<DWORD, string>";
         string message = "{";
@@ -746,7 +836,7 @@ namespace hmc_console
     }
 
     // --------------------------------
-    void debug(string locaName, map<string, double> &data)
+    void debug(string locaName, map<string, double> data)
     {
         string type = "map<string, double>";
         string message = "{";
@@ -771,7 +861,7 @@ namespace hmc_console
 
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
-    void debug(string locaName, map<string, DWORD> &data)
+    void debug(string locaName, map<string, DWORD> data)
     {
         string type = "map<string, DWORD>";
         string message = "{";
@@ -795,6 +885,13 @@ namespace hmc_console
 
         _hmc_send_anyStr(level::debug, locaName, message, type);
     }
+
+    // void debug(string locaName, json data)
+    // {
+    //     string message;
+    //     data.get_to(message);
+    //     _hmc_send_anyStr(level::debug, locaName, message, "json<cpp>");
+    // }
 
     /**
      * @brief 模拟js的计时器(相对时间 误差 +-15ms ) 这是因为全程同步 打印啥的都是需要时间的

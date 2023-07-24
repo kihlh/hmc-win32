@@ -45,15 +45,16 @@ namespace hmc_window
 
     string getClassName(HWND hwnd)
     {
-
-        LPSTR lpClassName;
+        string result = string();
+        LPSTR lpClassName = { 0 };
 
         if (!GetClassNameA(hwnd, lpClassName, MAX_PATH))
         {
-            lpClassName = "";
+            return result;
         };
+        result.append(lpClassName);
 
-        return string(lpClassName);
+        return result;
     }
 
     DWORD getStyle(HWND hwnd)

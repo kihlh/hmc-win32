@@ -1,7 +1,12 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <string>
 #include <windows.h>
 #include <codecvt>
 #include <regex>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <cstddef> // For byte (C++17 or later)
 
 using namespace std;
 
@@ -23,50 +28,206 @@ namespace hmc_text_util
     string U82A(const string &pText);
     bool haslonglongStr(string Value);
     bool hasIntStr(string Value);
+    string base64_encode(const string &input);
+    string A2B64A(const string &paText);
+    string W2B64A(const wstring &paText);
+    wstring W2B64W(const wstring &paText);
+    wstring A2B64W(const string &paText);
+
+    /**
+     * @brief 将A转为bs64
+     *
+     * @param input
+     * @return string
+     */
+    string base64_encode(const string &input)
+    {
+        static const string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+        string encoded;
+        try
+        {
+            int i = 0;
+            int j = 0;
+            unsigned char array3[3];
+            unsigned char array4[4];
+
+            for (char c : input)
+            {
+                array3[i++] = c;
+                if (i == 3)
+                {
+                    array4[0] = (array3[0] & 0xfc) >> 2;
+                    array4[1] = ((array3[0] & 0x03) << 4) + ((array3[1] & 0xf0) >> 4);
+                    array4[2] = ((array3[1] & 0x0f) << 2) + ((array3[2] & 0xc0) >> 6);
+                    array4[3] = array3[2] & 0x3f;
+
+                    for (int k = 0; k < 4; k++)
+                        encoded += base64_chars[array4[k]];
+
+                    i = 0;
+                }
+            }
+
+            if (i != 0)
+            {
+                for (int k = i; k < 3; k++)
+                    array3[k] = '\0';
+
+                array4[0] = (array3[0] & 0xfc) >> 2;
+                array4[1] = ((array3[0] & 0x03) << 4) + ((array3[1] & 0xf0) >> 4);
+                array4[2] = ((array3[1] & 0x0f) << 2) + ((array3[2] & 0xc0) >> 6);
+                array4[3] = array3[2] & 0x3f;
+
+                for (int k = 0; k < i + 1; k++)
+                    encoded += base64_chars[array4[k]];
+
+                while (i++ < 3)
+                    encoded += '=';
+            }
+        }
+        catch (char *_)
+        {
+        }
+
+        return encoded;
+    }
+
     //  WIDE to ANSI
     string W2A(const wstring &pwText)
     {
         string strResult = string();
-        if (pwText.empty())
-            return strResult;
-
-        int pszATextLen = WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
-        char *pAChar = new (nothrow) char[pszATextLen];
-        if (pAChar == NULL)
+        try
         {
-            return strResult;
+            if (pwText.empty())
+                return strResult;
+
+            int pszATextLen = WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
+            char *pAChar = new (nothrow) char[pszATextLen];
+            if (pAChar == NULL)
+            {
+                return strResult;
+            }
+
+            ZeroMemory(pAChar, pszATextLen + 1);
+            WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, pAChar, pszATextLen, NULL, NULL);
+
+            strResult.append(pAChar);
+            // FreeEnvironmentStringsA(pAChar);
+        }
+        catch (char *_)
+        {
         }
 
-        ZeroMemory(pAChar, pszATextLen + 1);
-        WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, pAChar, pszATextLen, NULL, NULL);
-
-        strResult.append(pAChar);
-        delete[] pAChar;
-        pAChar = NULL;
-
         return strResult;
+    }
+
+    /**
+     * @brief A字符转为base64字符A
+     *
+     * @param paText
+     * @return string
+     */
+    string A2B64A(const string &paText)
+    {
+        string result = string();
+        try
+        {
+            result.append(base64_encode(A2U8(paText)));
+        }
+        catch (char *_)
+        {
+        }
+
+        return result;
+    }
+
+    /**
+     * @brief W字符转为base64字符A
+     *
+     * @param paText
+     * @return string
+     */
+    string W2B64A(const wstring &paText)
+    {
+        string result = string();
+        try
+        {
+            result.append(base64_encode(W2U8(paText)));
+        }
+        catch (char *_)
+        {
+        }
+
+        return result;
+    }
+
+    /**
+     * @brief A字符转为base64字符W
+     *
+     * @param paText
+     * @return string
+     */
+    wstring A2B64W(const string &paText)
+    {
+        wstring result = wstring();
+        try
+        {
+            result.append(A2W(base64_encode(A2U8(paText))));
+        }
+        catch (char *_)
+        {
+        }
+
+        return result;
+    }
+
+    /**
+     * @brief W字符转为base64字符W
+     *
+     * @param paText
+     * @return string
+     */
+    wstring W2B64W(const wstring &paText)
+    {
+        wstring result = wstring();
+        try
+        {
+            result.append(A2W(base64_encode(W2U8(paText))));
+        }
+        catch (char *_)
+        {
+        }
+
+        return result;
     }
 
     //  ANSI to WIDE
     wstring A2W(const string &paText)
     {
         wstring strResult = wstring();
+        try
+        {
 
-        if (paText.empty())
-            return strResult;
+            if (paText.empty())
+                return strResult;
 
-        int pszWTextLen = MultiByteToWideChar(CP_ACP, 0, paText.c_str(), -1, NULL, 0);
-        wchar_t *pWideChar = new (nothrow) wchar_t[pszWTextLen];
+            int pszWTextLen = MultiByteToWideChar(CP_ACP, 0, paText.c_str(), -1, NULL, 0);
+            wchar_t *pWideChar = new (nothrow) wchar_t[pszWTextLen];
 
-        if (pWideChar == NULL)
-            return strResult;
+            if (pWideChar == NULL)
+                return strResult;
 
-        ZeroMemory(pWideChar, pszWTextLen + 1);
-        MultiByteToWideChar(CP_ACP, 0, paText.c_str(), -1, pWideChar, pszWTextLen);
+            ZeroMemory(pWideChar, pszWTextLen + 1);
+            MultiByteToWideChar(CP_ACP, 0, paText.c_str(), -1, pWideChar, pszWTextLen);
 
-        strResult.append(pWideChar);
-        delete[] pWideChar;
-        pWideChar = NULL;
+            strResult.append(pWideChar);
+            // delete[] pWideChar;
+            // pWideChar = NULL;
+        }
+        catch (char *_)
+        {
+        }
 
         return strResult;
     }
@@ -75,20 +236,25 @@ namespace hmc_text_util
     string W2U8(wstring pwText)
     {
         string strResult = string();
-        if (pwText.empty())
-            return strResult;
+        try
+        {
+            if (pwText.empty())
+                return strResult;
 
-        int pszATextLen = WideCharToMultiByte(CP_UTF8, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
-        char *pUTF8 = new char[pszATextLen + 1];
-        if (pUTF8 == NULL)
-            return strResult;
-        ZeroMemory(pUTF8, pszATextLen + 1);
-        WideCharToMultiByte(CP_UTF8, 0, pwText.c_str(), -1, pUTF8, pszATextLen, NULL, NULL);
-        strResult.append(pUTF8);
+            int pszATextLen = WideCharToMultiByte(CP_UTF8, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
+            char *pUTF8 = new char[pszATextLen + 1];
+            if (pUTF8 == NULL)
+                return strResult;
+            ZeroMemory(pUTF8, pszATextLen + 1);
+            WideCharToMultiByte(CP_UTF8, 0, pwText.c_str(), -1, pUTF8, pszATextLen, NULL, NULL);
+            strResult.append(pUTF8);
 
-        delete[] pUTF8;
-        pUTF8 = NULL;
-
+            // delete[] pUTF8;
+            // pUTF8 = NULL;
+        }
+        catch (char *_)
+        {
+        }
         return strResult;
     }
 
@@ -96,19 +262,25 @@ namespace hmc_text_util
     wstring U82W(const string &pszText)
     {
         wstring strResult = wstring();
-        if (pszText.size() == 0)
-            return strResult;
+        try
+        {
+            if (pszText.size() == 0)
+                return strResult;
 
-        int pszWTextLen = MultiByteToWideChar(CP_UTF8, 0, pszText.c_str(), -1, NULL, NULL);
-        wchar_t *pszWText = new wchar_t[pszWTextLen + 1];
+            int pszWTextLen = MultiByteToWideChar(CP_UTF8, 0, pszText.c_str(), -1, NULL, NULL);
+            wchar_t *pszWText = new wchar_t[pszWTextLen + 1];
 
-        if (pszWText == NULL)
-            return strResult;
-        ZeroMemory(pszWText, pszWTextLen + 1);
-        MultiByteToWideChar(CP_UTF8, 0, pszText.c_str(), -1, pszWText, pszWTextLen);
-        strResult.append(pszWText);
-        delete[] pszWText;
-        pszWText = NULL;
+            if (pszWText == NULL)
+                return strResult;
+            ZeroMemory(pszWText, pszWTextLen + 1);
+            MultiByteToWideChar(CP_UTF8, 0, pszText.c_str(), -1, pszWText, pszWTextLen);
+            strResult.append(pszWText);
+            // delete[] pszWText;
+            // pszWText = NULL;
+        }
+        catch (char *_)
+        {
+        }
 
         return strResult;
     }
@@ -125,26 +297,54 @@ namespace hmc_text_util
         return W2A(U82W(pText));
     }
 
+    /**
+     * @brief UTF-8 to Base64 encoding ANSI
+     *
+     * @param pText
+     * @return string
+     */
+    string U82B64A(const string &pText)
+    {
+        return base64_encode(pText);
+    }
+
+    /**
+     * @brief UTF-8 to Base64 encoding WIDE
+     *
+     * @param pText
+     * @return string
+     */
+    wstring U82B64W(const string &pText)
+    {
+        return A2W(base64_encode(pText));
+    }
+
     // UFT8 字符转为GBK(中文)
     string UTF8ToGBK(string u8str)
     {
         string Result;
-        TCHAR *pTempTstr;
-        WCHAR *pTempwstr;
+        try
+        {
 
-        int strSizeTempVar = MultiByteToWideChar(CP_UTF8, 0, u8str.c_str(), -1, NULL, 0);
-        pTempwstr = new WCHAR[strSizeTempVar + 1];
+            TCHAR *pTempTstr;
+            WCHAR *pTempwstr;
 
-        MultiByteToWideChar(CP_UTF8, 0, u8str.c_str(), -1, pTempwstr, strSizeTempVar);
-        strSizeTempVar = WideCharToMultiByte(CP_ACP, 0, pTempwstr, -1, NULL, 0, NULL, NULL);
+            int strSizeTempVar = MultiByteToWideChar(CP_UTF8, 0, u8str.c_str(), -1, NULL, 0);
+            pTempwstr = new WCHAR[strSizeTempVar + 1];
 
-        pTempTstr = new TCHAR[strSizeTempVar + 1];
+            MultiByteToWideChar(CP_UTF8, 0, u8str.c_str(), -1, pTempwstr, strSizeTempVar);
+            strSizeTempVar = WideCharToMultiByte(CP_ACP, 0, pTempwstr, -1, NULL, 0, NULL, NULL);
 
-        WideCharToMultiByte(CP_ACP, 0, pTempwstr, -1, (LPSTR)pTempTstr, strSizeTempVar, NULL, NULL);
-        Result = (char *)pTempTstr;
-        delete[] pTempTstr;
-        delete[] pTempwstr;
+            pTempTstr = new TCHAR[strSizeTempVar + 1];
 
+            WideCharToMultiByte(CP_ACP, 0, pTempwstr, -1, (LPSTR)pTempTstr, strSizeTempVar, NULL, NULL);
+            Result = (char *)pTempTstr;
+            // delete[] pTempTstr;
+            // delete[] pTempwstr;
+        }
+        catch (char *_)
+        {
+        }
         return Result;
     }
 
@@ -152,6 +352,7 @@ namespace hmc_text_util
     bool hasIntStr(string Value)
     {
         bool Result = false;
+
         if (Value.empty())
             return Result;
         try
@@ -159,7 +360,7 @@ namespace hmc_text_util
             int n = stoi(Value);
             Result = true;
         }
-        catch (const std::exception &e)
+        catch (const exception &e)
         {
             return Result;
         }
@@ -178,7 +379,7 @@ namespace hmc_text_util
             long n = stol(Value);
             Result = true;
         }
-        catch (const std::exception &e)
+        catch (const exception &e)
         {
             return Result;
         }
@@ -197,14 +398,13 @@ namespace hmc_text_util
             long long n = stoll(Value);
             Result = true;
         }
-        catch (const std::exception &e)
+        catch (const exception &e)
         {
             return Result;
         }
 
         return Result;
     }
-
 
 #ifdef defined(_MFC_VER)
 

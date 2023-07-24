@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <string>
 #include <windows.h>
 #include <Psapi.h>
@@ -252,7 +253,7 @@ namespace hmc_process
      */
     string getFilePath(DWORD dwProcessID)
     {
-        LPSTR lpFilename;
+        LPSTR lpFilename = { 0 };
         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessID);
 
         if (hProcess == nullptr)
@@ -270,7 +271,7 @@ namespace hmc_process
      * @param ProcessID
      * @return BOOL
      */
-    BOOL kill(DWORD dwProcessID)
+    BOOL killProcessID(DWORD dwProcessID)
     {
         bool is_kill_success = false;
         hmc_EnableShutDownPriv();
@@ -288,7 +289,7 @@ namespace hmc_process
      * @param ProcessID
      * @return BOOL
      */
-    BOOL exists(DWORD dwProcessID)
+    BOOL existsProcessID(DWORD dwProcessID)
     {
         hmc_EnableShutDownPriv();
         bool exists_process = false;
@@ -672,251 +673,253 @@ namespace hmc_process
 
     vector<hmc_ProcessHandleContext> _enumProcessHandleList;
     /**
-     * @brief 枚举所有进程的句柄信息
+     * @brief 枚举指定进程所有进程的句柄信息
      *
      * @return long
      */
-    long enumProcessHandle(DWORD dwProcessID = 0)
+    long enumProcessHandle(DWORD dwProcessID)
     {
         long queryId = getContextNextID();
 
-        vector<THREADENTRY32> ProcessThreadsList;
-        getThreadList(dwProcessID, ProcessThreadsList);
-
-        vector<hmc_usb::hmc_Volume> volumeList = util_getVolumeList();
-
-        int id = queryId;
-        for (size_t i = 0; i < ProcessThreadsList.size(); i++)
+        try
         {
-            DWORD ThreadsID = ProcessThreadsList[i].th32ThreadID;
-            hmc_ProcessHandleContext handleCout;
-            handleCout.ContextID = id;
-            handleCout.handle = 0;
-            handleCout.name = to_string(ThreadsID);
-            handleCout.type = "Thread";
-            handleCout.next = true;
-            _enumProcessHandleList.push_back(handleCout);
-        }
+            vector<THREADENTRY32> ProcessThreadsList;
+            getThreadList(dwProcessID, ProcessThreadsList);
 
-        vector<DWORD> SubProcessIDList;
-        getSubProcessList(dwProcessID, SubProcessIDList);
+            vector<hmc_usb::hmc_Volume> volumeList = util_getVolumeList();
 
-        for (size_t i = 0; i < SubProcessIDList.size(); i++)
-        {
-            DWORD ThreadsID = SubProcessIDList[i];
-            hmc_ProcessHandleContext handleCout;
-            handleCout.ContextID = id;
-            handleCout.handle = 0;
-            handleCout.name = to_string(ThreadsID);
-            handleCout.type = "Process";
-            handleCout.next = true;
-            _enumProcessHandleList.push_back(handleCout);
-        }
-
-        HMODULE hNtMod = LoadLibraryW(L"ntdll.dll");
-        if (!hNtMod)
-        {
-            return queryId;
-        }
-        NTQUERYSYSTEMINFORMATION NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtMod, "NtQuerySystemInformation");
-        NTDUPLICATEOBJECT NtDuplicateObject = (NTDUPLICATEOBJECT)GetProcAddress(hNtMod, "NtDuplicateObject");
-        NTQUERYOBJECT NtQueryObject = (NTQUERYOBJECT)GetProcAddress(hNtMod, "NtQueryObject");
-
-        if (!NtQuerySystemInformation || !NtDuplicateObject || !NtQueryObject)
-        {
-            return queryId;
-        }
-
-        PSYSTEM_HANDLE_INFORMATION handleInfo = NULL;
-        HANDLE processHandle;
-        ULONG i;
-        ULONG neededSize = 0x1000;
-        NTSTATUS Status = 0;
-        ULONG ReturnLength = 0;
-        handleInfo = (PSYSTEM_HANDLE_INFORMATION)malloc(neededSize);
-
-        if (!handleInfo)
-        {
-            return queryId;
-        }
-
-        // 一直查询 直到成功
-        while (STATUS_INFO_LENGTH_MISMATCH == (Status = NtQuerySystemInformation(
-                                                   SystemHandleInformation,
-                                                   handleInfo,
-                                                   neededSize,
-                                                   &ReturnLength)))
-        {
-            if (handleInfo)
+            for (size_t i = 0; i < ProcessThreadsList.size(); i++)
             {
-                free(handleInfo);
-                handleInfo = NULL;
+                DWORD ThreadsID = ProcessThreadsList[i].th32ThreadID;
+                hmc_ProcessHandleContext handleCout;
+                handleCout.ContextID = queryId;
+                handleCout.handle = 0;
+                handleCout.name = to_string(ThreadsID);
+                handleCout.type = "Thread";
+                handleCout.next = true;
+                _enumProcessHandleList.push_back(handleCout);
             }
-            neededSize = ReturnLength;
-            handleInfo = (PSYSTEM_HANDLE_INFORMATION)malloc(neededSize);
-            if (!handleInfo)
-            {
 
+            vector<DWORD> SubProcessIDList;
+            getSubProcessList(dwProcessID, SubProcessIDList);
+
+            for (size_t i = 0; i < SubProcessIDList.size(); i++)
+            {
+                DWORD ThreadsID = SubProcessIDList[i];
+                hmc_ProcessHandleContext handleCout;
+                handleCout.ContextID = queryId;
+                handleCout.handle = 0;
+                handleCout.name = to_string(ThreadsID);
+                handleCout.type = "Process";
+                handleCout.next = true;
+                _enumProcessHandleList.push_back(handleCout);
+            }
+
+            HMODULE hNtMod = LoadLibraryW(L"ntdll.dll");
+            if (!hNtMod)
+            {
                 return queryId;
             }
+            NTQUERYSYSTEMINFORMATION NtQuerySystemInformation = (NTQUERYSYSTEMINFORMATION)GetProcAddress(hNtMod, "NtQuerySystemInformation");
+            NTDUPLICATEOBJECT NtDuplicateObject = (NTDUPLICATEOBJECT)GetProcAddress(hNtMod, "NtDuplicateObject");
+            NTQUERYOBJECT NtQueryObject = (NTQUERYOBJECT)GetProcAddress(hNtMod, "NtQueryObject");
+
+            if (!NtQuerySystemInformation || !NtDuplicateObject || !NtQueryObject)
+            {
+                return queryId;
+            }
+
+            PSYSTEM_HANDLE_INFORMATION handleInfo = NULL;
+            HANDLE processHandle;
+            ULONG i;
+            ULONG neededSize = 0x1000;
+            NTSTATUS Status = 0;
+            ULONG ReturnLength = 0;
+            handleInfo = (PSYSTEM_HANDLE_INFORMATION)malloc(neededSize);
+
+            if (!handleInfo)
+            {
+                return queryId;
+            }
+
+            // 一直查询 直到成功
+            while (STATUS_INFO_LENGTH_MISMATCH == (Status = NtQuerySystemInformation(
+                                                       SystemHandleInformation,
+                                                       handleInfo,
+                                                       neededSize,
+                                                       &ReturnLength)))
+            {
+                if (handleInfo)
+                {
+                    free(handleInfo);
+                    handleInfo = NULL;
+                }
+                neededSize = ReturnLength;
+                handleInfo = (PSYSTEM_HANDLE_INFORMATION)malloc(neededSize);
+                if (!handleInfo)
+                {
+
+                    return queryId;
+                }
+            }
+            processHandle = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessID);
+            for (i = 0; i < handleInfo->HandleCount; i++)
+            {
+                hmc_ProcessHandleContext handleCout;
+                handleCout.ContextID = queryId;
+                handleCout.handle = 0;
+                handleCout.name = "";
+                handleCout.type = "";
+                handleCout.next = true;
+                SYSTEM_HANDLE handle = handleInfo->Handles[i];
+                if (handle.ProcessId != dwProcessID)
+                {
+                    continue;
+                }
+                handleCout.handle = handle.Handle;
+                if (processHandle)
+                {
+                    HANDLE dupHandle = NULL;
+                    POBJECT_TYPE_INFORMATION objectTypeInfo = NULL;
+                    PVOID objectNameInfo = NULL;
+                    UNICODE_STRING objectName = {0};
+                    ULONG returnLength = 0;
+
+                    do
+                    {
+                        // 句柄复制失败 就不去获取类型名
+                        Status = NtDuplicateObject(
+                            processHandle,
+                            (void *)handle.Handle,
+                            // GetCurrentProcess(),
+                            processHandle,
+                            &dupHandle,
+                            0,
+                            0,
+                            0);
+                        if (!NT_SUCCESS(Status))
+                        {
+                            break;
+                        }
+
+                        // 获取对象类型名
+                        ULONG ObjectInformationLength = 0;
+                        while (STATUS_INFO_LENGTH_MISMATCH == (Status = NtQueryObject(
+                                                                   dupHandle,
+                                                                   ObjectTypeInformation,
+                                                                   objectTypeInfo,
+                                                                   ObjectInformationLength,
+                                                                   &returnLength)))
+                        {
+                            if (objectTypeInfo)
+                            {
+                                free(objectTypeInfo);
+                                objectTypeInfo = NULL;
+                            }
+
+                            ObjectInformationLength = returnLength;
+                            objectTypeInfo = (POBJECT_TYPE_INFORMATION)malloc(ObjectInformationLength);
+                            if (!objectTypeInfo)
+                            {
+                                break;
+                            }
+                        }
+
+                        // 获取对象类型名成功
+                        if (NT_SUCCESS(Status))
+                        {
+                            handleCout.type = hmc_text_util::W2A(__unicodeStringToWString(objectTypeInfo->Name));
+                        }
+                        if (handle.GrantedAccess == 0x0012019f)
+                        {
+
+                            break;
+                        }
+
+                        // 获取对象名
+                        ObjectInformationLength = 0;
+                        returnLength = 0;
+
+                        if (STATUS_INFO_LENGTH_MISMATCH == NtQueryObject(
+                                                               dupHandle,
+                                                               ObjectNameInformation,
+                                                               NULL,
+                                                               0,
+                                                               &returnLength))
+                        {
+
+                            objectNameInfo = (POBJECT_TYPE_INFORMATION)malloc(returnLength);
+                            if (!objectNameInfo)
+                            {
+                                break;
+                            }
+
+                            ZeroMemory(objectNameInfo, returnLength);
+                            Status = NtQueryObject(
+                                dupHandle,
+                                ObjectNameInformation,
+                                objectNameInfo,
+                                returnLength,
+                                NULL);
+                        }
+
+                        // 获取对象名成功
+                        if (NT_SUCCESS(Status) && ((PUNICODE_STRING)objectNameInfo)->Length > 0)
+                        {
+
+                            UNICODE_STRING objectName = *(PUNICODE_STRING)objectNameInfo;
+
+                            handleCout.name = hmc_text_util::W2A(__unicodeStringToWString(objectName));
+                            if (handleCout.type == "File")
+                            {
+                                for (size_t i = 0; i < volumeList.size(); i++)
+                                {
+                                    hmc_usb::hmc_Volume volume = volumeList[i];
+                                    if (handleCout.name.find(volume.device) == 0)
+                                    {
+                                        handleCout.name.replace(0, volume.device.length(), volume.path);
+                                    }
+                                }
+                            }
+                        }
+
+                    } while (FALSE);
+
+                    if (dupHandle)
+                    {
+                        CloseHandle(dupHandle);
+                        dupHandle = NULL;
+                    }
+                    if (objectTypeInfo)
+                    {
+                        free(objectTypeInfo);
+                        objectTypeInfo = NULL;
+                    }
+                    if (objectNameInfo)
+                    {
+                        free(objectNameInfo);
+                        objectNameInfo = NULL;
+                    }
+                }
+                if (!handleCout.name.empty() || !handleCout.type.empty())
+                {
+                    _enumProcessHandleList.push_back(handleCout);
+                }
+                Sleep(5);
+            }
+
+            free(handleInfo);
         }
-        processHandle = OpenProcess(PROCESS_DUP_HANDLE, FALSE, dwProcessID);
-        for (i = 0; i < handleInfo->HandleCount; i++)
+        catch (char *e)
         {
             hmc_ProcessHandleContext handleCout;
-            handleCout.ContextID = id;
+            handleCout.ContextID = queryId;
             handleCout.handle = 0;
             handleCout.name = "";
             handleCout.type = "";
             handleCout.next = true;
-            SYSTEM_HANDLE handle = handleInfo->Handles[i];
-            if (handle.ProcessId != dwProcessID)
-            {
-                continue;
-            }
-            handleCout.handle = handle.Handle;
-            if (processHandle)
-            {
-                HANDLE dupHandle = NULL;
-                POBJECT_TYPE_INFORMATION objectTypeInfo = NULL;
-                PVOID objectNameInfo = NULL;
-                UNICODE_STRING objectName = {0};
-                ULONG returnLength = 0;
-
-                do
-                {
-                    // 句柄复制失败 就不去获取类型名
-                    Status = NtDuplicateObject(
-                        processHandle,
-                        (void *)handle.Handle,
-                        GetCurrentProcess(),
-                        &dupHandle,
-                        0,
-                        0,
-                        0);
-                    if (!NT_SUCCESS(Status))
-                    {
-                        break;
-                    }
-
-                    // 获取对象类型名
-                    ULONG ObjectInformationLength = 0;
-                    while (STATUS_INFO_LENGTH_MISMATCH == (Status = NtQueryObject(
-                                                               dupHandle,
-                                                               ObjectTypeInformation,
-                                                               objectTypeInfo,
-                                                               ObjectInformationLength,
-                                                               &returnLength)))
-                    {
-                        if (objectTypeInfo)
-                        {
-                            free(objectTypeInfo);
-                            objectTypeInfo = NULL;
-                        }
-
-                        ObjectInformationLength = returnLength;
-                        objectTypeInfo = (POBJECT_TYPE_INFORMATION)malloc(ObjectInformationLength);
-                        if (!objectTypeInfo)
-                        {
-                            break;
-                        }
-                    }
-
-                    // 获取对象类型名成功
-                    if (NT_SUCCESS(Status))
-                    {
-                        handleCout.type = hmc_text_util::W2A(__unicodeStringToWString(objectTypeInfo->Name));
-                    }
-                    if (handle.GrantedAccess == 0x0012019f)
-                    {
-
-                        break;
-                    }
-
-                    // 获取对象名
-                    ObjectInformationLength = 0;
-                    returnLength = 0;
-
-                    if (STATUS_INFO_LENGTH_MISMATCH == NtQueryObject(
-                                                           dupHandle,
-                                                           ObjectNameInformation,
-                                                           NULL,
-                                                           0,
-                                                           &returnLength))
-                    {
-
-                        objectNameInfo = (POBJECT_TYPE_INFORMATION)malloc(returnLength);
-                        if (!objectNameInfo)
-                        {
-                            break;
-                        }
-
-                        ZeroMemory(objectNameInfo, returnLength);
-                        Status = NtQueryObject(
-                            dupHandle,
-                            ObjectNameInformation,
-                            objectNameInfo,
-                            returnLength,
-                            NULL);
-                    }
-
-                    // 获取对象名成功
-                    if (NT_SUCCESS(Status) && ((PUNICODE_STRING)objectNameInfo)->Length > 0)
-                    {
-
-                        UNICODE_STRING objectName = *(PUNICODE_STRING)objectNameInfo;
-
-                        handleCout.name = hmc_text_util::W2A(__unicodeStringToWString(objectName));
-                        if (handleCout.type == "File")
-                        {
-                            for (size_t i = 0; i < volumeList.size(); i++)
-                            {
-                                hmc_usb::hmc_Volume volume = volumeList[i];
-                                if (handleCout.name.find(volume.device) == 0)
-                                {
-                                    handleCout.name.replace(0, volume.device.length(), volume.path);
-                                }
-                            }
-                        }
-                    }
-
-                } while (FALSE);
-
-                if (dupHandle)
-                {
-                    CloseHandle(dupHandle);
-                    dupHandle = NULL;
-                }
-                if (objectTypeInfo)
-                {
-                    free(objectTypeInfo);
-                    objectTypeInfo = NULL;
-                }
-                if (objectNameInfo)
-                {
-                    free(objectNameInfo);
-                    objectNameInfo = NULL;
-                }
-            }
-            if (!handleCout.name.empty() || !handleCout.type.empty())
-            {
-                // if(handleCout.type ==L"Thread"&&!ProcessThreadsList.empty()){
-                //     enumHandleCout PushNewHandleCout ;
-                //     PushNewHandleCout.id=id;
-                //     PushNewHandleCout.type = L"Thread";
-                //     PushNewHandleCout.name = L"";
-                //     PushNewHandleCout.handle =0;
-                //     DWORD ThreadsPID = ProcessThreadsList.front();
-                //     PushNewHandleCout.name = to_wstring(ThreadsPID);
-                //     ProcessThreadsList.erase(ProcessThreadsList.begin());
-                //     resultsEnumHandleList.push_back(PushNewHandleCout);
-                // }
-                _enumProcessHandleList.push_back(handleCout);
-            }
-            Sleep(5);
+            _enumProcessHandleList.push_back(handleCout);
         }
-
-        free(handleInfo);
 
         return queryId;
     }
@@ -972,10 +975,10 @@ namespace hmc_process
     /**
      * @brief 获取指定进程CPU使用率
      *
-     * @param process_id
+     * @param ProcessID
      * @return double
      */
-    double getProcessCpuUsage(DWORD process_id)
+    double getProcessCpuUsage(DWORD ProcessID)
     {
         static int processor_count_ = -1;     // cpu核心数
         static __int64 last_system_time_ = 0; // 上一次的系统时间
@@ -1002,7 +1005,7 @@ namespace hmc_process
         HANDLE hProcess = OpenProcess(
             PROCESS_QUERY_INFORMATION |
                 PROCESS_VM_READ,
-            FALSE, process_id);
+            FALSE, ProcessID);
 
         if (!hProcess)
         {
@@ -1027,7 +1030,7 @@ namespace hmc_process
         hProcess = OpenProcess(
             PROCESS_QUERY_INFORMATION |
                 PROCESS_VM_READ,
-            FALSE, process_id);
+            FALSE, ProcessID);
 
         if (!hProcess)
         {
@@ -1048,6 +1051,7 @@ namespace hmc_process
         cpu_usage = ((static_cast<double>(system_time - last_system_time_)) / (static_cast<double>(time - last_time_))) * 100;
         return cpu_usage;
     }
+
     struct hmc_PROCESSENTRY32A
     {
         DWORD cntThreads;            // 进程中的线程数。
@@ -1070,13 +1074,13 @@ namespace hmc_process
     {
         copyPe32.szExeFile.append(hmc_text_util::W2A(szExeFile));
     }
+
     /**
      * @brief 枚举进程快照
      *
-     * @return vector<PROCESSENTRY32>
+     * @param ProcessSnapshotList
      */
-    void
-    enumProcessSnapshot(vector<hmc_PROCESSENTRY32A> &ProcessSnapshotList)
+    void enumProcessSnapshot(vector<hmc_PROCESSENTRY32A> &ProcessSnapshotList)
     {
         PROCESSENTRY32 pe32;
         pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -1109,5 +1113,83 @@ namespace hmc_process
         }
 
         CloseHandle(hSnap);
+    }
+
+    /**
+     * @brief 树枚举所以进程结构
+     *
+     * @return json
+     */
+    json treeAllProcess()
+    {
+        json result;
+        result.array();
+
+        return result;
+    }
+    /**
+     * @brief 获取指定进程的命令行内容
+     *
+     * @param ProcessID
+     * @return string
+     */
+    string getProcessCommand(DWORD ProcessID)
+    {
+        string commandLine;
+        try
+        {
+            // 获取进程句柄
+            HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ProcessID);
+            if (hProcess == NULL)
+            {
+                return commandLine;
+            }
+
+            // 获取完整进程路径和命令行
+            LPSTR lpExeName = {0};
+            DWORD pathSize = 1024;
+            if (QueryFullProcessImageNameA(hProcess, 0, lpExeName, &pathSize) != 0)
+            {
+                commandLine.append(lpExeName);
+                CloseHandle(hProcess);
+            }
+        }
+        catch (char *_)
+        {
+        }
+        return commandLine;
+    }
+    
+    /**
+     * @brief 获取进程启动时候的时间ms
+     * 
+     * @param ProcessID 
+     * @return long 
+     */
+    long getProcessIDTimes(DWORD ProcessID)
+    {
+        long result = 0;
+        try
+        {
+            SYSTEMTIME stCreation, lstCreation;
+            HANDLE process = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, ProcessID);
+            if (process != NULL)
+            {
+                FILETIME ftCreation, ftExit, ftKernel, ftUser;
+                if (GetProcessTimes(process, &ftCreation, &ftExit, &ftKernel, &ftUser))
+                {
+                    FileTimeToSystemTime(&ftCreation, &stCreation);
+                    SystemTimeToTzSpecificLocalTime(NULL, &stCreation, &lstCreation);
+                }
+                CloseHandle(process);
+            }
+
+            result = SystemTimeToTimestamp(lstCreation);
+        }
+        catch (const std::exception &e)
+        {
+        }
+
+        return result;
     }
 }

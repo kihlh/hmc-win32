@@ -97,5 +97,6 @@
         "*.ipp": "cpp",
         "xxatomic": "cpp",
         "valarray": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

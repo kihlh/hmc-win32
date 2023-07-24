@@ -14,6 +14,7 @@ using namespace std;
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "libcpmtd.lib")
 
 
 /**
