@@ -10,6 +10,9 @@ using namespace hmc_text_regexp;
 #include "./napi_util.hpp"
 using namespace hmc_napi_util;
 
+#include "./registr.hpp"
+using namespace hmc_registr;
+
 #include "./environment.hpp"
 using namespace hmc_env;
 

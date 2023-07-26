@@ -20,8 +20,9 @@
 using namespace std;
 
 // 获取指定的环境变量
-static string GetVariable(string const &name)
+static bool GetVariable(string const &name, string &data)
 {
+    data.clear();
 #if defined(_MSC_VER)
     size_t size;
     getenv_s(&size, NULL, 0, name.c_str());
@@ -29,16 +30,21 @@ static string GetVariable(string const &name)
     {
         vector<char> tmpvar(size);
         errno_t result = getenv_s(&size, tmpvar.data(), size, name.c_str());
-        string var = (result == 0 ? string(tmpvar.data()) : "");
-        return var;
+        string variable = (result == 0 ? string(tmpvar.data()) : "");
+        data.append(variable);
+        return true;
     }
     else
     {
-        return "*;;;;hmc_not_env;;;;*";
+        return false;
     }
 #else
     char const *variable = getenv(name.c_str());
-    return variable ? string(variable) : string("*;;;;hmc_not_env;;;;*");
+    if (variable ? true : false)
+    {
+        data.append(variable);
+    }
+    return variable ? true : false;
 #endif
 }
 
@@ -149,9 +155,13 @@ namespace hmc_env
      * @param name
      * @return string
      */
-    string getenv(string const &name)
+    bool getenv(string const &name, string &data)
     {
-        return GetVariable(name);
+        if (GetVariable(name, data))
+        {
+            return true;
+        };
+        return false;
     }
 
     /**
@@ -348,7 +358,7 @@ namespace hmc_env
         int b_Result = _putenv_s(key.c_str(), Value.c_str());
         return b_Result == 0;
     }
-    
+
     /**
      * @brief 添加环境变量 请注意这会传递到所有子进程
      *
@@ -357,21 +367,25 @@ namespace hmc_env
      * @return true
      * @return false
      */
-    bool putenv(string key, string Value,bool append)
+    bool putenv(string key, string Value, bool append = false)
     {
-        string newValue ;
-        
-        if(append){
-            newValue.append(getenv(key));
+        string newValue;
+
+        if (append)
+        {
+            if (!GetVariable(key, newValue))
+            {
+                return false;
+            };
             newValue.append(";");
             newValue.append(Value);
-
-            return putenv(key,newValue);
+            int b_Result = _putenv_s(key.c_str(), newValue.c_str());
+            return b_Result == 0;
         }
-        
+
         return false;
     }
-    
+
     /**
      * @brief 添加环境变量内容数组
      *
@@ -548,4 +562,319 @@ namespace hmc_env
         return IsUserAnAdmin();
     }
 
+    /**
+     * @brief 系统变量操作（会写入系统和运行环境）
+     *
+     */
+    namespace systemEnv
+    {
+        /**
+         * @brief 转大写
+         *
+         * @param data
+         * @return string
+         */
+        string keyUpper(string data)
+        {
+            string Result;
+            Result.append(data);
+            for (char &c : data)
+            {
+                if (std::isalpha(static_cast<unsigned char>(c)))
+                {
+                    c = std::toupper(c);
+                }
+            }
+            return Result;
+        }
+
+        /**
+         * @brief 对比两个键是否相等
+         *
+         * @param key
+         * @param key2
+         */
+        bool keyDiff(string key, string key2)
+        {
+            return keyUpper(key) == keyUpper(key);
+        }
+
+        /**
+         * @brief 这些值不允许删除也不允许修改
+         *
+         */
+        vector<string> freezeEnvKeys = {"CommonProgramFiles(x86)",
+                                        "PUBLIC",
+                                        "SystemDrive",
+                                        "ProgramFiles(x86)",
+                                        "ProgramData",
+                                        "COMPUTERNAME",
+                                        "ALLUSERSPROFILE",
+                                        "HOMEDRIVE",
+                                        "LOGONSERVER",
+                                        "USERDOMAIN",
+                                        "APPDATA",
+                                        "LOCALAPPDATA",
+                                        "HOMEPATH",
+                                        "SESSIONNAME",
+                                        "USERPROFILE",
+                                        "USERNAME",
+                                        "CommonProgramFiles",
+                                        "ProgramFiles",
+                                        "ProgramW6432",
+                                        "SystemRoot"};
+
+        /**
+         * @brief 获取指定键值 按照默认优先级
+         * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+         * ?- 用户变量和系统变量同时为数组键    -> 用户变量数组
+         * ?- 用户变量为数组键 系统变量为文本键  -> 用户文本键 排除系统
+         * ?- 系统变量为文本键 用户变量为数组    -> 用户变量数组 排除系统
+         * ?- 系统变量存在 用户变量为空文本      -> 排除此变量
+         * ?- PATH                          -> 合并数组
+         * @param key 键
+         * @param pEnvStr 数据写入到此传址string变量
+         * @param transMean 转义(默认true)
+         * @return true
+         * @return false
+         */
+        bool get(string key, string &pEnvStr, bool transMean = true) {}
+
+        /**
+         * @brief 获取指定键值(从系统)
+         *
+         * @param key
+         * @param pEnvStr
+         * @param transMean
+         * @return true
+         * @return false
+         */
+        bool getSys(string key, string &pEnvStr, bool transMean = true) {}
+
+        /**
+         * @brief 写入变量到系统变量
+         *
+         * @param key 键
+         * @param Value 值
+         * @param append 添加到尾部 而不是替换
+         * - 默认 false
+         * @param transMean 是自字符转义
+         * - 默认 false
+         * @return true
+         * @return false
+         */
+        bool putSys(string key, string Value, bool append = false, bool transMean = false)
+        {
+        }
+
+        /**
+         * @brief 写入变量 自动判断
+         *
+         * @param key 键
+         * @param Value 值
+         * @param append 添加到尾部 而不是替换
+         * - 默认 false
+         * @param transMean 是自字符转义
+         * - 默认 false
+         * @return true
+         * @return false
+         */
+        bool put(string key, string Value, bool append = false, bool transMean = false)
+        {
+        }
+
+        /**
+         * @brief 写入变量 到用户
+         *
+         * @param key 键
+         * @param Value 值
+         * @param append 添加到尾部 而不是替换
+         * - 默认 false
+         * @param transMean 是自字符转义
+         * - 默认 false
+         * @return true
+         * @return false
+         */
+        bool putUse(string key, string Value, bool append = false, bool transMean = false)
+        {
+        }
+
+        /**
+         * @brief 获取系统环境变量
+         *
+         * @param key 键
+         * @param pEnvStr 数据写入到此传址string变量
+         * @param transMean 转义(默认true)
+         * @return true
+         * @return false
+         */
+        bool getUse(string key, string &pEnvStr, bool transMean = true)
+        {
+        }
+
+        /**
+         * @brief 获取系统变量
+         *
+         * @param key 键
+         * @param pEnvStr 数据写入到此传址string变量
+         * @param transMean 转义(默认true)
+         * @return true
+         * @return false
+         */
+        bool getSys(string key, string &pEnvStr, bool transMean = true)
+        {
+        }
+
+        /**
+         * @brief 按照默认优先级删除
+         * ?部分key 如 SystemDeive 是自动忽略的
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool remove(string key)
+        {
+        }
+
+        /**
+         * @brief 删除用户变量
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool removeUse(string key)
+        {
+        }
+
+        /**
+         * @brief 删除系统变量
+         * ?部分key 如 SystemDeive 是自动忽略的
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool removeSys(string key)
+        {
+        }
+
+        /**
+         * @brief 删除所有此变量
+         * ?部分key 如 SystemDeive 是自动忽略的
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool removeAll(string key)
+        {
+        }
+
+        /**
+         * @brief 从注册表读取并更新到当前环境
+         *
+         * @return true
+         * @return false
+         */
+        bool updateThis() {}
+
+        /**
+         * @brief 判断是否存在此键
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool hasSys(string key)
+        {
+        }
+
+        /**
+         * @brief 判断是否存在此键
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool hasUse(string key) {}
+
+        /**
+         * @brief 判断是否存在此键（不区分系统和用户）
+         * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+         * ?- 用户变量和系统变量同时为数组键    -> 用户变量
+         * ?- 用户变量为数组键 系统变量为文本键  -> 用户
+         * ?- 系统变量为文本键 用户变量为数组    -> 用户变量
+         * ?- 系统变量存在 用户变量为空文本      -> 排除
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool has(string key)
+        {
+        }
+
+        /**
+         * @brief 必须系统和用户都存在此键才返回true
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool hasAll(string key)
+        {
+        }
+
+        /**
+         * @brief 是个可扩展的值
+         *
+         * @param key
+         * @return true
+         * @return false
+         */
+        bool hasExpval(string key)
+        {
+        }
+
+        // 枚举所有的变量数据的data
+        struct ListSystemEnvCont
+        {
+            // 转义完成的系统变量列表
+            map<string, vector<string>> system;
+            // 转义完成的系统变量列表
+            map<string, vector<string>> user;
+            // 系统变量  [注册表里的原始文本(未转义)]
+            map<string, vector<string>> systemOrig;
+            // 用户变量  [注册表里的原始文本(未转义)]
+            map<string, vector<string>> userOrig;
+            // 按照环境进行合并
+            map<string, vector<string>> env;
+        };
+
+        /**
+         * @brief 获取系统 所有变量名 但是不查询值
+         *
+         */
+        vector<string> keySysList()
+        {
+        }
+
+        /**
+         * @brief 获取用户 所有变量名 但是不查询值
+         *
+         */
+        vector<string> keyUseList()
+        {
+        }
+
+        /**
+         * @brief 枚举注册表内的变量
+         *
+         * @return listSystemEnvCont
+         */
+        ListSystemEnvCont list()
+        {
+            struct ListSystemEnvCont listSystemEnvCont;
+        }
+
+    }
 }

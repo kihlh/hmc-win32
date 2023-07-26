@@ -6,20 +6,19 @@
                 "${workspaceFolder}/**",
                 "${vcpkgRoot}/x64-windows/include",
                 "${vcpkgRoot}/x86-windows/include",
-                "${USERPROFILE}\\AppData\\Local\\node-gyp\\Cache\\**",
-                "D:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\atlmfc\\include"
+                "C:\\Users\\kiic\\AppData\\Local\\node-gyp/**",
+                "D:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.29.30133\\include"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "windowsSdkVersion": "10.0.19041.0",
-            "compilerPath": "D:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\VC\\Tools\\MSVC\\14.16.27023\\bin\\HostX64\\x64\\cl.exe",
+            "windowsSdkVersion": "10.0.22621.0",
+            "compilerPath": "D:/Program Files (x86)/Microsoft Visual Studio/2019/Professional/VC/Tools/MSVC/14.16.27023/bin/HostX64/x64/cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64",
-            "compilerArgs": []
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
