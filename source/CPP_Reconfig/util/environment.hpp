@@ -2,9 +2,9 @@
 #include <string>
 #include <vector>
 #include <windows.h>
-#include <filesystem>
 #include <shlwapi.h>
 #include <processenv.h>
+#include <set>
 #include <map>
 #include <regex>
 #include <process.h>
@@ -16,8 +16,21 @@
 #define MAX_KEY_LENGTH 255
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
-
+#define HMC_IMPORT_ENVIRONMENT_H
+#define HMC_CHECK_CATCH catch (char *err){};
+#define HMC_CHECK_WINERR(name) \
+    if ()                      \
+    {                          \
+    };
 using namespace std;
+
+#define HMC_CHECK(code) \
+    try                 \
+    {                   \
+                        \
+        code            \
+    }                   \
+    HMC_CHECK_CATCH;
 
 // 获取指定的环境变量
 static bool GetVariable(string const &name, string &data)
@@ -46,6 +59,34 @@ static bool GetVariable(string const &name, string &data)
     }
     return variable ? true : false;
 #endif
+}
+
+string hmc_lib_alone_W2A(const wstring &pwText)
+{
+    string strResult = string();
+    try
+    {
+        if (pwText.empty())
+            return strResult;
+
+        int pszATextLen = WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
+        char *pAChar = new (nothrow) char[pszATextLen];
+        if (pAChar == NULL)
+        {
+            return strResult;
+        }
+
+        ZeroMemory(pAChar, pszATextLen + 1);
+        WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, pAChar, pszATextLen, NULL, NULL);
+
+        strResult.append(pAChar);
+        // FreeEnvironmentStringsA(pAChar);
+    }
+    catch (char *_)
+    {
+    }
+
+    return strResult;
 }
 
 // 二进制编译的版本
@@ -88,7 +129,7 @@ static map<string, string> getVariableAll()
             lpszVariable = reinterpret_cast<LPWSTR>(lpvEnv);
             while (*lpszVariable)
             {
-                string strEnv(hmc_text_util::W2A(lpszVariable));
+                string strEnv(hmc_lib_alone_W2A(lpszVariable));
 
                 int sep = strEnv.rfind("=");
                 string key = strEnv.substr(0, sep);
@@ -99,45 +140,6 @@ static map<string, string> getVariableAll()
             }
 
             FreeEnvironmentStringsW(lpvEnv);
-        }
-    }
-    catch (const exception &e)
-    {
-    }
-
-    return envStrMap;
-}
-
-static map<string, string> getGlobalVariableAll()
-{
-    map<string, string> envStrMap;
-
-    // 注意这里A字符很乱 请勿改成A （OEM ，Unicode ，ANSI）
-    try
-    {
-        LPWSTR env = GetEnvironmentStringsW();
-
-        while (*env)
-        {
-            string strEnv = hmc_text_util::W2A(env);
-
-            if (strEnv.empty() && strEnv.find(L'=') == 0)
-                continue;
-
-            if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
-            {
-                size_t pos = strEnv.find('=');
-                if (pos != string::npos)
-                {
-                    string name = strEnv.substr(0, pos);
-                    string value = strEnv.substr(pos + 1);
-                    if (!name.empty())
-                    {
-                        envStrMap.insert(pair<string, string>(name, value));
-                    }
-                }
-            }
-            env += wcslen(env) + 1;
         }
     }
     catch (const exception &e)
@@ -165,6 +167,20 @@ namespace hmc_env
     }
 
     /**
+     * @brief 获取环境变量值
+     *
+     * @param name
+     * @return true
+     * @return false
+     */
+    string getenv(string const &name)
+    {
+        string data;
+        GetVariable(name, data);
+        return data;
+    }
+
+    /**
      * @brief 获取命令行
      *
      * @return string
@@ -188,7 +204,7 @@ namespace hmc_env
         for (size_t i = 1; i < n_cmd_args; ++i)
         {
             LPWSTR arg = cmd_arg_list[i];
-            cmdList.push_back(hmc_text_util::W2A(arg));
+            cmdList.push_back(hmc_lib_alone_W2A(arg));
         }
 
         if (!n_cmd_args)
@@ -264,16 +280,7 @@ namespace hmc_env
         string cwdPath;
         char buffer[MAX_PATH] = {0};
         DWORD size = ::GetCurrentDirectoryA(MAX_PATH, buffer);
-        if (size > 0)
-        {
-            cwdPath.append(buffer);
-            return cwdPath;
-        }
-        else
-        {
-            filesystem::path cwd = filesystem::current_path();
-            cwdPath.append(cwd.string());
-        }
+        cwdPath.append(buffer);
         return cwdPath;
     }
 
@@ -438,15 +445,6 @@ namespace hmc_env
         }
         return rc;
     }
-    /**
-     * @brief 获取当前的变量环境列表（强制从注册表实时读取）
-     *
-     * @return map<string, string>
-     */
-    map<string, string> getGlobalEnvList()
-    {
-        return getGlobalVariableAll();
-    }
 
     namespace Mutex
     {
@@ -568,6 +566,34 @@ namespace hmc_env
      */
     namespace systemEnv
     {
+        struct chFormatVariableData
+        {
+            // 是否需要转义
+            bool escape;
+            // 是用户数据
+            bool type_user;
+            // 数据
+            string data;
+            // 名称
+            string name;
+            // 大写名
+            string upper;
+            // 数据大小
+            DWORD size;
+        };
+
+        string getEnvVariable(string key);
+        vector<chFormatVariableData> _lib_getGlobalVariableAll();
+        string getEnvVariable(string key);
+        bool getEnvVariable(string key, string &pVariable);
+        string escapeEnvVariable(string path);
+        map<string, string> getGlobalVariable();
+        string userPath = "Environment";
+        HKEY userHkey = HKEY_CURRENT_USER;
+
+        string systmPath = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
+        HKEY systmHkey = HKEY_LOCAL_MACHINE;
+
         /**
          * @brief 转大写
          *
@@ -577,12 +603,15 @@ namespace hmc_env
         string keyUpper(string data)
         {
             string Result;
-            Result.append(data);
             for (char &c : data)
             {
                 if (std::isalpha(static_cast<unsigned char>(c)))
                 {
-                    c = std::toupper(c);
+                    Result.push_back(std::toupper(c));
+                }
+                else
+                {
+                    Result.push_back(c);
                 }
             }
             return Result;
@@ -634,11 +663,77 @@ namespace hmc_env
          * ?- PATH                          -> 合并数组
          * @param key 键
          * @param pEnvStr 数据写入到此传址string变量
-         * @param transMean 转义(默认true)
          * @return true
          * @return false
          */
-        bool get(string key, string &pEnvStr, bool transMean = true) {}
+        bool get(string key, string &pEnvStr)
+        {
+            bool result = false;
+            try
+            {
+                string newEnvStr = string();
+                result = getEnvVariable(key, newEnvStr);
+                pEnvStr.clear();
+                pEnvStr.append(newEnvStr);
+            }
+            HMC_CHECK_CATCH;
+
+            return result;
+        }
+
+        /**
+ * @brief 写入变量 到用户
+ *
+ * @param key 键
+ * @param Value 值
+ * @param append 添加到尾部 而不是替换
+ * - 默认 false
+ * @param transMean 是自字符转义
+ * - 默认 false
+ * @return true
+ * @return false
+ */
+        bool putUse(string key, string Value, bool append = false, bool transMean = false)
+        {
+            bool result = false;
+            try
+            {
+                set<string> newValue = {};
+                string newValueKey = string();
+                string valueKey = keyUpper(key);
+                for (auto key : freezeEnvKeys)
+                {
+
+                    if (valueKey == keyUpper(key))
+                    {
+                        return result;
+                    }
+                }
+
+                for (auto&& Values : hmc_registr::_lib_splitString(Value, ";"))
+                {
+                    newValue.insert(Values);
+                }
+
+                if (append)
+                {
+                    string oidKey = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, REG_SZ);
+                    for (auto&& Values : hmc_registr::_lib_splitString(oidKey, ";"))
+                    {
+                        newValue.insert(Values);
+                    }
+                }
+                for (auto&& value : newValue)
+                    newValueKey.append(value).append(";");
+
+                if (!newValueKey.empty() && newValueKey.back() == ';')
+                    newValueKey.pop_back();
+
+                hmc_registr::setRegistrValue(userHkey, userPath, key, newValueKey, (transMean ? REG_EXPAND_SZ : REG_SZ));
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
 
         /**
          * @brief 获取指定键值(从系统)
@@ -649,7 +744,81 @@ namespace hmc_env
          * @return true
          * @return false
          */
-        bool getSys(string key, string &pEnvStr, bool transMean = true) {}
+        bool getSys(string key, string &pEnvStr, bool transMean = true)
+        {
+            bool result = false;
+            try
+            {
+                 pEnvStr.clear();
+                string valueKey = keyUpper(key);
+                for (auto key : freezeEnvKeys)
+                {
+
+                    if (valueKey == keyUpper(key))
+                    {
+                        pEnvStr.append(getenv(key));
+                        result = true;
+                        return result;
+                    }
+                }
+                string UseData = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key);
+                if (transMean)
+                {
+                    pEnvStr.append(escapeEnvVariable(UseData));
+                    result = pEnvStr.size() != 0;
+                }
+                else
+                {
+                    pEnvStr.append(UseData);
+                    result = pEnvStr.size() != 0;
+                }
+
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
+
+        /**
+         * @brief 获取系统环境变量
+         *
+         * @param key 键
+         * @param pEnvStr 数据写入到此传址string变量
+         * @param transMean 转义(默认true)
+         * @return true
+         * @return false
+         */
+        bool getUse(string key, string &pEnvStr, bool transMean = true)
+        {
+            bool result = false;
+            try
+            {
+                pEnvStr.clear();
+                string valueKey = keyUpper(key);
+                for (auto key : freezeEnvKeys)
+                {
+
+                    if (valueKey == keyUpper(key))
+                    {
+                        pEnvStr.append(getenv(key));
+                        result = true;
+                        return result;
+                    }
+                }
+                string UseData = hmc_registr::getRegistrValue<string>(userHkey, userPath, key);
+                if (transMean)
+                {
+                    pEnvStr.append(escapeEnvVariable(UseData));
+                    result = pEnvStr.size() != 0;
+                }
+                else
+                {
+                    pEnvStr.append(UseData);
+                    result = pEnvStr.size() != 0;
+                }
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
 
         /**
          * @brief 写入变量到系统变量
@@ -665,77 +834,47 @@ namespace hmc_env
          */
         bool putSys(string key, string Value, bool append = false, bool transMean = false)
         {
+            bool result = false;
+            try
+            {
+
+                set<string> newValue = {};
+                string newValueKey = string();
+                string valueKey = keyUpper(key);
+                for (auto key : freezeEnvKeys)
+                {
+
+                    if (valueKey == keyUpper(key))
+                    {
+                        return result;
+                    }
+                }
+
+                for (auto &&Values : hmc_registr::_lib_splitString(Value, ";"))
+                {
+                    newValue.insert(Values);
+                }
+
+                if (append)
+                {
+                    string oidKey = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, REG_SZ);
+                    for (auto &&Values : hmc_registr::_lib_splitString(oidKey, ";"))
+                    {
+                        newValue.insert(Values);
+                    }
+                }
+                for (auto &&value : newValue)
+                    newValueKey.append(value).append(";");
+
+                if (!newValueKey.empty() && newValueKey.back() == ';')
+                    newValueKey.pop_back();
+
+                hmc_registr::setRegistrValue(systmHkey, systmPath, key, newValueKey, (transMean ? REG_EXPAND_SZ : REG_SZ));
+            }
+            HMC_CHECK_CATCH;
+            return result;
         }
 
-        /**
-         * @brief 写入变量 自动判断
-         *
-         * @param key 键
-         * @param Value 值
-         * @param append 添加到尾部 而不是替换
-         * - 默认 false
-         * @param transMean 是自字符转义
-         * - 默认 false
-         * @return true
-         * @return false
-         */
-        bool put(string key, string Value, bool append = false, bool transMean = false)
-        {
-        }
-
-        /**
-         * @brief 写入变量 到用户
-         *
-         * @param key 键
-         * @param Value 值
-         * @param append 添加到尾部 而不是替换
-         * - 默认 false
-         * @param transMean 是自字符转义
-         * - 默认 false
-         * @return true
-         * @return false
-         */
-        bool putUse(string key, string Value, bool append = false, bool transMean = false)
-        {
-        }
-
-        /**
-         * @brief 获取系统环境变量
-         *
-         * @param key 键
-         * @param pEnvStr 数据写入到此传址string变量
-         * @param transMean 转义(默认true)
-         * @return true
-         * @return false
-         */
-        bool getUse(string key, string &pEnvStr, bool transMean = true)
-        {
-        }
-
-        /**
-         * @brief 获取系统变量
-         *
-         * @param key 键
-         * @param pEnvStr 数据写入到此传址string变量
-         * @param transMean 转义(默认true)
-         * @return true
-         * @return false
-         */
-        bool getSys(string key, string &pEnvStr, bool transMean = true)
-        {
-        }
-
-        /**
-         * @brief 按照默认优先级删除
-         * ?部分key 如 SystemDeive 是自动忽略的
-         *
-         * @param key 键
-         * @return true
-         * @return false
-         */
-        bool remove(string key)
-        {
-        }
 
         /**
          * @brief 删除用户变量
@@ -746,6 +885,18 @@ namespace hmc_env
          */
         bool removeUse(string key)
         {
+            bool result = false;
+            try
+            {
+                string valueKey = keyUpper(key);
+
+                for (auto key : freezeEnvKeys)
+                    if (valueKey == keyUpper(key))
+                        return false;
+                return hmc_registr::removeRegistrValue(userHkey, userPath, key);
+            }
+            HMC_CHECK_CATCH;
+            return result;
         }
 
         /**
@@ -757,6 +908,18 @@ namespace hmc_env
          */
         bool removeSys(string key)
         {
+            bool result = false;
+            try
+            {
+                string valueKey = keyUpper(key);
+
+                for (auto key : freezeEnvKeys)
+                    if (valueKey == keyUpper(key))
+                        return false;
+                return hmc_registr::removeRegistrValue(systmHkey, systmPath, key);
+            }
+            HMC_CHECK_CATCH;
+            return result;
         }
 
         /**
@@ -768,6 +931,18 @@ namespace hmc_env
          */
         bool removeAll(string key)
         {
+            bool result = false;
+            try
+            {
+                string valueKey = keyUpper(key);
+
+                for (auto key : freezeEnvKeys)
+                    if (valueKey == keyUpper(key))
+                        return false;
+                return (!hmc_registr::removeRegistrValue(systmHkey, systmPath, key) && !hmc_registr::removeRegistrValue(userHkey, userPath, key));
+            }
+            HMC_CHECK_CATCH;
+            return result;
         }
 
         /**
@@ -776,17 +951,31 @@ namespace hmc_env
          * @return true
          * @return false
          */
-        bool updateThis() {}
-
-        /**
-         * @brief 判断是否存在此键
-         *
-         * @param key 键
-         * @return true
-         * @return false
-         */
-        bool hasSys(string key)
+        void updateThis(bool remove = true, bool update = true)
         {
+            try
+            {
+                map<string, string> globalVariable = hmc_env::systemEnv::getGlobalVariable();
+                map<string, string> thisGlobalVariable = hmc_env::getEnvList();
+
+                // 删除已经消失的环境表
+                if (remove)
+                    for (const auto &entry : thisGlobalVariable)
+                    {
+                        if (globalVariable.find(entry.first) == globalVariable.end())
+                        {
+                            hmc_env::removeEnv(entry.first);
+                        }
+                    }
+
+                // 更新
+                if (update)
+                    for (const auto &entry : globalVariable)
+                    {
+                        hmc_env::putenv((string)entry.first, (string)entry.second, false);
+                    }
+            }
+            HMC_CHECK_CATCH;
         }
 
         /**
@@ -796,7 +985,45 @@ namespace hmc_env
          * @return true
          * @return false
          */
-        bool hasUse(string key) {}
+        bool hasSysKeyExists(string key)
+        {
+            bool result = false;
+            try
+            {
+                string valueKey = keyUpper(key);
+
+                for (auto key : freezeEnvKeys)
+                    if (valueKey == keyUpper(key))
+                        return true;
+                return hmc_registr::hasRegistrKey(systmHkey, systmPath, key);
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
+
+        /**
+         * @brief 判断是否存在此键
+         *
+         * @param key 键
+         * @return true
+         * @return false
+         */
+        bool hasUseKeyExists(string key)
+        {
+            bool result = false;
+            try
+            {
+                string valueKey = keyUpper(key);
+
+                for (auto key : freezeEnvKeys)
+                    if (valueKey == keyUpper(key))
+                        return true;
+
+                return hmc_registr::hasRegistrKey(userHkey, userPath, key);
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
 
         /**
          * @brief 判断是否存在此键（不区分系统和用户）
@@ -809,19 +1036,9 @@ namespace hmc_env
          * @return true
          * @return false
          */
-        bool has(string key)
+        bool hasKeyExists(string key)
         {
-        }
-
-        /**
-         * @brief 必须系统和用户都存在此键才返回true
-         *
-         * @param key 键
-         * @return true
-         * @return false
-         */
-        bool hasAll(string key)
-        {
+            return hasUseKeyExists(key) || hasSysKeyExists(key);
         }
 
         /**
@@ -833,22 +1050,26 @@ namespace hmc_env
          */
         bool hasExpval(string key)
         {
-        }
+            bool result = false;
+            try
+            {
+                hmc_registr::chValueStat userValueStat = hmc_registr::getValueStat(userHkey, userPath, key);
+                if (userValueStat.exists)
+                {
+                    result = userValueStat.type == REG_EXPAND_SZ;
+                    return result;
+                }
 
-        // 枚举所有的变量数据的data
-        struct ListSystemEnvCont
-        {
-            // 转义完成的系统变量列表
-            map<string, vector<string>> system;
-            // 转义完成的系统变量列表
-            map<string, vector<string>> user;
-            // 系统变量  [注册表里的原始文本(未转义)]
-            map<string, vector<string>> systemOrig;
-            // 用户变量  [注册表里的原始文本(未转义)]
-            map<string, vector<string>> userOrig;
-            // 按照环境进行合并
-            map<string, vector<string>> env;
-        };
+                hmc_registr::chValueStat sysValueStat = hmc_registr::getValueStat(systmHkey, systmPath, key);
+                if (sysValueStat.exists)
+                {
+                    result = sysValueStat.type == REG_EXPAND_SZ;
+                    return result;
+                }
+            }
+            HMC_CHECK_CATCH;
+            return result;
+        }
 
         /**
          * @brief 获取系统 所有变量名 但是不查询值
@@ -856,6 +1077,15 @@ namespace hmc_env
          */
         vector<string> keySysList()
         {
+            vector<string> result;
+            HMC_CHECK({
+                for (auto key : freezeEnvKeys)
+                    result.push_back(key);
+
+                for (auto key : hmc_registr::listKey(systmHkey, systmPath).key)
+                    result.push_back(key);
+            });
+            return result;
         }
 
         /**
@@ -864,17 +1094,360 @@ namespace hmc_env
          */
         vector<string> keyUseList()
         {
+            vector<string> result;
+            HMC_CHECK({
+                for (auto key : freezeEnvKeys)
+                    result.push_back(key);
+
+                for (auto key : hmc_registr::listKey(userHkey, userPath).key)
+                    result.push_back(key);
+            });
+
+            return result;
         }
 
         /**
-         * @brief 枚举注册表内的变量
+         * @brief 从注册表读取系统变量
          *
-         * @return listSystemEnvCont
+         * @param key
+         * @param pVariable
+         * @return true
+         * @return false
          */
-        ListSystemEnvCont list()
+        bool getEnvVariable(string key, string &pVariable)
         {
-            struct ListSystemEnvCont listSystemEnvCont;
+            bool result = false;
+            HMC_CHECK({
+                pVariable.clear();
+
+                for (auto &&freezeEnv : freezeEnvKeys)
+                {
+                    if (keyDiff(freezeEnv, key))
+                    {
+                        string data = string();
+                        bool isenv = getenv(key, data);
+                        pVariable.append(data);
+                        return isenv;
+                    }
+                }
+
+                hmc_EnableShutDownPriv();
+                string userPath = "Environment";
+                HKEY userHkey = HKEY_CURRENT_USER;
+
+                string systmPath = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
+                HKEY systmHkey = HKEY_LOCAL_MACHINE;
+
+                hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(userHkey, userPath, key);
+
+                if (valueStat.exists)
+                {
+
+                    pVariable.append(hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type));
+                    if (pVariable.size() != 0)
+                        return true;
+                }
+
+                hmc_registr::chValueStat valueStat_1 = hmc_registr::getValueStat(systmHkey, systmPath, key);
+
+                if (valueStat_1.exists)
+                {
+
+                    pVariable.append(hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat_1.type));
+                    if (pVariable.size() != 0)
+                        return true;
+                }
+            });
+
+            return result;
+        }
+
+        /**
+         * @brief 从注册表读取系统变量
+         *
+         * @param key
+         * @return string
+         */
+        string getEnvVariable(string key)
+        {
+            string pVariable = string();
+            getEnvVariable(key, pVariable);
+            return pVariable;
+        }
+
+        /**
+         * @brief 获取文本并带入环境
+         *
+         * @param path
+         * @return string
+         */
+        string escapeEnvVariable(string input)
+        {
+            string result = string();
+
+            HMC_CHECK({
+                result.append(input);
+
+                std::string pattern = "%";
+
+                size_t startPos = 0;
+
+                while ((startPos = input.find(pattern, startPos)) != std::string::npos)
+                {
+                    size_t endPos = input.find(pattern, startPos + pattern.length());
+                    if (endPos != std::string::npos)
+                    {
+                        string subStr = input.substr(startPos, endPos - startPos + pattern.length());
+                        string subStrKey = keyUpper(input.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
+                        string value = getEnvVariable(subStrKey);
+                        if (value.size() != 0)
+                        {
+                            size_t startReplacePos = result.find(subStr);
+                            while (startReplacePos != std::string::npos)
+                            {
+                                result.replace(startReplacePos, subStr.size(), value);
+                                startReplacePos = result.find(subStr, startReplacePos + value.length());
+                            }
+                        }
+                        startPos = endPos + pattern.length();
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            });
+
+            return result;
+        }
+
+        /**
+         * @brief 在全局获取系统环境变量
+         *
+         * @return map<string, string>
+         */
+        vector<chFormatVariableData> getGlobalVariableAll(bool AllVariable = false)
+        {
+            vector<chFormatVariableData> AllVariableDataList;
+            vector<chFormatVariableData> VariableDataList;
+            string pathChar = string();
+            set<string> hmcDataList;
+
+            // 这些值是固定的 不允许变动
+            for (auto key : freezeEnvKeys)
+            {
+                chFormatVariableData variableData;
+                getenv(key, variableData.data);
+                variableData.escape = false;
+                variableData.type_user = false;
+                variableData.upper = keyUpper(key);
+                variableData.name = key;
+                AllVariableDataList.push_back(variableData);
+            }
+
+            HMC_CHECK({
+                // 获取用户变量
+
+                auto key_list = hmc_registr::listKey(userHkey, userPath);
+
+                for (auto key : key_list.key)
+                {
+                    if (key.empty())
+                        continue;
+                    hmc_EnableShutDownPriv();
+                    hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(userHkey, userPath, key);
+
+                    if (!valueStat.exists)
+                        continue;
+
+                    chFormatVariableData variableData;
+                    variableData.size = valueStat.size;
+                    variableData.type_user = true;
+                    variableData.upper = keyUpper(key);
+                    variableData.name = key;
+                    variableData.data = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type);
+                    variableData.escape = valueStat.type == REG_EXPAND_SZ;
+                    if (!variableData.data.size())
+                    {
+                        variableData.data = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type);
+                    }
+
+                    // 处理path变量
+                    if (variableData.upper != string("PATH") || AllVariable)
+                    {
+                        AllVariableDataList.push_back(variableData);
+                    }
+                    else
+                    {
+                        if (pathChar.size() != 0)
+                            pathChar.append(";");
+                        pathChar.append(variableData.data);
+                    }
+
+                    // 获取全部的时候也会添加如path合集
+                    if (variableData.upper == string("PATH") && AllVariable)
+                    {
+                        if (pathChar.size() != 0)
+                            pathChar.append(";");
+                        pathChar.append(variableData.data);
+                    }
+                }
+                key_list.dir.clear();
+                key_list.key.clear();
+
+                // 获取系统变量
+
+                key_list = hmc_registr::listKey(systmHkey, systmPath);
+
+                for (auto key : key_list.key)
+                {
+                    hmc_EnableShutDownPriv();
+                    if (key.empty())
+                        continue;
+                    hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(systmHkey, systmPath, key);
+
+                    if (!valueStat.exists)
+                        continue;
+
+                    chFormatVariableData variableData;
+                    variableData.type_user = true;
+                    variableData.size = valueStat.size;
+                    variableData.upper = keyUpper(key);
+                    variableData.name = key;
+                    variableData.data = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat.type);
+                    if (!variableData.data.size())
+                    {
+                        variableData.data = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat.type);
+                    }
+                    variableData.escape = valueStat.type == REG_EXPAND_SZ;
+
+                    // 处理path变量
+                    if (variableData.upper != string("PATH") || AllVariable)
+                    {
+                        AllVariableDataList.push_back(variableData);
+                    }
+                    else
+                    {
+                        if (pathChar.size() != 0)
+                            pathChar.append(";");
+                        pathChar.append(variableData.data);
+                    }
+                    if (variableData.upper == string("PATH") && AllVariable)
+                    {
+                        if (pathChar.size() != 0)
+                            pathChar.append(";");
+                        pathChar.append(variableData.data);
+                    }
+                }
+
+                key_list.dir.clear();
+                key_list.key.clear();
+            });
+
+            // 按照结构优先级添加到返回结果
+            HMC_CHECK({
+                // 按照顺序永远是用户数据优先 所以不用刻意排序
+                for (auto &&VariableData : AllVariableDataList)
+                {
+                    if (VariableData.data.size() < VariableData.size - 3)
+                    {
+                        hmc_env::getenv(VariableData.name, VariableData.data);
+                    }
+                }
+
+                for (auto &&VariableData : AllVariableDataList)
+                {
+
+                    if (hmcDataList.find(VariableData.name) == hmcDataList.end())
+                    {
+                        hmcDataList.insert(VariableData.upper);
+                        VariableDataList.push_back(VariableData);
+                    }
+                }
+
+                chFormatVariableData pathVariableData;
+                pathVariableData.type_user = true;
+                pathVariableData.size = pathChar.size();
+                pathVariableData.upper = AllVariable ? "HMC::PATH_ALL" : "PATH";
+                pathVariableData.name = AllVariable ? "HMC::PATH_ALL" : "Path";
+                pathVariableData.data = pathChar;
+                VariableDataList.push_back(pathVariableData);
+                if (AllVariable)
+                    AllVariableDataList.push_back(pathVariableData);
+            });
+            // 翻译变量
+            HMC_CHECK({
+                for (auto &&VariableData : (AllVariable ? AllVariableDataList : VariableDataList))
+                {
+
+                    // 等待解析的变量
+                    std::string pattern = "%";
+                    size_t startPos = 0;
+
+                    // 查找 %xxx%
+                    while ((startPos = VariableData.data.find(pattern, startPos)) != std::string::npos)
+                    {
+                        size_t endPos = VariableData.data.find(pattern, startPos + pattern.length());
+                        if (endPos != std::string::npos)
+                        {
+                            string subStr = VariableData.data.substr(startPos, endPos - startPos + pattern.length());
+                            string subStrKey = keyUpper(VariableData.data.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
+
+                            // 查找并替换
+
+                            // 查找对照表
+
+                            for (auto &&lookVariableData : VariableDataList)
+                            {
+                                if (lookVariableData.upper == subStrKey)
+                                {
+                                    size_t startsubStrPos = 0;
+                                    while ((startsubStrPos = VariableData.data.find(subStr, startsubStrPos)) != string::npos)
+                                    {
+                                        VariableData.data.replace(startsubStrPos, subStr.length(), lookVariableData.data);
+                                        startsubStrPos += lookVariableData.data.length();
+                                    }
+                                }
+                            }
+
+                            // 下一个
+                            startPos = endPos + pattern.length();
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            });
+
+            return (AllVariable ? AllVariableDataList : VariableDataList);
+        }
+
+        /**
+         * @brief 从注册表获取环境变量
+         *
+         */
+        map<string, string> getGlobalVariable()
+        {
+            map<string, string> result;
+            try
+            {
+                vector<chFormatVariableData> globalVariableList = getGlobalVariableAll();
+                for (auto &&globalVariable : globalVariableList)
+                {
+                    if (globalVariable.name.size() > 0 && globalVariable.data.size() > 0)
+                    {
+
+                        result.insert(std::make_pair(globalVariable.name, globalVariable.data));
+                    }
+                }
+            }
+            HMC_CHECK_CATCH;
+
+            return result;
         }
 
     }
+
 }

@@ -5,11 +5,12 @@
 #include <map>
 #include <vector>
 #include <type_traits>
-
+#include <ShlObj.h>
 using namespace std;
 
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
+#define HMC_IMPORT_REGISTR_H
 
 #define _define_if_to_break(eq1, result)                      \
     {                                                         \
@@ -42,7 +43,7 @@ using namespace std;
         is_same_v<T, unsigned long>)
 
 // 关闭注册表键
-#define _defined_aoto_free_HKey(subHKey)            \
+#define _defined_auto_free_HKey(subHKey)            \
     shared_ptr<void> close_key(nullptr, [&](void *) \
                                {\
         if (subHKey != nullptr) {\
@@ -69,15 +70,25 @@ namespace hmc_registr
     };
 
     // 遍历树结构的信息 但是不返回内容
-    struct chWalkItemCout
+    struct chWalkItme
     {
-        DWORD size;     // 值的大小
-        string vkey;    // 值的名称
-        string dirPath; // 路径文件夹
-        DWORD type;     // 类型
-        HKEY root;      // 根路径
-        bool isDir;     // 是否是文件夹
-        long long time; // 时间戳
+        DWORD size;         // 值的大小
+        string vkey;        // 值的名称
+        string dirPath;     // 路径文件夹
+        DWORD type;         // 类型
+        HKEY root;          // 根路径
+        bool isDir;         // 是否是文件夹
+        long long time;     // 时间戳
+        vector<BYTE> value; // 数据
+        bool is_value;      // 是否加入了数据
+    };
+
+    // 获取值的信息
+    struct chValueStat
+    {
+        DWORD type;
+        DWORD size;
+        bool exists;
     };
 
     void _lib_EnumRegistrKeyQuery(HKEY hKey, vector<string> &QueryDirList, vector<string> &QueryKeyList);
@@ -312,10 +323,10 @@ namespace hmc_registr
         try
         {
             HKEY hTestKey;
-            _defined_aoto_free_HKey(hTestKey);
+            _defined_auto_free_HKey(hTestKey);
             if (RegOpenKeyExA(hKey, path.c_str(),
                               0,
-                              KEY_READ,
+                              KEY_ALL_ACCESS,
                               &hTestKey) == ERROR_SUCCESS)
             {
                 char achKey[MAX_KEY_LENGTH];    // 子键名称的缓冲区
@@ -388,10 +399,10 @@ namespace hmc_registr
         try
         {
             HKEY hTestKey;
-            _defined_aoto_free_HKey(hTestKey);
+            _defined_auto_free_HKey(hTestKey);
             if (RegOpenKeyExA(hKey, path.c_str(),
                               0,
-                              KEY_READ,
+                              KEY_ALL_ACCESS,
                               &hTestKey) == ERROR_SUCCESS)
             {
                 _lib_EnumRegistrKeyQuery(hTestKey, queryDirKey.dir, queryDirKey.key);
@@ -517,9 +528,9 @@ namespace hmc_registr
         pValueType = 0x00000000;
         pDataSize = 0;
         HKEY subHKey;
-        _defined_aoto_free_HKey(subHKey);
-        if (RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_READ, &subHKey) == ERROR_SUCCESS)
+        if (RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &subHKey) == ERROR_SUCCESS)
         {
+            _defined_auto_free_HKey(subHKey);
 
             DWORD valueType;
             DWORD dataSize = 0;
@@ -540,6 +551,49 @@ namespace hmc_registr
         {
             return false;
         }
+    }
+
+    /**
+     * @brief 获取值类型与值路径
+     *
+     * @param hKey 根
+     * @param path 路径
+     * @param valueType 传址 DW
+     * - 0x00000000 REG_NONE 未定义
+     * - 0x00000001 REG_SZ 字符串
+     * - 0x00000002 REG_EXPAND_SZ 未展开引用的字符串 例如“%PATH%”
+     * - 0x00000003 REG_BINARY 二进制
+     * - 0x00000004 REG_DWORD / REG_DWORD_LITTLE_ENDIAN 32 位数字
+     * - 0x00000005 REG_DWORD_BIG_ENDIAN 大端格式的 32 位数字。
+     * - 0x00000006 REG_LINK   指向注册表项的符号链接。
+     * - 0x00000007 REG_MULTI_SZ      MS-RRP
+     * - 0x00000008 REG_RESOURCE_LIST 设备驱动程序资源列表
+     * - 0x0000000B REG_QWORD 64 位数字
+     * @param dataSize 传址 大小
+     * @return true
+     * @return false
+     */
+    chValueStat getValueStat(HKEY hKey, string subKey, string key)
+    {
+        chValueStat result = {
+            0, 0, 0};
+        HKEY subHKey;
+        if (RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &subHKey) == ERROR_SUCCESS)
+        {
+            _defined_auto_free_HKey(subHKey);
+
+            DWORD valueType;
+            DWORD dataSize = 0;
+
+            // 第一次调用 RegQueryValueEx 获取值的大小，放入 dataSize 变量中
+            if (RegQueryValueExA(subHKey, key.c_str(), nullptr, &valueType, nullptr, &dataSize) == ERROR_SUCCESS)
+            {
+                result.exists = true;
+                result.size = dataSize;
+                result.type = valueType;
+            }
+        }
+        return result;
     }
 
     /**
@@ -580,7 +634,7 @@ namespace hmc_registr
             HKEY hSubKey;
             DWORD dwDisposition;
             DWORD is_open = ::RegCreateKeyExA(hKey, subKey.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hSubKey, &dwDisposition);
-            _defined_aoto_free_HKey(hSubKey);
+            _defined_auto_free_HKey(hSubKey);
             // 尝试创建或者打开父键
             if (is_open == ERROR_SUCCESS)
             {
@@ -589,13 +643,13 @@ namespace hmc_registr
                 if constexpr (_define_is_int32bit(T))
                 {
                     DWORD newData = ((DWORD)valueData) + 0;
-                    is_open = ::RegSetValueExA(hSubKey, key.c_str(), 0, (retype != 0 ? retype : REG_DWORD), (LPBYTE)&newData, sizeof(DWORD));
+                    is_open = ::RegSetValueExA(hSubKey, key.c_str(), 0, (retype != 0 ? retype : REG_DWORD), reinterpret_cast<const BYTE *>(newData), sizeof(DWORD));
                 }
                 // 写入64位数字
                 else if constexpr (_define_is_int64bit(T))
                 {
-                    long long newData = ((DWORD)valueData) + 0;
-                    is_open = ::RegSetValueExA(hSubKey, key.c_str(), 0, (retype != 0 ? retype : REG_QWORD), (LPBYTE)&newData, sizeof(int64_t));
+                    long long newData = ((long long)valueData) + 0;
+                    is_open = ::RegSetValueExA(hSubKey, key.c_str(), 0, (retype != 0 ? retype : REG_QWORD), reinterpret_cast<const BYTE *>(newData), sizeof(int64_t));
                 }
                 // 写入文本
                 else if constexpr (is_same_v<T, string>)
@@ -655,12 +709,15 @@ namespace hmc_registr
         DWORD pDataSize;
         bool is_ok = false;
         HKEY subHKey = 0;
-        is_ok = getValueStat(hKey, subKey, key, pValueType, pDataSize);
+        hmc_EnableShutDownPriv();
+        hmc_registr::chValueStat data = getValueStat(hKey, subKey, key);
+        is_ok = data.exists;
+        pDataSize = data.size;
+        pValueType = data.type;
 
-        is_open = ::RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_READ, &subHKey) == ERROR_SUCCESS;
-
+        is_open = ::RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &subHKey) == ERROR_SUCCESS;
         // 智能关闭指针
-        _defined_aoto_free_HKey(subHKey);
+        _defined_auto_free_HKey(subHKey);
 
         // 处理32位数字
         if constexpr (_define_is_int32bit(T))
@@ -705,14 +762,13 @@ namespace hmc_registr
             // 条件隐式转换匹配 不符合直接跳出
             _define_if_to_break(_EQ_REG_TYPE(pValueType, retype), result);
 
-            DWORD type = retype == 0 ? REG_SZ : retype;
+            DWORD type = retype == 0 ? pValueType : retype;
 
             vector<BYTE> value_data(pDataSize);
 
             if (::RegQueryValueExA(subHKey, key.c_str(), 0, &type, reinterpret_cast<BYTE *>(value_data.data()), &pDataSize) == ERROR_SUCCESS)
             {
                 result.resize(pDataSize);
-                cout << value_data.size() << endl;
                 for (size_t i = 0; i < pDataSize; i++)
                 {
                     result[i] = value_data[i];
@@ -736,6 +792,56 @@ namespace hmc_registr
         }
 
         return result_default;
+    }
+
+    /**
+     * @brief 获取单条数据并返回类型与数据
+     *
+     * @param hKey
+     * @param subKey
+     * @param key
+     * @return chWalkValueItmeCout
+     */
+    chWalkItme getRegistrAnyValue(HKEY hKey, string subKey, string key)
+    {
+        chWalkItme walkValueItmeCout;
+        walkValueItmeCout.dirPath = subKey;
+        walkValueItmeCout.vkey = key;
+        walkValueItmeCout.isDir = false;
+        walkValueItmeCout.size = 0;
+        walkValueItmeCout.time = 0;
+        walkValueItmeCout.type = 0;
+        walkValueItmeCout.root = hKey;
+        walkValueItmeCout.value = {0};
+        walkValueItmeCout.is_value = false;
+        HKEY open_hkey = nullptr;
+        _defined_auto_free_HKey(open_hkey);
+
+        DWORD is_open;
+        DWORD pValueType;
+        DWORD pDataSize;
+        bool is_ok = false;
+        is_ok = getValueStat(hKey, subKey, key, pValueType, pDataSize);
+
+        is_open = ::RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &open_hkey) == ERROR_SUCCESS;
+        vector<BYTE> value_data(pDataSize);
+
+        if (!is_ok || !is_open)
+            return walkValueItmeCout;
+        if (ERROR_SUCCESS == ::RegQueryValueExA(open_hkey, key.c_str(), 0, REG_NONE, reinterpret_cast<BYTE *>(value_data.data()), &pDataSize))
+        {
+            walkValueItmeCout.value.clear();
+            walkValueItmeCout.value.resize(value_data.size());
+            walkValueItmeCout.size = value_data.size();
+            walkValueItmeCout.type = pValueType + 0;
+            walkValueItmeCout.is_value = true;
+            for (size_t i = 0; i < value_data.size(); i++)
+            {
+                walkValueItmeCout.value[i] = value_data[i];
+            }
+        };
+        value_data.clear();
+        return walkValueItmeCout;
     }
 
     /**
@@ -770,8 +876,8 @@ namespace hmc_registr
     {
         bool result = false;
         HKEY hTestKey;
-        DWORD openResult = RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_READ, &hTestKey);
-        _defined_aoto_free_HKey(hTestKey);
+        DWORD openResult = RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &hTestKey);
+        _defined_auto_free_HKey(hTestKey);
 
         switch (openResult)
         {
@@ -795,7 +901,7 @@ namespace hmc_registr
     bool removeRegistrValue(HKEY hKey, string subKey, string key)
     {
         HKEY open_hkey = nullptr;
-        _defined_aoto_free_HKey(open_hkey);
+        _defined_auto_free_HKey(open_hkey);
         if (ERROR_SUCCESS == ::RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &open_hkey))
         {
             return ::RegDeleteValueA(open_hkey, key.c_str()) == ERROR_SUCCESS;
@@ -815,7 +921,7 @@ namespace hmc_registr
     bool removeRegistrTree(HKEY hKey, string subKey, string DirName)
     {
         HKEY open_hkey = nullptr;
-        _defined_aoto_free_HKey(open_hkey);
+        _defined_auto_free_HKey(open_hkey);
         if (ERROR_SUCCESS == ::RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_ALL_ACCESS, &open_hkey))
         {
             RegDeleteTreeA(open_hkey, DirName.c_str());
@@ -832,7 +938,7 @@ namespace hmc_registr
      * @return true
      * @return false
      */
-    bool removeRegistrKey(HKEY hKey, string keyPath, bool tree = false)
+    bool removeRegistrDir(HKEY hKey, string keyPath, bool tree = false)
     {
         HKEY open_hkey = nullptr;
 
@@ -847,7 +953,7 @@ namespace hmc_registr
         }
 
         LONG result = ::RegOpenKeyExA(HKEY_CURRENT_USER, keyPath.c_str(), 0, KEY_ALL_ACCESS, &open_hkey);
-        _defined_aoto_free_HKey(open_hkey);
+        _defined_auto_free_HKey(open_hkey);
 
         if (result == ERROR_SUCCESS)
         {
@@ -907,7 +1013,7 @@ namespace hmc_registr
         HKEY toHKey = nullptr;
         DWORD dwDisposition;
 
-        _defined_aoto_free_HKey(sourceHKey);
+        _defined_auto_free_HKey(sourceHKey);
         shared_ptr<void> close_toHKey(nullptr, [&](void *)
                                       {
         if (toHKey != nullptr) {
@@ -931,109 +1037,93 @@ namespace hmc_registr
     /**
      * @brief 获取目录表中的键
      *
-     * @param hKey
-     * @param keyPath
+     * @param hKey   根目录
+     * @param keyPath  获取目录路径
+     * @param filterType 过滤类型
+     * - all  REG_NONE
+     * - string  REG_SZ|REG_EXPAND_SZ|REG_LINK
+     * - number  REG_DWORD|REG_QWORD|REG_DWORD_BIG_ENDIAN
+     * - bin     REG_BINARY|REG_DWORD_LITTLE_ENDIAN|REG_DWORD_BIG_ENDIAN|REG_RESOURCE_LIST|REG_RESOURCE_REQUIREMENTS_LIST|REG_FULL_RESOURCE_DESCRIPTOR
      * @return true
      * @return false
      */
-    vector<chWalkItemCout> walkRegistrDir(HKEY hKey, string keyPath)
+    template <typename... Args>
+    vector<chWalkItme> walkRegistrDir(HKEY hKey, string keyPath, bool addValue = false, Args... typeFlag)
     {
-        vector<chWalkItemCout> result;
+
+        vector<chWalkItme> result;
         try
         {
             HKEY hTestKey;
-            _defined_aoto_free_HKey(hTestKey);
+            _defined_auto_free_HKey(hTestKey);
             vector<string> keylist;
             vector<string> dirlist;
+            set<DWORD> typeFlagList;
+            DWORD temp[] = {typeFlag...};
+            for (size_t i = 0; i < sizeof(temp) / sizeof(temp[0]); i++)
+                typeFlagList.insert((DWORD)temp[i]);
 
             if (RegOpenKeyExA(hKey, keyPath.c_str(),
                               0,
-                              KEY_READ,
+                              KEY_ALL_ACCESS,
                               &hTestKey) == ERROR_SUCCESS)
             {
                 _lib_EnumRegistrKeyQuery(hTestKey, dirlist, keylist);
             }
 
-            // 枚举并获取信息
-            for (size_t i = 0; i < keylist.size(); i++)
             {
-                chWalkItemCout walkItemCout;
-                string key = keylist[i];
-                walkItemCout.vkey = key;
-                walkItemCout.dirPath = keyPath;
-                walkItemCout.time = 0;
-                walkItemCout.isDir = false;
-                walkItemCout.root = hKey;
+                // 枚举并获取信息
+                for (size_t i = 0; i < keylist.size(); i++)
+                {
+                    chWalkItme walkItemCout;
+                    string key = keylist[i];
+                    walkItemCout.vkey = key;
+                    walkItemCout.dirPath = keyPath;
+                    walkItemCout.time = 0;
+                    walkItemCout.isDir = false;
+                    walkItemCout.root = hKey;
+                    walkItemCout.value = {0};
 
-                DWORD pValueType;
-                DWORD pDataSize;
-                getValueStat(hKey, keyPath, key, pValueType, pDataSize);
-                walkItemCout.size = pDataSize;
-                walkItemCout.type = pValueType;
-                result.push_back(walkItemCout);
-            }
+                    DWORD pValueType;
+                    DWORD pDataSize;
+                    getValueStat(hKey, keyPath, key, pValueType, pDataSize);
+                    if (typeFlagList.find(REG_NONE) != typeFlagList.end() || typeFlagList.find(pValueType) != typeFlagList.end())
+                    {
 
-            // 枚举并获取信息
-            for (size_t i = 0; i < dirlist.size(); i++)
-            {
-                chWalkItemCout walkItemCout;
-                string dir = dirlist[i];
-                chQueryDirStat chqlist = getRegistrDirStat(hKey, string(keyPath).append("\\").append(dir));
-                walkItemCout.vkey = dir;
-                walkItemCout.dirPath = keyPath;
-                walkItemCout.time = chqlist.LastWriteTime;
-                walkItemCout.isDir = true;
-                walkItemCout.root = hKey;
-                walkItemCout.size = 0;
-                walkItemCout.type = 0;
-                result.push_back(walkItemCout);
+                        walkItemCout.size = pDataSize;
+                        walkItemCout.type = pValueType;
+                        if (addValue)
+                        {
+                            walkItemCout.value = getRegistrAnyValue(hKey, keyPath, key).value;
+                        }
+
+                        result.push_back(walkItemCout);
+                    }
+                }
+
+                // 枚举并获取信息
+                if (typeFlagList.find(REG_NONE) != typeFlagList.end())
+                    for (size_t i = 0; i < dirlist.size(); i++)
+                    {
+                        chWalkItme walkItemCout;
+                        string dir = dirlist[i];
+                        chQueryDirStat chqlist = getRegistrDirStat(hKey, string(keyPath).append("\\").append(dir));
+                        walkItemCout.vkey = dir;
+                        walkItemCout.dirPath = keyPath;
+                        walkItemCout.time = chqlist.LastWriteTime;
+                        walkItemCout.isDir = true;
+                        walkItemCout.root = hKey;
+                        walkItemCout.size = 0;
+                        walkItemCout.type = 0;
+                        walkItemCout.value = {0};
+                        result.push_back(walkItemCout);
+                    }
             }
         }
         catch (const exception &e)
         {
-            return result;
         }
-
         return result;
     }
-    
-    /**
-     * @brief 从注册表读取系统变量
-     * 
-     * @param key 
-     * @return true 
-     * @return false 
-     */
-    bool getEnvVariable(string key){
-        
 
-    }
-
-    /**
-     * @brief 获取文本并带入环境
-     *
-     * @param path
-     * @return string
-     */
-    string escapeEnvVariable(string path)
-    {
-        string result = string();
-        vector<string> splitPath = _lib_splitString(path, "%");
-        vector<string> VariablePath = {};
-        if (splitPath.size() < 2)
-            return path;
-        for (size_t i = 0; i < splitPath.size(); i++)
-        {
-            string key = splitPath[i];
-            // 查找出 %。。。%
-            if (i % 2 == 1 && i)
-            {
-                VariablePath.push_back(key);
-            }
-        }
-
-        
-        cout << result << endl;
-        return result;
-    }
 };
