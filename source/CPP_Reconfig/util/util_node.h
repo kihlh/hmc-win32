@@ -25,10 +25,6 @@ using namespace hmc_process;
 #include "./window.hpp"
 using namespace hmc_window;
 
-
-#include "./ipc.hpp"
-using namespace hmc_ipc;
-
 #include "./screen.hpp"
 using namespace hmc_screen;
 

@@ -61,34 +61,6 @@ static bool GetVariable(string const &name, string &data)
 #endif
 }
 
-string hmc_lib_alone_W2A(const wstring &pwText)
-{
-    string strResult = string();
-    try
-    {
-        if (pwText.empty())
-            return strResult;
-
-        int pszATextLen = WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, NULL, 0, NULL, NULL);
-        char *pAChar = new (nothrow) char[pszATextLen];
-        if (pAChar == NULL)
-        {
-            return strResult;
-        }
-
-        ZeroMemory(pAChar, pszATextLen + 1);
-        WideCharToMultiByte(CP_ACP, 0, pwText.c_str(), -1, pAChar, pszATextLen, NULL, NULL);
-
-        strResult.append(pAChar);
-        // FreeEnvironmentStringsA(pAChar);
-    }
-    catch (char *_)
-    {
-    }
-
-    return strResult;
-}
-
 // 二进制编译的版本
 static string GetBinaryArch()
 {
@@ -129,7 +101,7 @@ static map<string, string> getVariableAll()
             lpszVariable = reinterpret_cast<LPWSTR>(lpvEnv);
             while (*lpszVariable)
             {
-                string strEnv(hmc_lib_alone_W2A(lpszVariable));
+                string strEnv(hmc_text_util::W2A(lpszVariable));
 
                 int sep = strEnv.rfind("=");
                 string key = strEnv.substr(0, sep);
@@ -204,7 +176,7 @@ namespace hmc_env
         for (size_t i = 1; i < n_cmd_args; ++i)
         {
             LPWSTR arg = cmd_arg_list[i];
-            cmdList.push_back(hmc_lib_alone_W2A(arg));
+            cmdList.push_back(hmc_text_util::W2A(arg));
         }
 
         if (!n_cmd_args)
@@ -682,17 +654,17 @@ namespace hmc_env
         }
 
         /**
- * @brief 写入变量 到用户
- *
- * @param key 键
- * @param Value 值
- * @param append 添加到尾部 而不是替换
- * - 默认 false
- * @param transMean 是自字符转义
- * - 默认 false
- * @return true
- * @return false
- */
+         * @brief 写入变量 到用户
+         *
+         * @param key 键
+         * @param Value 值
+         * @param append 添加到尾部 而不是替换
+         * - 默认 false
+         * @param transMean 是自字符转义
+         * - 默认 false
+         * @return true
+         * @return false
+         */
         bool putUse(string key, string Value, bool append = false, bool transMean = false)
         {
             bool result = false;
@@ -710,7 +682,7 @@ namespace hmc_env
                     }
                 }
 
-                for (auto&& Values : hmc_registr::_lib_splitString(Value, ";"))
+                for (auto &&Values : hmc_registr::_lib_splitString(Value, ";"))
                 {
                     newValue.insert(Values);
                 }
@@ -718,12 +690,12 @@ namespace hmc_env
                 if (append)
                 {
                     string oidKey = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, REG_SZ);
-                    for (auto&& Values : hmc_registr::_lib_splitString(oidKey, ";"))
+                    for (auto &&Values : hmc_registr::_lib_splitString(oidKey, ";"))
                     {
                         newValue.insert(Values);
                     }
                 }
-                for (auto&& value : newValue)
+                for (auto &&value : newValue)
                     newValueKey.append(value).append(";");
 
                 if (!newValueKey.empty() && newValueKey.back() == ';')
@@ -749,7 +721,7 @@ namespace hmc_env
             bool result = false;
             try
             {
-                 pEnvStr.clear();
+                pEnvStr.clear();
                 string valueKey = keyUpper(key);
                 for (auto key : freezeEnvKeys)
                 {
@@ -772,7 +744,6 @@ namespace hmc_env
                     pEnvStr.append(UseData);
                     result = pEnvStr.size() != 0;
                 }
-
             }
             HMC_CHECK_CATCH;
             return result;
@@ -874,7 +845,6 @@ namespace hmc_env
             HMC_CHECK_CATCH;
             return result;
         }
-
 
         /**
          * @brief 删除用户变量
@@ -1131,7 +1101,6 @@ namespace hmc_env
                     }
                 }
 
-                hmc_EnableShutDownPriv();
                 string userPath = "Environment";
                 HKEY userHkey = HKEY_CURRENT_USER;
 
@@ -1254,7 +1223,6 @@ namespace hmc_env
                 {
                     if (key.empty())
                         continue;
-                    hmc_EnableShutDownPriv();
                     hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(userHkey, userPath, key);
 
                     if (!valueStat.exists)
@@ -1301,7 +1269,6 @@ namespace hmc_env
 
                 for (auto key : key_list.key)
                 {
-                    hmc_EnableShutDownPriv();
                     if (key.empty())
                         continue;
                     hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(systmHkey, systmPath, key);

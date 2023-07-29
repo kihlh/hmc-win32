@@ -2,6 +2,6 @@
 extern long hmc_Object_Context_id;
 
 
-long getContextNextID();
+extern long getContextNextID();
 
-long SystemTimeToTimestamp(const SYSTEMTIME& st);
+extern long SystemTimeToTimestamp(const SYSTEMTIME &st);

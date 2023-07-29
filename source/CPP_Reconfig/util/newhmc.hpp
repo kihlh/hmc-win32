@@ -2,10 +2,6 @@
 
 long hmc_Object_Context_id = 0;
 
-bool newHMC()
-{
-    return true;
-}
 
 /**
  * @brief 系统时间转为时间戳

@@ -1,5 +1,0 @@
-
-namespace hmc_ipc
-{
-
-}

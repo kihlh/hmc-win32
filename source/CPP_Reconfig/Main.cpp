@@ -1,7 +1,6 @@
 ﻿#include "Main.h"
 #include "./util/util_node.h";
 #include "./util/include/global.hpp";
-#include "./util/newhmc.hpp";
 
 static napi_value getProcessList(napi_env env, napi_callback_info info)
 {
@@ -20,8 +19,7 @@ static napi_value getProcessList(napi_env env, napi_callback_info info)
 
 static napi_value Init(napi_env env, napi_value exports)
 {
-    newHMC();
-    napi_property_descriptor BIND_NAPI_METHOD[] = {
+        napi_property_descriptor BIND_NAPI_METHOD[] = {
         DECLARE_NAPI_VALUE("version","0.0.0"),                                                   // add 2023-07-23
         DECLARE_NAPI_VALUE("desc","hmc 2.0 : ' HMC Connection System api ' "),                   // add 2023-07-23
         DECLARE_NAPI_VALUE("platform","win32"),                                                  // add 2023-07-23
