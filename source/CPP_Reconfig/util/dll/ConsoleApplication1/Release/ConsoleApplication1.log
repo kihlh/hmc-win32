@@ -1,0 +1,9 @@
+﻿  ConsoleApplication1.cpp
+F:\source\CPP\hmc-win32\source\CPP_Reconfig\util\tray.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+F:\source\CPP\hmc-win32\source\CPP_Reconfig\util\tray.hpp(191,13): warning C4101: “err”: 未引用的局部变量
+  正在生成代码
+  29 of 104 functions (27.9%) were compiled, the rest were copied from previous compilation.
+    17 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  ConsoleApplication1.vcxproj -> F:\source\CPP\hmc-win32\source\CPP_Reconfig\util\dll\ConsoleApplication1\Release\ConsoleApplication1.exe
