@@ -193,7 +193,7 @@ namespace hmc_console
                 }
                 case level::debug:
                 {
-                    messageLine.append("[DEGUG]  ");
+                    messageLine.append("[DEBUG]  ");
                     SetConsoleTextAttribute(hConsole, COLOR_BLUE);
                     break;
                 }
@@ -261,7 +261,7 @@ namespace hmc_console
             }
             case level::debug:
             {
-                messageLine.append("[DEGUG]  ");
+                messageLine.append("[DEBUG]  ");
                 break;
             }
             default:

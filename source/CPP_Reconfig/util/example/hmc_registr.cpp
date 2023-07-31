@@ -1,5 +1,5 @@
-﻿#include "../../include/attribute.hpp"
-#include "../../registr.hpp"
+#include "../include/attribute.hpp"
+#include "../registr.hpp"
 
 using namespace std;
 

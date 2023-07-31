@@ -1,0 +1,7 @@
+[2023-07-31 21:10:49.557] [WARN]    [example]   < string[1,15] >   hmc_console -> 
+[2023-07-31 21:10:49.558] [ERROR]  [example]   < string[1,15] >   hmc_console -> 
+[2023-07-31 21:10:49.558] [INFO]   [example]   < string[1,15] >   hmc_console -> 
+[2023-07-31 21:10:49.558] [DEBUG]  [example]   < vector<int> [5] >   [6566,2314163,136541313,153541536,442233]
+[2023-07-31 21:10:49.559] [DEBUG]  [example]   < map<string, string> >   {}
+[2023-07-31 21:10:49.559] [DEBUG]  [example]   < vector<string> [4] >   ["sagdsh","sagdfsh","136541313","sagdstgw4e"]
+[2023-07-31 21:10:49.559] [DEBUG]  [HWND]   < number[HWND] >   1908816
