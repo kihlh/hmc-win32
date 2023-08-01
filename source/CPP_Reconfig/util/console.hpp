@@ -14,6 +14,7 @@ using namespace std;
 
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
+#define HMC_IMPORT_CONSOLE_H
 
 namespace hmc_console
 {
