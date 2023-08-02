@@ -2,17 +2,21 @@
 
 ![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
+## help
+
+`ddffsd Parts of this document were translated by machine (Deepl)`
+
+`Backwards compatible to node6.14.2 but the precompiled version is only supported to node8 and above (because node6 has no asynchronous syntactic sugar), for node6 please compile to node6.14.2 with esbuld yourself`
+
+####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)               [help (English) ](https://kihlh.gitbook.io/hmc_en/)      [CPP (source)](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig)
+
 ### notify
 
 hmc C++ 语言代码部分，正在重构中，如果您有新的功能需求请提出issues ，如果需求是hmc的需求将会在重构版本中添加
 
 hmc C++ language code section, currently under refactoring. If you have any new feature requirements, please raise issues. If the requirement is specific to hmc, it will be added in the refactored version.
 
-
-
-当前进度 ( Current progress )  :    =========---------------- 65%
-
-
+-------------------------------------------------------
 
 ##### hmc新版本设计概念  ：
 
@@ -24,29 +28,9 @@ hmc C++ language code section, currently under refactoring. If you have any new 
 
 4.增加因为旧结构不支持的功能 例如 prompt，Pass input ，tray，枚举大量的对象 
 
-
-
-##### HMC New Version Design Concept:
-
-1. Support multiple languages [C language DLL interface] (Easy Language, Go, Rust, C, CPP, Node.js, VBS)
-
-2. Modules should be as independent as possible for better reusability and to avoid sacrificing security for meaningless efficiency - resulting in a safer process.
-
-3. Reduce ambiguous variable names.
-
-4. Add functionalities not supported by the old structure such as prompt, pass input, tray, and enumerating large numbers of objects.
-
 ------------------
 
 
-
-## help
-
-`ddffsd Parts of this document were translated by machine (Deepl)`
-
-`Backwards compatible to node6.14.2 but the precompiled version is only supported to node8 and above (because node6 has no asynchronous syntactic sugar), for node6 please compile to node6.14.2 with esbuld yourself`
-
-####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)     [编程帮助(中国服务器)](https://www.yuque.com/kiic/hmc/)           [help (English) ](https://kihlh.gitbook.io/hmc_en/)
 
 ##   Why do I need to use this module ?
 
