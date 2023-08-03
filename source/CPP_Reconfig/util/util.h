@@ -23,6 +23,8 @@ using namespace hmc_process;
 #include "./window.hpp"
 using namespace hmc_window;
 
+#include "./shell.hpp"
+using namespace hmc_shell;
 
 #include "./screen.hpp"
 using namespace hmc_screen;

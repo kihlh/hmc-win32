@@ -137,6 +137,17 @@ namespace hmc_env
         };
         return false;
     }
+ 
+    /**
+     * @brief 设置当前的工作路径
+     * 
+     * @param DirPath 
+     * @return true 
+     * @return false 
+     */
+    bool setCwd(string const &DirPath){
+       return SetCurrentDirectoryA(DirPath.c_str());
+    }
 
     /**
      * @brief 获取环境变量值

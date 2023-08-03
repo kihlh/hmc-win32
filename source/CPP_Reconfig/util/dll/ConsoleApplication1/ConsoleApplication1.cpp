@@ -1,34 +1,18 @@
-﻿#include "../../shell.hpp"
+﻿#include "../../window.hpp"
+#include <iostream>
 
-#include <Shellapi.h>
-#include <Psapi.h>
-#include <fstream>
 
-// 获取图标 PNG 数据的函数（同上，省略...）
 
-// 将 PNG 数据写入文件的函数
-bool WritePNGToFile(const std::wstring& filePath, const std::vector<BYTE>& pngData)
+int main()
 {
-    std::ofstream file(filePath, std::ios::binary);
-    if (!file)
-    {
-        std::cout << "Failed to open file for writing." << std::endl;
-        return false;
-    }
+    bool ddf = false;
+    HWND hwnd = (HWND)34014842;
+    cout << "getClassName -> " << hmc_window::getClassName(hwnd) << endl;
+    cout << "getStyle -> " << hmc_window::getStyle(hwnd) << endl;
+    cout << "getWindowID -> " << hmc_window::getWindowID(hwnd) << endl;
+    cout << "getWindowText -> " << hmc_window::getWindowText(hwnd, 1001) << endl;
+    cout << "getSubWindow -> " << hmc_window::getSubWindow(hwnd).size() << endl;
+    cout << "getWindowTitle -> " << hmc_window::getWindowTitle(hwnd) << endl;
 
-    file.write(reinterpret_cast<const char*>(pngData.data()), pngData.size());
-    file.close();
-
-    return true;
+    return 0;
 }
-
-
-
-int main(){
-    cout<<"s->"<< hmc_shell::getShortcutLink(L"F:\\变量管理.lnk") .path <<endl;
-    //WritePNGToFile(L"F:\\12113.png" ,hmc_shell::getThumbnailPngBuffer(L"F:\\chrome.exe.lnk", 128));
-    //hmc_shell::getThumbnailPngFile(L"F:\\Dawn Launcher.lnk", L"F:\\123.png",256);
-    //hmc_shell::beep();
-    //hmc_shell::WinRunApplication("node");
-}
-

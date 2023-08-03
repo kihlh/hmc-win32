@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <string>
-#include <windows.h>
 #include <winuser.h>
 #include <ShlObj.h>
 #include <Shellapi.h>
@@ -915,4 +914,15 @@ namespace hmc_shell
         return FALSE;
     }
 
+    /**
+     * 播放例如win警告的声音
+     */
+    void beep()
+    {
+        try
+        {
+            MessageBeep(MB_ICONWARNING);
+        }
+        HMC_CHECK_CATCH;
+    }
 }
