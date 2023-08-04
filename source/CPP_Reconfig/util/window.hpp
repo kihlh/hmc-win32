@@ -900,6 +900,7 @@ namespace hmc_window
             ::GetModuleFileNameExA(hProcess, NULL, lpFilename, MAX_PATH);
             return setWindowIcon(hwnd, string(lpFilename), titleIcon, Icon);
         }
+    
         HMC_CHECK_CATCH;
         return result;
     }

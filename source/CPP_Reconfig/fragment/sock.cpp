@@ -1,19 +1,25 @@
 #include <iostream>
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
+#include <string>
 #include <ws2tcpip.h>
 #include <Windows.h>
 #include <winsock2.h>
 #include <psapi.h>
 #include <iphlpapi.h>
-#include <string>
+#include <ip2string.h>
+#include <Mstcpip.h>
 #include <vector>
-using namespace std;
-#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
-#define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
+#include <set>
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "iphlpapi.lib")
+#pragma comment(lib, "Ntdll.lib")
+
+using namespace std;
+
+#define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
+#define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
 
 struct hmc_NetParams
 {
@@ -48,12 +54,12 @@ hmc_NetParams getNetParams()
 
     try
     {
-        FIXED_INFO *pFixedInfo;
+        FIXED_INFO* pFixedInfo;
         ULONG ulOutBufLen;
         DWORD dwRetVal;
-        IP_ADDR_STRING *pIPAddr;
+        IP_ADDR_STRING* pIPAddr;
 
-        pFixedInfo = (FIXED_INFO *)MALLOC(sizeof(FIXED_INFO));
+        pFixedInfo = (FIXED_INFO*)MALLOC(sizeof(FIXED_INFO));
         if (pFixedInfo == NULL)
         {
             return NetParams;
@@ -63,7 +69,7 @@ hmc_NetParams getNetParams()
         if (GetNetworkParams(pFixedInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
         {
             FREE(pFixedInfo);
-            pFixedInfo = (FIXED_INFO *)MALLOC(ulOutBufLen);
+            pFixedInfo = (FIXED_INFO*)MALLOC(ulOutBufLen);
             if (pFixedInfo == NULL)
             {
                 return NetParams;
@@ -117,83 +123,11 @@ hmc_NetParams getNetParams()
         if (pFixedInfo)
             FREE(pFixedInfo);
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
     }
 
     return NetParams;
-}
-
-string vector2string(vector<string> strVector)
-{
-    string result = string("[");
-    for (size_t i = 0; i < strVector.size(); i++)
-    {
-        string str = string();
-        result.append("\"");
-
-        for (char ch : strVector[i])
-        {
-            switch (ch)
-            {
-            case '\"':
-                str.append("\\\"");
-                break;
-            case '\\':
-                str.append("\\\\");
-                break;
-            case '\b':
-                str.append("\\b");
-                break;
-            case '\f':
-                str.append("\\f");
-                break;
-            case '\n':
-                str.append("\\n");
-                break;
-            case '\r':
-                str.append("\\r");
-                break;
-            case '\t':
-                str.append("\\t");
-                break;
-            default:
-                str.push_back(ch);
-                break;
-            }
-        }
-
-        result.append(str);
-        result.append("\"");
-        result.append(",");
-    }
-    // 如果最后一位是逗号，移除它
-    if (!result.empty() && result.back() == ',')
-    {
-        result.pop_back();
-    }
-    result.append("]");
-    return result;
-}
-
-string vector2string(vector<long long> dataVector)
-{
-    string result = string("[");
-    for (size_t i = 0; i < dataVector.size(); i++)
-    {
-        long long data = dataVector[i];
-
-        result.append(to_string(data));
-        result.append(",");
-    }
-
-    // 如果最后一位是逗号，移除它
-    if (!result.empty() && result.back() == ',')
-    {
-        result.pop_back();
-    }
-    result.append("]");
-    return result;
 }
 
 /**
@@ -204,7 +138,7 @@ string vector2string(vector<long long> dataVector)
 BOOL hmc_EnableShutDownPriv()
 {
     HANDLE Handle_Token = NULL;
-    TOKEN_PRIVILEGES PermissionAttribute = {0};
+    TOKEN_PRIVILEGES PermissionAttribute = { 0 };
     // 打开当前程序的权限令牌
     bool is_Open_Process_Token = OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &Handle_Token);
     if (!is_Open_Process_Token)
@@ -284,7 +218,7 @@ DWORD GetTCPPortProcessID(unsigned short port)
 
         FREE(pTcpTable);
     }
-    catch (const char *msg)
+    catch (const char* msg)
     {
         return 0;
     }
@@ -303,7 +237,7 @@ DWORD GetUDPPortProcessID(unsigned short port)
     try
     {
         hmc_EnableShutDownPriv();
-        MIB_UDPTABLE_OWNER_PID *pUdpTable = nullptr;
+        MIB_UDPTABLE_OWNER_PID* pUdpTable = nullptr;
         ULONG ulSize = 0;
         DWORD dwRetVal = 0;
 
@@ -311,7 +245,7 @@ DWORD GetUDPPortProcessID(unsigned short port)
         if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) ==
             ERROR_INSUFFICIENT_BUFFER)
         {
-            pUdpTable = (MIB_UDPTABLE_OWNER_PID *)MALLOC(ulSize);
+            pUdpTable = (MIB_UDPTABLE_OWNER_PID*)MALLOC(ulSize);
             if (pUdpTable == NULL)
                 return 0;
         }
@@ -351,7 +285,7 @@ DWORD GetUDPPortProcessID(unsigned short port)
         }
         return 0;
     }
-    catch (const char *msg)
+    catch (const char* msg)
     {
         return 0;
     }
@@ -359,20 +293,167 @@ DWORD GetUDPPortProcessID(unsigned short port)
     return 0;
 }
 
-string dwLocalAddrToIP(DWORD dwLocalAddr)
+/**
+ * @brief 获取占用指定UDP端口的进程id
+ *
+ * @param port
+ * @return DWORD
+ */
+vector<DWORD> GetUDP6PortProcessID(unsigned short port)
+{
+    vector<DWORD> res;
+    set<DWORD> resn;
+    try
+    {
+        hmc_EnableShutDownPriv();
+        MIB_UDP6TABLE_OWNER_PID* pUdpTable = nullptr;
+        ULONG ulSize = 0;
+        DWORD dwRetVal = 0;
+
+        // 第一次获取大小,初始化pTcpTable
+        if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET6, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) ==
+            ERROR_INSUFFICIENT_BUFFER)
+        {
+            pUdpTable = (MIB_UDP6TABLE_OWNER_PID*)MALLOC(ulSize);
+            if (pUdpTable == NULL)
+                return res;
+        }
+
+        // 第二次获取数据
+        if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET6, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) == NO_ERROR)
+        {
+            if (pUdpTable == NULL)
+                return res;
+
+            for (size_t i = 0; i < pUdpTable->dwNumEntries; i++)
+            {
+
+                MIB_UDP6ROW_OWNER_PID mibUdprowOwnerPid = pUdpTable->table[i];
+                if (ntohs((u_short)mibUdprowOwnerPid.dwLocalPort) == port)
+                {
+                    if (resn.find(mibUdprowOwnerPid.dwOwningPid) == resn.end())
+                    {
+                        resn.insert(mibUdprowOwnerPid.dwOwningPid);
+                        res.push_back(mibUdprowOwnerPid.dwOwningPid);
+                    }
+                }
+            }
+        }
+        else
+        {
+            FREE(pUdpTable);
+            return res;
+        }
+
+        if (pUdpTable != NULL)
+        {
+            FREE(pUdpTable);
+            pUdpTable = NULL;
+        }
+        return res;
+    }
+    catch (const char* msg)
+    {
+        return res;
+    }
+
+    return res;
+}
+
+/**
+ * @brief 获取占用指定TCP端口的进程id
+ *
+ * @param port
+ * @return DWORD
+ */
+vector<DWORD> GetTCP6PortProcessID(unsigned short port)
+{
+    vector<DWORD> res;
+    set<DWORD> resn;
+    try
+    {
+        ULONG ulSize = sizeof(MIB_TCPTABLE2);
+        PMIB_TCP6TABLE2 pTcpTable = (PMIB_TCP6TABLE2)MALLOC(ulSize);
+
+        if (pTcpTable != nullptr)
+        {
+
+            if (GetTcp6Table2(pTcpTable, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+            {
+                FREE(pTcpTable);
+                pTcpTable = (PMIB_TCP6TABLE2)MALLOC(ulSize);
+                if (pTcpTable == nullptr)
+                    return res;
+            }
+
+            if (GetTcp6Table2(pTcpTable, &ulSize, TRUE) == NO_ERROR)
+            {
+                // ::_pTcpTable_::
+                // dwState：TCP 连接的状态，可以是 MIB_TCP_STATE 枚举中定义的值之一，如 CLOSED、LISTEN、ESTABLISHED 等。
+                // dwLocalAddr：本地计算机上的 TCP 连接的本地 IPv4 地址。值为零表示侦听器可以接受任何接口上的连接。
+                // dwLocalPort：本地计算机上的 TCP 连接的本地端口号（以网络字节顺序排列）。IP 端口号的最大大小为 16 位，因此应仅使用较低的 16 位。
+                // dwRemoteAddr：远程计算机上的 TCP 连接的 IPv4 地址。当 dwState 成员为 MIB_TCP_STATE_LISTEN 时，此值没有意义。
+                // dwRemotePort：远程计算机上的 TCP 连接的网络字节顺序中的远程端口号。当 dwState 成员为 MIB_TCP_STATE_LISTEN 时，此成员没有意义。IP 端口号的最大大小为 16 位，因此应仅使用较低的 16 位。
+                // dwOwningPid：发出此 TCP 连接的上下文绑定的进程 PID。
+                // dwOffloadState：此 TCP 连接的卸载状态。此参数可以是 TCP_CONNECTION_OFFLOAD_STATE 的枚举值之一，如 InHost、Offloading、Offloaded 等。
+
+                for (int index = 0; index < pTcpTable->dwNumEntries; index++)
+                {
+                    MIB_TCP6ROW2 mibTcprow2 = pTcpTable->table[index];
+                    if (ntohs((u_short)mibTcprow2.dwLocalPort) == port)
+                    {
+                        if (resn.find(mibTcprow2.dwOwningPid) == resn.end())
+                        {
+                            resn.insert(mibTcprow2.dwOwningPid);
+                            res.push_back(mibTcprow2.dwOwningPid);
+                        }
+                    }
+                }
+            }
+        }
+        FREE(pTcpTable);
+    }
+    catch (const char* msg)
+    {
+        return res;
+    }
+
+    return res;
+}
+
+string formatIP(DWORD dwLocalAddr)
 {
     size_t a = dwLocalAddr >> 24 & 0xFF;
     size_t b = dwLocalAddr >> 16 & 0xFF;
     size_t c = dwLocalAddr >> 8 & 0xFF;
     size_t d = dwLocalAddr & 0xFF;
 
-    return string(to_string(d) + "." + to_string(c) + "." + to_string(b) + "." + to_string(a));
+    return string(to_string((long)d) + "." + to_string((long)c) + "." + to_string((long)b) + "." + to_string((long)a));
 }
-
+string formatIP(IN6_ADDR dwLocalAddr)
+{
+    char ipv6String[INET6_ADDRSTRLEN];
+    if (RtlIpv6AddressToStringA(reinterpret_cast<IN6_ADDR*>(&dwLocalAddr), ipv6String) == NULL)
+    {
+        return "";
+    }
+    return string(ipv6String);
+}
+string formatIP(UCHAR ucLocalAddr[16])
+{
+    char ipv6String[INET6_ADDRSTRLEN];
+    if (RtlIpv6AddressToStringA(reinterpret_cast<IN6_ADDR*>(ucLocalAddr), ipv6String) == NULL)
+    {
+        return "";
+    }
+    return string(ipv6String);
+}
+// https://en.wikipedia.org/wiki/Transmission_Control_Protocol
+// https://learn.microsoft.com/zh-cn/windows/win32/api/iphlpapi/nf-iphlpapi-gettcp6table
 struct ConnectNet
 {
-    string typeName; // "UDP" / "TCP"
-    DWORD type = 0;  // 6 tcp   17 udp
+    string typeName; // "UDP" / "TCP" / "TCP6" / "UDP6"
+    DWORD type = 0;  // 6 tcp / tcp6   17 udp / udp6
     DWORD ipAddr;    // dwLocalAddr
     string ip;       // 解析出来的实际ip
     DWORD port;      // 占用的端口
@@ -445,7 +526,7 @@ string GetStateName(DWORD dwState)
  * @param tcp 是否返回tcp
  * @param udp 是否返回udp
  */
-void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool udp = true)
+void enumConnectNet(vector<ConnectNet>& ConnectNetList, bool tcp = true, bool udp = true, bool tcp6 = true, bool udp6 = true)
 {
     hmc_EnableShutDownPriv();
 
@@ -497,8 +578,8 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
                         // IP解析
                         connectNet.ipAddr = mibTcprow2.dwLocalAddr;
                         connectNet.remoteIPAddr = mibTcprow2.dwRemoteAddr;
-                        connectNet.ip = dwLocalAddrToIP(mibTcprow2.dwLocalAddr);
-                        connectNet.remoteIP = dwLocalAddrToIP(mibTcprow2.dwRemoteAddr);
+                        connectNet.ip = formatIP(mibTcprow2.dwLocalAddr);
+                        connectNet.remoteIP = formatIP(mibTcprow2.dwRemoteAddr);
 
                         // 状态和进程
                         connectNet.state = GetStateName(mibTcprow2.dwState);
@@ -514,7 +595,87 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
             }
             FREE(pTcpTable);
         }
-        catch (const char *msg)
+        catch (const char* msg)
+        {
+        }
+    }
+
+    if (tcp6)
+    {
+        try
+        {
+            ULONG ulSize = sizeof(MIB_TCPTABLE2);
+            PMIB_TCP6TABLE2 pTcpTable = (PMIB_TCP6TABLE2)MALLOC(ulSize);
+
+            if (pTcpTable != nullptr)
+            {
+
+                if (GetTcp6Table2(pTcpTable, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+                {
+                    FREE(pTcpTable);
+                    pTcpTable = (PMIB_TCP6TABLE2)MALLOC(ulSize);
+                    if (pTcpTable == nullptr)
+                        return;
+                }
+
+                if (GetTcp6Table2(pTcpTable, &ulSize, TRUE) == NO_ERROR)
+                {
+                    // ::_pTcpTable_::
+                    // dwState：TCP 连接的状态，可以是 MIB_TCP_STATE 枚举中定义的值之一，如 CLOSED、LISTEN、ESTABLISHED 等。
+                    // dwLocalAddr：本地计算机上的 TCP 连接的本地 IPv4 地址。值为零表示侦听器可以接受任何接口上的连接。
+                    // dwLocalPort：本地计算机上的 TCP 连接的本地端口号（以网络字节顺序排列）。IP 端口号的最大大小为 16 位，因此应仅使用较低的 16 位。
+                    // dwRemoteAddr：远程计算机上的 TCP 连接的 IPv4 地址。当 dwState 成员为 MIB_TCP_STATE_LISTEN 时，此值没有意义。
+                    // dwRemotePort：远程计算机上的 TCP 连接的网络字节顺序中的远程端口号。当 dwState 成员为 MIB_TCP_STATE_LISTEN 时，此成员没有意义。IP 端口号的最大大小为 16 位，因此应仅使用较低的 16 位。
+                    // dwOwningPid：发出此 TCP 连接的上下文绑定的进程 PID。
+                    // dwOffloadState：此 TCP 连接的卸载状态。此参数可以是 TCP_CONNECTION_OFFLOAD_STATE 的枚举值之一，如 InHost、Offloading、Offloaded 等。
+
+                    ConnectNet connectNet;
+                    for (int index = 0; index < pTcpTable->dwNumEntries; index++)
+                    {
+                        connectNet.ip = "0.0.0.0";
+                        connectNet.ipAddr = 0;
+                        connectNet.pid = 0;
+                        connectNet.port = 0;
+                        connectNet.remoteIP = "0.0.0.0";
+                        connectNet.remoteIPAddr = 0;
+                        connectNet.remotePort = 0;
+                        connectNet.state = "UNKNOWN";
+                        connectNet.type = 6;
+                        connectNet.typeName = "TCP6";
+
+                        MIB_TCP6ROW2 mibTcprow2 = pTcpTable->table[index];
+
+                        // IP解析
+                        // connectNet.ipAddr = mibTcprow2.dwLocalAddr;
+                        // connectNet.remoteIPAddr = mibTcprow2.dwRemoteAddr;
+                        // connectNet.ip = formatIP(mibTcprow2.dwLocalAddr);
+                        // connectNet.remoteIP = formatIP(mibTcprow2.dwRemoteAddr);
+                        /*       char ipv6String[INET6_ADDRSTRLEN];
+                               if (RtlIpv6AddressToStringA(reinterpret_cast<IN6_ADDR*>(&mibTcprow2.LocalAddr), ipv6String) == NULL) {
+                                   continue;
+                               }
+                               char remoteIPv6String[INET6_ADDRSTRLEN];
+                               if (RtlIpv6AddressToStringA(reinterpret_cast<IN6_ADDR*>(&mibTcprow2.RemoteAddr), remoteIPv6String) == NULL) {
+                                   continue;
+                               }*/
+
+                        connectNet.ip = formatIP(mibTcprow2.LocalAddr);
+                        connectNet.remoteIP = formatIP(mibTcprow2.RemoteAddr);
+                        //// 状态和进程
+                        connectNet.state = GetStateName(mibTcprow2.State);
+                        connectNet.pid = mibTcprow2.dwOwningPid;
+
+                        // 端口
+                        connectNet.port = ntohs((u_short)mibTcprow2.dwLocalPort);
+                        connectNet.remotePort = ntohs((u_short)mibTcprow2.dwRemotePort);
+                        if (connectNet.port != 0)
+                            ConnectNetList.push_back(connectNet);
+                    }
+                }
+            }
+            FREE(pTcpTable);
+        }
+        catch (const char* msg)
         {
         }
     }
@@ -524,7 +685,7 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
         try
         {
             hmc_EnableShutDownPriv();
-            MIB_UDPTABLE_OWNER_PID *pUdpTable = nullptr;
+            MIB_UDPTABLE_OWNER_PID* pUdpTable = nullptr;
             ULONG ulSize = 0;
             DWORD dwRetVal = 0;
 
@@ -532,7 +693,7 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
             if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) ==
                 ERROR_INSUFFICIENT_BUFFER)
             {
-                pUdpTable = (MIB_UDPTABLE_OWNER_PID *)MALLOC(ulSize);
+                pUdpTable = (MIB_UDPTABLE_OWNER_PID*)MALLOC(ulSize);
                 if (pUdpTable == NULL)
                     return;
             }
@@ -565,7 +726,7 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
                     connectNet.port = ntohs((u_short)mibUdprowOwnerPid.dwLocalPort);
                     connectNet.pid = mibUdprowOwnerPid.dwOwningPid;
                     connectNet.ipAddr = mibUdprowOwnerPid.dwLocalAddr;
-                    connectNet.ip = dwLocalAddrToIP(mibUdprowOwnerPid.dwLocalAddr);
+                    connectNet.ip = formatIP(mibUdprowOwnerPid.dwLocalAddr);
                     if (connectNet.port != 0)
                         ConnectNetList.push_back(connectNet);
                 }
@@ -583,7 +744,85 @@ void enumConnectNet(vector<ConnectNet> &ConnectNetList, bool tcp = true, bool ud
             }
             return;
         }
-        catch (const char *msg)
+        catch (const char* msg)
+        {
+            return;
+        }
+    }
+
+    if (udp6)
+    {
+        try
+        {
+            hmc_EnableShutDownPriv();
+            MIB_UDP6TABLE_OWNER_PID* pUdpTable = nullptr;
+            ULONG ulSize = 0;
+            DWORD dwRetVal = 0;
+
+            // 第一次获取大小,初始化pTcpTable
+            if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET6, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) ==
+                ERROR_INSUFFICIENT_BUFFER)
+            {
+                pUdpTable = (MIB_UDP6TABLE_OWNER_PID*)MALLOC(ulSize);
+                if (pUdpTable == NULL)
+                    return;
+            }
+
+            // 第二次获取数据
+            if ((dwRetVal = GetExtendedUdpTable(pUdpTable, &ulSize, TRUE, AF_INET6, UDP_TABLE_CLASS::UDP_TABLE_OWNER_PID, 0)) == NO_ERROR)
+            {
+                if (pUdpTable == NULL)
+                    return;
+
+                ConnectNet connectNet;
+                for (size_t i = 0; i < pUdpTable->dwNumEntries; i++)
+                {
+                    // ::_MIB_UDPROW_OWNER_PID_::
+                    // dwLocalAddr：本地计算机上的 UDP 连接的本地 IPv4 地址。值为零表示侦听器可以接受任何接口上的连接。
+                    // dwLocalPort：本地计算机上的 UDP 连接的本地端口号（以网络字节顺序排列）。IP 端口号的最大大小为 16 位，因此应仅使用较低的 16 位。
+                    // dwOwningPid：发出此 UDP 连接的上下文绑定的进程 PID。
+                    connectNet.ip = "0.0.0.0";
+                    connectNet.ipAddr = 0;
+                    connectNet.pid = 0;
+                    connectNet.port = 0;
+                    connectNet.remoteIP = "0.0.0.0";
+                    connectNet.remoteIPAddr = 0;
+                    connectNet.remotePort = 0;
+                    connectNet.state = "UNKNOWN";
+                    connectNet.type = 17;
+                    connectNet.typeName = "UDP6";
+                    MIB_UDP6ROW_OWNER_PID mibUdprowOwnerPid = pUdpTable->table[i];
+
+                    connectNet.port = ntohs((u_short)mibUdprowOwnerPid.dwLocalPort);
+                    connectNet.pid = mibUdprowOwnerPid.dwOwningPid;
+
+                    /* char ipv6String[INET6_ADDRSTRLEN];
+                     if (RtlIpv6AddressToStringA(reinterpret_cast<IN6_ADDR*>(&mibUdprowOwnerPid.ucLocalAddr), ipv6String) == NULL) {
+                         continue ;
+                     }
+                     connectNet.ip = ipv6String;*/
+                    connectNet.ip = formatIP(mibUdprowOwnerPid.ucLocalAddr);
+                    // mibUdprowOwnerPid.dwLocalScopeId
+                    // connectNet.ipAddr = mibUdprowOwnerPid.dwLocalAddr;
+                    // connectNet.ip = formatIP(mibUdprowOwnerPid.dwLocalAddr);
+                    if (connectNet.port != 0)
+                        ConnectNetList.push_back(connectNet);
+                }
+            }
+            else
+            {
+                FREE(pUdpTable);
+                return;
+            }
+
+            if (pUdpTable != NULL)
+            {
+                FREE(pUdpTable);
+                pUdpTable = NULL;
+            }
+            return;
+        }
+        catch (const char* msg)
         {
             return;
         }
@@ -598,7 +837,7 @@ int __cdecl main()
     std::cout << "hostName :  " << netParams.hostName << std::endl;
     std::cout << "domainName :  " << netParams.domainName << std::endl;
 
-    std::cout << "dnsServers :  " << vector2string(netParams.dnsServers) << std::endl;
+    std::cout << "dnsServers :  " << netParams.dnsServers.size() << std::endl;
     std::cout << "nodeType :  " << netParams.nodeType << std::endl;
     std::cout << "dhcpScopeName :  " << netParams.dhcpScopeName << std::endl;
     std::cout << "enableArpProxy :  " << netParams.enableArpProxy << std::endl;
@@ -632,7 +871,7 @@ int __cdecl main()
         std::cout << "state :  " << connectNet.state << std::endl;
         std::cout << "type :  " << connectNet.type << std::endl;
         std::cout << "http :  "
-                  << "http://" << connectNet.ip << ":" << connectNet.port << std::endl;
+            << "http://" << connectNet.ip << ":" << connectNet.port << std::endl;
 
         std::cout << "------------" << endl;
     }
