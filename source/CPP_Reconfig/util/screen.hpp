@@ -1,4 +1,7 @@
 
+#ifndef defined(HMC_IMPORT_SCREEN_H)
+#define HMC_IMPORT_SCREEN_H
+
 // 截屏的存储为文件
 #include <fstream>
 // 小写转换
@@ -6,7 +9,7 @@
 
 namespace hmc_screen
 {
-     struct GetColorInfo
+     struct chGetColorInfo
     {
         int r;
         int g;
@@ -15,7 +18,7 @@ namespace hmc_screen
     };
 
     vector<RECT> GetDeviceCapsAll();
-    GetColorInfo GetColor(int x, int y);
+    chGetColorInfo GetColor(int x, int y);
     bool isInside(int x1, int y1, int x2, int y2, int x, int y);
     void CaptureBmpToBuff(vector<unsigned char> &buffer, int x, int y, int nScopeWidth, int nScopeHeight);
     void CaptureBmpToFile(string filename, int x, int y, int nScopeWidth, int nScopeHeight);
@@ -157,9 +160,9 @@ namespace hmc_screen
 
    
     // 获取屏幕上指定位置的颜色
-    GetColorInfo GetColor(int x, int y)
+    chGetColorInfo GetColor(int x, int y)
     {
-        GetColorInfo _ColorInfo;
+        chGetColorInfo _ColorInfo;
         _ColorInfo.b = 0;
         _ColorInfo.g = 0;
         _ColorInfo.r = 0;
@@ -252,3 +255,6 @@ namespace hmc_screen
     }
 
 }
+
+
+#endif

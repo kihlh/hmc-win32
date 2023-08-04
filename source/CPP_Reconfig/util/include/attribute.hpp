@@ -1,3 +1,8 @@
+
+#ifndef defined(HMC_IMPORT_ATTRIBUTE_H)
+#define HMC_IMPORT_ATTRIBUTE_H
+
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
 
@@ -33,3 +38,5 @@ BOOL hmc_EnableShutDownPriv()
     return TRUE;
 }
 
+
+#endif

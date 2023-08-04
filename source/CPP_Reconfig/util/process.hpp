@@ -1,3 +1,6 @@
+#ifndef HMC_IMPORT_PROCESS_H
+#define HMC_IMPORT_PROCESS_H
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <string>
 #include <windows.h>
@@ -1120,7 +1123,7 @@ namespace hmc_process
      *
      * @return json
      */
-    json treeAllProcess()
+    json treeAllProcessJson()
     {
         json result;
         result.array();
@@ -1193,3 +1196,5 @@ namespace hmc_process
         return result;
     }
 }
+
+#endif

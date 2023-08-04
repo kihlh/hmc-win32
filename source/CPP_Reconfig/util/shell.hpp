@@ -1,3 +1,8 @@
+
+
+#ifndef defined(HMC_IMPORT_SHELL_H)
+#define HMC_IMPORT_SHELL_H
+
 #include <windows.h>
 #include <string>
 #include <winuser.h>
@@ -18,7 +23,6 @@
 #include <shlguid.h>
 
 using namespace std;
-#define HMC_IMPORT_SHELL_H
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
 #define HMC_CHECK_CATCH catch (char *err){};
@@ -925,4 +929,109 @@ namespace hmc_shell
         }
         HMC_CHECK_CATCH;
     }
+    /**
+     * @brief 添加自启动到系统启动目录
+     * 
+     * @param ShortcutLinkItem 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartup(chShortcutLinkItem ShortcutLinkItem)
+    {
+                    bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 添加自启动到注册表自启动里
+     * 
+     * @param ApplicationPath 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartup(string ApplicationPath)
+    {
+                    bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 添加自启动到注册表自启动里
+     * 
+     * @param ApplicationPath 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartup(string ApplicationPath, string cwd, string cmd = "")
+    {
+                    bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 添加自启并设置为服务
+     * 
+     * @param ShortcutLinkItem 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartupService(chShortcutLinkItem ShortcutLinkItem)
+    {
+                    bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 添加自启并设置为服务
+     * 
+     * @param ApplicationPath 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartupService(string ApplicationPath)
+    {
+                    bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 添加自启并设置为服务
+     * 
+     * @param ApplicationPath 
+     * @param cwd 
+     * @param cmd 
+     * @return true 
+     * @return false 
+     */
+    bool setSystemStartupService(string ApplicationPath, string cwd, string cmd = "")
+    {
+            bool result = false;
+        try
+        {
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
 }
+
+#endif

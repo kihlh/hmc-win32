@@ -1,3 +1,6 @@
+#ifndef HMC_IMPORT_CONSOLE_H
+#define HMC_IMPORT_CONSOLE_H
+
 #include <iostream>
 #include <fstream>
 #include <ctime>
@@ -14,7 +17,6 @@ using namespace std;
 
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
-#define HMC_IMPORT_CONSOLE_H
 
 namespace hmc_console
 {
@@ -931,6 +933,8 @@ namespace hmc_console
         _hmc_send_anyStr(level::debug, string("Timer"), "", string(label).append(": ").append(to_string(milliseconds).append(" ms")));
     }
 }
+
+#endif
 
 /**
 

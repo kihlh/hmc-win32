@@ -1,3 +1,6 @@
+#ifndef HMC_IMPORT_ENVIRONMENT_H
+#define HMC_IMPORT_ENVIRONMENT_H
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <string>
 #include <vector>
@@ -16,7 +19,6 @@
 #define MAX_KEY_LENGTH 255
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
-#define HMC_IMPORT_ENVIRONMENT_H
 #define HMC_CHECK_CATCH catch (char *err){};
 #define HMC_CHECK_WINERR(name) \
     if ()                      \
@@ -58,18 +60,6 @@ static bool GetVariable(string const &name, string &data)
         data.append(variable);
     }
     return variable ? true : false;
-#endif
-}
-
-// 二进制编译的版本
-static string GetBinaryArch()
-{
-#if _WIN32
-    return string("x32");
-#elif _WIN64
-    return string("x64");
-#else
-    return string("ia32");
 #endif
 }
 
@@ -296,15 +286,6 @@ namespace hmc_env
 
         execDirPath.append(lpFilename);
         return execDirPath;
-    }
-
-    /**
-     * @brief 获取编译的二进制平台(有些人会在x64机器跑x32应用 就很迷惑)
-     *
-     */
-    string getbinArch()
-    {
-        return GetBinaryArch();
     }
 
     /**
@@ -1429,3 +1410,5 @@ namespace hmc_env
     }
 
 }
+
+#endif

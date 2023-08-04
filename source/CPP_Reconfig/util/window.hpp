@@ -1,15 +1,17 @@
+#ifndef HMC_IMPORT_WINDOW_H
+#define HMC_IMPORT_WINDOW_H
+
+
 #include <windows.h>
 #include <string>
 #include <Psapi.h>
 #include <Shellapi.h>
 #include <vector>
 #include <map>
+#include <thread>
+#include <ShlObj.h>
 
 using namespace std;
-#ifdef defined(HMC_IMPORT_WINDOW_H)
-#else
-
-#define HMC_IMPORT_WINDOW_H
 
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
@@ -174,7 +176,7 @@ namespace hmc_window
      */
     bool isWindowVisible(HWND hwnd)
     {
-        return (GetWindow(hwnd, GW_OWNER) == (HWND)0 && IsWindowVisible(hwnd));
+        return (::GetWindow(hwnd, GW_OWNER) == (HWND)0 && ::IsWindowVisible(hwnd));
     }
 
     /**
@@ -190,7 +192,7 @@ namespace hmc_window
         try
         {
             char className[MAX_PATH];
-            if (GetClassNameA(hwnd, className, MAX_PATH) > 0)
+            if (::GetClassNameA(hwnd, className, MAX_PATH) > 0)
             {
                 result.append(className);
                 bHas = true;
@@ -226,7 +228,7 @@ namespace hmc_window
      */
     DWORD getStyle(HWND hwnd)
     {
-        DWORD result = GetClassLongA(hwnd, GCL_STYLE);
+        DWORD result = ::GetClassLongA(hwnd, GCL_STYLE);
         return vsErrorCodeAssert("getStyle", result);
     }
 
@@ -238,7 +240,7 @@ namespace hmc_window
      */
     DWORD getWindowID(HWND hwnd)
     {
-        DWORD result = GetDlgCtrlID(hwnd);
+        DWORD result = ::GetDlgCtrlID(hwnd);
         return vsErrorCodeAssert("getWindowID", result);
     }
 
@@ -254,7 +256,7 @@ namespace hmc_window
         try
         {
             _hmc_window_lib_::hwndEnumList.clear();
-            EnumChildWindows(
+            ::EnumChildWindows(
                 hwnd, [](HWND hWnd, LPARAM lParam) -> BOOL
                 {
                     _hmc_window_lib_::hwndEnumList.push_back(hWnd);
@@ -281,17 +283,17 @@ namespace hmc_window
         string result = string();
         try
         {
-            HINSTANCE hDllInst = LoadLibraryA("User32.dll");
+            HINSTANCE hDllInst = ::LoadLibraryA("User32.dll");
 
             // 无法提权
             if (!hDllInst)
             {
-                HWND hwndCombo = GetDlgItem(hwnd, dlgItemID);
-                size_t leng = GetWindowTextLengthA(hwndCombo);
+                HWND hwndCombo = ::GetDlgItem(hwnd, dlgItemID);
+                size_t leng = ::GetWindowTextLengthA(hwndCombo);
                 if (leng > 0)
                 {
                     LPSTR pszMem = HMC_VirtualAlloc(LPSTR, leng + 1);
-                    vsErrorCodeAssert(GetWindowTextA(hwndCombo, pszMem, leng + 1), "getWindowText");
+                    vsErrorCodeAssert(::GetWindowTextA(hwndCombo, pszMem, leng + 1), "getWindowText");
                     result.resize(leng);
                     for (size_t i = 0; i < leng; i++)
                     {
@@ -341,7 +343,7 @@ namespace hmc_window
         {
 
             LPSTR pszMem = HMC_VirtualAlloc(LPSTR, MAX_PATH);
-            size_t leng = GetWindowTextA(hwnd, pszMem, MAX_PATH);
+            size_t leng = ::GetWindowTextA(hwnd, pszMem, MAX_PATH);
             result.resize(leng);
             for (size_t i = 0; i < leng; i++)
             {
@@ -366,7 +368,7 @@ namespace hmc_window
         HWND result = NULL;
         try
         {
-            result = GetParent(hwnd);
+            result = ::GetParent(hwnd);
         }
         HMC_CHECK_CATCH;
         return result;
@@ -384,7 +386,7 @@ namespace hmc_window
         bool result = false;
         try
         {
-            result = IsChild(hWndParent, hwnd);
+            result = ::IsChild(hWndParent, hwnd);
         }
         HMC_CHECK_CATCH;
         return result;
@@ -401,11 +403,12 @@ namespace hmc_window
         HWND result = NULL;
         try
         {
-            result = GetTopWindow(hwnd);
+            result = ::GetTopWindow(hwnd);
         }
         HMC_CHECK_CATCH;
         return result;
     }
+
     /**
      * @brief 设置窗口标题或者控件的内容
      *
@@ -414,7 +417,7 @@ namespace hmc_window
      * @return true
      * @return false
      */
-    bool setWindowText(HWND hwnd, string data)
+    bool setWindowText(HWND hwnd, string Text)
     {
     }
 
@@ -426,7 +429,7 @@ namespace hmc_window
      * @return true
      * @return false
      */
-    bool setWindowText(HWND hwnd, int dlgItemID, string data)
+    bool setWindowText(HWND hwnd, int dlgItemID, string Text)
     {
     }
 
@@ -442,7 +445,7 @@ namespace hmc_window
         bool result = false;
         try
         {
-            result = UpdateWindow(hwnd);
+            result = ::UpdateWindow(hwnd);
         }
         HMC_CHECK_CATCH;
         return result;
@@ -459,7 +462,7 @@ namespace hmc_window
         HWND result = NULL;
         try
         {
-            result = WindowFromPoint(Point);
+            result = ::WindowFromPoint(Point);
         }
         HMC_CHECK_CATCH;
         return result;
@@ -495,7 +498,412 @@ namespace hmc_window
         return getPointWindow(Point);
     }
 
-    
+    /**
+     * @brief 设置窗口禁用
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool setWindowEnabled(HWND hwnd, bool isEnabled = true)
+    {
+        bool result = false;
+        try
+        {
+            result = EnableWindow(hwnd, isEnabled);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 窗口聚焦
+     *
+     * @param hwnd
+     */
+    void setWindowFocus(HWND hwnd)
+    {
+    }
+
+    /**
+     * @brief 设置窗口的顶设状态
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool setWindowTop(HWND hwnd, bool isWindowTop)
+    {
+        bool result = false;
+        try
+        {
+            RECT rect;
+            if (!::GetWindowRect(hwnd, &rect))
+                return result;
+
+            if (::GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST)
+            {
+                result = ::SetWindowPos(hwnd, HWND_NOTOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW);
+            }
+            else
+                result = ::SetWindowPos(hwnd, HWND_TOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断窗口是否顶设
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isWindowTop(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            result = ::GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST;
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 窗口抖动
+     *
+     * @param hWnd 句柄
+     * @param shakeCount 抖动次数
+     * @param shakeDistance 移动像素
+     * @param shakeDuration 每次延迟
+     */
+    void setWindowShake(HWND hWnd, int shakeCount, int shakeDistance, int shakeDuration)
+    {
+        std::thread([hWnd, shakeCount, shakeDistance, shakeDuration]() -> void
+                    {
+                        try
+        { 
+        RECT windowRect;
+        ::GetWindowRect(hWnd, &windowRect);
+
+        int originalX = windowRect.left;
+        int originalY = windowRect.top;
+
+        for (int i = 0; i < shakeCount; i++)
+        {
+            // 抖动向右
+            ::SetWindowPos(hWnd, NULL, originalX + shakeDistance, originalY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+            ::Sleep(shakeDuration);
+
+            // 抖动向左
+            ::SetWindowPos(hWnd, NULL, originalX - shakeDistance, originalY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+            ::Sleep(shakeDuration);
+        }
+
+        // 最后还原窗口位置
+        ::SetWindowPos(hWnd, NULL, originalX, originalY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+
+        }HMC_CHECK_CATCH; })
+            .detach();
+    }
+
+    /**
+     * @brief 窗口抖动
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    void setWindowShake(HWND hwnd)
+    {
+        setWindowShake(hwnd, 5, 5, 50);
+    }
+
+    /**
+     * @brief 判断窗口是否被禁用
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isWindowEnabled(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            result = ::IsWindowEnabled(hwnd);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口在托盘的可见性
+     *
+     * @param hwnd
+     * @param visible
+     * @return true
+     * @return false
+     */
+    bool setWindowInTaskbarVisible(HWND hwnd, bool visible)
+    {
+        bool result = false;
+        try
+        {
+            // 初始化COM
+            LPVOID lp_COM = NULL;
+            ::CoInitialize(lp_COM);
+            // 获取托盘
+            HRESULT hr;
+            ITaskbarList *pTaskbarList;
+            hr = ::CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_ITaskbarList, (void **)&pTaskbarList);
+            // 开始操作
+            if (SUCCEEDED(hr))
+            {
+                pTaskbarList->HrInit();
+                if (visible)
+                    pTaskbarList->AddTab(hwnd);
+                else
+                    pTaskbarList->DeleteTab(hwnd);
+
+                pTaskbarList->Release();
+                result = true;
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口不透明度
+     *
+     * @param hwnd
+     * @param Transparent
+     * @return true
+     * @return false
+     */
+    bool setWindowTransparent(HWND hwnd, int Transparent)
+    {
+        bool result = false;
+        try
+        {
+            BYTE _Alpha = (BYTE)Transparent;
+            // 获取窗口的拓展属性
+            LONG SetWindowsStyleEx = ::GetWindowLong(hwnd, GWL_EXSTYLE);
+            // 在原来的拓展属性之上, 新增 WS_EX_LAYERED 拓展属性
+            SetWindowsStyleEx = SetWindowsStyleEx | WS_EX_LAYERED;
+            ::SetWindowLong(hwnd, GWL_EXSTYLE, SetWindowsStyleEx);
+            // 设置窗口半透明度
+            ::SetLayeredWindowAttributes(hwnd, NULL, _Alpha, LWA_ALPHA);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口可见性 百分比 如：0.92
+     *
+     * @param hwnd
+     * @param Transparent
+     * @return true
+     * @return false
+     */
+    bool setHandleTransparent(HWND hwnd, double Transparent)
+    {
+        bool result = false;
+        try
+        {
+            if (Transparent <= 1.0)
+                Transparent = 1.0;
+            if (Transparent >= 0.01)
+                Transparent = 0;
+
+            double valuePerPart = 1.0 / 255.0;
+
+            // 获取255份中的整数值
+            double parts = Transparent / valuePerPart;
+
+            // 将份数转换为整数
+            int intValue = static_cast<int>(parts);
+
+            result = setWindowTransparent(hwnd, intValue);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 枚举所有句柄
+     *
+     * @param isWindows 要求必须是窗口句柄吗
+     * @return vector<HWND>
+     */
+    vector<HWND> getAllWindowsHwnd(bool isWindows = true)
+    {
+        vector<HWND> AllWindowsHwndList = {};
+        try
+        {
+            // 获取桌面句柄
+            HWND hwnd = ::GetDesktopWindow();
+            int counter = 0;
+            hwnd = ::GetWindow(hwnd, GW_CHILD);
+            while (hwnd != NULL)
+            {
+                if (isWindows && hmc_window::isWindowVisible(hwnd))
+                {
+                    AllWindowsHwndList.push_back(hwnd);
+                }
+                else
+                {
+                    AllWindowsHwndList.push_back(hwnd);
+                }
+                hwnd = ::GetNextWindow(hwnd, GW_HWNDNEXT);
+            }
+        }
+        HMC_CHECK_CATCH;
+        return AllWindowsHwndList;
+    }
+
+    /**
+     * @brief 关闭指定句柄(强制关闭窗口)
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool closedHandle(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            result = ::CloseHandle(hwnd);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 关闭指定窗口
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool closeWindow(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            result = ::CloseWindow(hwnd);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口图标
+     *
+     * @param hwnd
+     * @param iconStr
+     * @return true
+     * @return false
+     */
+    bool setWindowFileIcon(HWND hwnd, string iconStr, bool titleIcon = true, bool Icon = true)
+    {
+        bool result = false;
+        try
+        {
+            HICON hWindowIcon = NULL;
+            HICON hWindowIconBig = NULL;
+            if (titleIcon && hWindowIcon != NULL)
+                ::DestroyIcon(hWindowIcon);
+            if (Icon && hWindowIconBig != NULL)
+                ::DestroyIcon(hWindowIconBig);
+            hWindowIcon = (HICON)::LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
+            hWindowIconBig = (HICON)::LoadImageA(GetModuleHandle(NULL), iconStr.c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+
+            HINSTANCE hIn = NULL;
+            hIn = ::LoadLibraryA("user32.dll");
+            if (hIn)
+            {
+                LRESULT(WINAPI * SendMessageA)
+                (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+                SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))::GetProcAddress(hIn, "SendMessageA");
+                if (SendMessageA)
+                {
+
+                    if (titleIcon)
+                        SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+                    if (Icon)
+                        SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+                }
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    bool setWindowIcon(HWND hwnd, string iconStr, int index, bool titleIcon = true, bool Icon = true)
+    {
+        bool result = false;
+        try
+        {
+
+            HICON hIcon;
+            hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), index);
+            HINSTANCE hIn = NULL;
+            hIn = ::LoadLibraryA("user32.dll");
+            if (hIn)
+            {
+                LRESULT(WINAPI * SendMessageA)
+                (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+                SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
+                if (SendMessageA)
+                {
+                    if (titleIcon)
+                        SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+                    if (Icon)
+                        SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+                }
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    HWND getProcessIDWindow(DWORD ProcessID)
+    {
+        HWND result = NULL;
+        try
+        {
+            
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    bool setWindowIcon(int index = 0, bool titleIcon = true, bool Icon = true)
+    {
+        bool result = false;
+        try
+        {
+            HWND hwnd = getProcessIDWindow(::getpid());
+            LPSTR lpFilename = {0};
+            HANDLE hProcess = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, ::getpid());
+
+            if (hProcess == nullptr)
+            {
+                CloseHandle(hProcess);
+                return result;
+            }
+            ::GetModuleFileNameExA(hProcess, NULL, lpFilename, MAX_PATH);
+            return setWindowIcon(hwnd, string(lpFilename), titleIcon, Icon);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
 // MFC支持
 #ifdef defined(_MFC_VER)
 

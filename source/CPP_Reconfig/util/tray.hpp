@@ -1,4 +1,8 @@
-﻿#include <iostream>
+﻿#ifndef defined(HMC_IMPORT_TRAY_H)
+#define HMC_IMPORT_TRAY_H
+
+
+#include <iostream>
 #include <string>
 #include <windows.h>
 #include <thread>
@@ -11,11 +15,11 @@
 using namespace std;
 
 namespace hmc_tray
+
 {
 
 #define WM_SYSICON (WM_USER + 1)
     static NOTIFYICONDATAA nid;
-#define HMC_IMPORT_TRAY_H
 #define HMC_CHECK_CATCH catch (char *err){};
 #define HMC_EMIT_ENVINFO(assert_IF)                            \
     for (auto &&onEvent : ON_EVENT)                            \
@@ -963,3 +967,5 @@ namespace hmc_tray
     };
 
 }
+
+#endif

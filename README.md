@@ -8,7 +8,7 @@
 
 `Backwards compatible to node6.14.2 but the precompiled version is only supported to node8 and above (because node6 has no asynchronous syntactic sugar), for node6 please compile to node6.14.2 with esbuld yourself`
 
-####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)               [help (English) ](https://kihlh.gitbook.io/hmc_en/)      [CPP (source)](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig)
+####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)               [help (English) ](https://kihlh.gitbook.io/hmc_en/)      [CPP (source)](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig)     [重构计划进度（Project）](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig/Project.md)
 
 ### notify
 

@@ -1,3 +1,6 @@
+#ifndef HMC_IMPORT_REGISTR_H
+#define HMC_IMPORT_REGISTR_H
+
 #include <windows.h>
 #include <iostream>
 #include <set>
@@ -10,7 +13,6 @@ using namespace std;
 
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
-#define HMC_IMPORT_REGISTR_H
 
 #define _define_if_to_break(eq1, result)                      \
     {                                                         \
@@ -1127,3 +1129,5 @@ namespace hmc_registr
     }
 
 };
+
+#endif
