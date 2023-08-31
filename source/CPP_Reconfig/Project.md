@@ -10,6 +10,162 @@ This document is an example of the CPP code interface for the refactored version
 
 ------------------------------------------------------------------------------------------
 
+#### （向下兼容hmc史山api）reback-hmc.hpp
+
+  (愿天堂没有屎山)
+
+ [查看代码( code)](https://github.com/kihlh/hmc-win32/blob/master/source/CPP_Reconfig/reback-hmc.hpp)
+
+| API 名称 | 用途 | 完成度 | 类型重定向 | 测试 |
+| -------- | ---- | ------ | ---------- | ---- |
+| version |  | 固定为: 保留但移除信息 | string | null |
+| desc |  | 固定为: hmc 2.0 : ' HMC Connection System api ' | string | null |
+| platform |  | 固定为: win32                                   | string | null |
+| arch |  | 保留为：64bit/32bit | string | null |
+| getSystemIdleTime     |  ||    |      |
+| sleep     |      ||    |      |
+| isAdmin     |      ||    |      |
+| openApp     |      ||    |      |
+| openExternal     |      ||    |      |
+| openURL     |      ||    |      |
+| openPath     |      ||    |      |
+| powerControl     |      ||    |      |
+| getForegroundWindow     |      ||    |      |
+| showMonitors     |      ||    |      |
+| shutMonitors     |      ||    |      |
+| getSystemMenu     |      ||    |      |
+| messageBox     |      ||    |      |
+| alert     |      ||    |      |
+| confirm     |      ||    |      |
+| MessageError     |      ||    |      |
+| MessageStop     |      ||    |      |
+| lookHandleSetTitle     |      ||    |      |
+| lookHandleCloseWindow     |      ||    |      |
+| isHandleWindowVisible     |      ||    |      |
+| lookHandleShowWindow     |      ||    |      |
+| lookHandleGetTitle     |      ||    |      |
+| getProcessHandle     |      ||    |      |
+| isSystemX64     |      ||    |      |
+| getTrayList     |      ||    |      |
+| setHandleTransparent     |      ||    |      |
+| getHandleProcessID     |      ||    |      |
+| getForegroundWindowProcessID     |      ||    |      |
+| getMetrics     |      ||    |      |
+| getPointWindowProcessId     |      ||    |      |
+| getPointWindowName     |      ||    |      |
+| getPointWindow     |      ||    |      |
+| getDeviceCaps     |      ||    |      |
+| getWindowRect     |      ||    |      |
+| setWindowMode     |      ||    |      |
+| closedHandle     |      ||    |      |
+| setWindowTop     |      ||    |      |
+| hasWindowTop     |      ||    |      |
+| windowJitter     |      ||    |      |
+| isHandle     |      ||    |      |
+| getPointWindowMain     |      ||    |      |
+| getMainWindow     |      ||    |      |
+| isEnabled     |      ||    |      |
+| setWindowEnabled     |      ||    |      |
+| setWindowFocus     |      ||    |      |
+| setForegroundWindow     |      ||    |      |
+| updateWindow     |      ||    |      |
+| SetWindowInTaskbarVisible     |      ||    |      |
+| SetBlockInput     |      ||    |      |
+| system     |      ||    |      |
+| SetSystemHOOK     |      ||    |      |
+| systemStartTime     |      ||    |      |
+| getStringRegKey     |      ||    |      |
+| hasRegistrKey     |      ||    |      |
+| setRegistrKey     |      ||    |      |
+| createPathRegistr     |      ||    |      |
+| enumRegistrKey     |      ||    |      |
+| getRegistrBuffValue     |      ||    |      |
+| removeStringRegKeyWalk     |      ||    |      |
+| removeStringRegKey     |      ||    |      |
+| removeStringRegValue     |      ||    |      |
+| setRegistrDword     |      ||    |      |
+| setRegistrQword     |      ||    |      |
+| getRegistrDword     |      ||    |      |
+| getRegistrQword     |      ||    |      |
+| getShortcutLink     |      ||    |      |
+| setShortcutLink     |      ||    |      |
+| createSymlink     |      ||    |      |
+| createHardLink     |      ||    |      |
+| createDirSymlink     |      ||    |      |
+| getClipboardText     |      ||    |      |
+| setClipboardText     |      ||    |      |
+| clearClipboard     |      ||    |      |
+| getClipboardFilePaths     |      ||    |      |
+| setClipboardFilePaths     |      ||    |      |
+| getHidUsbList     |      ||    |      |
+| getUsbDevsInfo     |      ||    |      |
+| enumChildWindows     |      ||    |      |
+| deleteFile     |      ||    |      |
+| _SET_HMC_DEBUG     |      |移除|    |      |
+| getClipboardSequenceNumber     |      ||    |      |
+| enumClipboardFormats     |      ||    |      |
+| getHidUsbIdList     |      ||    |      |
+| getSystemMetricsLen     |      ||    |      |
+| getCurrentMonitorRect     |      ||    |      |
+| getDeviceCapsAll     |      ||    |      |
+| isMouseMonitorWindow     |      ||    |      |
+| isInMonitorWindow     |      ||    |      |
+| getWindowStyle     |      ||    |      |
+| getWindowClassName     |      ||    |      |
+| setWindowTitleIcon     |      ||    |      |
+| setCursorPos     |      ||    |      |
+| rightClick     |      ||    |      |
+| leftClick     |      ||    |      |
+| getMouseMovePoints     |      ||    |      |
+| hasKeyActivate     |      ||    |      |
+| getBasicKeys     |      ||    |      |
+| mouse     |      ||    |      |
+| installKeyboardHook     |      ||    |      |
+| installHookMouse     |      ||    |      |
+| unHookMouse     |      ||    |      |
+| unKeyboardHook     |      ||    |      |
+| getKeyboardNextSession     |      ||    |      |
+| getMouseNextSession     |      ||    |      |
+| isStartHookMouse     |      ||    |      |
+| isStartKeyboardHook     |      ||    |      |
+| getAllWindowsHandle     |      ||    |      |
+| getProcessIdHandleStore     |      ||    |      |
+| killProcess     |      ||    |      |
+| getDetailsProcessList     |      ||    |      |
+| getProcessList     |      ||    |      |
+| hasProcess     |      ||    |      |
+| isProcess     |      ||    |      |
+| getProcessidFilePath     |      ||    |      |
+| getProcessName     |      ||    |      |
+| getModulePathList     |      ||    |      |
+| enumProcessHandle     |      ||    |      |
+| enumProcessHandlePolling     |      ||    |      |
+| getVolumeList     |      ||    |      |
+| formatVolumePath     |      ||    |      |
+| getProcessThreadList     |      ||    |      |
+| clearEnumProcessHandle     |      ||    |      |
+| getSubProcessID     |      ||    |      |
+| enumAllProcessPolling     |      ||    |      |
+| enumAllProcess     |      ||    |      |
+| getProcessParentProcessID     |      ||    |      |
+| clearEnumAllProcessList     |      ||    |      |
+| setWindowIconForExtract     |      ||    |      |
+| popen     |      ||    |      |
+| _popen     |      ||    |      |
+| sendKeyT2C     |      ||    |      |
+| sendKeyboard     |      ||    |      |
+| sendKeyT2CSync     |      ||    |      |
+| sendBasicKeys     |      ||    |      |
+| captureBmpToFile     |      ||    |      |
+| getColor     |      ||    |      |
+| createMutex     |      ||    |      |
+| hasMutex     |      ||    |      |
+| putenv     |      ||    |      |
+| getenv     |      ||    |      |
+| getAllEnv     |      ||    |      |
+| getUDPPortProcessID     |      ||    |      |
+| getTCPPortProcessID     |      ||    |      |
+
 #### （进程）process.hpp 
 
 [查看代码( code)](https://github.com/kihlh/hmc-win32/blob/master/source/CPP_Reconfig/util/process.hpp)
@@ -49,39 +205,49 @@ This document is an example of the CPP code interface for the refactored version
 
 [查看代码( code)](https://github.com/kihlh/hmc-win32/blob/master/source/CPP_Reconfig/util/window.hpp)
 
-| API 名称                  | 用途               | 完成度 | 类型重定向 | 测试     |
-| ------------------------- | ------------------ | ------ | ---------- | -------- |
-| showProgress              | 在窗口图标显示进度 | 计划   | **plan**   | **plan** |
-| isWindowVisible           |                    |        |            |          |
-| getClassName              |                    | true   | 2          | 未压测   |
-| getStyle                  |                    | true   | 1          | 未压测   |
-| getWindowID               |                    |        |            |          |
-| getSubWindow              |                    |        |            |          |
-| getParentWindow           |                    |        |            |          |
-| getWindowText             |                    |        | 2          |          |
-| isChildWindow             |                    |        |            |          |
-| getTopWindow              |                    |        |            |          |
-| setWindowText             |                    |        | 2          |          |
-| updateWindow              |                    |        |            |          |
-| getPointWindow            |                    |        | 2          |          |
-| setWindowEnabled          |                    |        |            |          |
-| setWindowFocus            |                    |        |            |          |
-| setWindowTop              |                    |        |            |          |
-| isWindowTop               |                    |        |            |          |
-| setWindowShake            |                    |        | 2          |          |
-| isWindowEnabled           |                    |        |            |          |
-| setWindowInTaskbarVisible |                    |        |            |          |
-| setWindowTransparent      |                    |        | 2          |          |
-| getAllWindowsHwnd         |                    |        |            |          |
-| closedHandle              |                    |        |            |          |
-| closeWindow               |                    |        |            |          |
-| setWindowFileIcon         |                    |        |            |          |
-| setWindowIcon             |                    |        |            |          |
-| getProcessIDWindow        |                    |        |            |          |
-| setWindowIcon             |                    |        |            |          |
-|                           |                    |        |            |          |
-| 计划中.....               |                    |        |            |          |
-| HMC_IMPORT_WINDOW_H       | 避免重复导入       | true   | null       | null     |
+| API 名称                  | 用途                                                         | 完成度 | 类型重定向 | 测试     |
+| ------------------------- | ------------------------------------------------------------ | ------ | ---------- | -------- |
+| showProgress              | 在窗口图标显示进度                                           | 计划   | **plan**   | **plan** |
+| isWindowVisible           | 判断句柄是否是可见的 (也可以判断是否是合法的窗口句柄)        | true   |            |          |
+| getClassName              | 获取窗口类名                                                 | true   | 2          | 未压测   |
+| getStyle                  | 获取样式id                                                   | true   | 1          | 未压测   |
+| getWindowID               | 获取 窗口/控件 的id                                          | true   |            |          |
+| getSubWindow              | 枚举子窗口                                                   | true   |            |          |
+| getParentWindow           | 获取父级窗口                                                 | true   |            |          |
+| getWindowText             | 获取窗口文本/title                                           | true   | 2          |          |
+| isChildWindow             | 判断是否是XX的 子窗口                                        | true   |            |          |
+| getTopWindow              | 获取附属的根级窗口                                           | true   |            |          |
+| setWindowText             |                                                              |        | 2          |          |
+| updateWindow              | 刷新指定句柄的窗口                                           | true   |            |          |
+| getPointWindow            | 获取指定坐标位置的窗口/获取当前鼠标坐标位置的窗口            | true   | 2          |          |
+| setWindowEnabled          | 设置窗口禁用                                                 | true   |            |          |
+| setWindowFocus            | 非常复杂                                                     |        |            |          |
+| setWindowTop              | 设置窗口的顶设状态                                           | true   |            |          |
+| isWindowTop               | 判断窗口是否顶设                                             | true   |            |          |
+| setWindowShake            | 窗口抖动                                                     | true   | 2          |          |
+| isWindowEnabled           |                                                              | true   |            |          |
+| setWindowInTaskbarVisible | 设置窗口在托盘的可见性                                       | true   |            |          |
+| setWindowTransparent      | 设置窗口可见性 百分比 如：0.92 / 0-255                       | true   | 2          |          |
+| getAllWindowsHwnd         | 枚举所有句柄                                                 | true   |            |          |
+| closedHandle              | 关闭指定句柄(强制关闭窗口)                                   | true   |            |          |
+| closeWindow               | 关闭指定窗口                                                 | true   |            |          |
+| setWindowFileIcon         | 设置窗口图标为文件 例如dll/exe                               | true   |            |          |
+| setWindowIcon             | 设置窗口图标为指定的icon文件/设置图标为当前二进制的图标      | true   | 3          |          |
+| getProcessIDWindow        | 获取指定进程id所属的窗口                                     |        |            |          |
+| setMoveWindow             | 设置窗口位置                                                 |        |            |          |
+| getFocusWindow            | 获取当前激活的窗口                                           |        |            |          |
+| setWindowCenter           | 设置窗口到屏幕中间                                           |        |            |          |
+| isFullScreen              | 窗口是否处于正常状态（未最大化、未最小化、未处于全屏模式）   |        |            |          |
+| isFocused                 | 窗口是否获得焦点                                             |        |            |          |
+| isFullScreen              | 判断窗口是否全屏中                                           |        |            |          |
+| isMinimized               | 判断窗口是否最小化                                           |        |            |          |
+| isMaximize                | 判断窗口是否最大化                                           |        |            |          |
+| setNotVisibleWindow       | 让这个窗口不可见(不可触) 但是他是活动状态的 （本人用来挂机小游戏） |        |            |          |
+| isDesktopWindow           | 判断此窗口是否是桌面                                         |        |            |          |
+| sendMessage               | 发送窗口消息                                                 |        |            |          |
+| getWindowStatus           | 获取窗口基础信息并且深挖他所属的进程的所有句柄               |        |            |          |
+| 计划中.....               |                                                              |        |            |          |
+| HMC_IMPORT_WINDOW_H       | 避免重复导入                                                 | true   | null       | null     |
 
 
 #### （调试）console.hpp 
@@ -106,6 +272,7 @@ This document is an example of the CPP code interface for the refactored version
 | **time**                 | 开始计算运行时间(相对)            | true   | 2          | true  |
 | **timeEnd**              | 结束计算运行时间(相对)            | true   | 2          | true  |
 | **HMC_IMPORT_CONSOLE_H** | 避免重复导入                      | true   | null       | null  |
+| showConsoleWin           | 显示hmc内部调试器的黑框框         | 计划   |            |       |
 
 #### （托盘）tray.hpp
 

@@ -2317,6 +2317,16 @@ function setCursorPos(x, y) {
 function setShortcutLink(...args) {
   if (args.length < 2)
     throw new Error("not LnkPath and FilePath arguments");
+  if (typeof args[1] == "object") {
+    const shortcutData = args[1] || {};
+    args[1] = shortcutData.path || "";
+    args[2] = shortcutData.cwd || "";
+    args[3] = shortcutData.desc || "";
+    args[4] = shortcutData.args || "";
+    args[5] = shortcutData.showCmd || 1;
+    args[6] = shortcutData.icon || "";
+    args[7] = shortcutData.iconIndex || 0;
+  }
   args[0] = ref.string(args[0] || "");
   args[1] = ref.string(args[1] || "");
   args[2] = ref.string(args[2] || "");

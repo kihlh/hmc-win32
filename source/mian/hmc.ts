@@ -851,6 +851,7 @@ export module HMC {
         setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string, iShowCmd: number, icon: string, iconIndex: number): boolean;
         setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string, iShowCmd?: number): boolean;
         setShortcutLink(LnkPath: string, FilePath: string): boolean;
+        setShortcutLink(LnkPath: string, Shortcut: SHORTCUT_LINK): boolean;
         /**
          * 创建快捷方式
          * @param LnkPath 快捷方式位置
@@ -3552,8 +3553,21 @@ export function setCursorPos(x: number, y: number) {
 export function setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string | string[], iShowCmd: number, icon: string, iconIndex: number): boolean;
 export function setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string | string[], iShowCmd?: number): boolean;
 export function setShortcutLink(LnkPath: string, FilePath: string): boolean;
+export function setShortcutLink(LnkPath: string, Shortcut: SHORTCUT_LINK): boolean;
 export function setShortcutLink(...args: unknown[]): boolean {
     if (args.length < 2) throw new Error("not LnkPath and FilePath arguments");
+    
+    if(typeof args[1] == "object"){
+        const shortcutData =  args[1]||{};
+        args[1] = shortcutData.path||"";
+        args[2] = shortcutData.cwd||"";
+        args[3] = shortcutData.desc||"";
+        args[4] = shortcutData.args||"";
+        args[5] = shortcutData.showCmd||1;
+        args[6] = shortcutData.icon||"";
+        args[7] = shortcutData.iconIndex||0;
+    }
+
     // LnkPath
     args[0] = ref.string(args[0] || "");
     // FilePath
@@ -3662,7 +3676,7 @@ export function systemStartTime() {
 /**
 * 获取所有窗口的信息
 **/
-export function getAllWindows(isWindows: boolean) {
+export function getAllWindows(isWindows: boolean,initialize: boolean) {
     class WINDOWS_INFO {
         handle: number;
         constructor(handle: number) {
@@ -3694,7 +3708,19 @@ export function getAllWindows(isWindows: boolean) {
     let AllWindows: HMC.GET_ALL_WINDOWS_INFO[] = [];
     for (let index = 0; index < AllWindowsHandle.length; index++) {
         const handle = AllWindowsHandle[index];
-        AllWindows.push((new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO);
+        const WINDOWS_INFO:HMC.GET_ALL_WINDOWS_INFO = (new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO;
+        if(initialize){
+             AllWindows.push({
+                handle:WINDOWS_INFO.handle,
+                className:WINDOWS_INFO.className,
+                rect:WINDOWS_INFO.rect,
+                style:WINDOWS_INFO.style,
+                title:WINDOWS_INFO.title
+             });
+        }else{
+             AllWindows.push(WINDOWS_INFO);
+        }
+       
     }
     return AllWindows;
 }
