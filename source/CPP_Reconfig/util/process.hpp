@@ -1164,6 +1164,16 @@ namespace hmc_process
     }
     
     /**
+     * @brief 获取指定进程的命令行内容
+     * 
+     * @param ProcessID 
+     * @return string 
+     */
+    string getProcessCmd(DWORD ProcessID){
+        return getProcessCommand(ProcessID);
+    }
+
+    /**
      * @brief 获取进程启动时候的时间ms
      * 
      * @param ProcessID 

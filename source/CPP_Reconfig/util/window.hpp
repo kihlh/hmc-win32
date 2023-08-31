@@ -17,6 +17,11 @@ using namespace std;
 #define HMC_CHECK_CATCH catch (char *err){};
 #define HMC_THREAD (code) std::thread([]() -> void { code }).detach();
 #define HMC_VirtualAlloc(Type, leng) (Type) VirtualAlloc((LPVOID)NULL, (DWORD)(leng), MEM_COMMIT, PAGE_READWRITE);
+#define HMC_PUSH_WSRES(WS)    \
+    if (style & WS)           \
+    {                         \
+        result.push_back(WS); \
+    }
 #define HMC_VirtualFree(Virtua) \
     if (Virtua != NULL)         \
         VirtualFree(Virtua, 0, MEM_RELEASE);
@@ -1172,28 +1177,165 @@ namespace hmc_window
         HMC_CHECK_CATCH;
         return result;
     }
-    struct chWindowStatus
+    struct chWindowHwndStatus
     {
+        // 当前句柄枚举的子集句柄
+        vector<HWND> sub;
+        // 当前输入的句柄
+        HWND hwnd;
+        // top win 排除桌面
+        HWND root;
+        // 所有窗口(仅限可见窗口)
+        vector<HWND> window;
+        // 所有窗口 包含组件句柄
+        vector<HWND> allWindow;
+        // 下个窗口
+        HWND next;
+        // 上个窗口
+        HWND prev;
+        // 末尾窗口
+        HWND end;
+        // 进程id
+        DWORD pid;
+        // 主进程id
+        DWORD ppid;
     };
 
     /**
      * @brief 获取窗口基础信息并且深挖他所属的进程的所有句柄
-     * 
-     * @param hwnd 
-     * @return chWindowStatus 
+     *
+     * @param hwnd
+     * @return chWindowStatus
      */
-    chWindowStatus getWindowStatus(HWND hwnd)
+    chWindowHwndStatus getWindowHwndStatus(HWND hwnd)
     {
-        chWindowStatus result ;
+        chWindowHwndStatus result;
         try
         {
-            
-            
         }
 
         HMC_CHECK_CATCH;
         return result;
     }
+    /**
+     * @brief 获取窗口的类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    vector<LONG> getWinwowClassList(HWND hwnd)
+    {
+        vector<LONG> result;
+        try
+        {
+            LONG style = GetWindowLong(hwnd, GWL_STYLE);
+
+            // 窗口是弹出式的
+            HMC_PUSH_WSRES(WS_POPUP);
+            // 窗口可见
+            HMC_PUSH_WSRES(WS_VISIBLE);
+            // 窗口具有细线边框
+            HMC_PUSH_WSRES(WS_BORDER);
+            // 窗口具有标题栏， (包含 WS_BORDER 样式) 。
+            HMC_PUSH_WSRES(WS_CAPTION);
+            // 窗口是子窗口。 具有此样式的窗口不能有菜单栏。 此样式不能与 WS_POPUP 样式一起使用。
+            HMC_PUSH_WSRES(WS_CHILD);
+            // 与 WS_CHILD 样式相同。
+            HMC_PUSH_WSRES(WS_CHILDWINDOW);
+            // 排除在父窗口内进行绘制时子窗口占用的区域。 创建父窗口时使用此样式
+            HMC_PUSH_WSRES(WS_CLIPCHILDREN);
+            // 窗口具有垂直滚动条。
+            HMC_PUSH_WSRES(WS_VSCROLL);
+            // 该窗口是一个重叠的窗口。 与 WS_OVERLAPPEDWINDOW 样式相同
+            HMC_PUSH_WSRES(WS_TILEDWINDOW);
+            // 该窗口是一个重叠的窗口。 重叠的窗口带有标题栏和边框。 与 WS_OVERLAPPED 样式相同。
+            HMC_PUSH_WSRES(WS_TILED);
+            // 	窗口具有调整大小边框。 与 WS_SIZEBOX 样式相同。
+            HMC_PUSH_WSRES(WS_THICKFRAME);
+            // 窗口是一个控件，当用户按下 TAB 键时，该控件可以接收键盘焦点。 按 Tab 键将键盘焦点更改为具有 WS_TABSTOP 样式的下一个控件。可以打开和关闭此样式以更改对话框导航。 若要在创建窗口后更改此样式，请使用 SetWindowLong 函数。 若要使用户创建的窗口和无模式对话框使用制表位，请更改消息循环以调用 IsDialogMessage 函数。
+            HMC_PUSH_WSRES(WS_TABSTOP);
+            // 窗口的标题栏上有一个窗口菜单。 还必须指定 WS_CAPTION 样式。
+            HMC_PUSH_WSRES(WS_SYSMENU);
+            // 窗口具有大小调整边框。 与 WS_THICKFRAME 样式相同。
+            HMC_PUSH_WSRES(WS_SIZEBOX);
+            // 窗口是弹出窗口。 必须组合 WS_CAPTION 和 WS_POPUPWINDOW 样式，使窗口菜单可见。
+            HMC_PUSH_WSRES(WS_POPUPWINDOW);
+            // 窗口是重叠的窗口。 与 WS_TILEDWINDOW 样式相同。
+            HMC_PUSH_WSRES(WS_OVERLAPPEDWINDOW);
+            // 窗口是重叠的窗口。 重叠的窗口带有标题栏和边框。 与 WS_TILED 样式相同。
+            HMC_PUSH_WSRES(WS_OVERLAPPED);
+            // 窗口有一个最小化按钮。 不能与 WS_EX_CONTEXTHELP 样式组合使用。 还必须指定 WS_SYSMENU 样式。
+            HMC_PUSH_WSRES(WS_MINIMIZEBOX);
+            // 窗口最初最小化。 与 WS_ICONIC 样式相同。
+            HMC_PUSH_WSRES(WS_MINIMIZE);
+            // 	窗口有一个“最大化”按钮。 不能与 WS_EX_CONTEXTHELP 样式组合使用。 还必须指定 WS_SYSMENU 样式。
+            HMC_PUSH_WSRES(WS_MAXIMIZEBOX);
+            // 窗口最初是最大化的。
+            HMC_PUSH_WSRES(WS_ICONIC);
+            // 窗口具有水平滚动条
+            HMC_PUSH_WSRES(WS_HSCROLL);
+            // 窗口是一组控件的第一个控件。 组由第一个控件及其后定义的所有控件组成，以及具有 WS_GROUP 样式的下一个控件。 每个组中的第一个控件通常具有 WS_TABSTOP 样式，以便用户可以在组之间移动。 用户随后可以使用方向键将键盘焦点从组中的一个控件更改为组中的下一个控件。可以打开和关闭此样式以更改对话框导航。 若要在创建窗口后更改此样式，请使用 SetWindowLong 函数。
+            HMC_PUSH_WSRES(WS_GROUP);
+            // 窗口具有通常与对话框一起使用的样式的边框。 具有此样式的窗口不能具有标题栏。
+            HMC_PUSH_WSRES(WS_DLGFRAME);
+            // 窗口最初处于禁用状态。 已禁用的窗口无法接收用户的输入。 若要在创建窗口后更改此设置，请使用 EnableWindow 函数。
+            HMC_PUSH_WSRES(WS_DISABLED);
+            // 相对于彼此剪裁子窗口;也就是说，当特定子窗口收到 WM_PAINT 消息时， WS_CLIPSIBLINGS 样式会将所有其他重叠的子窗口剪裁到子窗口的区域之外进行更新。 如果未指定 WS_CLIPSIBLINGS 且子窗口重叠，则当在子窗口的工作区内绘图时，可以在相邻子窗口的工作区内绘制。
+            HMC_PUSH_WSRES(WS_CLIPSIBLINGS);
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+   
+    /**
+     * @brief 获取窗口的扩展类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    vector<LONG> getWinwowClassListEx(HWND hwnd)
+    {
+        vector<LONG> result;
+        try
+        {
+            LONG style = GetWindowLong(hwnd, GWL_EXSTYLE);
+
+            // 窗口接受拖放文件。
+            HMC_PUSH_WSRES(WS_EX_ACCEPTFILES);
+
+            HMC_PUSH_WSRES(WS_EX_APPWINDOW);
+            HMC_PUSH_WSRES(WS_EX_CLIENTEDGE);
+            HMC_PUSH_WSRES(WS_EX_COMPOSITED);
+            HMC_PUSH_WSRES(WS_EX_CONTEXTHELP);
+            HMC_PUSH_WSRES(WS_EX_CONTROLPARENT);
+            HMC_PUSH_WSRES(WS_EX_DLGMODALFRAME);
+            HMC_PUSH_WSRES(WS_EX_LAYERED);
+            HMC_PUSH_WSRES(WS_EX_LAYOUTRTL);
+            HMC_PUSH_WSRES(WS_EX_LEFT);
+            HMC_PUSH_WSRES(WS_EX_LEFTSCROLLBAR);
+            HMC_PUSH_WSRES(WS_EX_LTRREADING);
+            HMC_PUSH_WSRES(WS_EX_MDICHILD);
+            HMC_PUSH_WSRES(WS_EX_NOACTIVATE);
+            HMC_PUSH_WSRES(WS_EX_NOINHERITLAYOUT);
+            HMC_PUSH_WSRES(WS_EX_NOPARENTNOTIFY);
+            HMC_PUSH_WSRES(WS_EX_NOREDIRECTIONBITMAP);
+            HMC_PUSH_WSRES(WS_EX_OVERLAPPEDWINDOW);
+            HMC_PUSH_WSRES(WS_EX_PALETTEWINDOW);
+            HMC_PUSH_WSRES(WS_EX_RIGHT);
+            HMC_PUSH_WSRES(WS_EX_RIGHTSCROLLBAR);
+            HMC_PUSH_WSRES(WS_EX_RTLREADING);
+            HMC_PUSH_WSRES(WS_EX_STATICEDGE);
+            HMC_PUSH_WSRES(WS_EX_TOOLWINDOW);
+            HMC_PUSH_WSRES(WS_EX_TOPMOST);
+            HMC_PUSH_WSRES(WS_EX_TRANSPARENT);
+            HMC_PUSH_WSRES(WS_EX_WINDOWEDGE);
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
 // MFC支持
 #ifdef defined(_MFC_VER)
 
