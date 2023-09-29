@@ -12,6 +12,7 @@
 #include <thread>
 #include <vector>
 #include <fstream>
+#include <map>
 
 // 输入法相关
 #include <imm.h>
@@ -26,7 +27,7 @@ using namespace std;
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
 #define HMC_CHECK_CATCH catch (char *err){};
-#define HMC_THREAD (code) std::thread([]() -> void { code }).detach();
+#define HMC_THREAD (code) thread([]() -> void { code }).detach();
 
 // 通用的HMCDEBUG 代码 在所有代码中引用 用于内部报错处理 避免黑盒错误
 #ifndef HMC_DEBUG_CHECK_FUN_LIB
@@ -35,7 +36,7 @@ using namespace std;
 #include <string>
 #include <iostream>
 #define HMC_CHECK_CATCH catch (char *err){};
-bool vsErrorCodeAssert(DWORD check, std::string LogUserName = "HMC_CHECK")
+bool vsErrorCodeAssert(DWORD check, string LogUserName = "HMC_CHECK")
 {
     bool result = false;
 
@@ -46,11 +47,11 @@ bool vsErrorCodeAssert(DWORD check, std::string LogUserName = "HMC_CHECK")
     else
     {
 #if HMC_IMPORT_CONSOLE_H
-        hmc_console::debug(LogUserName, std::string("error_code:  ").append(std::to_string(check)).append("  \nPlease refer to the details:").append("https://learn.microsoft.com/zh-cn/windows/win32/debug/system-error-codes"));
+        hmc_console::debug(LogUserName, string("error_code:  ").append(to_string(check)).append("  \nPlease refer to the details:").append("https://learn.microsoft.com/zh-cn/windows/win32/debug/system-error-codes"));
 
 #else
 #ifdef _DEBUG
-        std::cout << "---------->   [ERROR]    [" << LogUserName << "]    " << std::string("error_code:  ").append(std::to_string(check)).append("  \nPlease refer to the details:").append("https://learn.microsoft.com/zh-cn/windows/win32/debug/system-error-codes") << std::endl;
+        cout << "---------->   [ERROR]    [" << LogUserName << "]    " << string("error_code:  ").append(to_string(check)).append("  \nPlease refer to the details:").append("https://learn.microsoft.com/zh-cn/windows/win32/debug/system-error-codes") << endl;
 #endif
 
 #endif // 头文件保护结束
@@ -77,9 +78,9 @@ namespace hmc_shell
             string Result;
             for (char &c : data)
             {
-                if (std::isalpha(static_cast<unsigned char>(c)))
+                if (isalpha(static_cast<unsigned char>(c)))
                 {
-                    Result.push_back(std::toupper(c));
+                    Result.push_back(toupper(c));
                 }
                 else
                 {
@@ -322,7 +323,7 @@ namespace hmc_shell
          * @param symlinkPath
          * @return string
          */
-        string getSymbolicLinkTarget(const std::string &symlinkPath)
+        string getSymbolicLinkTarget(const string &symlinkPath)
         {
             HANDLE hFile = CreateFileA(symlinkPath.c_str(), 0, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
             if (hFile == INVALID_HANDLE_VALUE)
@@ -338,7 +339,7 @@ namespace hmc_shell
                 return "";
             }
 
-            std::string finalPath(targetPath, pathSize);
+            string finalPath(targetPath, pathSize);
 
             CloseHandle(hFile);
             return finalPath;
@@ -350,9 +351,9 @@ namespace hmc_shell
          * @param hardlinkPath
          * @return string
          */
-        vector<string> GetHardLinks(const std::string &filePath)
+        vector<string> GetHardLinks(const string &filePath)
         {
-            std::vector<std::string> hardLinks;
+            vector<string> hardLinks;
 
             WIN32_FIND_DATA findData;
             HANDLE hFind = FindFirstFileA(filePath.c_str(), &findData);
@@ -506,10 +507,10 @@ namespace hmc_shell
         chShortcutLinkItem result = {};
         try
         {
-            std::string tempArguments;
-            std::string tempWorkingDirectory;
-            std::string tempShortcutPath;
-            std::string tempIconPath;
+            string tempArguments;
+            string tempWorkingDirectory;
+            string tempShortcutPath;
+            string tempIconPath;
             int tempGetShowCmdNum = 0;
             int tempPIcon = 0;
             WORD tempPwHotkey = 0;
@@ -616,8 +617,8 @@ namespace hmc_shell
     {
         _shell_lib::_str_WinRunApplication_Path.clear();
         _shell_lib::_str_WinRunApplication_Path.append(Path);
-        std::thread([]() -> void
-                    {
+        thread([]() -> void
+               {
         try
         {
            
@@ -697,7 +698,7 @@ namespace hmc_shell
      * @return true
      * @return false
      */
-    bool getThumbnailPngFile(std::wstring source, wstring target, int size = 256)
+    bool getThumbnailPngFile(wstring source, wstring target, int size = 256)
     {
         CoInitialize(NULL);
         IShellItemImageFactory *itemImageFactory;
@@ -804,7 +805,7 @@ namespace hmc_shell
      * @return true
      * @return false
      */
-    bool SetFolderIcon(const std::string &folderPath, const std::string &iconPath, int iconIndex = 0)
+    bool SetFolderIcon(const string &folderPath, const string &iconPath, int iconIndex = 0)
     {
         try
         {
@@ -817,11 +818,11 @@ namespace hmc_shell
                 SetFileAttributes(folderPath.c_str(), folderAttributes | FILE_ATTRIBUTE_READONLY);
 
             // 构建 desktop.ini 文件路径
-            std::string desktopIniPath = folderPath + L"\\desktop.ini";
+            string desktopIniPath = folderPath + L"\\desktop.ini";
 
             // 写入 desktop.ini 文件内容
-            std::string iniContent = "[.ShellClassInfo]\nIconResource=" + iconPath + "," + std::to_string(iconIndex) + "\n";
-            if (!WritePrivateProfileStringA(".ShellClassInfo", L"IconResource", (iconPath + "," + std::to_string(iconIndex)).c_str(), desktopIniPath.c_str()))
+            string iniContent = "[.ShellClassInfo]\nIconResource=" + iconPath + "," + to_string(iconIndex) + "\n";
+            if (!WritePrivateProfileStringA(".ShellClassInfo", L"IconResource", (iconPath + "," + to_string(iconIndex)).c_str(), desktopIniPath.c_str()))
                 return false;
 
             // 设置 desktop.ini 文件属性为隐藏和系统
@@ -931,14 +932,14 @@ namespace hmc_shell
     }
     /**
      * @brief 添加自启动到系统启动目录
-     * 
-     * @param ShortcutLinkItem 
-     * @return true 
-     * @return false 
+     *
+     * @param ShortcutLinkItem
+     * @return true
+     * @return false
      */
     bool setSystemStartup(chShortcutLinkItem ShortcutLinkItem)
     {
-                    bool result = false;
+        bool result = false;
         try
         {
         }
@@ -948,14 +949,14 @@ namespace hmc_shell
 
     /**
      * @brief 添加自启动到注册表自启动里
-     * 
-     * @param ApplicationPath 
-     * @return true 
-     * @return false 
+     *
+     * @param ApplicationPath
+     * @return true
+     * @return false
      */
     bool setSystemStartup(string ApplicationPath)
     {
-                    bool result = false;
+        bool result = false;
         try
         {
         }
@@ -965,14 +966,14 @@ namespace hmc_shell
 
     /**
      * @brief 添加自启动到注册表自启动里
-     * 
-     * @param ApplicationPath 
-     * @return true 
-     * @return false 
+     *
+     * @param ApplicationPath
+     * @return true
+     * @return false
      */
     bool setSystemStartup(string ApplicationPath, string cwd, string cmd = "")
     {
-                    bool result = false;
+        bool result = false;
         try
         {
         }
@@ -982,14 +983,14 @@ namespace hmc_shell
 
     /**
      * @brief 添加自启并设置为服务
-     * 
-     * @param ShortcutLinkItem 
-     * @return true 
-     * @return false 
+     *
+     * @param ShortcutLinkItem
+     * @return true
+     * @return false
      */
     bool setSystemStartupService(chShortcutLinkItem ShortcutLinkItem)
     {
-                    bool result = false;
+        bool result = false;
         try
         {
         }
@@ -999,14 +1000,14 @@ namespace hmc_shell
 
     /**
      * @brief 添加自启并设置为服务
-     * 
-     * @param ApplicationPath 
-     * @return true 
-     * @return false 
+     *
+     * @param ApplicationPath
+     * @return true
+     * @return false
      */
     bool setSystemStartupService(string ApplicationPath)
     {
-                    bool result = false;
+        bool result = false;
         try
         {
         }
@@ -1016,22 +1017,537 @@ namespace hmc_shell
 
     /**
      * @brief 添加自启并设置为服务
-     * 
-     * @param ApplicationPath 
-     * @param cwd 
-     * @param cmd 
-     * @return true 
-     * @return false 
+     *
+     * @param ApplicationPath
+     * @param cwd
+     * @param cmd
+     * @return true
+     * @return false
      */
     bool setSystemStartupService(string ApplicationPath, string cwd, string cmd = "")
     {
-            bool result = false;
+        bool result = false;
         try
         {
         }
         HMC_CHECK_CATCH;
         return result;
     }
+
+    /**
+     * @brief 添加软件自启动
+     *
+     * @param key
+     * @param execPath
+     * @param cmd
+     * @return true
+     * @return false
+     */
+    bool setStartup(string key, string execPath, string cmd)
+    {
+        string path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+        string str_exec_path_format = "\"";
+
+        str_exec_path_format += execPath;
+        str_exec_path_format.append("\"");
+        str_exec_path_format.append(cmd);
+
+        if (hmc_registr::hasRegistrKey(HKEY_LOCAL_MACHINE, path, key))
+        {
+            return hmc_registr::removeRegistrValue(HKEY_LOCAL_MACHINE, path, key) ? false : true;
+        }
+        else
+        {
+            return hmc_registr::setRegistrValue(HKEY_LOCAL_MACHINE, path, key, str_exec_path_format) ? true : false;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief 移除软件自启动
+     *
+     * @param key
+     * @return true
+     * @return false
+     */
+    bool removeStartup(string key)
+    {
+        bool result = false;
+        string path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+        try
+        {
+            if (hmc_registr::hasRegistrKey(HKEY_LOCAL_MACHINE, path, key))
+            {
+                return hmc_registr::removeRegistrValue(HKEY_LOCAL_MACHINE, path, key) ? false : true;
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断软件自启动
+     *
+     * @param key
+     * @return true
+     * @return false
+     */
+    bool hasStartup(string key)
+    {
+        bool result = false;
+        string path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+
+        try
+        {
+            string path = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+            return hmc_registr::hasRegistrKey(HKEY_LOCAL_MACHINE, path, key);
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 选择文件夹 （古老的小框选择器 无法指定路径的那种）
+     *
+     * @param Title
+     * @param SelectFolderPath
+     * @return true
+     * @return false
+     */
+    bool SelectFolderV1(string Title, string &SelectFolderPath)
+    {
+
+        bool result = false;
+        try
+        {
+            ::CoInitialize(NULL);
+
+            BROWSEINFOA browseInfo = {0};
+            char folderPath[MAX_PATH];
+
+            browseInfo.hwndOwner = NULL;
+            browseInfo.pidlRoot = NULL;
+            browseInfo.pszDisplayName = folderPath;
+            browseInfo.lpszTitle = Title.empty() ? "选择文件夹" : Title.c_str();
+            browseInfo.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+
+            LPITEMIDLIST pidl = ::SHBrowseForFolderA(&browseInfo);
+
+            if (pidl != NULL)
+            {
+                ::SHGetPathFromIDListA(pidl, folderPath);
+                SelectFolderPath.append(folderPath);
+                result = true;
+                ::CoTaskMemFree(pidl);
+            }
+
+            // 释放 COM 库
+            ::CoUninitialize();
+        }
+        HMC_CHECK_CATCH;
+
+        return result;
+    }
+
+    /**
+     * @brief 选择文件夹（单选）
+     *
+     * @param folderPath
+     * @return true
+     * @return false
+     */
+    bool SelectFolder(wstring &folderPath)
+    {
+        bool result = false;
+        try
+        {
+            HRESULT hr;
+            IFileOpenDialog *pOpenFolderDialog;
+            HWND owner = NULL;
+
+            hr = ::CoCreateInstance(CLSID_FileOpenDialog,
+                                  NULL,
+                                  CLSCTX_INPROC_SERVER,
+                                  IID_PPV_ARGS(&pOpenFolderDialog));
+
+            if (SUCCEEDED(hr))
+            {
+                // 获取用户与对话框交互的结果
+                pOpenFolderDialog->SetOptions(FOS_PICKFOLDERS);
+
+                // 显示选择文件夹窗口
+                hr = pOpenFolderDialog->Show(owner);
+
+                if (SUCCEEDED(hr))
+                {
+
+                    IShellItem *psiResult;
+                    hr = pOpenFolderDialog->GetResult(&psiResult);
+
+                    LPWSTR folderW = NULL;
+                    psiResult->GetDisplayName(SIGDN_FILESYSPATH, &folderW);
+                    folderPath.append(folderW);
+                    result = true;
+                    ::CoTaskMemFree(folderW);
+                    psiResult->Release();
+                }
+            }
+            pOpenFolderDialog->Release();
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 选择文件夹(多选)
+     *
+     * @param folderPaths
+     * @return true
+     * @return false
+     */
+    bool SelectFolders(vector<wstring> &folderPaths)
+    {
+        bool result = false;
+
+        try
+        {
+            HRESULT hr;
+            IFileOpenDialog *pOpenFolderDialog;
+            IShellItemArray *pItemArray;
+            HWND owner = NULL;
+
+            hr = ::CoCreateInstance(CLSID_FileOpenDialog,
+                                  NULL,
+                                  CLSCTX_INPROC_SERVER,
+                                  IID_PPV_ARGS(&pOpenFolderDialog));
+
+            if (SUCCEEDED(hr))
+            {
+                // 设置对话框选项以支持多选文件夹
+                DWORD dwOptions;
+                hr = pOpenFolderDialog->GetOptions(&dwOptions);
+                if (SUCCEEDED(hr))
+                {
+                    hr = pOpenFolderDialog->SetOptions(dwOptions | FOS_PICKFOLDERS | FOS_ALLOWMULTISELECT);
+                }
+
+                // 显示选择文件夹窗口
+                hr = pOpenFolderDialog->Show(owner);
+
+                if (SUCCEEDED(hr))
+                {
+                    hr = pOpenFolderDialog->GetResults(&pItemArray);
+
+                    if (SUCCEEDED(hr))
+                    {
+                        DWORD itemCount;
+                        hr = pItemArray->GetCount(&itemCount);
+
+                        if (SUCCEEDED(hr))
+                        {
+                            for (DWORD i = 0; i < itemCount; i++)
+                            {
+                                IShellItem *pItem;
+                                hr = pItemArray->GetItemAt(i, &pItem);
+
+                                if (SUCCEEDED(hr))
+                                {
+                                    PWSTR pszFolderPath;
+                                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath);
+
+                                    if (SUCCEEDED(hr))
+                                    {
+                                        folderPaths.push_back(pszFolderPath);
+                                        ::CoTaskMemFree(pszFolderPath);
+                                    }
+
+                                    pItem->Release();
+                                }
+                            }
+
+                            if (itemCount > 0)
+                            {
+                                result = true;
+                            }
+                        }
+
+                        pItemArray->Release();
+                    }
+                }
+
+                pOpenFolderDialog->Release();
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 选择文件 （多个文件）
+     *
+     * @param filePaths
+     * @return true
+     * @return false
+     */
+    bool SelectFiles(vector<wstring> &filePaths)
+    {
+        bool result = false;
+        try
+        {
+            IFileOpenDialog *pFileOpen;
+            IShellItemArray *pItemArray;
+
+            HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                                          IID_IFileOpenDialog, reinterpret_cast<void **>(&pFileOpen));
+
+            if (SUCCEEDED(hr))
+            {
+                hr = pFileOpen->SetOptions(FOS_ALLOWMULTISELECT);
+
+                if (SUCCEEDED(hr))
+                {
+                    hr = pFileOpen->Show(NULL);
+
+                    if (SUCCEEDED(hr))
+                    {
+                        hr = pFileOpen->GetResults(&pItemArray);
+
+                        if (SUCCEEDED(hr))
+                        {
+                            DWORD itemCount;
+                            hr = pItemArray->GetCount(&itemCount);
+
+                            if (SUCCEEDED(hr))
+                            {
+                                for (DWORD i = 0; i < itemCount; i++)
+                                {
+                                    IShellItem *pItem;
+                                    hr = pItemArray->GetItemAt(i, &pItem);
+
+                                    if (SUCCEEDED(hr))
+                                    {
+                                        PWSTR pszFilePath;
+                                        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+                                        if (SUCCEEDED(hr))
+                                        {
+                                            filePaths.push_back(pszFilePath);
+                                            ::CoTaskMemFree(pszFilePath);
+                                        }
+
+                                        pItem->Release();
+                                    }
+                                }
+                                if (itemCount > 0)
+                                {
+                                    result = true;
+                                }
+                            }
+
+                            pItemArray->Release();
+                        }
+                    }
+                }
+
+                pFileOpen->Release();
+            }
+
+            // return filePaths;
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 选择文件 （单个文件）
+     *
+     * @param FilePath
+     * @return true
+     * @return false
+     */
+    bool SelectFile(wstring FilePath)
+    {
+        bool result = false;
+        try
+        {
+            IFileOpenDialog *pFileOpen;
+            PWSTR pszFilePath = NULL;
+
+            HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                                          IID_IFileOpenDialog, reinterpret_cast<void **>(&pFileOpen));
+            if (SUCCEEDED(hr))
+            {
+                hr = pFileOpen->Show(NULL);
+
+                // Get the file name from the dialog box.
+                if (SUCCEEDED(hr))
+                {
+                    IShellItem *pItem;
+                    hr = pFileOpen->GetResult(&pItem);
+                    if (SUCCEEDED(hr))
+                    {
+                        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                        FilePath.append(pszFilePath);
+
+                        result = true;
+                        pItem->Release();
+                    }
+                }
+                pFileOpen->Release();
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+        // return pszFilePath;
+    }
+
+    /**
+     * @brief
+     *
+     * @param FilePath
+     * @param rgSpec
+     * @return true
+     * @return false
+     */
+    bool SelectFile(wstring &FilePath, map<wstring, wstring> filtr)
+    {
+        bool result = false;
+        try
+        {
+            IFileOpenDialog *pFileOpen;
+            PWSTR pszFilePath = NULL;
+
+            HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                                          IID_IFileOpenDialog, reinterpret_cast<void **>(&pFileOpen));
+            if (SUCCEEDED(hr))
+            {
+
+                // 添加文件过滤器
+                COMDLG_FILTERSPEC *rgSpec = new COMDLG_FILTERSPEC[filtr.size()];
+                int filtr_leng = 0;
+
+                for (const auto &it : filtr)
+                {
+                    rgSpec[filtr_leng].pszName = it.first.c_str();
+                    rgSpec[filtr_leng].pszSpec = it.second.c_str();
+                    filtr_leng++;
+                }
+
+                hr = pFileOpen->SetFileTypes(filtr_leng, rgSpec);
+
+                hr = pFileOpen->Show(NULL);
+
+                // 从对话框中获取文件名
+                if (SUCCEEDED(hr))
+                {
+                    IShellItem *pItem;
+                    hr = pFileOpen->GetResult(&pItem);
+                    if (SUCCEEDED(hr))
+                    {
+                        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                        if (SUCCEEDED(hr))
+                        {
+                            FilePath = pszFilePath;
+                            result = true;
+                        }
+
+                        pItem->Release();
+                    }
+                }
+                pFileOpen->Release();
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 选择文件(多选) 外加过滤器
+     *
+     * @param FilePaths
+     * @param filtr
+     * @return true
+     * @return false
+     */
+    bool SelectFiles(vector<wstring> &FilePaths, const map<wstring, wstring> &filtr)
+    {
+        bool result = false;
+        try
+        {
+            IFileOpenDialog *pFileOpen;
+            PWSTR *pszFilePaths = NULL;
+
+            HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                                          IID_IFileOpenDialog, reinterpret_cast<void **>(&pFileOpen));
+            if (SUCCEEDED(hr))
+            {
+                // 设置文件选择模式为多选
+                DWORD dwOptions;
+                hr = pFileOpen->GetOptions(&dwOptions);
+                if (SUCCEEDED(hr))
+                {
+                    hr = pFileOpen->SetOptions(dwOptions | FOS_ALLOWMULTISELECT);
+                }
+
+                // 添加文件过滤器
+                COMDLG_FILTERSPEC *rgSpec = new COMDLG_FILTERSPEC[filtr.size()];
+                int filtr_leng = 0;
+
+                for (const auto &it : filtr)
+                {
+                    rgSpec[filtr_leng].pszName = it.first.c_str();
+                    rgSpec[filtr_leng].pszSpec = it.second.c_str();
+                    filtr_leng++;
+                }
+
+                hr = pFileOpen->SetFileTypes(filtr_leng, rgSpec);
+
+                hr = pFileOpen->Show(NULL);
+
+                // 从对话框中获取文件名
+                if (SUCCEEDED(hr))
+                {
+                    IShellItemArray *pItemArray;
+                    hr = pFileOpen->GetResults(&pItemArray);
+                    if (SUCCEEDED(hr))
+                    {
+                        DWORD count;
+                        hr = pItemArray->GetCount(&count);
+                        if (SUCCEEDED(hr))
+                        {
+                            for (DWORD i = 0; i < count; i++)
+                            {
+                                IShellItem *pItem;
+                                hr = pItemArray->GetItemAt(i, &pItem);
+                                if (SUCCEEDED(hr))
+                                {
+                                    PWSTR pszFilePath;
+                                    hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                                    if (SUCCEEDED(hr))
+                                    {
+                                        FilePaths.push_back(pszFilePath);
+                                        ::CoTaskMemFree(pszFilePath);
+                                    }
+
+                                    pItem->Release();
+                                }
+                            }
+                            result = true;
+                        }
+
+                        pItemArray->Release();
+                    }
+                }
+                pFileOpen->Release();
+                delete[] rgSpec;
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
 }
 
 #endif

@@ -1,7 +1,6 @@
 #ifndef HMC_IMPORT_WINDOW_H
 #define HMC_IMPORT_WINDOW_H
 
-
 #include <windows.h>
 #include <string>
 #include <Psapi.h>
@@ -521,8 +520,28 @@ namespace hmc_window
      *
      * @param hwnd
      */
-    void setWindowFocus(HWND hwnd)
+    bool setWindowFocus(HWND hwnd)
     {
+        bool result = false;
+
+        try
+        {
+            ShowWindow(hwnd, SW_SHOW);
+            result = (long)::GetFocus() == (long)hwnd;
+
+            if (!result)
+            {
+                result = ::setWindowFocus(hwnd);
+            }
+
+            if (!result)
+            {
+                ::SetActiveWindow(hwnd);
+            }
+        }
+        HMC_CHECK_CATCH;
+
+        return result;
     }
 
     /**
@@ -790,12 +809,43 @@ namespace hmc_window
      * @return true
      * @return false
      */
-    bool closeWindow(HWND hwnd)
+    bool closeWindow(HWND hwnd, bool destroy = false)
     {
         bool result = false;
         try
         {
-            result = ::CloseWindow(hwnd);
+            if (!destroy)
+            {
+                result = ::CloseWindow(hwnd);
+            }
+            else
+            {
+                result = DestroyWindow(hwnd);
+                // 销毁不掉  执行复杂逻辑的销毁流程
+                if (IsWindow(hwnd))
+                {
+                    CloseHandle(hwnd);
+                    result = !IsWindow(hwnd);
+                    if (!result)
+                    {
+                        DWORD lpdwThreadId = NULL;
+
+                        // 销毁不掉 销毁窗口所属的线程
+                        ::GetWindowThreadProcessId(hwnd, &lpdwThreadId);
+                        if (lpdwThreadId != NULL)
+                        {
+                            HANDLE threadHandle = ::OpenThread(THREAD_TERMINATE, FALSE, lpdwThreadId);
+                            if (threadHandle != NULL)
+                            {
+                                ::TerminateThread(threadHandle, 0);
+                                CloseHandle(threadHandle);
+                            }
+                        }
+
+                        // 还失败 用系统dll的函数销毁
+                    }
+                }
+            }
         }
         HMC_CHECK_CATCH;
         return result;
@@ -877,7 +927,6 @@ namespace hmc_window
         HWND result = NULL;
         try
         {
-            
         }
         HMC_CHECK_CATCH;
         return result;
@@ -900,7 +949,7 @@ namespace hmc_window
             ::GetModuleFileNameExA(hProcess, NULL, lpFilename, MAX_PATH);
             return setWindowIcon(hwnd, string(lpFilename), titleIcon, Icon);
         }
-    
+
         HMC_CHECK_CATCH;
         return result;
     }
