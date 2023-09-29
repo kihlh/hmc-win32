@@ -714,7 +714,7 @@ namespace hmc_window
             SetWindowsStyleEx = SetWindowsStyleEx | WS_EX_LAYERED;
             ::SetWindowLong(hwnd, GWL_EXSTYLE, SetWindowsStyleEx);
             // 设置窗口半透明度
-            ::SetLayeredWindowAttributes(hwnd, NULL, _Alpha, LWA_ALPHA);
+            ::SetLayeredWindowAttributes(hwnd, NULL, _Alpha, LWA_ALPHA | LWA_COLORKEY);
         }
         HMC_CHECK_CATCH;
         return result;
@@ -894,6 +894,53 @@ namespace hmc_window
         return result;
     }
 
+    /**
+     * @brief 发送窗口消息
+     *
+     * @param hwnd
+     * @param Msg
+     * @param wParam
+     * @param lParam
+     * @return LRESULT
+     */
+    LRESULT sendMessage(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+    {
+
+        bool result = false;
+        try
+        {
+            HINSTANCE hIn = NULL;
+            hIn = ::LoadLibraryA("user32.dll");
+            if (hIn)
+            {
+                LRESULT(WINAPI * SendMessageA)
+                (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+                SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))::GetProcAddress(hIn, "SendMessageA");
+                if (SendMessageA)
+                {
+                    return SendMessageA(hwnd, Msg, wParam, lParam);
+                }
+            }
+            else
+            {
+                return ::SendMessageA(hwnd, Msg, wParam, lParam);
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口图标为指定的icon文件
+     *
+     * @param hwnd
+     * @param iconStr
+     * @param index
+     * @param titleIcon
+     * @param Icon
+     * @return true
+     * @return false
+     */
     bool setWindowIcon(HWND hwnd, string iconStr, int index, bool titleIcon = true, bool Icon = true)
     {
         bool result = false;
@@ -931,7 +978,15 @@ namespace hmc_window
         HMC_CHECK_CATCH;
         return result;
     }
-
+    /**
+     * @brief 设置图标为当前二进制的图标
+     *
+     * @param index
+     * @param titleIcon
+     * @param Icon
+     * @return true
+     * @return false
+     */
     bool setWindowIcon(int index = 0, bool titleIcon = true, bool Icon = true)
     {
         bool result = false;
@@ -954,6 +1009,242 @@ namespace hmc_window
         return result;
     }
 
+    bool setMoveWindow(HWND hwnd, int x, int y, int w = 0, int h = 0)
+    {
+        bool result = false;
+        try
+        {
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断此窗口是否是桌面
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isDesktopWindow(HWND hwnd)
+    {
+
+        bool result = false;
+        try
+        {
+            // 获取窗口的窗口类名
+            wchar_t className[256];
+            if (GetClassNameW(hwnd, className, sizeof(className) / sizeof(className[0])) == 0)
+            {
+                // 获取窗口类名失败
+                return false;
+            }
+
+            // 检查窗口类名是否是 "Progman" 或 "WorkerW"
+            if (wcscmp(className, L"Progman") == 0 || wcscmp(className, L"WorkerW") == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 让这个窗口不可见(不可触) 但是他是活动状态的 （本人用来挂机小游戏）
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool setNotVisibleWindow(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            if (!hmc_window::isWindowVisible(hwnd))
+            {
+                return result;
+            }
+            hmc_window::setWindowTransparent(hwnd, 0);
+            hmc_window::setWindowInTaskbarVisible(hwnd, false);
+            hmc_window::setWindowEnabled(hwnd, true);
+            hmc_window::setMoveWindow(hwnd, 999999, 99999999);
+            hmc_window::setWindowTop(hwnd, true);
+            return true;
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断窗口是否最大化
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isMaximize(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            return ::IsZoomed(hwnd);
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断窗口是否最小化
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isMinimized(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            return ::IsIconic(hwnd);
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 判断窗口是否全屏中
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isFullScreen(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            // 获取窗口工作区的大小
+            RECT rect;
+            ::GetClientRect(hwnd, &rect);
+
+            // 获取屏幕分辨率
+            int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
+            int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
+
+            // 检查窗口工作区大小是否与屏幕分辨率相同
+            if (rect.right == screenWidth && rect.bottom == screenHeight)
+            {
+                return true;
+            }
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief  窗口是否处于正常状态（未最大化、未最小化、未处于全屏模式）
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isFullScreen(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            return hmc_window::isMaximize(hwnd) && hmc_window::isMinimized(hwnd) && hmc_window::isFullScreen(hwnd);
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 设置窗口到屏幕中间
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool setWindowCenter(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 获取当前激活的窗口
+     *
+     * @return HWND
+     */
+    HWND getFocusWindow()
+    {
+        HWND result = NULL;
+        try
+        {
+            return ::GetForegroundWindow();
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+
+    /**
+     * @brief 窗口是否获得焦点
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool isFocused(HWND hwnd)
+    {
+        bool result = false;
+        try
+        {
+            return (long long)hmc_window::getFocusWindow() == (long long)hwnd;
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
+    struct chWindowStatus
+    {
+    };
+
+    /**
+     * @brief 获取窗口基础信息并且深挖他所属的进程的所有句柄
+     * 
+     * @param hwnd 
+     * @return chWindowStatus 
+     */
+    chWindowStatus getWindowStatus(HWND hwnd)
+    {
+        chWindowStatus result ;
+        try
+        {
+            
+            
+        }
+
+        HMC_CHECK_CATCH;
+        return result;
+    }
 // MFC支持
 #ifdef defined(_MFC_VER)
 
