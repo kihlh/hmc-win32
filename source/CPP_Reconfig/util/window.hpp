@@ -526,14 +526,34 @@ bool setWindowEnabled(HWND hwnd, bool isEnabled = true)
     return result;
 }
 
-/**
- * @brief 窗口聚焦
- *
- * @param hwnd
- */
-void setWindowFocus(HWND hwnd)
-{
-}
+    /**
+     * @brief 窗口聚焦
+     *
+     * @param hwnd
+     */
+    bool setWindowFocus(HWND hwnd)
+    {
+        bool result = false;
+
+        try
+        {
+            ShowWindow(hwnd, SW_SHOW);
+            result = (long)::GetFocus() == (long)hwnd;
+
+            if (!result)
+            {
+                result = ::setWindowFocus(hwnd);
+            }
+
+            if (!result)
+            {
+                ::SetActiveWindow(hwnd);
+            }
+        }
+        HMC_CHECK_CATCH;
+
+        return result;
+    }
 
 /**
  * @brief 设置窗口的顶设状态
@@ -793,23 +813,54 @@ bool closedHandle(HWND hwnd)
     return result;
 }
 
-/**
- * @brief 关闭指定窗口
- *
- * @param hwnd
- * @return true
- * @return false
- */
-bool closeWindow(HWND hwnd)
-{
-    bool result = false;
-    try
+    /**
+     * @brief 关闭指定窗口
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    bool closeWindow(HWND hwnd, bool destroy = false)
     {
-        result = ::CloseWindow(hwnd);
+        bool result = false;
+        try
+        {
+            if (!destroy)
+            {
+                result = ::CloseWindow(hwnd);
+            }
+            else
+            {
+                result = DestroyWindow(hwnd);
+                // 销毁不掉  执行复杂逻辑的销毁流程
+                if (IsWindow(hwnd))
+                {
+                    CloseHandle(hwnd);
+                    result = !IsWindow(hwnd);
+                    if (!result)
+                    {
+                        DWORD lpdwThreadId = NULL;
+
+                        // 销毁不掉 销毁窗口所属的线程
+                        ::GetWindowThreadProcessId(hwnd, &lpdwThreadId);
+                        if (lpdwThreadId != NULL)
+                        {
+                            HANDLE threadHandle = ::OpenThread(THREAD_TERMINATE, FALSE, lpdwThreadId);
+                            if (threadHandle != NULL)
+                            {
+                                ::TerminateThread(threadHandle, 0);
+                                CloseHandle(threadHandle);
+                            }
+                        }
+
+                        // 还失败 用系统dll的函数销毁
+                    }
+                }
+            }
+        }
+        HMC_CHECK_CATCH;
+        return result;
     }
-    HMC_CHECK_CATCH;
-    return result;
-}
 
 /**
  * @brief 设置窗口图标
