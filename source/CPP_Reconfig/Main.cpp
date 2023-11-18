@@ -15,6 +15,7 @@ static napi_value getProcessList(napi_env env, napi_callback_info info)
     {
         return NULL;
     }
+    return NULL;
 }
 
 static napi_value Init(napi_env env, napi_value exports)

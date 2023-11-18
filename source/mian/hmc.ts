@@ -47,6 +47,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
+            findAllWindow:fnAnyArr,
             _popen: fnStr,
             popen: fnStr,
             createMutex: fnBool,
@@ -214,6 +215,9 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getenv: fnStr,
             getUDPPortProcessID: fnNull,
             putenv: fnVoid,
+            findWindowEx:fnNull,
+            findWindow:fnNull,
+
         }
     })();
     return Native;
@@ -1380,7 +1384,31 @@ export module HMC {
          * 获取变量环境
          */
         getAllEnv(): { [key: string]: string };
-
+        
+        /**
+         * 通过标题或类名搜索所有窗口句柄
+         * @param className 类名
+         * @param titleName 标题
+         * @param isWindow 是否要求为窗口(忽略子组件) 默认 true
+         * @param isCaseSensitive 忽略区分大小写 默认 true
+         */
+        findAllWindow(className: string | null, titleName: string | null, isWindow: boolean | null, isCaseSensitive: boolean | null):number[];
+        
+        /**
+         * 通过标题或类名搜索窗口句柄
+         * @param className 类名
+         * @param titleName 标题
+         */
+        findWindow(className?: string | null, titleName?: string | null):number|null;
+        
+        /**
+         * 搜索窗口或子窗口
+         * @param hWndParent 父窗口
+         * @param hWndChildAfter 下級窗口 
+         * @param className 类名
+         * @param titleName 标题
+         */
+        findWindowEx(hWndParent: number | null, hWndChildAfter: number | null, className: string | null, titleName: string | null): number | null;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -1818,14 +1846,13 @@ export function setWindowMode(HWND: HWND | number, x: number | null | 0 | HMC.RE
         if (SetWindowRect.width) width = SetWindowRect.width;
         if (SetWindowRect.height) height = SetWindowRect.height;
     }
-    if (!x) x = 0;
-    if (!y) x = 0;
+    
     if (!width) width = 0;
     if (!height) height = 0;
     return native.setWindowMode(
         ref.int(HWND),
-        ref.int(x),
-        ref.int(y),
+        x == null ? null : ref.int(x),
+        y == null ? null : ref.int(y),
         ref.int(width),
         ref.int(height)
     );
@@ -3553,12 +3580,12 @@ export function setCursorPos(x: number, y: number) {
 export function setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string | string[], iShowCmd: number, icon: string, iconIndex: number): boolean;
 export function setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string | string[], iShowCmd?: number): boolean;
 export function setShortcutLink(LnkPath: string, FilePath: string): boolean;
-export function setShortcutLink(LnkPath: string, Shortcut: SHORTCUT_LINK): boolean;
+export function setShortcutLink(LnkPath: string, Shortcut: HMC.SHORTCUT_LINK): boolean;
 export function setShortcutLink(...args: unknown[]): boolean {
     if (args.length < 2) throw new Error("not LnkPath and FilePath arguments");
     
     if(typeof args[1] == "object"){
-        const shortcutData =  args[1]||{};
+        const shortcutData = (args[1] || {}) as HMC.SHORTCUT_LINK;
         args[1] = shortcutData.path||"";
         args[2] = shortcutData.cwd||"";
         args[3] = shortcutData.desc||"";
@@ -3708,17 +3735,17 @@ export function getAllWindows(isWindows: boolean,initialize: boolean) {
     let AllWindows: HMC.GET_ALL_WINDOWS_INFO[] = [];
     for (let index = 0; index < AllWindowsHandle.length; index++) {
         const handle = AllWindowsHandle[index];
-        const WINDOWS_INFO:HMC.GET_ALL_WINDOWS_INFO = (new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO;
+        const WINDOWS_INFO_ITEM:HMC.GET_ALL_WINDOWS_INFO = (new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO;
         if(initialize){
              AllWindows.push({
-                handle:WINDOWS_INFO.handle,
-                className:WINDOWS_INFO.className,
-                rect:WINDOWS_INFO.rect,
-                style:WINDOWS_INFO.style,
-                title:WINDOWS_INFO.title
+                 handle: WINDOWS_INFO_ITEM.handle,
+                 className: WINDOWS_INFO_ITEM.className,
+                 rect: WINDOWS_INFO_ITEM.rect,
+                 style: WINDOWS_INFO_ITEM.style,
+                 title: WINDOWS_INFO_ITEM.title
              });
         }else{
-             AllWindows.push(WINDOWS_INFO);
+            AllWindows.push(WINDOWS_INFO_ITEM);
         }
        
     }
@@ -4589,6 +4616,7 @@ export function setWindowIconForExtract(handle: number, Extract: string, index: 
 export function captureBmpToFile(FilePath: string, x: number | null, y: number | null, width: number | null, height: number | null) {
     native.captureBmpToFile(ref.string(FilePath), ref.int(x || 0), ref.int(y || 0), ref.int(width || 0), ref.int(height || 0))
 }
+
 /**
  * 发送键盘事件
  * @param keyCode 键值
@@ -5265,8 +5293,55 @@ export function getTCPPortProcessID(Port: number) {
      return pid?pid:null
 }
 
+// /**
+//  * 通过标题或类名搜索所有窗口句柄
+//  * @param className 类名
+//  * @param titleName 标题
+//  * @param isWindow 是否要求为窗口(忽略子组件) 默认 true
+//  * @param isCaseSensitive 忽略区分大小写 默认 true
+//  */
+// export function findAllWindow(className: string | null, titleName?: string | null, isWindow?: boolean | null, isCaseSensitive?: boolean | null): number[]{
+//     return native.findAllWindow(
+//         typeof className == "string" ? ref.string(className):null, 
+//         typeof titleName == "string" ? ref.string(titleName) : null, 
+//         typeof isWindow == "boolean" ? isWindow:null, 
+//         typeof isCaseSensitive == "boolean" ? isCaseSensitive : null,
+//         );
+// }
+
+/**
+ * 通过标题或类名搜索窗口句柄
+ * @param className 类名
+ * @param titleName 标题
+ */
+export function findWindow(className ?: string | null, titleName ?: string | null): number | null{
+    return native.findWindow(
+        typeof className == "string" ? ref.string(className) : null,
+        typeof titleName == "string" ? ref.string(titleName) : null,
+    );
+}
+
+/**
+ * 搜索窗口或子窗口
+ * @param hWndParent 父窗口
+ * @param hWndChildAfter 下級窗口 
+ * @param className 类名
+ * @param titleName 标题
+ */
+export function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: number | null | HWND, className: string | null, titleName: string | null): number | null{
+    return native.findWindowEx(
+        !!hWndParent ? ref.int(className) : null,
+        !!hWndChildAfter ? ref.int(titleName) : null,
+        typeof className == "string" ? ref.string(className) : null,
+        typeof titleName == "string" ? ref.string(titleName) : null,
+    );
+}
+
+
 export const Registr = registr;
 export const hmc = {
+    findWindowEx,
+    findWindow,
     getAllEnv,
     getenv,
     getUDPPortProcessID,

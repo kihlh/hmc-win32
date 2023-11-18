@@ -984,6 +984,75 @@ namespace hmc_napi_util
                 return false;
             }
         }
+        bool isBuffer(napi_env env, napi_value value)
+        {
+            bool isBuffer;
+            napi_is_buffer(env, value, &isBuffer);
+            return isBuffer;
+        }
+
+        bool isString(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_string;
+        }
+
+        bool isNumber(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_number;
+        }
+
+        bool isBoolean(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_boolean;
+        }
+
+        bool isBigint(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_bigint;
+        }
+
+        bool isFunction(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_function;
+        }
+
+        bool isObject(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_object;
+        }
+
+        bool isUndefined(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_undefined;
+        }
+
+        bool isNull(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_null;
+        }
+
+        bool isExternal(napi_env env, napi_value value)
+        {
+            napi_valuetype type;
+            napi_typeof(env, value, &type);
+            return type == napi_external;
+        }
     }
 
     namespace get_value
@@ -1527,6 +1596,7 @@ namespace hmc_napi_util
             HWND result = (HWND)number_int64(env, nodeValue);
             return result;
         }
+
         /**
          * @brief 获取buff
          *
@@ -1534,31 +1604,54 @@ namespace hmc_napi_util
          * @param nodeValue
          * @param buffer
          */
-        void buffer_vector(napi_env env, napi_value nodeValue, vector<unsigned char> &buffer)
+        template <typename T>
+        void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer)
         {
             try
             {
                 napi_status status;
-                char *data;
+                T *dataPtr;
                 size_t len;
-                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&data), &len);
+                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&dataPtr), &len);
                 if (status != napi_ok)
                     return;
                 // buffer.resize(len);
-                buffer.insert(buffer.begin(), data, data + len);
+                buffer.insert(buffer.begin(), dataPtr, dataPtr + len);
             }
             catch (const std::exception &e)
             {
-                if (_hmc_debug)
-                {
-                }
             }
         }
+
         vector<unsigned char> buffer_vector(napi_env env, napi_value nodeValue)
         {
             vector<unsigned char> buffer;
-            buffer_vector(env, nodeValue, buffer);
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
             return buffer;
+        }
+
+        wstring buffer_utf16_buffer_strW(napi_env env, napi_value nodeValue)
+        {
+            vector<wchar_t> buffer;
+            buffer_vector<wchar_t>(env, nodeValue, buffer);
+            std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
+            return wideString;
+        }
+
+        string buffer_ansi_buffer_strA(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string ansiString(buffer.begin(), buffer.end());
+            return ansiString;
+        }
+
+        string buffer_utf8_buffer_strU8(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string utf8String(buffer.begin(), buffer.end());
+            return utf8String;
         }
     };
 

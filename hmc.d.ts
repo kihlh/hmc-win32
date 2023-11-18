@@ -470,6 +470,7 @@ export declare module HMC {
         setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string, iShowCmd: number, icon: string, iconIndex: number): boolean;
         setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string, iShowCmd?: number): boolean;
         setShortcutLink(LnkPath: string, FilePath: string): boolean;
+        setShortcutLink(LnkPath: string, Shortcut: SHORTCUT_LINK): boolean;
         /**
          * 创建快捷方式
          * @param LnkPath 快捷方式位置
@@ -999,6 +1000,28 @@ export declare module HMC {
         getAllEnv(): {
             [key: string]: string;
         };
+        /**
+         * 通过标题或类名搜索所有窗口句柄
+         * @param className 类名
+         * @param titleName 标题
+         * @param isWindow 是否要求为窗口(忽略子组件) 默认 true
+         * @param isCaseSensitive 忽略区分大小写 默认 true
+         */
+        findAllWindow(className: string | null, titleName: string | null, isWindow: boolean | null, isCaseSensitive: boolean | null): number[];
+        /**
+         * 通过标题或类名搜索窗口句柄
+         * @param className 类名
+         * @param titleName 标题
+         */
+        findWindow(className?: string | null, titleName?: string | null): number | null;
+        /**
+         * 搜索窗口或子窗口
+         * @param hWndParent 父窗口
+         * @param hWndChildAfter 下級窗口
+         * @param className 类名
+         * @param titleName 标题
+         */
+        findWindowEx(hWndParent: number | null, hWndChildAfter: number | null, className: string | null, titleName: string | null): number | null;
     };
     export type ProcessHandle = {
         handle: number;
@@ -2165,6 +2188,7 @@ export declare function setCursorPos(x: number, y: number): boolean;
 export declare function setShortcutLink(LnkPath: string, FilePath: string, work_dir: string, desc: string, args: string | string[], iShowCmd: number, icon: string, iconIndex: number): boolean;
 export declare function setShortcutLink(LnkPath: string, FilePath: string, work_dir?: string, desc?: string, args?: string | string[], iShowCmd?: number): boolean;
 export declare function setShortcutLink(LnkPath: string, FilePath: string): boolean;
+export declare function setShortcutLink(LnkPath: string, Shortcut: HMC.SHORTCUT_LINK): boolean;
 /**
  * 创建文件软链接
  * @param LinkPath 创建的位置
@@ -2210,7 +2234,7 @@ export declare function systemStartTime(): number;
 /**
 * 获取所有窗口的信息
 **/
-export declare function getAllWindows(isWindows: boolean): HMC.GET_ALL_WINDOWS_INFO[];
+export declare function getAllWindows(isWindows: boolean, initialize: boolean): HMC.GET_ALL_WINDOWS_INFO[];
 /**
  * 检索指定窗口所属的类的名称
  * @param Handle 句柄
@@ -3002,6 +3026,20 @@ export declare function putenv(key: string, data: string | string[]): void;
  * @returns
  */
 export declare function getTCPPortProcessID(Port: number): number | null;
+/**
+ * 通过标题或类名搜索窗口句柄
+ * @param className 类名
+ * @param titleName 标题
+ */
+export declare function findWindow(className?: string | null, titleName?: string | null): number | null;
+/**
+ * 搜索窗口或子窗口
+ * @param hWndParent 父窗口
+ * @param hWndChildAfter 下級窗口
+ * @param className 类名
+ * @param titleName 标题
+ */
+export declare function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: number | null | HWND, className: string | null, titleName: string | null): number | null;
 export declare const Registr: {
     /**
      * 直达路径解析
@@ -3215,6 +3253,8 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    findWindowEx: typeof findWindowEx;
+    findWindow: typeof findWindow;
     getAllEnv: typeof getAllEnv;
     getenv: typeof getenv;
     getUDPPortProcessID: typeof getUDPPortProcessID;

@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "HMC_x64",
+      "target_name": "hmc_bin",
       "conditions": [
         ['OS=="win"', {
           "sources": [

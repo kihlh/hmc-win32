@@ -1491,31 +1491,113 @@ namespace hmc_napi_util
          * @param nodeValue
          * @param buffer
          */
-        void buffer_vector(napi_env env, napi_value nodeValue, vector<unsigned char> &buffer)
+        template <typename T>
+        void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer)
         {
             try
             {
                 napi_status status;
-                char *data;
+                T *dataPtr;
                 size_t len;
-                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&data), &len);
+                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&dataPtr), &len);
                 if (status != napi_ok)
                     return;
                 // buffer.resize(len);
-                buffer.insert(buffer.begin(), data, data + len);
+                buffer.insert(buffer.begin(), dataPtr, dataPtr + len);
             }
             catch (const std::exception &e)
             {
-                if (_hmc_debug)
-                {
-                }
             }
         }
+
         vector<unsigned char> buffer_vector(napi_env env, napi_value nodeValue)
         {
             vector<unsigned char> buffer;
-            buffer_vector(env, nodeValue, buffer);
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
             return buffer;
+        }
+
+        wstring buffer_utf16_buffer_strW(napi_env env, napi_value nodeValue)
+        {
+            vector<wchar_t> buffer;
+            buffer_vector<wchar_t>(env, nodeValue, buffer);
+            std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
+            return wideString;
+        }
+
+        string buffer_ansi_buffer_strA(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string ansiString(buffer.begin(), buffer.end());
+            return ansiString;
+        }
+
+        string buffer_utf8_buffer_strU8(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string utf8String(buffer.begin(), buffer.end());
+            return utf8String;
+        }
+
+        LPCWSTR buffer_utf16_buffer_lpStrW(napi_env env, napi_value nodeValue)
+        {
+            vector<wchar_t> buffer;
+            buffer_vector<wchar_t>(env, nodeValue, buffer);
+            std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
+            wchar_t *utf16Ptr = new wchar_t[wideString.size() + sizeof(wchar_t)];
+
+            for (size_t i = 0; i < wideString.size(); i++)
+            {
+                char data = wideString[i];
+                utf16Ptr[i] = data;
+            }
+            const int end = wideString.size();
+
+            utf16Ptr[end] = *L"\0";
+
+            return utf16Ptr;
+        }
+
+        LPCSTR buffer_utf8_buffer_lpStrU8(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string utf8String(buffer.begin(), buffer.end());
+
+            char *utf8Ptr = new char[utf8String.size() + sizeof(char)];
+
+            for (size_t i = 0; i < utf8String.size(); i++)
+            {
+                char data = utf8String[i];
+                utf8Ptr[i] = data;
+            }
+            const int end = utf8String.size();
+
+            utf8Ptr[end] = *"\0";
+
+            return utf8Ptr;
+        }
+
+        LPCSTR buffer_ansi_buffer_lpStrA(napi_env env, napi_value nodeValue)
+        {
+            vector<unsigned char> buffer;
+            buffer_vector<unsigned char>(env, nodeValue, buffer);
+            std::string ansiString(buffer.begin(), buffer.end());
+
+            char *ansiPtr = new char[ansiString.size() + sizeof(char)];
+
+            for (size_t i = 0; i < ansiString.size(); i++)
+            {
+                char data = ansiString[i];
+                ansiPtr[i] = data;
+            }
+            const int end = ansiString.size();
+
+            ansiPtr[end] = *"\0";
+
+            return ansiPtr;
         }
     };
 

@@ -1118,18 +1118,18 @@ namespace hmc_process
         CloseHandle(hSnap);
     }
 
-    /**
-     * @brief 树枚举所以进程结构
-     *
-     * @return json
-     */
-    json treeAllProcessJson()
-    {
-        json result;
-        result.array();
-        // 未编写
-        return result;
-    }
+    // /**
+    //  * @brief 树枚举所以进程结构
+    //  *
+    //  * @return json
+    //  */
+    // json treeAllProcessJson()
+    // {
+    //     json result;
+    //     result.array();
+    //     // 未编写
+    //     return result;
+    // }
     /**
      * @brief 获取指定进程的命令行内容
      *

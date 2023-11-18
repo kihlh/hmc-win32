@@ -207,6 +207,8 @@ __export(hmc_exports, {
   enumChildWindows: () => enumChildWindows,
   enumProcessHandle: () => enumProcessHandle,
   enumRegistrKey: () => enumRegistrKey,
+  findWindow: () => findWindow,
+  findWindowEx: () => findWindowEx,
   formatVolumePath: () => formatVolumePath,
   freePort: () => freePort,
   getAllEnv: () => getAllEnv,
@@ -763,6 +765,7 @@ var get_native = (binPath) => {
       return [];
     }
     return {
+      findAllWindow: fnAnyArr,
       _popen: fnStr,
       popen: fnStr,
       createMutex: fnBool,
@@ -939,7 +942,9 @@ var get_native = (binPath) => {
       getTCPPortProcessID: fnNull,
       getenv: fnStr,
       getUDPPortProcessID: fnNull,
-      putenv: fnVoid
+      putenv: fnVoid,
+      findWindowEx: fnNull,
+      findWindow: fnNull
     };
   })();
   return Native;
@@ -1397,18 +1402,14 @@ function setWindowMode(HWND2, x, y, width, height) {
     if (SetWindowRect.height)
       height = SetWindowRect.height;
   }
-  if (!x)
-    x = 0;
-  if (!y)
-    x = 0;
   if (!width)
     width = 0;
   if (!height)
     height = 0;
   return native.setWindowMode(
     ref.int(HWND2),
-    ref.int(x),
-    ref.int(y),
+    x == null ? null : ref.int(x),
+    y == null ? null : ref.int(y),
     ref.int(width),
     ref.int(height)
   );
@@ -2381,7 +2382,7 @@ async function Sleep(awaitTime, Sync) {
 function systemStartTime() {
   return native.systemStartTime();
 }
-function getAllWindows(isWindows) {
+function getAllWindows(isWindows, initialize) {
   class WINDOWS_INFO {
     constructor(handle) {
       this.handle = handle;
@@ -2411,7 +2412,18 @@ function getAllWindows(isWindows) {
   let AllWindows = [];
   for (let index = 0; index < AllWindowsHandle.length; index++) {
     const handle = AllWindowsHandle[index];
-    AllWindows.push(new WINDOWS_INFO(handle));
+    const WINDOWS_INFO_ITEM = new WINDOWS_INFO(handle);
+    if (initialize) {
+      AllWindows.push({
+        handle: WINDOWS_INFO_ITEM.handle,
+        className: WINDOWS_INFO_ITEM.className,
+        rect: WINDOWS_INFO_ITEM.rect,
+        style: WINDOWS_INFO_ITEM.style,
+        title: WINDOWS_INFO_ITEM.title
+      });
+    } else {
+      AllWindows.push(WINDOWS_INFO_ITEM);
+    }
   }
   return AllWindows;
 }
@@ -3505,8 +3517,24 @@ function getTCPPortProcessID(Port) {
   let pid = native.getTCPPortProcessID(ref.int(Port));
   return pid ? pid : null;
 }
+function findWindow(className, titleName) {
+  return native.findWindow(
+    typeof className == "string" ? ref.string(className) : null,
+    typeof titleName == "string" ? ref.string(titleName) : null
+  );
+}
+function findWindowEx(hWndParent, hWndChildAfter, className, titleName) {
+  return native.findWindowEx(
+    !!hWndParent ? ref.int(className) : null,
+    !!hWndChildAfter ? ref.int(titleName) : null,
+    typeof className == "string" ? ref.string(className) : null,
+    typeof titleName == "string" ? ref.string(titleName) : null
+  );
+}
 var Registr = registr;
 var hmc = {
+  findWindowEx,
+  findWindow,
   getAllEnv,
   getenv,
   getUDPPortProcessID,
@@ -3730,6 +3758,8 @@ process.on("exit", function() {
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
+  findWindow,
+  findWindowEx,
   formatVolumePath,
   freePort,
   getAllEnv,

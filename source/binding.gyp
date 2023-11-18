@@ -1,21 +1,21 @@
 {
   "targets": [
     {
-      "target_name": "HMC_x64",
-      # "target_name": "HMC_x86",
+      # "target_name": "HMC_x64",
+      "target_name": "HMC_x86",
       "conditions": [
         ['OS=="win"', {
           "sources": [
-            "Main.cpp",
-            "test.cpp",
-            "usb.cpp",
-            "util.cpp",
-            "clip.cpp",
-            "registr.cpp",
-            "auto.cpp",
-            "windows.cpp",
-            "process.cpp",
-            "screen.cpp"
+            "./CPP/Main.cpp",
+            "./CPP/test.cpp",
+            "./CPP/usb.cpp",
+            "./CPP/util.cpp",
+            "./CPP/clip.cpp",
+            "./CPP/registr.cpp",
+            "./CPP/auto.cpp",
+            "./CPP/windows.cpp",
+            "./CPP/process.cpp",
+            "./CPP/screen.cpp"
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {
