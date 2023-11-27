@@ -23,7 +23,7 @@ void asyncLowLevelKeyboardProc(KBDLLHOOKSTRUCT *ks)
     {
         vector<int> push = {vkCode, i_is_Down};
         // 监控键盘
-        // cout << (ks->vkCode) << "->" << is_Down << endl;
+        cout << (ks->vkCode) << "->" << is_Down << endl;
         oid_is_key_Down = i_is_Down;
         oid_is_key_vkCode = vkCode;
         KeyboardRecordList.push_back(push);
@@ -46,7 +46,7 @@ LRESULT CALLBACK LowLevelKeyboardProc(_In_ int nCode, _In_ WPARAM wParam, _In_ L
 
 int oid_MouseRecord_x = 0;
 int oid_MouseRecord_y = 0;
-int oid_MouseRecord_isDown = 0;
+int oid_MouseRecord_change_key = 0x0200;
 clock_t MouseRecord_update_time = clock();
 
 void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
@@ -54,7 +54,10 @@ void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
 
     int x = 0;
     int y = 0;
-    int isDown = wParam == WM_LBUTTONDOWN ? 1 : 0;
+    int theMouseRecord_change_key = 0x0200;
+
+    theMouseRecord_change_key = (int)wParam;
+
     if (ms->pt.x > 0 && ms->pt.x < 400000000)
     {
         x = ms->pt.x;
@@ -65,9 +68,10 @@ void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
     }
 
     // 降低反馈的刷新激进程度 为每次相距10px以上（且间隔15ms）  或者有松放变化 或者超过45ms 数据无变化时拒绝反馈
+    // 滚轮变化不降反馈
     clock_t end = clock();
 
-    if (x != oid_MouseRecord_x && y != oid_MouseRecord_y || isDown != oid_MouseRecord_isDown)
+    if (x != oid_MouseRecord_x && y != oid_MouseRecord_y || theMouseRecord_change_key ==522 || theMouseRecord_change_key != oid_MouseRecord_change_key)
         if (
             // 间隔大于45ms
             (end - MouseRecord_update_time > 45) ||
@@ -76,16 +80,17 @@ void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
               (y - oid_MouseRecord_y > 10 || y - oid_MouseRecord_y > -10)) &&
              end - MouseRecord_update_time > 15) ||
             // 按键按下或者取消有变化
-            isDown != oid_MouseRecord_isDown)
+            theMouseRecord_change_key != oid_MouseRecord_change_key)
         {
 
             // 监控鼠标
-            vector<int> push = {x, y, isDown};
+            vector<int> push = {x, y, theMouseRecord_change_key};
+            
             MouseRecordList.push_back(push);
             MouseRecord_update_time = clock();
             oid_MouseRecord_x = x;
             oid_MouseRecord_y = y;
-            oid_MouseRecord_isDown = isDown;
+            oid_MouseRecord_change_key = theMouseRecord_change_key;
         }
     // cout << x << "-" << y << "-" << isDown << endl;
     // 将消息传递给钩子链中的下一个钩子
@@ -850,18 +855,22 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     WORD _shiftKey = 160;
     WORD _winKey = 91;
     WORD _altKey = 164;
-    
-    if(!ctrlKey)_ctrlKey=NULL;
-    if(!shiftKey)_shiftKey=NULL;
-    if(!winKey)_winKey=NULL;
-    if(!altKey)_altKey=NULL;
+
+    if (!ctrlKey)
+        _ctrlKey = NULL;
+    if (!shiftKey)
+        _shiftKey = NULL;
+    if (!winKey)
+        _winKey = NULL;
+    if (!altKey)
+        _altKey = NULL;
 
     if (keyCode > 9999 || keyCode < 0)
     {
         napi_throw_type_error(env, 0, "The number of parameters >9999 and <0 ");
     }
     const int hp_size = int(ctrlKey) + int(shiftKey) + int(altKey) + int(winKey);
- 
+
     switch (hp_size)
     {
     case 0:
@@ -902,8 +911,12 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     {
         INPUT inputs[6] = {};
         ZeroMemory(inputs, sizeof(inputs));
-        WORD BasicKeys_wVk2 = _altKey?_altKey:_winKey?_winKey:_shiftKey?_shiftKey:_ctrlKey;
-        WORD BasicKeys_wVk1 = _ctrlKey?_ctrlKey:_shiftKey?_shiftKey:_winKey?_winKey:_altKey;
+        WORD BasicKeys_wVk2 = _altKey ? _altKey : _winKey ? _winKey
+                                              : _shiftKey ? _shiftKey
+                                                          : _ctrlKey;
+        WORD BasicKeys_wVk1 = _ctrlKey ? _ctrlKey : _shiftKey ? _shiftKey
+                                                : _winKey     ? _winKey
+                                                              : _altKey;
         inputs[0].type = INPUT_KEYBOARD;
         inputs[0].ki.wVk = BasicKeys_wVk2;
 
@@ -936,10 +949,14 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     {
         INPUT inputs[8] = {};
         ZeroMemory(inputs, sizeof(inputs));
-        WORD BasicKeys_wVk1 = _ctrlKey?_ctrlKey:_shiftKey?_shiftKey:_winKey?_winKey:_altKey;
-        WORD BasicKeys_wVk2 = _altKey?_altKey:_winKey?_winKey:_shiftKey?_shiftKey:_ctrlKey;
-        WORD BasicKeys_wVk3 = _winKey?_winKey:_shiftKey;
-        
+        WORD BasicKeys_wVk1 = _ctrlKey ? _ctrlKey : _shiftKey ? _shiftKey
+                                                : _winKey     ? _winKey
+                                                              : _altKey;
+        WORD BasicKeys_wVk2 = _altKey ? _altKey : _winKey ? _winKey
+                                              : _shiftKey ? _shiftKey
+                                                          : _ctrlKey;
+        WORD BasicKeys_wVk3 = _winKey ? _winKey : _shiftKey;
+
         inputs[0].type = INPUT_KEYBOARD;
         inputs[0].ki.wVk = BasicKeys_wVk2;
 
@@ -1027,4 +1044,3 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     results = _create_bool_Boolean(env, true);
     return results;
 }
-

@@ -1190,6 +1190,29 @@ var HWND = class extends Number {
 var HMC;
 ((HMC2) => {
   ;
+  let MouseKey;
+  ((MouseKey2) => {
+    MouseKey2[MouseKey2["WM_MOUSEMOVE"] = 512] = "WM_MOUSEMOVE";
+    MouseKey2[MouseKey2["WM_LBUTTONDOWN"] = 513] = "WM_LBUTTONDOWN";
+    MouseKey2[MouseKey2["WM_RBUTTONDOWN"] = 516] = "WM_RBUTTONDOWN";
+    MouseKey2[MouseKey2["WM_LBUTTONUP"] = 514] = "WM_LBUTTONUP";
+    MouseKey2[MouseKey2["WM_RBUTTONUP"] = 517] = "WM_RBUTTONUP";
+    MouseKey2[MouseKey2["WM_MBUTTONDOWN"] = 519] = "WM_MBUTTONDOWN";
+    MouseKey2[MouseKey2["WM_MBUTTONUP"] = 520] = "WM_MBUTTONUP";
+    MouseKey2[MouseKey2["WM_MOUSEWHEEL"] = 522] = "WM_MOUSEWHEEL";
+  })(MouseKey = HMC2.MouseKey || (HMC2.MouseKey = {}));
+  let MouseKeyName;
+  ((MouseKeyName2) => {
+    MouseKeyName2["UNKNOWN"] = "unknown";
+    MouseKeyName2["WM_LBUTTONDOWN"] = "left-button-down";
+    MouseKeyName2["WM_RBUTTONDOWN"] = "right-button-down";
+    MouseKeyName2["WM_LBUTTONUP"] = "left-button-up";
+    MouseKeyName2["WM_RBUTTONUP"] = "right-button-up";
+    MouseKeyName2["WM_MBUTTONDOWN"] = "mouse-button-down";
+    MouseKeyName2["WM_MBUTTONUP"] = "mouse-button-up";
+    MouseKeyName2["WM_MOUSEWHEEL"] = "mouse-wheel";
+    MouseKeyName2["WM_MOUSEMOVE"] = "move";
+  })(MouseKeyName = HMC2.MouseKeyName || (HMC2.MouseKeyName = {}));
 })(HMC || (HMC = {}));
 var ref = {
   /**
@@ -2736,7 +2759,43 @@ var MousePoint = class {
     const data = str.split("|");
     this.x = Number(data[0]);
     this.y = Number(data[1]);
-    this.isDown = Number(data[2]) ? true : false;
+    this.mouseKeyCode = Number(data[2]);
+    this.event = "unknown" /* UNKNOWN */;
+    this.isDown = ((key = this.mouseKeyCode) => {
+      switch (key) {
+        case 513 /* WM_LBUTTONDOWN */:
+          this.event = "left-button-down" /* WM_LBUTTONDOWN */;
+          break;
+        case 516 /* WM_RBUTTONDOWN */:
+          this.event = "right-button-down" /* WM_RBUTTONDOWN */;
+          break;
+        case 519 /* WM_MBUTTONDOWN */:
+          this.event = "mouse-button-down" /* WM_MBUTTONDOWN */;
+          break;
+        case 514 /* WM_LBUTTONUP */:
+          this.event = "left-button-up" /* WM_LBUTTONUP */;
+          break;
+        case 517 /* WM_RBUTTONUP */:
+          this.event = "right-button-up" /* WM_RBUTTONUP */;
+          break;
+        case 520 /* WM_MBUTTONUP */:
+          this.event = "mouse-button-up" /* WM_MBUTTONUP */;
+          break;
+        case 522 /* WM_MOUSEWHEEL */:
+          this.event = "mouse-wheel" /* WM_MOUSEWHEEL */;
+          break;
+        case 512 /* WM_MOUSEMOVE */:
+          this.event = "move" /* WM_MOUSEMOVE */;
+          break;
+      }
+      switch (key) {
+        case 513 /* WM_LBUTTONDOWN */:
+        case 516 /* WM_RBUTTONDOWN */:
+        case 519 /* WM_MBUTTONDOWN */:
+          return true;
+      }
+      return false;
+    })();
   }
   /**
    * 鼠标左键按下
@@ -2863,14 +2922,18 @@ var Iohook_Mouse = class {
       data: [],
       mouse: [],
       start: [],
-      move: []
+      move: [],
+      button: [],
+      wheel: []
     };
     this._oncelistenerCountList = {
       close: [],
       data: [],
       mouse: [],
       start: [],
-      move: []
+      move: [],
+      button: [],
+      wheel: []
     };
     this._Close = false;
   }
@@ -2926,6 +2989,19 @@ var Iohook_Mouse = class {
           const MouseNextSession = getMouseNextSession[index];
           const mousePoint = new MousePoint(MouseNextSession);
           mouseHook.emit("mouse", mousePoint);
+          if ([
+            513 /* WM_LBUTTONDOWN */,
+            514 /* WM_LBUTTONUP */,
+            519 /* WM_MBUTTONDOWN */,
+            520 /* WM_MBUTTONUP */,
+            516 /* WM_RBUTTONDOWN */,
+            517 /* WM_RBUTTONUP */
+          ].includes(mousePoint.mouseKeyCode)) {
+            mouseHook.emit("button", mousePoint.event, mousePoint);
+          }
+          if ([522 /* WM_MOUSEWHEEL */].includes(mousePoint.mouseKeyCode)) {
+            mouseHook.emit("wheel", mousePoint);
+          }
           if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
             mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
           }
@@ -2955,11 +3031,15 @@ var Iohook_Mouse = class {
     mouseHook._oncelistenerCountList.mouse.length = 0;
     mouseHook._oncelistenerCountList.move.length = 0;
     mouseHook._oncelistenerCountList.start.length = 0;
+    mouseHook._oncelistenerCountList.button.length = 0;
+    mouseHook._oncelistenerCountList.wheel.length = 0;
     mouseHook._onlistenerCountList.close.length = 0;
     mouseHook._onlistenerCountList.data.length = 0;
     mouseHook._onlistenerCountList.mouse.length = 0;
     mouseHook._onlistenerCountList.move.length = 0;
     mouseHook._onlistenerCountList.start.length = 0;
+    mouseHook._onlistenerCountList.button.length = 0;
+    mouseHook._onlistenerCountList.wheel.length = 0;
   }
   emit(eventName, ...data) {
     const emitFunList = mouseHook._onlistenerCountList[eventName];

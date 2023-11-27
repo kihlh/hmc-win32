@@ -618,6 +618,46 @@ export module HMC {
     // 注册表根目录
     export type HKEY = keyof typeof Hkey;
 
+    // 鼠标按钮变化
+    export enum MouseKey {
+        WM_MOUSEMOVE = 512,
+        // 左键按下
+        WM_LBUTTONDOWN = 0x0201,
+        // 右键按下
+        WM_RBUTTONDOWN = 0x0204,
+        // 左键释放
+        WM_LBUTTONUP = 0x0202,
+        // 右键释放
+        WM_RBUTTONUP = 0x0205,
+        // 中键按下
+        WM_MBUTTONDOWN = 0x0207,
+        // 中键释放
+        WM_MBUTTONUP = 0x0208,
+        // 滚轮
+        WM_MOUSEWHEEL = 522,
+    }
+
+    // 鼠标按钮变化
+    export enum MouseKeyName {
+        UNKNOWN = "unknown",
+        // 左键按下
+        WM_LBUTTONDOWN = "left-button-down",
+        // 右键按下
+        WM_RBUTTONDOWN = "right-button-down",
+        // 左键释放
+        WM_LBUTTONUP = "left-button-up",
+        // 右键释放
+        WM_RBUTTONUP = "right-button-up",
+        // 中键按下
+        WM_MBUTTONDOWN = "mouse-button-down",
+        // 中键释放
+        WM_MBUTTONUP = "mouse-button-up",
+        // 滚轮向上
+        WM_MOUSEWHEEL = "mouse-wheel",
+        // 鼠标移动
+        WM_MOUSEMOVE = "move"
+    }
+
     // 传回的位置信息
     export interface Rect {
         /**
@@ -1222,7 +1262,7 @@ export module HMC {
         /**
          * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
          */
-        getMouseNextSession(): `${number}|${number}|${0 | 1}`[] | undefined
+        getMouseNextSession(): `${number}|${number}|${HMC.MouseKey}`[] | undefined
         /**
          * 鼠标挂钩是否已经启用
          */
@@ -4217,12 +4257,59 @@ class MousePoint {
     y: number;
     /**是否被按下 */
     isDown: boolean;
-    constructor(str: `${number}|${number}|${0 | 1}`) {
+    // 当前鼠标按键的事件
+    mouseKeyCode: HMC.MouseKey;
+    // 当前鼠标按键的事件 名称
+    event: HMC.MouseKeyName;
+
+    constructor(str: `${number}|${number}|${HMC.MouseKey}`) {
         const data = str.split("|");
         this.x = Number(data[0]);
         this.y = Number(data[1]);
-        this.isDown = Number(data[2]) ? true : false;
+        this.mouseKeyCode = Number(data[2]) as HMC.MouseKey;
+        this.event = HMC.MouseKeyName.UNKNOWN;
+
+        this.isDown = ((key = this.mouseKeyCode)=>{
+            
+            switch (key) {
+                case HMC.MouseKey.WM_LBUTTONDOWN:
+                    this.event = HMC.MouseKeyName.WM_LBUTTONDOWN;
+                    break;
+                case HMC.MouseKey.WM_RBUTTONDOWN:
+                    this.event = HMC.MouseKeyName.WM_RBUTTONDOWN;
+                    break;
+                case HMC.MouseKey.WM_MBUTTONDOWN:
+                    this.event = HMC.MouseKeyName.WM_MBUTTONDOWN;
+                    break;
+                case HMC.MouseKey.WM_LBUTTONUP:
+                    this.event = HMC.MouseKeyName.WM_LBUTTONUP;
+                    break;
+                case HMC.MouseKey.WM_RBUTTONUP:
+                    this.event = HMC.MouseKeyName.WM_RBUTTONUP;
+                    break;
+                case HMC.MouseKey.WM_MBUTTONUP:
+                    this.event = HMC.MouseKeyName.WM_MBUTTONUP;
+                    break;
+                case HMC.MouseKey.WM_MOUSEWHEEL:
+                    this.event = HMC.MouseKeyName.WM_MOUSEWHEEL;
+                    break;
+                    
+                case HMC.MouseKey.WM_MOUSEMOVE:
+                    this.event = HMC.MouseKeyName.WM_MOUSEMOVE;
+                    break;
+            }
+
+            switch (key) {
+                case HMC.MouseKey.WM_LBUTTONDOWN:
+                case HMC.MouseKey.WM_RBUTTONDOWN:
+                case HMC.MouseKey.WM_MBUTTONDOWN:
+                    return true;
+            }
+
+            return false;
+        })();
     }
+
     /**
      * 鼠标左键按下
      */
@@ -4365,6 +4452,8 @@ class Iohook_Mouse {
         mouse: [] as Function[],
         start: [] as Function[],
         move: [] as Function[],
+        button: [] as Function[],
+        wheel: [] as Function[],
     };
     private _oncelistenerCountList = {
         close: [] as Function[],
@@ -4372,6 +4461,8 @@ class Iohook_Mouse {
         mouse: [] as Function[],
         start: [] as Function[],
         move: [] as Function[],
+        button: [] as Function[],
+        wheel: [] as Function[],
     };
     private _Close = false;
     constructor() {
@@ -4380,8 +4471,10 @@ class Iohook_Mouse {
     once(eventName: "start" | "close", listener: () => void): this;
     once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
     once(listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
+    once(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    once(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
     once(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -4394,8 +4487,10 @@ class Iohook_Mouse {
     on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "button", listener: (event:HMC.MouseKeyName,MousePoint: MousePoint) => void): this;
+    on(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    on(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    on(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
     on(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -4432,6 +4527,24 @@ class Iohook_Mouse {
                     const MouseNextSession = getMouseNextSession[index];
                     const mousePoint = new MousePoint(MouseNextSession);
                     mouseHook.emit("mouse", mousePoint);
+                    
+                    // 响应按钮
+                    if ([
+                        HMC.MouseKey.WM_LBUTTONDOWN,
+                        HMC.MouseKey.WM_LBUTTONUP,
+                        HMC.MouseKey.WM_MBUTTONDOWN,
+                        HMC.MouseKey.WM_MBUTTONUP,
+                        HMC.MouseKey.WM_RBUTTONDOWN,
+                        HMC.MouseKey.WM_RBUTTONUP
+                    ].includes(mousePoint.mouseKeyCode)) {
+                        mouseHook.emit("button", mousePoint.event , mousePoint);
+                    }
+
+                    // 响应 滚轮
+                    if ([ HMC.MouseKey.WM_MOUSEWHEEL].includes(mousePoint.mouseKeyCode)) {
+                        mouseHook.emit("wheel",mousePoint);
+                    }
+
                     if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
                         mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
                     }
@@ -4462,16 +4575,23 @@ class Iohook_Mouse {
         mouseHook._oncelistenerCountList.mouse.length = 0;
         mouseHook._oncelistenerCountList.move.length = 0;
         mouseHook._oncelistenerCountList.start.length = 0;
+        mouseHook._oncelistenerCountList.button.length = 0;
+        mouseHook._oncelistenerCountList.wheel.length = 0;
 
         mouseHook._onlistenerCountList.close.length = 0;
         mouseHook._onlistenerCountList.data.length = 0;
         mouseHook._onlistenerCountList.mouse.length = 0;
         mouseHook._onlistenerCountList.move.length = 0;
         mouseHook._onlistenerCountList.start.length = 0;
+        mouseHook._onlistenerCountList.button.length = 0;
+        mouseHook._onlistenerCountList.wheel.length = 0;
     }
-    emit(eventName: "data", data: `${number}|${number}|${0 | 1}`[]): boolean;
+    emit(eventName: "data", data: `${number}|${number}|${number}`[]): boolean;
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "button", event:HMC.MouseKeyName , MousePoint: MousePoint): boolean;
+    emit(eventName: "wheel", MousePoint: MousePoint): boolean;
     emit(eventName: "mouse", MousePoint: MousePoint): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
         const emitFunList = mouseHook._onlistenerCountList[eventName as "data"];
@@ -4493,7 +4613,7 @@ class Iohook_Mouse {
      * @param data 
      * @returns 
      */
-    off(eventName: "start" | "close" | "mouse" | "move" | "data", treatmentMode: "on" | "once" | Function, data?: Function) {
+    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel" , treatmentMode: "on" | "once" | Function, data?: Function) {
         switch (treatmentMode) {
             case "on": {
                 if (data) {
