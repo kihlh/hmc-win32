@@ -47,7 +47,24 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
         return {
-            findAllWindow:fnAnyArr,
+            getProcessStartTime: fnNull,
+            __debug_AllocConsole: fnVoid,
+            hasKeyExists: fnBool,
+            hasUseKeyExists: fnBool,
+            hasSysKeyExists: fnBool,
+            escapeEnvVariable: fnStr,
+            removeUserVariable: fnBool,
+            removeSystemVariable: fnBool,
+            getSystemVariable: fnStr,
+            getUserVariable: fnStr,
+            getVariableAnalysis: fnStr,
+            putSystemVariable: fnBool,
+            putUserVariable: fnBool,
+            getVariableAll(...args: any[]) { return {} as HMC.VariableList },
+            getRealGlobalVariable(...args: any[]) { return {} as HMC.VariableList },
+            getUserKeyList: fnAnyArr,
+            getSystemKeyList: fnAnyArr,
+            findAllWindow: fnAnyArr,
             _popen: fnStr,
             popen: fnStr,
             createMutex: fnBool,
@@ -211,12 +228,12 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             sendKeyT2CSync: fnVoid,
             hasMutex: fnBool,
             getAllEnv() { return process.env as any },
-            getTCPPortProcessID: fnNull,
+            // getTCPPortProcessID: fnNull,
             getenv: fnStr,
-            getUDPPortProcessID: fnNull,
+            // getUDPPortProcessID: fnNull,
             putenv: fnVoid,
-            findWindowEx:fnNull,
-            findWindow:fnNull,
+            findWindowEx: fnNull,
+            findWindow: fnNull,
 
         }
     })();
@@ -694,6 +711,7 @@ export module HMC {
          */
         top: number;
     }
+    export type VariableList = { [key: string]: string };
 
     // 托盘图标信息
     export interface TRAY_ICON {
@@ -1403,7 +1421,7 @@ export module HMC {
          * 获取占用指定TCP的进程id
          * @param Port 
          */
-        getTCPPortProcessID(Port: number): ProcessID | null;
+        // getTCPPortProcessID(Port: number): ProcessID | null;
         /**
          * 添加环境变量
          * @param key 
@@ -1414,7 +1432,7 @@ export module HMC {
          * 获取占用指定UDP的进程id
          * @param Port 
          */
-        getUDPPortProcessID(Port: number): ProcessID | null;
+        // getUDPPortProcessID(Port: number): ProcessID | null;
         /**
          * 获取指定的变量环境
          * @param key 
@@ -1424,7 +1442,7 @@ export module HMC {
          * 获取变量环境
          */
         getAllEnv(): { [key: string]: string };
-        
+
         /**
          * 通过标题或类名搜索所有窗口句柄
          * @param className 类名
@@ -1432,15 +1450,15 @@ export module HMC {
          * @param isWindow 是否要求为窗口(忽略子组件) 默认 true
          * @param isCaseSensitive 忽略区分大小写 默认 true
          */
-        findAllWindow(className: string | null, titleName: string | null, isWindow: boolean | null, isCaseSensitive: boolean | null):number[];
-        
+        findAllWindow(className: string | null, titleName: string | null, isWindow: boolean | null, isCaseSensitive: boolean | null): number[];
+
         /**
          * 通过标题或类名搜索窗口句柄
          * @param className 类名
          * @param titleName 标题
          */
-        findWindow(className?: string | null, titleName?: string | null):number|null;
-        
+        findWindow(className?: string | null, titleName?: string | null): number | null;
+
         /**
          * 搜索窗口或子窗口
          * @param hWndParent 父窗口
@@ -1449,6 +1467,153 @@ export module HMC {
          * @param titleName 标题
          */
         findWindowEx(hWndParent: number | null, hWndChildAfter: number | null, className: string | null, titleName: string | null): number | null;
+
+        /**
+         * 获取指定进程的从启动到现在的时间 单位ms
+         * @param ProcessID 
+         */
+        getProcessStartTime(ProcessID: number): number | null;
+
+        /**
+         * 内部debug开关
+         */
+        __debug_AllocConsole(): void;
+
+        /**
+         * 判断变量中是否存在指定值
+         * - 用户
+         * - 系统
+         * @param key 
+         */
+        hasKeyExists(key: string): boolean;
+
+        /**
+         * 判断用户变量中是否存在指定值
+         * - 用户
+         * @param key 
+         */
+        hasUseKeyExists(key: string): boolean;
+
+        /**
+         * 判断系统变量中是否存在指定值
+         * - 系统
+         * @param key 
+         */
+        hasSysKeyExists(key: string): boolean;
+
+        /**
+         * 通过当前的变量对变量内容进行解析
+         * - 实时的
+         * - HMC_x64.escapeEnvVariable("%AppData%\\hmc-win32")   log  ->  'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @param input 
+         */
+        escapeEnvVariable(input: string): string;
+
+        /**
+         * 删除一个用户变量
+         * - 仅用户
+         * @param key 
+         */
+        removeUserVariable(key: string): boolean;
+
+        /**
+        * 删除一个变量
+        *  - 用户
+        *  - 系统用户
+        * @param key 
+        */
+        removeUserVariable(key: string): boolean;
+
+        /**
+         * 删除一个用户变量
+         * - 仅用户
+         * @param key 
+         */
+        removeSystemVariable(key: string): boolean;
+
+        /**
+         * 获取一个在系统变量中的值
+         * @param key 
+         * @param transMean 是否自动转义
+         * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+         * @default true
+         */
+        getSystemVariable(key: string, transMean?: boolean): string;
+
+        /**
+        * 获取一个在用户变量中的值
+        * @param key 
+        * @param transMean 是否自动转义
+        * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+        * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+        * @default true
+        */
+        getUserVariable(key: string, transMean?: boolean): string;
+
+        /**
+         *获取指定键值 按照默认优先级
+         * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+         * ?- 用户变量和系统变量同时为数组键    -> 用户变量数组
+         * ?- 用户变量为数组键 系统变量为文本键  -> 用户文本键 排除系统
+         * ?- 系统变量为文本键 用户变量为数组    -> 用户变量数组 排除系统
+         * ?- 系统变量存在 用户变量为空文本      -> 排除此变量
+         * ?- PATH                          -> 合并数组
+         * @param key 键
+         * @param key 
+         */
+        getVariableAnalysis(key: string): string;
+
+        /**
+         * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+         * @param key 键
+         * @param value 值
+         * @param append 是否添加到尾部 而不是替换
+         * - false  "ddd" -> "ddd"
+         * - true "ddd" -> "oid...;ddd"
+         * @default false
+         * @param transMean 是个自动转义的值
+         * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+         * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @default false
+         */
+        putSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+
+        /**
+         * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+         * @param key 键
+         * @param value 值
+         * @param append 是否添加到尾部 而不是替换
+         * - false  "ddd" -> "ddd"
+         * - true "ddd" -> "oid...;ddd"
+         * @default false
+         * @param transMean 是个自动转义的值
+         * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+         * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @default false
+         */
+        putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+
+        /**
+         * 获取所有的值 从环境读取 (进程环境)
+         */
+        getVariableAll(): HMC.VariableList;
+
+        /**
+         * 从注册表读取现在的真实环境变量 但不更新到进程环境
+         * - 请注意这里 不会添加 进程的变量
+         * @param key 
+         */
+        getRealGlobalVariable(): HMC.VariableList;
+        /**
+         * 获取用户变量的键列表
+         */
+        getUserKeyList(): string[];
+        /**
+         * 获取系统变量的键列表
+         */
+        getSystemKeyList(): string[];
+
     }
     export type ProcessHandle = {
         // 句柄 
@@ -1634,7 +1799,26 @@ export module HMC {
         65001: "utf-8"
     };
     export type SystemDecoderKey = keyof chcpList;
-
+   
+    export type VarValueReBackData = { 
+        // 被更新的键名称
+        key: string, 
+        // 之前的变量
+        oid_value: string | undefined | null, 
+        // 新的变量内容
+        new_vaule: string | undefined | null , 
+        /**
+         * 更新类型
+         * - update 直接替换新的变量内容
+         * - remove 直接删除变量
+         * - append 添加了新的变量(变量组)
+         * - reduce 删除了新的变量(变量组)
+         */
+        update_type: "update" | "remove" | "append" |"reduce"
+        // 更新类型为 reduce/ append  时候会有此属性
+        value?: string | undefined | null,
+    };
+   
     export type SystemDecoder = chcpList[SystemDecoderKey]
 }
 
@@ -1886,7 +2070,7 @@ export function setWindowMode(HWND: HWND | number, x: number | null | 0 | HMC.RE
         if (SetWindowRect.width) width = SetWindowRect.width;
         if (SetWindowRect.height) height = SetWindowRect.height;
     }
-    
+
     if (!width) width = 0;
     if (!height) height = 0;
     return native.setWindowMode(
@@ -3623,16 +3807,16 @@ export function setShortcutLink(LnkPath: string, FilePath: string): boolean;
 export function setShortcutLink(LnkPath: string, Shortcut: HMC.SHORTCUT_LINK): boolean;
 export function setShortcutLink(...args: unknown[]): boolean {
     if (args.length < 2) throw new Error("not LnkPath and FilePath arguments");
-    
-    if(typeof args[1] == "object"){
+
+    if (typeof args[1] == "object") {
         const shortcutData = (args[1] || {}) as HMC.SHORTCUT_LINK;
-        args[1] = shortcutData.path||"";
-        args[2] = shortcutData.cwd||"";
-        args[3] = shortcutData.desc||"";
-        args[4] = shortcutData.args||"";
-        args[5] = shortcutData.showCmd||1;
-        args[6] = shortcutData.icon||"";
-        args[7] = shortcutData.iconIndex||0;
+        args[1] = shortcutData.path || "";
+        args[2] = shortcutData.cwd || "";
+        args[3] = shortcutData.desc || "";
+        args[4] = shortcutData.args || "";
+        args[5] = shortcutData.showCmd || 1;
+        args[6] = shortcutData.icon || "";
+        args[7] = shortcutData.iconIndex || 0;
     }
 
     // LnkPath
@@ -3743,7 +3927,7 @@ export function systemStartTime() {
 /**
 * 获取所有窗口的信息
 **/
-export function getAllWindows(isWindows: boolean,initialize: boolean) {
+export function getAllWindows(isWindows: boolean, initialize: boolean) {
     class WINDOWS_INFO {
         handle: number;
         constructor(handle: number) {
@@ -3775,19 +3959,19 @@ export function getAllWindows(isWindows: boolean,initialize: boolean) {
     let AllWindows: HMC.GET_ALL_WINDOWS_INFO[] = [];
     for (let index = 0; index < AllWindowsHandle.length; index++) {
         const handle = AllWindowsHandle[index];
-        const WINDOWS_INFO_ITEM:HMC.GET_ALL_WINDOWS_INFO = (new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO;
-        if(initialize){
-             AllWindows.push({
-                 handle: WINDOWS_INFO_ITEM.handle,
-                 className: WINDOWS_INFO_ITEM.className,
-                 rect: WINDOWS_INFO_ITEM.rect,
-                 style: WINDOWS_INFO_ITEM.style,
-                 title: WINDOWS_INFO_ITEM.title
-             });
-        }else{
+        const WINDOWS_INFO_ITEM: HMC.GET_ALL_WINDOWS_INFO = (new WINDOWS_INFO(handle)) as HMC.GET_ALL_WINDOWS_INFO;
+        if (initialize) {
+            AllWindows.push({
+                handle: WINDOWS_INFO_ITEM.handle,
+                className: WINDOWS_INFO_ITEM.className,
+                rect: WINDOWS_INFO_ITEM.rect,
+                style: WINDOWS_INFO_ITEM.style,
+                title: WINDOWS_INFO_ITEM.title
+            });
+        } else {
             AllWindows.push(WINDOWS_INFO_ITEM);
         }
-       
+
     }
     return AllWindows;
 }
@@ -4269,8 +4453,8 @@ class MousePoint {
         this.mouseKeyCode = Number(data[2]) as HMC.MouseKey;
         this.event = HMC.MouseKeyName.UNKNOWN;
 
-        this.isDown = ((key = this.mouseKeyCode)=>{
-            
+        this.isDown = ((key = this.mouseKeyCode) => {
+
             switch (key) {
                 case HMC.MouseKey.WM_LBUTTONDOWN:
                     this.event = HMC.MouseKeyName.WM_LBUTTONDOWN;
@@ -4293,7 +4477,7 @@ class MousePoint {
                 case HMC.MouseKey.WM_MOUSEWHEEL:
                     this.event = HMC.MouseKeyName.WM_MOUSEWHEEL;
                     break;
-                    
+
                 case HMC.MouseKey.WM_MOUSEMOVE:
                     this.event = HMC.MouseKeyName.WM_MOUSEMOVE;
                     break;
@@ -4487,7 +4671,7 @@ class Iohook_Mouse {
     on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
-    on(eventName: "button", listener: (event:HMC.MouseKeyName,MousePoint: MousePoint) => void): this;
+    on(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
     on(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
     on(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
@@ -4527,7 +4711,7 @@ class Iohook_Mouse {
                     const MouseNextSession = getMouseNextSession[index];
                     const mousePoint = new MousePoint(MouseNextSession);
                     mouseHook.emit("mouse", mousePoint);
-                    
+
                     // 响应按钮
                     if ([
                         HMC.MouseKey.WM_LBUTTONDOWN,
@@ -4537,12 +4721,12 @@ class Iohook_Mouse {
                         HMC.MouseKey.WM_RBUTTONDOWN,
                         HMC.MouseKey.WM_RBUTTONUP
                     ].includes(mousePoint.mouseKeyCode)) {
-                        mouseHook.emit("button", mousePoint.event , mousePoint);
+                        mouseHook.emit("button", mousePoint.event, mousePoint);
                     }
 
                     // 响应 滚轮
-                    if ([ HMC.MouseKey.WM_MOUSEWHEEL].includes(mousePoint.mouseKeyCode)) {
-                        mouseHook.emit("wheel",mousePoint);
+                    if ([HMC.MouseKey.WM_MOUSEWHEEL].includes(mousePoint.mouseKeyCode)) {
+                        mouseHook.emit("wheel", mousePoint);
                     }
 
                     if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
@@ -4590,7 +4774,7 @@ class Iohook_Mouse {
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
     emit(eventName: "mouse", MousePoint: MousePoint): boolean;
-    emit(eventName: "button", event:HMC.MouseKeyName , MousePoint: MousePoint): boolean;
+    emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
     emit(eventName: "wheel", MousePoint: MousePoint): boolean;
     emit(eventName: "mouse", MousePoint: MousePoint): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
@@ -4613,7 +4797,7 @@ class Iohook_Mouse {
      * @param data 
      * @returns 
      */
-    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel" , treatmentMode: "on" | "once" | Function, data?: Function) {
+    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function) {
         switch (treatmentMode) {
             case "on": {
                 if (data) {
@@ -5385,12 +5569,13 @@ export function getenv(key: string) {
 
 /**
  * 获取指定UDP端口的pid
+ * @deprecated 此api已经废弃 请使用 net-win32 模块代替
  * @param Port 
  * @returns 
  */
 export function getUDPPortProcessID(Port: number) {
-    let pid =  native.getUDPPortProcessID(ref.int(Port));
-    return pid?pid:null
+    throw new Error("此api对hmc的架构存在安全威胁，已经废弃，请使用 'net-win32' 模块代替\nThis API poses a security threat to the HMC architecture and has been deprecated. Please use the 'net-win32' module instead.");
+    return null
 }
 
 /**
@@ -5405,12 +5590,13 @@ export function putenv(key: string, data: string | string[]) {
 
 /**
  * 获取指定TCP端口的pid
+ * @deprecated 此api已经废弃 请使用 net-win32 模块代替
  * @param Port 
  * @returns 
  */
 export function getTCPPortProcessID(Port: number) {
-   let pid =  native.getTCPPortProcessID(ref.int(Port));
-     return pid?pid:null
+    throw new Error("此api对hmc的架构存在安全威胁，已经废弃，请使用 'net-win32' 模块代替\nThis API poses a security threat to the HMC architecture and has been deprecated. Please use the 'net-win32' module instead.");
+    return null
 }
 
 // /**
@@ -5434,7 +5620,7 @@ export function getTCPPortProcessID(Port: number) {
  * @param className 类名
  * @param titleName 标题
  */
-export function findWindow(className ?: string | null, titleName ?: string | null): number | null{
+export function findWindow(className?: string | null, titleName?: string | null): number | null {
     return native.findWindow(
         typeof className == "string" ? ref.string(className) : null,
         typeof titleName == "string" ? ref.string(titleName) : null,
@@ -5448,7 +5634,7 @@ export function findWindow(className ?: string | null, titleName ?: string | nul
  * @param className 类名
  * @param titleName 标题
  */
-export function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: number | null | HWND, className: string | null, titleName: string | null): number | null{
+export function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: number | null | HWND, className: string | null, titleName: string | null): number | null {
     return native.findWindowEx(
         !!hWndParent ? ref.int(className) : null,
         !!hWndChildAfter ? ref.int(titleName) : null,
@@ -5457,20 +5643,368 @@ export function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: n
     );
 }
 
+/**
+ * 按照名称搜索进程
+ * @param ProcessName 
+ * @returns 
+ */
+export function findProcess(ProcessName: string | RegExp | number,isMacthFile=false): HMC.enumProcessCont[] {
+    let result = [];
+    let ProcessList: Array<HMC.enumProcessContP|HMC.enumProcessCont> = isMacthFile?getDetailsProcessList(): getProcessList();
+    for (let index = 0; index < ProcessList.length; index++) {
+        const Process = ProcessList[index];
+        if (typeof ProcessName == "string") {
+            // @ts-expect-error
+            if (Process.name.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
+                result.push(Process);
+
+            }
+        }
+        else if (typeof ProcessName == "number") {
+            if (Process.pid == ProcessName) {
+                result.push(Process);
+            }
+        }
+        else {
+            // @ts-expect-error
+            if (Process.name.match(ProcessName) || (typeof Process?.path == "string") ? Process.path.match(ProcessName):false) {
+                result.push(Process);
+            }
+        }
+
+    }
+
+    return result;
+}
+
+/**
+ * 获取指定进程的从启动到现在的时间 单位ms
+ * @param ProcessID 
+ */
+export function getProcessStartTime(ProcessID: number) {
+    return native.getProcessStartTime(ref.int(ProcessID));
+}
+
+/**
+ * 判断变量中是否存在指定值
+ * - 用户
+ * - 系统
+ * @param key 
+ */
+export function hasKeyExists(key: string) {
+    return native.hasKeyExists(ref.string(key));
+}
+
+/**
+ * 判断用户变量中是否存在指定值
+ * - 用户
+ * @param key 
+ */
+export function hasUseKeyExists(key: string) {
+    return native.hasUseKeyExists(ref.string(key));
+}
+
+/**
+ * 判断系统变量中是否存在指定值
+ * - 系统
+ * @param key 
+ */
+export function hasSysKeyExists(key: string) {
+    return native.hasSysKeyExists(ref.string(key));
+}
+
+/**
+ * 通过当前的变量对变量内容进行解析
+ * - 实时的
+ * - HMC_x64.escapeEnvVariable("%AppData%\\hmc-win32")   log  ->  'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @param input 
+ */
+export function escapeEnvVariable(input: string) {
+    return native.escapeEnvVariable(ref.string(input));
+}
+
+/**
+ * 删除一个用户变量
+ * - 仅用户
+ * @param key 
+ */
+export function removeUserVariable(key: string) {
+    return native.removeUserVariable(ref.string(key));
+}
+
+/**
+* 删除一个变量
+*  - 用户
+*  - 系统用户
+* @param key 
+*/
+export function removeVariable(key: string) {
+    return native.removeSystemVariable(ref.string(key)) && native.removeUserVariable(ref.string(key));
+}
+
+/**
+ * 删除一个用户变量
+ * - 仅用户
+ * @param key 
+ */
+export function removeSystemVariable(key: string) {
+    return native.removeSystemVariable(ref.string(key));
+}
+
+/**
+ * 获取一个在系统变量中的值
+ * @param key 
+ * @param transMean 是否自动转义
+ * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+ * @default true
+ */
+export function getSystemVariable(key: string, transMean?: boolean) {
+    return native.getSystemVariable(ref.string(key), ref.bool(typeof transMean == "undefined" ? true : transMean));
+}
+
+/**
+* 获取一个在用户变量中的值
+* @param key 
+* @param transMean 是否自动转义
+* - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+* - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+* @default true
+*/
+export function getUserVariable(key: string, transMean?: boolean) {
+    return native.getUserVariable(ref.string(key), ref.bool(typeof transMean == "undefined" ? true : transMean));
+}
+
+/**
+ *获取指定键值 按照默认优先级
+ * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+ * ?- 用户变量和系统变量同时为数组键    -> 用户变量数组
+ * ?- 用户变量为数组键 系统变量为文本键  -> 用户文本键 排除系统
+ * ?- 系统变量为文本键 用户变量为数组    -> 用户变量数组 排除系统
+ * ?- 系统变量存在 用户变量为空文本      -> 排除此变量
+ * ?- PATH                          -> 合并数组
+ * @param key 键
+ * @param key 
+ */
+export function getVariableAnalysis(key: string) {
+    return native.getVariableAnalysis(ref.string(key));
+}
+
+/**
+ * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export function putSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean) {
+    return native.putSystemVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+
+/**
+ * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export function putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean) {
+    return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+
+/**
+ * 获取所有的值 从环境读取 (进程环境)
+ */
+export function getVariableAll() {
+    return native.getVariableAll();
+}
+
+/**
+ * 从注册表读取现在的真实环境变量 但不更新到进程环境
+ * - 请注意这里 不会添加 进程的变量
+ * @param key 
+ */
+export function getRealGlobalVariableList() {
+    return native.getRealGlobalVariable();
+}
+
+/**
+ * 获取用户变量的键列表
+ */
+export function getUserKeyList() {
+    return native.getUserKeyList();
+}
+
+/**
+ * 获取系统变量的键列表
+ */
+export function getSystemKeyList() {
+    return native.getSystemKeyList();
+}
+
+/**
+ * 从注册表中读取 变量并且写入到当前进程变量
+ * @param remove 删除 已经消失的环境 到当前进程
+ * @param update_add update 新的变量到当前进程
+ * @param append 新的变量先尝试追加或者移除变量单值 而不是直接全部替换
+ *  - 如果 update_add and remove  为false 此选项将被忽略
+ *  - 如果 update_add and remove 同时为true 此选项将解析为全部替换
+ */
+export function updateThis(remove?: boolean, update_add?: boolean, append?: boolean): HMC.VarValueReBackData[] {
+    let result: HMC.VarValueReBackData[] = [];
+
+    const realGlobalVariable = native.getRealGlobalVariable();
+
+    for (const key in realGlobalVariable) {
+        const element = realGlobalVariable[key];
+        const p_value = process.env[key];
+
+        // 都存在
+        if (p_value && element) {
+
+            // 有不一样的地方 
+            if (p_value != element) {
+
+                // 直接替换
+                if ((update_add && !append && !remove) || (append && remove)) {
+                    process.env[key] = element;
+                    result.push({
+                        key: key,
+                        oid_value: p_value,
+                        new_vaule: element,
+                        update_type: "update"
+                    });
+                    continue;
+                }
+                
+                // 差分计算 添加
+                if (update_add && append) {
+                    let new_vaule = new Set();
+
+                    // 处理原有的
+                    for (const iterator of p_value.split(";")) {
+                        new_vaule.add(iterator);
+                    }
+
+                    // 处理新的
+                    for (const iterator of element.split(";")) {
+                        if (!new_vaule.has(iterator)){
+                            new_vaule.add(iterator);
+                            result.push({
+                                key: key,
+                                oid_value: p_value,
+                                new_vaule: element,
+                                update_type: "append",
+                                value: iterator
+                            });
+                        }
+                    }
+
+                    process.env[key] = [...new_vaule].join(";");
+                    continue;
+                }
+
+                // 差分计算 删除
+                if (update_add && remove) {
+                    let new_vaule = new Set();
+
+                    // 处理原有的
+                    for (const iterator of element.split(";")) {
+                        new_vaule.add(iterator);
+                    }
+
+                    // 处理新的
+                    for (const iterator of p_value.split(";")) {
+                        if (!new_vaule.has(iterator)) {
+                            new_vaule.delete(iterator);
+                            result.push({
+                                key: key,
+                                oid_value: p_value,
+                                new_vaule: element,
+                                update_type: "reduce",
+                                value: iterator
+                            });
+                        }else{
+                            new_vaule.add(iterator);
+                        }
+                    }
+
+                    process.env[key] = [...new_vaule].join(";");
+                    continue;
+                }
+
+            }
+
+        }
+
+        // 新增
+        if (!p_value && element) {
+            if (update_add || append) {
+                process.env[key] = element;
+                result.push({
+                    key: key,
+                    oid_value: p_value,
+                    new_vaule: element,
+                    update_type: "update"
+                });
+            }
+        }
+
+        // 删除
+        if (p_value && !element) {
+            if (remove) {
+                process.env[key] = element;
+                result.push({
+                    key: key,
+                    oid_value: p_value,
+                    new_vaule: element,
+                    update_type: "remove"
+                });
+            }
+        }
+    }
+
+    return result;
+
+}
+
+export const Environment = {
+    hasKeyExists,
+    hasUseKeyExists,
+    hasSysKeyExists,
+    escapeEnvVariable,
+    removeUserVariable,
+    removeVariable,
+    removeSystemVariable,
+    getSystemVariable,
+    getUserVariable,
+    getVariableAnalysis,
+    putSystemVariable,
+    putUserVariable,
+    getVariableAll,
+    getRealGlobalVariableList,
+    getUserKeyList,
+    getSystemKeyList,
+    updateThis,
+};
 
 export const Registr = registr;
 export const hmc = {
-    findWindowEx,
-    findWindow,
-    getAllEnv,
-    getenv,
-    getUDPPortProcessID,
-    getTCPPortProcessID,
-    putenv,
-    createMutex,
-    hasMutex,
     Auto,
     Clipboard,
+    HMC,
     HWND,
     MessageError,
     MessageStop,
@@ -5487,6 +6021,8 @@ export const hmc = {
     WatchWindowPoint,
     WebView2OnlineInstall,
     Window,
+    _KeyboardcodeComparisonTable,
+    _KeyboardcodeEmenList,
     _popen,
     alert,
     analysisDirectPath,
@@ -5496,6 +6032,7 @@ export const hmc = {
     confirm,
     createDirSymlink,
     createHardLink,
+    createMutex,
     createPathRegistr,
     createSymlink,
     deleteFile,
@@ -5504,8 +6041,13 @@ export const hmc = {
     enumChildWindows,
     enumProcessHandle,
     enumRegistrKey,
+    escapeEnvVariable,
+    findProcess,
+    findWindow,
+    findWindowEx,
     formatVolumePath,
     freePort,
+    getAllEnv,
     getAllWindows,
     getAllWindowsHandle,
     getBasicKeys,
@@ -5537,8 +6079,10 @@ export const hmc = {
     getProcessName,
     getProcessNameList,
     getProcessParentProcessID,
+    getProcessStartTime,
     getProcessThreadList,
     getProcessidFilePath,
+    getRealGlobalVariableList,
     getRegistrBuffValue,
     getRegistrDword,
     getRegistrQword,
@@ -5546,21 +6090,34 @@ export const hmc = {
     getStringRegKey,
     getSubProcessID,
     getSystemIdleTime,
+    getSystemKeyList,
     getSystemMenu,
     getSystemMetricsLen,
+    getSystemVariable,
+    getTCPPortProcessID,
     getTrayList,
+    getUDPPortProcessID,
     getUsbDevsInfo,
+    getUserKeyList,
+    getUserVariable,
+    getVariableAll,
+    getVariableAnalysis,
     getVolumeList,
     getWebView2Info,
     getWindowClassName,
     getWindowRect,
     getWindowStyle,
     getWindowTitle,
+    getenv,
     hasKeyActivate,
+    hasKeyExists,
+    hasMutex,
     hasPortTCP,
     hasPortUDP,
     hasProcess,
     hasRegistrKey,
+    hasSysKeyExists,
+    hasUseKeyExists,
     hasWebView2,
     hasWindowTop,
     hideConsole,
@@ -5595,12 +6152,18 @@ export const hmc = {
     popen,
     powerControl,
     processWatchdog,
+    putSystemVariable,
+    putUserVariable,
+    putenv,
     ref,
     registr,
     removeStringRegKey,
     removeStringRegKeyWalk,
     removeStringRegValue,
     removeStringTree,
+    removeSystemVariable,
+    removeUserVariable,
+    removeVariable,
     rightClick,
     sendBasicKeys,
     sendKeyboard,
@@ -5629,6 +6192,7 @@ export const hmc = {
     systemChcp,
     systemStartTime,
     trash,
+    updateThis,
     updateWindow,
     version,
     watchClipboard,

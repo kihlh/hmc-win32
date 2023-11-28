@@ -27,7 +27,7 @@
 #include <time.h>
 #include <signal.h>
 #include <algorithm>
-
+#include "./util/hmc_string_util.hpp"
 
 #pragma comment(lib, "Ws2_32")
 #pragma comment(lib, "dwmapi.lib")
@@ -221,5 +221,24 @@ napi_value captureBmpToFile(napi_env env, napi_callback_info info);
 napi_value getColor(napi_env env, napi_callback_info info);
 // napi_value captureBmpToBuff(napi_env env, napi_callback_info info);
 
-
-
+// fn_environment.cpp
+napi_value fn_getVariableAll(napi_env env, napi_callback_info info);
+napi_value fn_setCwd(napi_env env, napi_callback_info info);
+napi_value fn_getRealGlobalVariable(napi_env env, napi_callback_info info);
+napi_value fn_getUserKeyList(napi_env env, napi_callback_info info);
+napi_value fn_getSystemKeyList(napi_env env, napi_callback_info info);
+napi_value fn_updateThis(napi_env env, napi_callback_info info);
+napi_value fn_getEnvKeyAnalysis(napi_env env, napi_callback_info info);
+napi_value fn_putSystemVariable(napi_env env, napi_callback_info info);
+napi_value fn_putUserVariable(napi_env env, napi_callback_info info);
+napi_value fn_getSystemVariable(napi_env env, napi_callback_info info);
+napi_value fn_getUserVariable(napi_env env, napi_callback_info info);
+napi_value fn_removeUserVariable(napi_env env, napi_callback_info info);
+napi_value fn_removeAllSingleVariable(napi_env env, napi_callback_info info);
+napi_value fn_removeSystemVariable(napi_env env, napi_callback_info info);
+napi_value fn_hasKeyExists(napi_env env, napi_callback_info info);
+napi_value fn_hasSysKeyExists(napi_env env, napi_callback_info info);
+napi_value fn_hasUseKeyExists(napi_env env, napi_callback_info info);
+napi_value fn_escapeEnvVariable(napi_env env, napi_callback_info info);
+napi_value fn_AllocConsole(napi_env env, napi_callback_info info);
+napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info);

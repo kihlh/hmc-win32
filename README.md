@@ -203,7 +203,8 @@ import  HMC = require("hmc-win32");
 - **getSubProcessID** 获取子进程id列表
 - **enumProcessHandle**  枚举进程id的句柄
 - **enumAllProcessHandle** 枚举所有进程id的句柄
-- 
+- **findProcess** 搜索进程
+- **getProcessStartTime** 获取进程启动时间 (ms)
 
 
 ### 状态栏
@@ -334,6 +335,39 @@ import  HMC = require("hmc-win32");
 - **getWebView2Info**  当前安装的WebView2 信息
 - **hasWebView2** 当前电脑是否安装了 WebView2
 - **WebView2OnlineInstall** 在线安装WebView2
+
+
+
+### 变量环境（Environment）
+
+- **Environment** 合集
+- **hasKeyExists** 判断变量中是否存在指定值 `用户` `系统`
+- **hasUseKeyExists** 判断变量中是否存在指定值 `用户` 
+- **hasSysKeyExists** 判断变量中是否存在指定值 `系统`
+- **escapeEnvVariable** 通过当前的变量对变量内容进行解析（不受进程变量影响）实时
+  -  HMC_x64.escapeEnvVariable("%AppData%\\hmc-win32")  log  ->  'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+- **removeUserVariable** 删除一个用户变量 `用户` 
+- **removeVariable** 删除一个用户变量 `用户` `系统`
+- **removeSystemVariable** 删除一个用户变量  `系统`
+- **getSystemVariable** 获取一个在系统变量中的值 `系统`
+  - transMean<true>  %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+  - transMean<false> %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+- **getUserVariable** 获取一个在用户变量中的值 `用户` 
+  - transMean<true>  %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+  - transMean<false> %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+- **getVariableAnalysis** 获取一个在用户变量中的值 `用户`  `系统`
+- **putSystemVariable** 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量） path变量不受此影响（win定义）
+  - append 添加到尾部 而不是替换   "ddd" -> "oid...;ddd"
+  - transMean 转义 "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+
+- **putUserVariable**  添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量） path变量不受此影响（win定义）
+  - append 添加到尾部 而不是替换   "ddd" -> "oid...;ddd"
+  - transMean 转义 "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+- **getVariableAll** 获取所有的值 从环境读取 (进程环境)
+- **getRealGlobalVariableList**  获取所有的值 从注册表读取 (配置环境)
+- **getUserKeyList** 获取用户变量的键列表`用户` 
+- **getSystemKeyList** 获取系统变量的键列表 `系统`
+- **updateThis** 同步系统(全局)变量到当前进程
 
 ### 其他
 

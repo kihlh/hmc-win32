@@ -1,5 +1,5 @@
 ﻿#include "./Mian.hpp";
-bool _________HMC_DEBUG__________;
+bool _________HMC___________;
 
 using namespace std;
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
@@ -1039,9 +1039,9 @@ namespace get_value
 
 };
 
-void ____HMC_DEBUG_RUN_MESS____(napi_env env, string error_message)
+void ____HMC__RUN_MESS____(napi_env env, string error_message)
 {
-    if (_________HMC_DEBUG__________)
+    if (_________HMC___________)
     {
         napi_value run_script_result;
         string error_message_str = string("console.error(new Error(String.raw`\n");
@@ -3618,8 +3618,8 @@ static napi_value setWindowIconForExtract(napi_env env, napi_callback_info info)
 
 static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
 {
-    _________HMC_DEBUG__________ = !_________HMC_DEBUG__________;
-    return _create_bool_Boolean(env, _________HMC_DEBUG__________);
+    _________HMC___________ = !_________HMC___________;
+    return _create_bool_Boolean(env, _________HMC___________);
 }
 
 // 获取剪贴板文本
@@ -4387,7 +4387,7 @@ map<string, string> getVariableAll()
     }
     catch (const std::exception &e)
     {
-        if (_________HMC_DEBUG__________)
+        if (_________HMC___________)
             std::cerr << e.what() << '\n';
     }
 
@@ -4946,21 +4946,59 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("sendBasicKeys", sendBasicKeys),                         //=>5-26ADD
         DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),                   //=>5-27ADD
         // DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),                //=>5-27ADD(NAPI 发送不出去 buff 以后再研究)
-        DECLARE_NAPI_METHODRM("getColor", getColor),                     //=>5-27ADD
-        DECLARE_NAPI_METHOD("createMutex", createMutex),                 //=>6-21ADD
-        DECLARE_NAPI_METHOD("hasMutex", hasMutex),                       //=>6-21ADD
-        DECLARE_NAPI_METHOD("putenv", putenv),                           //=>6-21ADD
-        DECLARE_NAPI_METHOD("getenv", napi_getenv),                      //=>6-21ADD
-        DECLARE_NAPI_METHOD("getAllEnv", getAllEnv),                     //=>6-21ADD
+        DECLARE_NAPI_METHODRM("getColor", getColor),     //=>5-27ADD
+        DECLARE_NAPI_METHOD("createMutex", createMutex), //=>6-21ADD
+        DECLARE_NAPI_METHOD("hasMutex", hasMutex),       //=>6-21ADD
+        DECLARE_NAPI_METHOD("putenv", putenv),           //=>6-21ADD
+        DECLARE_NAPI_METHOD("getenv", napi_getenv),      //=>6-21ADD
+        DECLARE_NAPI_METHOD("getAllEnv", getAllEnv),     //=>6-21ADD
         // DECLARE_NAPI_METHOD("getUDPPortProcessID", getUDPPortProcessID), //=>6-21ADD
         // DECLARE_NAPI_METHOD("getTCPPortProcessID", getTCPPortProcessID), //=>6-21ADD
-        DECLARE_NAPI_METHOD("findWindow", fn_findWindow),                //=>11-18ADD
-        DECLARE_NAPI_METHOD("findWindowEx", fn_findWindowEx),            //=>11-18ADD
-        // ! 暂时还不行  愿天堂没有编码...
-        // DECLARE_NAPI_METHOD("findAllWindow", fn_findAllWindow),          //=>11-18ADD
+        DECLARE_NAPI_METHOD("findWindow", fn_findWindow),     //=>11-18ADD
+        DECLARE_NAPI_METHOD("findWindowEx", fn_findWindowEx), //=>11-18ADD
 
+        // 2023-11-27 add support
+        DECLARE_NAPI_METHODRM("getVariableAll", fn_getVariableAll),
+        // 2023-11-27 add support
+        DECLARE_NAPI_METHODRM("getVariableAnalysis", fn_getEnvKeyAnalysis),
+        // 2023-11-27 add support
+        // DECLARE_NAPI_METHODRM("updateThis", fn_updateThis),
+        // 2023-11-27 add support
+        DECLARE_NAPI_METHODRM("getSystemKeyList", fn_getSystemKeyList),
+        // 2023-11-27 add support
+        DECLARE_NAPI_METHODRM("getUserKeyList", fn_getUserKeyList),
+        // 2023-11-27 add support
+        DECLARE_NAPI_METHODRM("getRealGlobalVariable", fn_getRealGlobalVariable),
+        // 2023-11-27 add support
+        // DECLARE_NAPI_METHODRM("setCwd", fn_setCwd),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("putUserVariable", fn_putUserVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("putSystemVariable", fn_putSystemVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("getUserVariable", fn_getUserVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("getSystemVariable", fn_getSystemVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("removeSystemVariable", fn_removeSystemVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("removeAllSingleVariable", fn_removeAllSingleVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("removeUserVariable", fn_removeUserVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("escapeEnvVariable", fn_escapeEnvVariable),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("hasUseKeyExists", fn_hasUseKeyExists),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("hasSysKeyExists", fn_hasSysKeyExists),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("hasKeyExists", fn_hasKeyExists),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("__debug_AllocConsole", fn_AllocConsole),
+        // 2023-11-28 add support
+        DECLARE_NAPI_METHODRM("getProcessStartTime", fn_getProcessStartTime),
     };
-    _________HMC_DEBUG__________ = false;
+    _________HMC___________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
     return exports;

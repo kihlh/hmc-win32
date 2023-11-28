@@ -260,6 +260,27 @@ export declare module HMC {
     export type ProcessID = number;
     export type HandleTransparent = number;
     export type HKEY = keyof typeof Hkey;
+    export enum MouseKey {
+        WM_MOUSEMOVE = 512,
+        WM_LBUTTONDOWN = 513,
+        WM_RBUTTONDOWN = 516,
+        WM_LBUTTONUP = 514,
+        WM_RBUTTONUP = 517,
+        WM_MBUTTONDOWN = 519,
+        WM_MBUTTONUP = 520,
+        WM_MOUSEWHEEL = 522
+    }
+    export enum MouseKeyName {
+        UNKNOWN = "unknown",
+        WM_LBUTTONDOWN = "left-button-down",
+        WM_RBUTTONDOWN = "right-button-down",
+        WM_LBUTTONUP = "left-button-up",
+        WM_RBUTTONUP = "right-button-up",
+        WM_MBUTTONDOWN = "mouse-button-down",
+        WM_MBUTTONUP = "mouse-button-up",
+        WM_MOUSEWHEEL = "mouse-wheel",
+        WM_MOUSEMOVE = "move"
+    }
     export interface Rect {
         /**
          * (x)从屏幕左边到所在位置得像素数
@@ -294,6 +315,9 @@ export declare module HMC {
          */
         top: number;
     }
+    export type VariableList = {
+        [key: string]: string;
+    };
     export interface TRAY_ICON {
         path: string;
         info: string;
@@ -836,7 +860,7 @@ export declare module HMC {
         /**
          * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
          */
-        getMouseNextSession(): `${number}|${number}|${0 | 1}`[] | undefined;
+        getMouseNextSession(): `${number}|${number}|${HMC.MouseKey}`[] | undefined;
         /**
          * 鼠标挂钩是否已经启用
          */
@@ -977,7 +1001,6 @@ export declare module HMC {
          * 获取占用指定TCP的进程id
          * @param Port
          */
-        getTCPPortProcessID(Port: number): ProcessID | null;
         /**
          * 添加环境变量
          * @param key
@@ -988,7 +1011,6 @@ export declare module HMC {
          * 获取占用指定UDP的进程id
          * @param Port
          */
-        getUDPPortProcessID(Port: number): ProcessID | null;
         /**
          * 获取指定的变量环境
          * @param key
@@ -1022,6 +1044,136 @@ export declare module HMC {
          * @param titleName 标题
          */
         findWindowEx(hWndParent: number | null, hWndChildAfter: number | null, className: string | null, titleName: string | null): number | null;
+        /**
+         * 获取指定进程的从启动到现在的时间 单位ms
+         * @param ProcessID
+         */
+        getProcessStartTime(ProcessID: number): number | null;
+        /**
+         * 内部debug开关
+         */
+        __debug_AllocConsole(): void;
+        /**
+         * 判断变量中是否存在指定值
+         * - 用户
+         * - 系统
+         * @param key
+         */
+        hasKeyExists(key: string): boolean;
+        /**
+         * 判断用户变量中是否存在指定值
+         * - 用户
+         * @param key
+         */
+        hasUseKeyExists(key: string): boolean;
+        /**
+         * 判断系统变量中是否存在指定值
+         * - 系统
+         * @param key
+         */
+        hasSysKeyExists(key: string): boolean;
+        /**
+         * 通过当前的变量对变量内容进行解析
+         * - 实时的
+         * - HMC_x64.escapeEnvVariable("%AppData%\\hmc-win32")   log  ->  'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @param input
+         */
+        escapeEnvVariable(input: string): string;
+        /**
+         * 删除一个用户变量
+         * - 仅用户
+         * @param key
+         */
+        removeUserVariable(key: string): boolean;
+        /**
+        * 删除一个变量
+        *  - 用户
+        *  - 系统用户
+        * @param key
+        */
+        removeUserVariable(key: string): boolean;
+        /**
+         * 删除一个用户变量
+         * - 仅用户
+         * @param key
+         */
+        removeSystemVariable(key: string): boolean;
+        /**
+         * 获取一个在系统变量中的值
+         * @param key
+         * @param transMean 是否自动转义
+         * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+         * @default true
+         */
+        getSystemVariable(key: string, transMean?: boolean): string;
+        /**
+        * 获取一个在用户变量中的值
+        * @param key
+        * @param transMean 是否自动转义
+        * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+        * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+        * @default true
+        */
+        getUserVariable(key: string, transMean?: boolean): string;
+        /**
+         *获取指定键值 按照默认优先级
+         * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+         * ?- 用户变量和系统变量同时为数组键    -> 用户变量数组
+         * ?- 用户变量为数组键 系统变量为文本键  -> 用户文本键 排除系统
+         * ?- 系统变量为文本键 用户变量为数组    -> 用户变量数组 排除系统
+         * ?- 系统变量存在 用户变量为空文本      -> 排除此变量
+         * ?- PATH                          -> 合并数组
+         * @param key 键
+         * @param key
+         */
+        getVariableAnalysis(key: string): string;
+        /**
+         * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+         * @param key 键
+         * @param value 值
+         * @param append 是否添加到尾部 而不是替换
+         * - false  "ddd" -> "ddd"
+         * - true "ddd" -> "oid...;ddd"
+         * @default false
+         * @param transMean 是个自动转义的值
+         * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+         * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @default false
+         */
+        putSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+        /**
+         * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+         * @param key 键
+         * @param value 值
+         * @param append 是否添加到尾部 而不是替换
+         * - false  "ddd" -> "ddd"
+         * - true "ddd" -> "oid...;ddd"
+         * @default false
+         * @param transMean 是个自动转义的值
+         * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+         * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+         * @default false
+         */
+        putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+        /**
+         * 获取所有的值 从环境读取 (进程环境)
+         */
+        getVariableAll(): HMC.VariableList;
+        /**
+         * 从注册表读取现在的真实环境变量 但不更新到进程环境
+         * - 请注意这里 不会添加 进程的变量
+         * @param key
+         */
+        getRealGlobalVariable(): HMC.VariableList;
+        /**
+         * 获取用户变量的键列表
+         */
+        getUserKeyList(): string[];
+        /**
+         * 获取系统变量的键列表
+         */
+        getSystemKeyList(): string[];
     };
     export type ProcessHandle = {
         handle: number;
@@ -1200,6 +1352,20 @@ export declare module HMC {
         65001: "utf-8";
     };
     export type SystemDecoderKey = keyof chcpList;
+    export type VarValueReBackData = {
+        key: string;
+        oid_value: string | undefined | null;
+        new_vaule: string | undefined | null;
+        /**
+         * 更新类型
+         * - update 直接替换新的变量内容
+         * - remove 直接删除变量
+         * - append 添加了新的变量(变量组)
+         * - reduce 删除了新的变量(变量组)
+         */
+        update_type: "update" | "remove" | "append" | "reduce";
+        value?: string | undefined | null;
+    };
     export type SystemDecoder = chcpList[SystemDecoderKey];
     export {};
 }
@@ -2110,7 +2276,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2413,7 +2579,9 @@ declare class MousePoint {
     y: number;
     /**是否被按下 */
     isDown: boolean;
-    constructor(str: `${number}|${number}|${0 | 1}`);
+    mouseKeyCode: HMC.MouseKey;
+    event: HMC.MouseKeyName;
+    constructor(str: `${number}|${number}|${HMC.MouseKey}`);
     /**
      * 鼠标左键按下
      */
@@ -2494,13 +2662,17 @@ declare class Iohook_Mouse {
     once(eventName: "start" | "close", listener: () => void): this;
     once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
     once(listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
+    once(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    once(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    once(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
     on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
     on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
+    on(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    on(eventName: "data", listener: (data: `${number}|${number}|${0 | 1}`[]) => void): this;
+    on(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
     /**
      * 开始
      * @returns
@@ -2510,9 +2682,12 @@ declare class Iohook_Mouse {
      * 结束
      */
     close(): void;
-    emit(eventName: "data", data: `${number}|${number}|${0 | 1}`[]): boolean;
+    emit(eventName: "data", data: `${number}|${number}|${number}`[]): boolean;
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
+    emit(eventName: "wheel", MousePoint: MousePoint): boolean;
     emit(eventName: "mouse", MousePoint: MousePoint): boolean;
     /**
      * 关闭监听
@@ -2520,7 +2695,7 @@ declare class Iohook_Mouse {
      * @param data
      * @returns
      */
-    off(eventName: "start" | "close" | "mouse" | "move" | "data", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
+    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
 }
 /**
  * 设置一个低级鼠标变化监听
@@ -3009,10 +3184,11 @@ export declare function getAllEnv(): {
 export declare function getenv(key: string): string;
 /**
  * 获取指定UDP端口的pid
+ * @deprecated 此api已经废弃 请使用 net-win32 模块代替
  * @param Port
  * @returns
  */
-export declare function getUDPPortProcessID(Port: number): number | null;
+export declare function getUDPPortProcessID(Port: number): null;
 /**
  * 添加环境变量(不写入系统)
  * @param key
@@ -3022,10 +3198,11 @@ export declare function getUDPPortProcessID(Port: number): number | null;
 export declare function putenv(key: string, data: string | string[]): void;
 /**
  * 获取指定TCP端口的pid
+ * @deprecated 此api已经废弃 请使用 net-win32 模块代替
  * @param Port
  * @returns
  */
-export declare function getTCPPortProcessID(Port: number): number | null;
+export declare function getTCPPortProcessID(Port: number): null;
 /**
  * 通过标题或类名搜索窗口句柄
  * @param className 类名
@@ -3040,6 +3217,166 @@ export declare function findWindow(className?: string | null, titleName?: string
  * @param titleName 标题
  */
 export declare function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: number | null | HWND, className: string | null, titleName: string | null): number | null;
+/**
+ * 按照名称搜索进程
+ * @param ProcessName
+ * @returns
+ */
+export declare function findProcess(ProcessName: string | RegExp | number, isMacthFile?: boolean): HMC.enumProcessCont[];
+/**
+ * 获取指定进程的从启动到现在的时间 单位ms
+ * @param ProcessID
+ */
+export declare function getProcessStartTime(ProcessID: number): number | null;
+/**
+ * 判断变量中是否存在指定值
+ * - 用户
+ * - 系统
+ * @param key
+ */
+export declare function hasKeyExists(key: string): boolean;
+/**
+ * 判断用户变量中是否存在指定值
+ * - 用户
+ * @param key
+ */
+export declare function hasUseKeyExists(key: string): boolean;
+/**
+ * 判断系统变量中是否存在指定值
+ * - 系统
+ * @param key
+ */
+export declare function hasSysKeyExists(key: string): boolean;
+/**
+ * 通过当前的变量对变量内容进行解析
+ * - 实时的
+ * - HMC_x64.escapeEnvVariable("%AppData%\\hmc-win32")   log  ->  'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @param input
+ */
+export declare function escapeEnvVariable(input: string): string;
+/**
+ * 删除一个用户变量
+ * - 仅用户
+ * @param key
+ */
+export declare function removeUserVariable(key: string): boolean;
+/**
+* 删除一个变量
+*  - 用户
+*  - 系统用户
+* @param key
+*/
+export declare function removeVariable(key: string): boolean;
+/**
+ * 删除一个用户变量
+ * - 仅用户
+ * @param key
+ */
+export declare function removeSystemVariable(key: string): boolean;
+/**
+ * 获取一个在系统变量中的值
+ * @param key
+ * @param transMean 是否自动转义
+ * - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+ * @default true
+ */
+export declare function getSystemVariable(key: string, transMean?: boolean): string;
+/**
+* 获取一个在用户变量中的值
+* @param key
+* @param transMean 是否自动转义
+* - true %AppData%\\hmc-win32  -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+* - false %AppData%\\hmc-win32 -> '%AppData%\\hmc-win32'
+* @default true
+*/
+export declare function getUserVariable(key: string, transMean?: boolean): string;
+/**
+ *获取指定键值 按照默认优先级
+ * ?- 用户变量和系统变量同时有非数组键  -> 用户变量
+ * ?- 用户变量和系统变量同时为数组键    -> 用户变量数组
+ * ?- 用户变量为数组键 系统变量为文本键  -> 用户文本键 排除系统
+ * ?- 系统变量为文本键 用户变量为数组    -> 用户变量数组 排除系统
+ * ?- 系统变量存在 用户变量为空文本      -> 排除此变量
+ * ?- PATH                          -> 合并数组
+ * @param key 键
+ * @param key
+ */
+export declare function getVariableAnalysis(key: string): string;
+/**
+ * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export declare function putSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+/**
+ * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export declare function putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+/**
+ * 获取所有的值 从环境读取 (进程环境)
+ */
+export declare function getVariableAll(): HMC.VariableList;
+/**
+ * 从注册表读取现在的真实环境变量 但不更新到进程环境
+ * - 请注意这里 不会添加 进程的变量
+ * @param key
+ */
+export declare function getRealGlobalVariableList(): HMC.VariableList;
+/**
+ * 获取用户变量的键列表
+ */
+export declare function getUserKeyList(): string[];
+/**
+ * 获取系统变量的键列表
+ */
+export declare function getSystemKeyList(): string[];
+/**
+ * 从注册表中读取 变量并且写入到当前进程变量
+ * @param remove 删除 已经消失的环境 到当前进程
+ * @param update_add update 新的变量到当前进程
+ * @param append 新的变量先尝试追加或者移除变量单值 而不是直接全部替换
+ *  - 如果 update_add and remove  为false 此选项将被忽略
+ *  - 如果 update_add and remove 同时为true 此选项将解析为全部替换
+ */
+export declare function updateThis(remove?: boolean, update_add?: boolean, append?: boolean): HMC.VarValueReBackData[];
+export declare const Environment: {
+    hasKeyExists: typeof hasKeyExists;
+    hasUseKeyExists: typeof hasUseKeyExists;
+    hasSysKeyExists: typeof hasSysKeyExists;
+    escapeEnvVariable: typeof escapeEnvVariable;
+    removeUserVariable: typeof removeUserVariable;
+    removeVariable: typeof removeVariable;
+    removeSystemVariable: typeof removeSystemVariable;
+    getSystemVariable: typeof getSystemVariable;
+    getUserVariable: typeof getUserVariable;
+    getVariableAnalysis: typeof getVariableAnalysis;
+    putSystemVariable: typeof putSystemVariable;
+    putUserVariable: typeof putUserVariable;
+    getVariableAll: typeof getVariableAll;
+    getRealGlobalVariableList: typeof getRealGlobalVariableList;
+    getUserKeyList: typeof getUserKeyList;
+    getSystemKeyList: typeof getSystemKeyList;
+    updateThis: typeof updateThis;
+};
 export declare const Registr: {
     /**
      * 直达路径解析
@@ -3253,15 +3590,6 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
-    findWindowEx: typeof findWindowEx;
-    findWindow: typeof findWindow;
-    getAllEnv: typeof getAllEnv;
-    getenv: typeof getenv;
-    getUDPPortProcessID: typeof getUDPPortProcessID;
-    getTCPPortProcessID: typeof getTCPPortProcessID;
-    putenv: typeof putenv;
-    createMutex: typeof createMutex;
-    hasMutex: typeof hasMutex;
     Auto: {
         sendKeyboard: typeof sendKeyboard;
         sendKeyboardSequence: typeof sendKeyboardSequence;
@@ -3316,6 +3644,7 @@ export declare const hmc: {
         sequence: typeof getClipboardSequenceNumber;
         watch: typeof watchClipboard;
     };
+    HMC: typeof HMC;
     HWND: typeof HWND;
     MessageError: typeof MessageError;
     MessageStop: typeof MessageStop;
@@ -3624,6 +3953,8 @@ export declare const hmc: {
         getStyle: typeof getWindowStyle;
         getClassName: typeof getWindowClassName;
     };
+    _KeyboardcodeComparisonTable: Map<string, number>;
+    _KeyboardcodeEmenList: Map<number, [string, string | null, number, number] | [string, string | null, number, number, import("./vkKey").VK_Nickname]>;
     _popen: typeof _popen;
     alert: typeof alert;
     analysisDirectPath: typeof analysisDirectPath;
@@ -3633,6 +3964,7 @@ export declare const hmc: {
     confirm: typeof confirm;
     createDirSymlink: typeof createDirSymlink;
     createHardLink: typeof createHardLink;
+    createMutex: typeof createMutex;
     createPathRegistr: typeof createPathRegistr;
     createSymlink: typeof createSymlink;
     deleteFile: typeof deleteFile;
@@ -3641,8 +3973,13 @@ export declare const hmc: {
     enumChildWindows: typeof enumChildWindows;
     enumProcessHandle: typeof enumProcessHandle;
     enumRegistrKey: typeof enumRegistrKey;
+    escapeEnvVariable: typeof escapeEnvVariable;
+    findProcess: typeof findProcess;
+    findWindow: typeof findWindow;
+    findWindowEx: typeof findWindowEx;
     formatVolumePath: typeof formatVolumePath;
     freePort: typeof freePort;
+    getAllEnv: typeof getAllEnv;
     getAllWindows: typeof getAllWindows;
     getAllWindowsHandle: typeof getAllWindowsHandle;
     getBasicKeys: typeof getBasicKeys;
@@ -3674,8 +4011,10 @@ export declare const hmc: {
     getProcessName: typeof getProcessName;
     getProcessNameList: typeof getProcessNameList;
     getProcessParentProcessID: typeof getProcessParentProcessID;
+    getProcessStartTime: typeof getProcessStartTime;
     getProcessThreadList: typeof getProcessThreadList;
     getProcessidFilePath: typeof getProcessidFilePath;
+    getRealGlobalVariableList: typeof getRealGlobalVariableList;
     getRegistrBuffValue: typeof getRegistrBuffValue;
     getRegistrDword: typeof getRegistrDword;
     getRegistrQword: typeof getRegistrQword;
@@ -3683,21 +4022,34 @@ export declare const hmc: {
     getStringRegKey: typeof getStringRegKey;
     getSubProcessID: typeof getSubProcessID;
     getSystemIdleTime: typeof getSystemIdleTime;
+    getSystemKeyList: typeof getSystemKeyList;
     getSystemMenu: typeof getSystemMenu;
     getSystemMetricsLen: typeof getSystemMetricsLen;
+    getSystemVariable: typeof getSystemVariable;
+    getTCPPortProcessID: typeof getTCPPortProcessID;
     getTrayList: typeof getTrayList;
+    getUDPPortProcessID: typeof getUDPPortProcessID;
     getUsbDevsInfo: typeof getUsbDevsInfo;
+    getUserKeyList: typeof getUserKeyList;
+    getUserVariable: typeof getUserVariable;
+    getVariableAll: typeof getVariableAll;
+    getVariableAnalysis: typeof getVariableAnalysis;
     getVolumeList: typeof getVolumeList;
     getWebView2Info: typeof getWebView2Info;
     getWindowClassName: typeof getWindowClassName;
     getWindowRect: typeof getWindowRect;
     getWindowStyle: typeof getWindowStyle;
     getWindowTitle: typeof lookHandleGetTitle;
+    getenv: typeof getenv;
     hasKeyActivate: typeof hasKeyActivate;
+    hasKeyExists: typeof hasKeyExists;
+    hasMutex: typeof hasMutex;
     hasPortTCP: typeof hasPortTCP;
     hasPortUDP: typeof hasPortUDP;
     hasProcess: typeof hasProcess;
     hasRegistrKey: typeof hasRegistrKey;
+    hasSysKeyExists: typeof hasSysKeyExists;
+    hasUseKeyExists: typeof hasUseKeyExists;
     hasWebView2: typeof hasWebView2;
     hasWindowTop: typeof hasWindowTop;
     hideConsole: typeof hideConsole;
@@ -3758,6 +4110,9 @@ export declare const hmc: {
         lock(): void;
     };
     processWatchdog: typeof processWatchdog;
+    putSystemVariable: typeof putSystemVariable;
+    putUserVariable: typeof putUserVariable;
+    putenv: typeof putenv;
     ref: {
         /**
         * 将内容格式化为文本路径
@@ -4046,6 +4401,9 @@ export declare const hmc: {
     removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
     removeStringRegValue: typeof removeStringRegValue;
     removeStringTree: typeof removeStringTree;
+    removeSystemVariable: typeof removeSystemVariable;
+    removeUserVariable: typeof removeUserVariable;
+    removeVariable: typeof removeVariable;
     rightClick: typeof rightClick;
     sendBasicKeys: typeof sendBasicKeys;
     sendKeyboard: typeof sendKeyboard;
@@ -4074,6 +4432,7 @@ export declare const hmc: {
     systemChcp: typeof systemChcp;
     systemStartTime: typeof systemStartTime;
     trash: typeof deleteFile;
+    updateThis: typeof updateThis;
     updateWindow: typeof updateWindow;
     version: string;
     watchClipboard: typeof watchClipboard;

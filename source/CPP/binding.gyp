@@ -1,8 +1,8 @@
 {
   "targets": [
     {
-      "target_name": "HMC_x64",
-      # "target_name": "HMC_x86",
+      # "target_name": "HMC_x64",
+      "target_name": "HMC_x86",
       "conditions": [
         ['OS=="win"', {
           "sources": [
@@ -15,7 +15,9 @@
             "auto.cpp",
             "windows.cpp",
             "process.cpp",
-            "screen.cpp"
+            "screen.cpp",
+            "util/hmc_string_util.cpp",
+            "util/fn_environment.cpp",
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {

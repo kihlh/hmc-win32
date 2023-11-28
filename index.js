@@ -169,6 +169,7 @@ var hmc_exports = {};
 __export(hmc_exports, {
   Auto: () => Auto,
   Clipboard: () => Clipboard,
+  Environment: () => Environment,
   HMC: () => HMC,
   HWND: () => HWND,
   MessageError: () => MessageError,
@@ -207,6 +208,8 @@ __export(hmc_exports, {
   enumChildWindows: () => enumChildWindows,
   enumProcessHandle: () => enumProcessHandle,
   enumRegistrKey: () => enumRegistrKey,
+  escapeEnvVariable: () => escapeEnvVariable,
+  findProcess: () => findProcess,
   findWindow: () => findWindow,
   findWindowEx: () => findWindowEx,
   formatVolumePath: () => formatVolumePath,
@@ -243,8 +246,10 @@ __export(hmc_exports, {
   getProcessName: () => getProcessName,
   getProcessNameList: () => getProcessNameList,
   getProcessParentProcessID: () => getProcessParentProcessID,
+  getProcessStartTime: () => getProcessStartTime,
   getProcessThreadList: () => getProcessThreadList,
   getProcessidFilePath: () => getProcessidFilePath,
+  getRealGlobalVariableList: () => getRealGlobalVariableList,
   getRegistrBuffValue: () => getRegistrBuffValue,
   getRegistrDword: () => getRegistrDword,
   getRegistrQword: () => getRegistrQword,
@@ -252,12 +257,18 @@ __export(hmc_exports, {
   getStringRegKey: () => getStringRegKey,
   getSubProcessID: () => getSubProcessID,
   getSystemIdleTime: () => getSystemIdleTime,
+  getSystemKeyList: () => getSystemKeyList,
   getSystemMenu: () => getSystemMenu,
   getSystemMetricsLen: () => getSystemMetricsLen,
+  getSystemVariable: () => getSystemVariable,
   getTCPPortProcessID: () => getTCPPortProcessID,
   getTrayList: () => getTrayList,
   getUDPPortProcessID: () => getUDPPortProcessID,
   getUsbDevsInfo: () => getUsbDevsInfo,
+  getUserKeyList: () => getUserKeyList,
+  getUserVariable: () => getUserVariable,
+  getVariableAll: () => getVariableAll,
+  getVariableAnalysis: () => getVariableAnalysis,
   getVolumeList: () => getVolumeList,
   getWebView2Info: () => getWebView2Info,
   getWindowClassName: () => getWindowClassName,
@@ -266,11 +277,14 @@ __export(hmc_exports, {
   getWindowTitle: () => getWindowTitle,
   getenv: () => getenv,
   hasKeyActivate: () => hasKeyActivate,
+  hasKeyExists: () => hasKeyExists,
   hasMutex: () => hasMutex,
   hasPortTCP: () => hasPortTCP,
   hasPortUDP: () => hasPortUDP,
   hasProcess: () => hasProcess,
   hasRegistrKey: () => hasRegistrKey,
+  hasSysKeyExists: () => hasSysKeyExists,
+  hasUseKeyExists: () => hasUseKeyExists,
   hasWebView2: () => hasWebView2,
   hasWindowTop: () => hasWindowTop,
   hideConsole: () => hideConsole,
@@ -306,6 +320,8 @@ __export(hmc_exports, {
   popen: () => popen,
   powerControl: () => powerControl,
   processWatchdog: () => processWatchdog,
+  putSystemVariable: () => putSystemVariable,
+  putUserVariable: () => putUserVariable,
   putenv: () => putenv,
   ref: () => ref,
   registr: () => registr,
@@ -313,6 +329,9 @@ __export(hmc_exports, {
   removeStringRegKeyWalk: () => removeStringRegKeyWalk,
   removeStringRegValue: () => removeStringRegValue,
   removeStringTree: () => removeStringTree,
+  removeSystemVariable: () => removeSystemVariable,
+  removeUserVariable: () => removeUserVariable,
+  removeVariable: () => removeVariable,
   rightClick: () => rightClick,
   sendBasicKeys: () => sendBasicKeys,
   sendKeyboard: () => sendKeyboard,
@@ -341,6 +360,7 @@ __export(hmc_exports, {
   systemChcp: () => systemChcp,
   systemStartTime: () => systemStartTime,
   trash: () => trash,
+  updateThis: () => updateThis,
   updateWindow: () => updateWindow,
   version: () => version,
   watchClipboard: () => watchClipboard,
@@ -765,6 +785,27 @@ var get_native = (binPath) => {
       return [];
     }
     return {
+      getProcessStartTime: fnNull,
+      __debug_AllocConsole: fnVoid,
+      hasKeyExists: fnBool,
+      hasUseKeyExists: fnBool,
+      hasSysKeyExists: fnBool,
+      escapeEnvVariable: fnStr,
+      removeUserVariable: fnBool,
+      removeSystemVariable: fnBool,
+      getSystemVariable: fnStr,
+      getUserVariable: fnStr,
+      getVariableAnalysis: fnStr,
+      putSystemVariable: fnBool,
+      putUserVariable: fnBool,
+      getVariableAll(...args) {
+        return {};
+      },
+      getRealGlobalVariable(...args) {
+        return {};
+      },
+      getUserKeyList: fnAnyArr,
+      getSystemKeyList: fnAnyArr,
       findAllWindow: fnAnyArr,
       _popen: fnStr,
       popen: fnStr,
@@ -939,9 +980,9 @@ var get_native = (binPath) => {
       getAllEnv() {
         return process.env;
       },
-      getTCPPortProcessID: fnNull,
+      // getTCPPortProcessID: fnNull,
       getenv: fnStr,
-      getUDPPortProcessID: fnNull,
+      // getUDPPortProcessID: fnNull,
       putenv: fnVoid,
       findWindowEx: fnNull,
       findWindow: fnNull
@@ -3587,15 +3628,15 @@ function getenv(key) {
   return native.getenv(ref.string(key));
 }
 function getUDPPortProcessID(Port) {
-  let pid = native.getUDPPortProcessID(ref.int(Port));
-  return pid ? pid : null;
+  throw new Error("此api对hmc的架构存在安全威胁，已经废弃，请使用 'net-win32' 模块代替\nThis API poses a security threat to the HMC architecture and has been deprecated. Please use the 'net-win32' module instead.");
+  return null;
 }
 function putenv(key, data) {
   return native.putenv(ref.string(key), ref.string(Array.isArray(data) ? data.join(";") : data));
 }
 function getTCPPortProcessID(Port) {
-  let pid = native.getTCPPortProcessID(ref.int(Port));
-  return pid ? pid : null;
+  throw new Error("此api对hmc的架构存在安全威胁，已经废弃，请使用 'net-win32' 模块代替\nThis API poses a security threat to the HMC architecture and has been deprecated. Please use the 'net-win32' module instead.");
+  return null;
 }
 function findWindow(className, titleName) {
   return native.findWindow(
@@ -3611,194 +3652,187 @@ function findWindowEx(hWndParent, hWndChildAfter, className, titleName) {
     typeof titleName == "string" ? ref.string(titleName) : null
   );
 }
+function findProcess(ProcessName, isMacthFile = false) {
+  var _a;
+  let result = [];
+  let ProcessList = isMacthFile ? getDetailsProcessList() : getProcessList();
+  for (let index = 0; index < ProcessList.length; index++) {
+    const Process2 = ProcessList[index];
+    if (typeof ProcessName == "string") {
+      if (Process2.name.includes(ProcessName) || ((_a = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _a.includes(ProcessName))) {
+        result.push(Process2);
+      }
+    } else if (typeof ProcessName == "number") {
+      if (Process2.pid == ProcessName) {
+        result.push(Process2);
+      }
+    } else {
+      if (Process2.name.match(ProcessName) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? Process2.path.match(ProcessName) : false) {
+        result.push(Process2);
+      }
+    }
+  }
+  return result;
+}
+function getProcessStartTime(ProcessID) {
+  return native.getProcessStartTime(ref.int(ProcessID));
+}
+function hasKeyExists(key) {
+  return native.hasKeyExists(ref.string(key));
+}
+function hasUseKeyExists(key) {
+  return native.hasUseKeyExists(ref.string(key));
+}
+function hasSysKeyExists(key) {
+  return native.hasSysKeyExists(ref.string(key));
+}
+function escapeEnvVariable(input) {
+  return native.escapeEnvVariable(ref.string(input));
+}
+function removeUserVariable(key) {
+  return native.removeUserVariable(ref.string(key));
+}
+function removeVariable(key) {
+  return native.removeSystemVariable(ref.string(key)) && native.removeUserVariable(ref.string(key));
+}
+function removeSystemVariable(key) {
+  return native.removeSystemVariable(ref.string(key));
+}
+function getSystemVariable(key, transMean) {
+  return native.getSystemVariable(ref.string(key), ref.bool(typeof transMean == "undefined" ? true : transMean));
+}
+function getUserVariable(key, transMean) {
+  return native.getUserVariable(ref.string(key), ref.bool(typeof transMean == "undefined" ? true : transMean));
+}
+function getVariableAnalysis(key) {
+  return native.getVariableAnalysis(ref.string(key));
+}
+function putSystemVariable(key, value, append, transMean) {
+  return native.putSystemVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+function putUserVariable(key, value, append, transMean) {
+  return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+function getVariableAll() {
+  return native.getVariableAll();
+}
+function getRealGlobalVariableList() {
+  return native.getRealGlobalVariable();
+}
+function getUserKeyList() {
+  return native.getUserKeyList();
+}
+function getSystemKeyList() {
+  return native.getSystemKeyList();
+}
+function updateThis(remove, update_add, append) {
+  let result = [];
+  const realGlobalVariable = native.getRealGlobalVariable();
+  for (const key in realGlobalVariable) {
+    const element = realGlobalVariable[key];
+    const p_value = process.env[key];
+    if (p_value && element) {
+      if (p_value != element) {
+        if (update_add && !append && !remove || append && remove) {
+          process.env[key] = element;
+          result.push({
+            key,
+            oid_value: p_value,
+            new_vaule: element,
+            update_type: "update"
+          });
+          continue;
+        }
+        if (update_add && append) {
+          let new_vaule = /* @__PURE__ */ new Set();
+          for (const iterator of p_value.split(";")) {
+            new_vaule.add(iterator);
+          }
+          for (const iterator of element.split(";")) {
+            if (!new_vaule.has(iterator)) {
+              new_vaule.add(iterator);
+              result.push({
+                key,
+                oid_value: p_value,
+                new_vaule: element,
+                update_type: "append",
+                value: iterator
+              });
+            }
+          }
+          process.env[key] = [...new_vaule].join(";");
+          continue;
+        }
+        if (update_add && remove) {
+          let new_vaule = /* @__PURE__ */ new Set();
+          for (const iterator of element.split(";")) {
+            new_vaule.add(iterator);
+          }
+          for (const iterator of p_value.split(";")) {
+            if (!new_vaule.has(iterator)) {
+              new_vaule.delete(iterator);
+              result.push({
+                key,
+                oid_value: p_value,
+                new_vaule: element,
+                update_type: "reduce",
+                value: iterator
+              });
+            } else {
+              new_vaule.add(iterator);
+            }
+          }
+          process.env[key] = [...new_vaule].join(";");
+          continue;
+        }
+      }
+    }
+    if (!p_value && element) {
+      if (update_add || append) {
+        process.env[key] = element;
+        result.push({
+          key,
+          oid_value: p_value,
+          new_vaule: element,
+          update_type: "update"
+        });
+      }
+    }
+    if (p_value && !element) {
+      if (remove) {
+        process.env[key] = element;
+        result.push({
+          key,
+          oid_value: p_value,
+          new_vaule: element,
+          update_type: "remove"
+        });
+      }
+    }
+  }
+  return result;
+}
+var Environment = {
+  hasKeyExists,
+  hasUseKeyExists,
+  hasSysKeyExists,
+  escapeEnvVariable,
+  removeUserVariable,
+  removeVariable,
+  removeSystemVariable,
+  getSystemVariable,
+  getUserVariable,
+  getVariableAnalysis,
+  putSystemVariable,
+  putUserVariable,
+  getVariableAll,
+  getRealGlobalVariableList,
+  getUserKeyList,
+  getSystemKeyList,
+  updateThis
+};
 var Registr = registr;
 var hmc = {
-  findWindowEx,
-  findWindow,
-  getAllEnv,
-  getenv,
-  getUDPPortProcessID,
-  getTCPPortProcessID,
-  putenv,
-  createMutex,
-  hasMutex,
-  Auto,
-  Clipboard,
-  HWND,
-  MessageError,
-  MessageStop,
-  Process,
-  Registr,
-  SetBlockInput,
-  SetSystemHOOK,
-  SetWindowInTaskbarVisible,
-  Shell,
-  Sleep,
-  Usb,
-  Watch,
-  WatchWindowForeground,
-  WatchWindowPoint,
-  WebView2OnlineInstall,
-  Window,
-  _popen,
-  alert,
-  analysisDirectPath,
-  captureBmpToFile,
-  clearClipboard,
-  closedHandle,
-  confirm,
-  createDirSymlink,
-  createHardLink,
-  createPathRegistr,
-  createSymlink,
-  deleteFile,
-  desc,
-  enumAllProcessHandle,
-  enumChildWindows,
-  enumProcessHandle,
-  enumRegistrKey,
-  formatVolumePath,
-  freePort,
-  getAllWindows,
-  getAllWindowsHandle,
-  getBasicKeys,
-  getClipboardFilePaths,
-  getClipboardSequenceNumber,
-  getClipboardText,
-  getColor,
-  getConsoleHandle,
-  getCurrentMonitorRect,
-  getDetailsProcessList,
-  getDetailsProcessNameList,
-  getDeviceCaps,
-  getDeviceCapsAll,
-  getForegroundWindow,
-  getForegroundWindowProcessID,
-  getHandleProcessID,
-  getHidUsbList,
-  getMainWindow,
-  getMetrics,
-  getModulePathList,
-  getMouseMovePoints,
-  getNumberRegKey,
-  getPointWindow,
-  getPointWindowMain,
-  getPointWindowName,
-  getPointWindowProcessId,
-  getProcessHandle,
-  getProcessList,
-  getProcessName,
-  getProcessNameList,
-  getProcessParentProcessID,
-  getProcessThreadList,
-  getProcessidFilePath,
-  getRegistrBuffValue,
-  getRegistrDword,
-  getRegistrQword,
-  getShortcutLink,
-  getStringRegKey,
-  getSubProcessID,
-  getSystemIdleTime,
-  getSystemMenu,
-  getSystemMetricsLen,
-  getTrayList,
-  getUsbDevsInfo,
-  getVolumeList,
-  getWebView2Info,
-  getWindowClassName,
-  getWindowRect,
-  getWindowStyle,
-  getWindowTitle,
-  hasKeyActivate,
-  hasPortTCP,
-  hasPortUDP,
-  hasProcess,
-  hasRegistrKey,
-  hasWebView2,
-  hasWindowTop,
-  hideConsole,
-  isAdmin,
-  isEnabled,
-  isHandle,
-  isHandleWindowVisible,
-  isInMonitorWindow,
-  isMouseMonitorWindow,
-  isProcess,
-  isRegistrTreeKey,
-  isSystemX64,
-  keyboardHook,
-  killProcess,
-  killProcessName,
-  leftClick,
-  listRegistrPath,
-  lookHandleCloseWindow,
-  lookHandleGetTitle,
-  lookHandleSetTitle,
-  lookHandleShowWindow,
-  messageBox,
-  mouse,
-  mouseHook,
-  native,
-  openApp,
-  openExternal,
-  openPath,
-  openRegKey,
-  openURL,
-  platform,
-  popen,
-  powerControl,
-  processWatchdog,
-  ref,
-  registr,
-  removeStringRegKey,
-  removeStringRegKeyWalk,
-  removeStringRegValue,
-  removeStringTree,
-  rightClick,
-  sendBasicKeys,
-  sendKeyboard,
-  sendKeyboardSequence,
-  setClipboardFilePaths,
-  setClipboardText,
-  setCloseWindow,
-  setCursorPos,
-  setHandleTransparent,
-  setRegistrDword,
-  setRegistrKey,
-  setRegistrQword,
-  setShortcutLink,
-  setShowWindow,
-  setWindowEnabled,
-  setWindowFocus,
-  setWindowIconForExtract,
-  setWindowMode,
-  setWindowTitle,
-  setWindowTop,
-  showConsole,
-  showMonitors,
-  shutMonitors,
-  sleep,
-  system,
-  systemChcp,
-  systemStartTime,
-  trash,
-  updateWindow,
-  version,
-  watchClipboard,
-  watchUSB,
-  windowJitter
-};
-var hmc_default = hmc;
-process.on("exit", function() {
-  if (SetIohook) {
-    native.unHookMouse();
-    native.unKeyboardHook();
-    native.clearEnumAllProcessList();
-    native.clearEnumProcessHandle();
-  }
-});
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
   Auto,
   Clipboard,
   HMC,
@@ -3838,6 +3872,8 @@ process.on("exit", function() {
   enumChildWindows,
   enumProcessHandle,
   enumRegistrKey,
+  escapeEnvVariable,
+  findProcess,
   findWindow,
   findWindowEx,
   formatVolumePath,
@@ -3874,8 +3910,10 @@ process.on("exit", function() {
   getProcessName,
   getProcessNameList,
   getProcessParentProcessID,
+  getProcessStartTime,
   getProcessThreadList,
   getProcessidFilePath,
+  getRealGlobalVariableList,
   getRegistrBuffValue,
   getRegistrDword,
   getRegistrQword,
@@ -3883,12 +3921,18 @@ process.on("exit", function() {
   getStringRegKey,
   getSubProcessID,
   getSystemIdleTime,
+  getSystemKeyList,
   getSystemMenu,
   getSystemMetricsLen,
+  getSystemVariable,
   getTCPPortProcessID,
   getTrayList,
   getUDPPortProcessID,
   getUsbDevsInfo,
+  getUserKeyList,
+  getUserVariable,
+  getVariableAll,
+  getVariableAnalysis,
   getVolumeList,
   getWebView2Info,
   getWindowClassName,
@@ -3897,11 +3941,223 @@ process.on("exit", function() {
   getWindowTitle,
   getenv,
   hasKeyActivate,
+  hasKeyExists,
   hasMutex,
   hasPortTCP,
   hasPortUDP,
   hasProcess,
   hasRegistrKey,
+  hasSysKeyExists,
+  hasUseKeyExists,
+  hasWebView2,
+  hasWindowTop,
+  hideConsole,
+  isAdmin,
+  isEnabled,
+  isHandle,
+  isHandleWindowVisible,
+  isInMonitorWindow,
+  isMouseMonitorWindow,
+  isProcess,
+  isRegistrTreeKey,
+  isSystemX64,
+  keyboardHook,
+  killProcess,
+  killProcessName,
+  leftClick,
+  listRegistrPath,
+  lookHandleCloseWindow,
+  lookHandleGetTitle,
+  lookHandleSetTitle,
+  lookHandleShowWindow,
+  messageBox,
+  mouse,
+  mouseHook,
+  native,
+  openApp,
+  openExternal,
+  openPath,
+  openRegKey,
+  openURL,
+  platform,
+  popen,
+  powerControl,
+  processWatchdog,
+  putSystemVariable,
+  putUserVariable,
+  putenv,
+  ref,
+  registr,
+  removeStringRegKey,
+  removeStringRegKeyWalk,
+  removeStringRegValue,
+  removeStringTree,
+  removeSystemVariable,
+  removeUserVariable,
+  removeVariable,
+  rightClick,
+  sendBasicKeys,
+  sendKeyboard,
+  sendKeyboardSequence,
+  setClipboardFilePaths,
+  setClipboardText,
+  setCloseWindow,
+  setCursorPos,
+  setHandleTransparent,
+  setRegistrDword,
+  setRegistrKey,
+  setRegistrQword,
+  setShortcutLink,
+  setShowWindow,
+  setWindowEnabled,
+  setWindowFocus,
+  setWindowIconForExtract,
+  setWindowMode,
+  setWindowTitle,
+  setWindowTop,
+  showConsole,
+  showMonitors,
+  shutMonitors,
+  sleep,
+  system,
+  systemChcp,
+  systemStartTime,
+  trash,
+  updateThis,
+  updateWindow,
+  version,
+  watchClipboard,
+  watchUSB,
+  windowJitter
+};
+var hmc_default = hmc;
+process.on("exit", function() {
+  if (SetIohook) {
+    native.unHookMouse();
+    native.unKeyboardHook();
+    native.clearEnumAllProcessList();
+    native.clearEnumProcessHandle();
+  }
+});
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  Auto,
+  Clipboard,
+  Environment,
+  HMC,
+  HWND,
+  MessageError,
+  MessageStop,
+  Process,
+  Registr,
+  SetBlockInput,
+  SetSystemHOOK,
+  SetWindowInTaskbarVisible,
+  Shell,
+  Sleep,
+  Usb,
+  Watch,
+  WatchWindowForeground,
+  WatchWindowPoint,
+  WebView2OnlineInstall,
+  Window,
+  _KeyboardcodeComparisonTable,
+  _KeyboardcodeEmenList,
+  _popen,
+  alert,
+  analysisDirectPath,
+  captureBmpToFile,
+  clearClipboard,
+  closedHandle,
+  confirm,
+  createDirSymlink,
+  createHardLink,
+  createMutex,
+  createPathRegistr,
+  createSymlink,
+  deleteFile,
+  desc,
+  enumAllProcessHandle,
+  enumChildWindows,
+  enumProcessHandle,
+  enumRegistrKey,
+  escapeEnvVariable,
+  findProcess,
+  findWindow,
+  findWindowEx,
+  formatVolumePath,
+  freePort,
+  getAllEnv,
+  getAllWindows,
+  getAllWindowsHandle,
+  getBasicKeys,
+  getClipboardFilePaths,
+  getClipboardSequenceNumber,
+  getClipboardText,
+  getColor,
+  getConsoleHandle,
+  getCurrentMonitorRect,
+  getDetailsProcessList,
+  getDetailsProcessNameList,
+  getDeviceCaps,
+  getDeviceCapsAll,
+  getForegroundWindow,
+  getForegroundWindowProcessID,
+  getHandleProcessID,
+  getHidUsbList,
+  getMainWindow,
+  getMetrics,
+  getModulePathList,
+  getMouseMovePoints,
+  getNumberRegKey,
+  getPointWindow,
+  getPointWindowMain,
+  getPointWindowName,
+  getPointWindowProcessId,
+  getProcessHandle,
+  getProcessList,
+  getProcessName,
+  getProcessNameList,
+  getProcessParentProcessID,
+  getProcessStartTime,
+  getProcessThreadList,
+  getProcessidFilePath,
+  getRealGlobalVariableList,
+  getRegistrBuffValue,
+  getRegistrDword,
+  getRegistrQword,
+  getShortcutLink,
+  getStringRegKey,
+  getSubProcessID,
+  getSystemIdleTime,
+  getSystemKeyList,
+  getSystemMenu,
+  getSystemMetricsLen,
+  getSystemVariable,
+  getTCPPortProcessID,
+  getTrayList,
+  getUDPPortProcessID,
+  getUsbDevsInfo,
+  getUserKeyList,
+  getUserVariable,
+  getVariableAll,
+  getVariableAnalysis,
+  getVolumeList,
+  getWebView2Info,
+  getWindowClassName,
+  getWindowRect,
+  getWindowStyle,
+  getWindowTitle,
+  getenv,
+  hasKeyActivate,
+  hasKeyExists,
+  hasMutex,
+  hasPortTCP,
+  hasPortUDP,
+  hasProcess,
+  hasRegistrKey,
+  hasSysKeyExists,
+  hasUseKeyExists,
   hasWebView2,
   hasWindowTop,
   hideConsole,
@@ -3937,6 +4193,8 @@ process.on("exit", function() {
   popen,
   powerControl,
   processWatchdog,
+  putSystemVariable,
+  putUserVariable,
   putenv,
   ref,
   registr,
@@ -3944,6 +4202,9 @@ process.on("exit", function() {
   removeStringRegKeyWalk,
   removeStringRegValue,
   removeStringTree,
+  removeSystemVariable,
+  removeUserVariable,
+  removeVariable,
   rightClick,
   sendBasicKeys,
   sendKeyboard,
@@ -3972,6 +4233,7 @@ process.on("exit", function() {
   systemChcp,
   systemStartTime,
   trash,
+  updateThis,
   updateWindow,
   version,
   watchClipboard,
