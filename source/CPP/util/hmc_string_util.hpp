@@ -270,7 +270,14 @@ namespace hmc_string_util
      * @return string
      */
     extern wstring map_to_jsonW(std::any item_list);
-
+    // 大写
+    string text_to_upper(string data);
+    // 大写
+    wstring text_to_upper(wstring data);
+    // 小写
+    string text_to_lower(string data);
+    // 小写
+    wstring text_to_lower(wstring data);
 };
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_STRING_UTIL_HPP

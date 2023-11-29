@@ -854,6 +854,18 @@ namespace hmc_env
             return result;
         }
 
+        string getSys(string key, bool transMean = true)
+        {
+            std::string pEnvStr;
+
+            if (getSys(key, pEnvStr, transMean))
+            {
+                return pEnvStr;
+            }
+            
+            return "";
+        }
+
         /**
          * @brief 获取系统环境变量
          *
@@ -894,6 +906,18 @@ namespace hmc_env
             }
             HMC_CHECK_CATCH;
             return result;
+        }
+
+        string getUse(string key, bool transMean = true)
+        {
+            std::string pEnvStr;
+
+            if (getUse(key, pEnvStr, transMean))
+            {
+                return pEnvStr;
+            }
+
+            return "";
         }
 
         /**
@@ -1304,7 +1328,7 @@ namespace hmc_env
         {
             vector<chFormatVariableData> AllVariableDataList;
             vector<chFormatVariableData> VariableDataList;
-            string pathChar = string();
+            string  path_var_data = "";
             set<string> hmcDataList;
 
             // 这些值是固定的 不允许变动
@@ -1350,20 +1374,10 @@ namespace hmc_env
                     {
                         AllVariableDataList.push_back(variableData);
                     }
-                    else
-                    {
-                        if (pathChar.size() != 0)
-                            pathChar.append(";");
-                        pathChar.append(variableData.data);
+                    else{
+                        path_var_data.append(variableData.data);
                     }
-
-                    // 获取全部的时候也会添加如path合集
-                    if (variableData.upper == string("PATH") && AllVariable)
-                    {
-                        if (pathChar.size() != 0)
-                            pathChar.append(";");
-                        pathChar.append(variableData.data);
-                    }
+                   
                 }
                 key_list.dir.clear();
                 key_list.key.clear();
@@ -1398,24 +1412,23 @@ namespace hmc_env
                     {
                         AllVariableDataList.push_back(variableData);
                     }
+                    // 是path
                     else
                     {
-                        if (pathChar.size() != 0)
-                            pathChar.append(";");
-                        pathChar.append(variableData.data);
-                    }
-                    if (variableData.upper == string("PATH") && AllVariable)
-                    {
-                        if (pathChar.size() != 0)
-                            pathChar.append(";");
-                        pathChar.append(variableData.data);
+                        if (!path_var_data.empty()){
+
+                            path_var_data.append(";");
+
+                            }
+                        path_var_data.append(variableData.data);
                     }
                 }
 
+          
                 key_list.dir.clear();
                 key_list.key.clear();
             });
-
+            
             // 按照结构优先级添加到返回结果
             HMC_CHECK({
                 // 按照顺序永远是用户数据优先 所以不用刻意排序
@@ -1437,15 +1450,14 @@ namespace hmc_env
                     }
                 }
 
-                chFormatVariableData pathVariableData;
-                pathVariableData.type_user = true;
-                pathVariableData.size = pathChar.size();
-                pathVariableData.upper = AllVariable ? "HMC::PATH_ALL" : "PATH";
-                pathVariableData.name = AllVariable ? "HMC::PATH_ALL" : "Path";
-                pathVariableData.data = pathChar;
-                VariableDataList.push_back(pathVariableData);
-                if (AllVariable)
-                    AllVariableDataList.push_back(pathVariableData);
+                chFormatVariableData variableData;
+                variableData.type_user = true;
+                variableData.size = path_var_data.size();
+                variableData.upper = keyUpper("PATH");
+                variableData.name = "Path";
+                variableData.data = path_var_data;
+                VariableDataList.push_back(variableData);
+
             });
             // 翻译变量
             HMC_CHECK({

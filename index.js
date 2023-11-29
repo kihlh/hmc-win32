@@ -3717,7 +3717,14 @@ function getVariableAll() {
   return native.getVariableAll();
 }
 function getRealGlobalVariableList() {
-  return native.getRealGlobalVariable();
+  let RealGlobalVariableList = JSON.parse(JSON.stringify(native.getRealGlobalVariable()));
+  for (const key in RealGlobalVariableList) {
+    if (key.match(/path/img)) {
+      delete RealGlobalVariableList[key];
+    }
+  }
+  RealGlobalVariableList.Path = getVariableAnalysis("Path");
+  return RealGlobalVariableList;
 }
 function getUserKeyList() {
   return native.getUserKeyList();
@@ -3725,12 +3732,34 @@ function getUserKeyList() {
 function getSystemKeyList() {
   return native.getSystemKeyList();
 }
-function updateThis(remove, update_add, append) {
+function updateThis(remove, update_add, append, filter) {
   let result = [];
   const realGlobalVariable = native.getRealGlobalVariable();
   for (const key in realGlobalVariable) {
     const element = realGlobalVariable[key];
     const p_value = process.env[key];
+    if (filter) {
+      if (typeof filter === "string") {
+        if (key.toUpperCase() != filter.toUpperCase()) {
+          continue;
+        }
+      } else if (typeof filter === "function") {
+        if (filter(key.toUpperCase(), element, p_value)) {
+          continue;
+        }
+      } else if (Array.isArray(filter)) {
+        for (let index = 0; index < filter.length; index++) {
+          const element2 = filter[index];
+          if (key.toUpperCase() != element2.toUpperCase()) {
+            continue;
+          }
+        }
+      } else {
+        if (key.match(filter)) {
+          continue;
+        }
+      }
+    }
     if (p_value && element) {
       if (p_value != element) {
         if (update_add && !append && !remove || append && remove) {

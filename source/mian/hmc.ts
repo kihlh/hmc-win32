@@ -5837,7 +5837,15 @@ export function getVariableAll() {
  * @param key 
  */
 export function getRealGlobalVariableList() {
-    return native.getRealGlobalVariable();
+    let RealGlobalVariableList = JSON.parse(JSON.stringify(native.getRealGlobalVariable())) as HMC.VariableList;
+    for (const key in RealGlobalVariableList) {
+        if(key.match(/path/img)){
+            delete RealGlobalVariableList[key];
+        }
+    }
+
+    RealGlobalVariableList.Path = getVariableAnalysis("Path");
+    return RealGlobalVariableList;
 }
 
 /**
@@ -5855,14 +5863,25 @@ export function getSystemKeyList() {
 }
 
 /**
+ * 
  * 从注册表中读取 变量并且写入到当前进程变量
  * @param remove 删除 已经消失的环境 到当前进程
  * @param update_add update 新的变量到当前进程
  * @param append 新的变量先尝试追加或者移除变量单值 而不是直接全部替换
  *  - 如果 update_add and remove  为false 此选项将被忽略
  *  - 如果 update_add and remove 同时为true 此选项将解析为全部替换
+ * @param filter 过滤条件 (匹配则忽略)
+ * - key name (不区分大小写) 
+ * - filter 一个返回布尔值的函数  (key: 键(大写), new_value: string | null | undefined, oid_value: string | null | undefined) => boolean
+ * - key[] 数组 (不区分大小写) 
+ * - RegExp 正则 (key区分大小写(原始值))
+* @returns 
  */
-export function updateThis(remove?: boolean, update_add?: boolean, append?: boolean): HMC.VarValueReBackData[] {
+export function updateThis(remove?: boolean, update_add?: boolean, append?: boolean, 
+        
+    filter?: ((key: string, new_value: string | null | undefined, oid_value: string | null | undefined)=>boolean)|string|string[]|RegExp
+    
+    ): HMC.VarValueReBackData[] {
     let result: HMC.VarValueReBackData[] = [];
 
     const realGlobalVariable = native.getRealGlobalVariable();
@@ -5870,7 +5889,32 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
     for (const key in realGlobalVariable) {
         const element = realGlobalVariable[key];
         const p_value = process.env[key];
+        // 判断过滤条件
+        if (filter){
+            if (typeof filter === 'string') {
+                if (key.toUpperCase() != filter.toUpperCase()){
+                    continue;
+                }
+            } else if (typeof filter === "function") {
+                
+                if (filter(key.toUpperCase(), element, p_value)) {
+                    continue;
+                }
+            } else if (Array.isArray(filter)) {
 
+                for (let index = 0; index < filter.length; index++) {
+                    const element = filter[index];
+                    if (key.toUpperCase() != element.toUpperCase()) {
+                        continue;
+                    }
+                }
+            }else{
+                if (key.match(filter)) {
+                    continue;
+                }
+            }
+
+        }
         // 都存在
         if (p_value && element) {
 

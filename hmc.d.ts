@@ -2276,7 +2276,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -3350,14 +3350,21 @@ export declare function getUserKeyList(): string[];
  */
 export declare function getSystemKeyList(): string[];
 /**
+ *
  * 从注册表中读取 变量并且写入到当前进程变量
  * @param remove 删除 已经消失的环境 到当前进程
  * @param update_add update 新的变量到当前进程
  * @param append 新的变量先尝试追加或者移除变量单值 而不是直接全部替换
  *  - 如果 update_add and remove  为false 此选项将被忽略
  *  - 如果 update_add and remove 同时为true 此选项将解析为全部替换
+ * @param filter 过滤条件 (匹配则忽略)
+ * - key name (不区分大小写)
+ * - filter 一个返回布尔值的函数  (key: 键(大写), new_value: string | null | undefined, oid_value: string | null | undefined) => boolean
+ * - key[] 数组 (不区分大小写)
+ * - RegExp 正则 (key区分大小写(原始值))
+* @returns
  */
-export declare function updateThis(remove?: boolean, update_add?: boolean, append?: boolean): HMC.VarValueReBackData[];
+export declare function updateThis(remove?: boolean, update_add?: boolean, append?: boolean, filter?: ((key: string, new_value: string | null | undefined, oid_value: string | null | undefined) => boolean) | string | string[] | RegExp): HMC.VarValueReBackData[];
 export declare const Environment: {
     hasKeyExists: typeof hasKeyExists;
     hasUseKeyExists: typeof hasUseKeyExists;

@@ -1751,3 +1751,95 @@ wstring hmc_string_util::map_to_jsonW(std::any item_list)
 
     return L"{}";
 }
+
+/**
+ * @brief 转大写
+ *
+ * @param data
+ * @return string
+ */
+string hmc_string_util::text_to_upper(string data)
+{
+    string Result;
+    for (char &c : data)
+    {
+        if (std::isalpha(static_cast<unsigned char>(c)))
+        {
+            Result.push_back(std::toupper(c));
+        }
+        else
+        {
+            Result.push_back(c);
+        }
+    }
+    return Result;
+}
+
+/**
+ * @brief 转大写
+ *
+ * @param data
+ * @return string
+ */
+wstring hmc_string_util::text_to_upper(wstring data)
+{
+    wstring Result;
+    for (wchar_t &c : data)
+    {
+        if (std::isalpha(static_cast<wchar_t>(c)))
+        {
+            Result.push_back(std::toupper(c));
+        }
+        else
+        {
+            Result.push_back(c);
+        }
+    }
+    return Result;
+}
+
+/**
+ * @brief 转大写
+ *
+ * @param data
+ * @return string
+ */
+string hmc_string_util::text_to_lower(string data)
+{
+    string Result;
+    for (char &c : data)
+    {
+        if (std::isalpha(static_cast<unsigned char>(c)))
+        {
+            Result.push_back(std::tolower(c));
+        }
+        else
+        {
+            Result.push_back(c);
+        }
+    }
+    return Result;
+}
+
+/**
+ * @brief 转大写
+ *
+ * @param data
+ * @return string
+ */
+wstring hmc_string_util::text_to_lower(wstring data)
+{
+    wstring Result;
+    for (wchar_t &c : data)
+    {
+        if (std::isalpha(static_cast<wchar_t>(c)))
+        {
+            Result.push_back(std::tolower(c));
+        }
+        else
+        {
+            Result.push_back(c);
+        }
+    }
+    return Result;
+}

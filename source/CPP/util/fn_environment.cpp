@@ -71,11 +71,17 @@ napi_value fn_getRealGlobalVariable(napi_env env, napi_callback_info info)
 
     for (auto globalVariable : hmc_env::systemEnv::getGlobalVariable())
     {
-        wstring key = hmc_string_util::ansi_to_utf16(globalVariable.first);
-        wstring value = hmc_string_util::ansi_to_utf16(globalVariable.second);
-
-        result.insert(std::make_pair(key, value));
+        if (hmc_string_util::text_to_upper(globalVariable.first) != "PATH")
+        {
+            wstring key = hmc_string_util::ansi_to_utf16(globalVariable.first);
+            wstring value = hmc_string_util::ansi_to_utf16(globalVariable.second);
+            result.insert(std::make_pair(key, value));
+        }
     }
+
+    string path_value_join = hmc_env::systemEnv::getUse("Path") + ";" + hmc_env::systemEnv::getSys("Path");
+    wstring path_value = hmc_string_util::ansi_to_utf16(path_value_join);
+    result.insert(std::make_pair(L"Path", path_value));
 
     // return hmc_napi_util::create_value::String(env, hmc_string_util::map_to_jsonW(result) );
 

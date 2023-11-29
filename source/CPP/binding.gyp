@@ -1,8 +1,8 @@
 {
   "targets": [
     {
-      # "target_name": "HMC_x64",
-      "target_name": "HMC_x86",
+      "target_name": "HMC_x64",
+      # "target_name": "HMC_x86",
       "conditions": [
         ['OS=="win"', {
           "sources": [
