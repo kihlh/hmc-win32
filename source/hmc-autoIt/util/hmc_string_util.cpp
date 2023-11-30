@@ -1844,7 +1844,7 @@ wstring hmc_string_util::text_to_lower(wstring data)
     return Result;
 }
 
-LPCSTR string_to_lpstr(string input, size_t &psize)
+LPCSTR hmc_string_util::string_to_lpstr(string input, _In_ size_t &psize)
 {
 
     char *output = new char[input.size() + sizeof(char)];
@@ -1855,13 +1855,13 @@ LPCSTR string_to_lpstr(string input, size_t &psize)
         output[i] = data;
     }
     const int end = input.size();
-
+    // 正好是 output-1 的位置
     output[end] = '\0';
     psize = end;
     return output;
 }
 
-LPWSTR string_to_lpstr(wstring input, size_t &psize)
+LPWSTR hmc_string_util::string_to_lpstr(wstring input, _In_ size_t psize)
 {
 
     wchar_t *output = new wchar_t[input.size() + sizeof(wchar_t)];
@@ -1872,8 +1872,101 @@ LPWSTR string_to_lpstr(wstring input, size_t &psize)
         output[i] = data;
     }
     const int end = input.size();
-
+    // 正好是 output-1 的位置
     output[end] = L'\0';
     psize = end;
     return output;
+}
+
+LPCSTR hmc_string_util::string_to_lpstr(string input)
+{
+    size_t psize = 0;
+    return string_to_lpstr(input, psize);
+}
+
+LPWSTR hmc_string_util::string_to_lpstr(wstring input)
+{
+
+    size_t psize = 0;
+    return string_to_lpstr(input, psize);
+}
+
+wstring hmc_string_util::lpstr_to_string(LPWSTR input){
+
+    wstring result = L"";
+    if (input != nullptr)
+    {
+        LPWSTR current = input;
+        while (*current != L'\0')
+        {
+            // 打印当前字符
+            result.push_back(*current);
+            // 指针移动到下一个字符
+            current++;
+        }
+
+    }
+    return result;
+}
+
+string hmc_string_util::lpstr_to_string(LPSTR input)
+{
+
+    string result = "";
+    if (input != nullptr)
+    {
+        LPSTR current = input;
+        while (*current != '\0')
+        {
+            // 打印当前字符
+            result.push_back(*current);
+            // 指针移动到下一个字符
+            current++;
+        }
+    }
+    return result;
+}
+
+
+wstring hmc_string_util::lpstr_to_string(LPWSTR input, int nBufSize, bool earlyTruncation = false)
+{
+    wstring result = L"";
+    if (input == NULL && nBufSize < 0)
+        return result;
+    // 预留\0位置
+    // result.reserve(nBufSize + 1);
+    result.reserve(nBufSize);
+    result.resize(nBufSize);
+    for (size_t i = 0; i < nBufSize; i++)
+    {
+        wchar_t data = input[i];
+        if (earlyTruncation && data == L'\0')
+        {
+            break;
+        }
+        result[i] = data;
+    }
+    // result[result.size() - 1] = L'\0';
+    return result;
+}
+
+string hmc_string_util::lpstr_to_string(LPSTR input, int nBufSize, bool earlyTruncation = false)
+{
+    string result = "";
+    if (input == NULL && nBufSize < 0)
+        return result;
+    // result.reserve(nBufSize + 1);
+    result.reserve(nBufSize);
+    result.resize(nBufSize);
+    for (size_t i = 0; i < nBufSize; i++)
+    {
+        char data = input[i];
+        if (earlyTruncation && data == '\0')
+        {
+            break;
+        }
+        result[i] = data;
+    }
+    // result[result.size() - 1] = '\0';
+    return result;
 }

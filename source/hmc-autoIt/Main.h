@@ -18,17 +18,17 @@ using namespace std;
 
 using namespace std;
 
-#define $napi_get_cb_info(argsLen, args, fnName)                                                                           \
-    if (napi_get_cb_info(env, info, &argsLen, args, NULL, NULL) != napi_ok)                                                \
-    {                                                                                                                      \
-        hmc_console::error("main", string("napi fn -> [").append(fnName).append("]").append(" $napi_get_cb_info error ")); \
-        return NULL;                                                                                                       \
+#define $napi_get_cb_info(argsLen, args, fnName)                            \
+    if (napi_get_cb_info(env, info, &argsLen, args, NULL, NULL) != napi_ok) \
+    {                                                                       \
+        napi_throw_type_error(env, NULL, string(fnName).c_str());           \
+        return NULL;                                                        \
     }
 
 // 导出一个其他cpp中的模块
-#define DECLARE_NAPI_METHODRM(name, func)                       \
-    {                                                           \
-        name, 0, (napi_callback)&func, 0, 0, 0, napi_default, 0 \
+#define DECLARE_NAPI_METHODRM(name, func)                         \
+    {                                                             \
+        name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
     }
 
 // 导出一个模块

@@ -18,15 +18,25 @@ using json = nlohmann::json;
 #elif defined(_M_X64) || defined(_M_AMD64)
 #pragma comment(lib, "F:\\source\\CPP\\hmc-win32\\source\\hmc-autoIt\\AutoItX3\\AutoItX3_x64_DLL.lib")
 
-#endif
-#endif
+#endif //_M_IX86
+#endif//_MSC_VER
 
+#ifdef SRC_NODE_API_H_
 #define HMC_NAPI_CHECK_CATCH              \
     catch (char *err)                     \
     {                                     \
         napi_get_undefined(env, &result); \
     }
 ;
+#else 
+#define HMC_NAPI_CHECK_CATCH              \
+    catch (char *err)                     \
+    {                                     \
+       cout << err << "\n";                \ 
+    }
+
+#endif //SRC_NODE_API_H_
+
 
 static napi_value hmc_au3_Init(napi_env env, napi_callback_info info)
 {
