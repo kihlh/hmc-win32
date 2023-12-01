@@ -10,23 +10,17 @@
 
 ####  [编程帮助(中文)](https://kihlh.gitbook.io/hmc/)               [help (English) ](https://kihlh.gitbook.io/hmc_en/)      [CPP (source)](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig)     [重构计划进度（Project）](https://github.com/kihlh/hmc-win32/tree/master/source/CPP_Reconfig/Project.md)
 
-### notify
+### npm :
 
-hmc C++ 语言代码部分，正在重构中，如果您有新的功能需求请提出issues ，如果需求是hmc的需求将会在重构版本中添加
+ [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)   [【net-win32】](https://www.npmjs.com/package/net-win32)
 
-hmc C++ language code section, currently under refactoring. If you have any new feature requirements, please raise issues. If the requirement is specific to hmc, it will be added in the refactored version.
+### 子集 (Subset)
 
--------------------------------------------------------
+#### net : net-win32
 
-##### hmc新版本设计概念  ：
+net-win32 是hmc的子集 他包含了一些列调用win32的网络接口的函数 例如获取本地ip，公网ip，网卡信息等....
 
-1.支持多语言[C 语言 DLL 接口]  （易语言 , Go , Rust , C ，CPP ，node ，VBS）
-
-2.**可参考** **可复用** 模块间尽可能独立  避免为了无意义的效率降低安全性  **更加安全的进程**
-
-3.减少模棱两可的变量名
-
-4.增加因为旧结构不支持的功能 例如 prompt，Pass input ，tray，枚举大量的对象 
+net-win32 is a subset of hmc. It includes a series of functions that call win32 network interfaces, such as obtaining local IP, public IP, network card information, etc.
 
 ------------------
 
@@ -369,9 +363,39 @@ import  HMC = require("hmc-win32");
 - **getSystemKeyList** 获取系统变量的键列表 `系统`
 - **updateThis** 同步系统(全局)变量到当前进程
 
-### 其他
+### 网络 (net)
 
-- **_SET_HMC_DEBUG**  HMC调试模式  打开以后会正常执行代码 但是会打印报错内容到控制台 console.error(new Error( HMC 内部错误定义 )) 例如 设置标题 设置错误 只返false 打开以后会打印详细的错误内容
+请注意 hmc并不附带网络控件，您如果需要网络控件请使用hmc的子集 **[hmn-win32](https://github.com/kihlh/hmn-win32)**
+
+------------------------------
+
+- **ipv4** 获取本机局域网的ip(v4)
+- **ip**获取本机局域网的ip(适配器,v4,v6)
+- **adapterIP **获取本机局域网的ip(适配器,v4,v6)
+- **public_ip** 获取本机公网ip
+- **getNetParams** 获取主机网络信息
+- **freePort** 获取一个tcp空闲端口 (服务)
+- **freePortTCP** 获取一个空闲的tcp端口
+- **freePortUDP** 获取一个空闲的udp端口
+- **hasPortUDP** 判断此udp端口是否空闲
+- **hasPortTCP**判断此TCP端口是否空闲
+- **getSystemProxyServer** 获取系统代理链接（仅在启用系统代理时）
+- **getSystemProxyPac** 获取系统代理pac脚本链接
+- **getDomainIPaddress** 从默认dns(联网)解析域名主机ip
+- **getHostsPath** 获取hosts文件的路径
+- **getTCPv6PortProcessID** 获取此端口被哪个进程占用了
+- **getUDPv6PortProcessID** 获取此端口被哪个进程占用了
+- **getUDPv4PortProcessID** 获取此端口被哪个进程占用了
+- **getTCPv4PortProcessID** 获取此端口被哪个进程占用了
+- **getConnectNetList** 枚举此电脑中的 端口 ipv4 and ipv6 的 TCP，UDP 端口信息
+- **killProcess** 结束该pid进程（低权利 如果需要高权限的kill请使用hmc-win32）
+- **sleep** 同步阻塞(进程)
+- **Sleep** 异步阻塞(进程)
+- **PortWatchdog** 检测端口变化如果关闭或者启用时发起回调
+- **getProcessidFilePath** 获取进程可执行文件位置
+- **isAdmin** 判断当前软件是否拥有管理员权限
+
+### 其他
 
 ### 重新构建
 
