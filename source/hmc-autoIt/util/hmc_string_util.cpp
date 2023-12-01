@@ -1928,7 +1928,7 @@ string hmc_string_util::lpstr_to_string(LPSTR input)
 }
 
 
-wstring hmc_string_util::lpstr_to_string(LPWSTR input, int nBufSize, bool earlyTruncation = false)
+wstring hmc_string_util::lpstr_to_string(LPWSTR input, int nBufSize, bool earlyTruncation)
 {
     wstring result = L"";
     if (input == NULL && nBufSize < 0)
@@ -1950,7 +1950,7 @@ wstring hmc_string_util::lpstr_to_string(LPWSTR input, int nBufSize, bool earlyT
     return result;
 }
 
-string hmc_string_util::lpstr_to_string(LPSTR input, int nBufSize, bool earlyTruncation = false)
+string hmc_string_util::lpstr_to_string(LPSTR input, int nBufSize, bool earlyTruncation)
 {
     string result = "";
     if (input == NULL && nBufSize < 0)

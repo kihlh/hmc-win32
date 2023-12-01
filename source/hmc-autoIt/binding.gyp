@@ -5,6 +5,7 @@
       "conditions": [
         ['OS=="win"', {
           "sources": [
+            "./util/hmc_string_util.cpp",
             "Main.cpp"
           ],
           'msvs_settings': {

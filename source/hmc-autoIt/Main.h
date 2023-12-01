@@ -15,6 +15,11 @@ using namespace std;
 
 // 小写转换
 #include <algorithm>
+#include <map>
+
+#include "./util/hmc_string_util.hpp"
+#include "../CPP/util/napi_value_util.hpp"
+#include "./AutoItX3.hpp"
 
 using namespace std;
 
