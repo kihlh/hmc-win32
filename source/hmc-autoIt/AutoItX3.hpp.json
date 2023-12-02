@@ -1,0 +1,2870 @@
+[
+    {
+        "name": "fn_AU3_Init",
+        "type": "void",
+        "argc": 0,
+        "argv": [],
+        "exports": "Init",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_error",
+        "type": "int",
+        "argc": 0,
+        "argv": [],
+        "exports": "error",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_AutoItSetOption",
+        "type": "int",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Option",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nValue",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "AutoItSetOption",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_ClipGet",
+        "type": "wstring",
+        "argc": 0,
+        "argv": [],
+        "exports": "ClipGet",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ClipPut",
+        "type": "void",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "intput",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "ClipPut",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_ControlClick",
+        "type": "bool",
+        "argc": 7,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "szTitle",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "szText",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "szControl",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "szButton",
+                "defaultv": "L\"left\"",
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nNumClicks",
+                "defaultv": "1",
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 5
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 6
+            }
+        ],
+        "exports": "ControlClick",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlClickByHandle",
+        "type": "int",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "szButton",
+                "defaultv": "L\"left\"",
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nNumClicks",
+                "defaultv": "1",
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 5
+            }
+        ],
+        "exports": "ControlClickByHandle",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_ControlCommand",
+        "type": "wstring",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Extra",
+                "defaultv": "L\"\"",
+                "index": 4
+            }
+        ],
+        "exports": "ControlCommand",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlCommandByHandle",
+        "type": "wstring",
+        "argc": 4,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Extra",
+                "defaultv": "L\"\"",
+                "index": 3
+            }
+        ],
+        "exports": "ControlCommandByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlListView",
+        "type": "wstring",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Extra1",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Extra2",
+                "defaultv": null,
+                "index": 5
+            }
+        ],
+        "exports": "ControlListView",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlListViewByHandle",
+        "type": "wstring",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Extra1",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Extra2",
+                "defaultv": null,
+                "index": 4
+            }
+        ],
+        "exports": "ControlListViewByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlDisable",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlDisable",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlDisableByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlDisableByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlEnable",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlEnable",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlEnableByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlEnableByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlFocus",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlFocus",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlFocusByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlFocusByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlGetFocus",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "ControlGetFocus",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlGetFocusByHandle",
+        "type": "wstring",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "ControlGetFocusByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlGetHandle",
+        "type": "HWND",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlGetHandle",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_ControlGetHandleAsText",
+        "type": "wstring",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlGetHandleAsText",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlGetPos",
+        "type": "RECT",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlGetPos",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_ControlGetPosByHandle",
+        "type": "RECT",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlGetPosByHandle",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_ControlGetText",
+        "type": "wstring",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlGetText",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlGetTextByHandle",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlGetTextByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlHide",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlHide",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlHideByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlHideByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlMove",
+        "type": "bool",
+        "argc": 7,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nWidth",
+                "defaultv": "-1",
+                "index": 5
+            },
+            {
+                "type": "int",
+                "name": "nHeight",
+                "defaultv": "-1",
+                "index": 6
+            }
+        ],
+        "exports": "ControlMove",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlMoveByHandle",
+        "type": "bool",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nWidth",
+                "defaultv": "-1",
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nHeight",
+                "defaultv": "-1",
+                "index": 5
+            }
+        ],
+        "exports": "ControlMoveByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlSend",
+        "type": "bool",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "SendText",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nMode",
+                "defaultv": "0",
+                "index": 4
+            }
+        ],
+        "exports": "ControlSend",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlSendByHandle",
+        "type": "bool",
+        "argc": 4,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "SendText",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nMode",
+                "defaultv": "0",
+                "index": 3
+            }
+        ],
+        "exports": "ControlSendByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlSetText",
+        "type": "bool",
+        "argc": 4,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "ControlText",
+                "defaultv": null,
+                "index": 3
+            }
+        ],
+        "exports": "ControlSetText",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlSetTextByHandle",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "SendText",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlSetTextByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlShow",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "ControlShow",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlShowByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ControlShowByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ControlTreeView",
+        "type": "wstring",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Control",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Extra1",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Extra2",
+                "defaultv": null,
+                "index": 5
+            }
+        ],
+        "exports": "ControlTreeView",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ControlTreeViewByHandle",
+        "type": "wstring",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "HWND",
+                "name": "hCtrl",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Command",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Extra1",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Extra2",
+                "defaultv": null,
+                "index": 4
+            }
+        ],
+        "exports": "ControlTreeViewByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_DriveMapAdd",
+        "type": "wstring",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Device",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Share",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nFlags",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "User",
+                "defaultv": "L\"\"",
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Pwd",
+                "defaultv": "L\"\"",
+                "index": 4
+            }
+        ],
+        "exports": "DriveMapAdd",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_DriveMapDel",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Device",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "DriveMapDel",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_DriveMapGet",
+        "type": "wstring",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Device",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "DriveMapGet",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_IsAdmin",
+        "type": "bool",
+        "argc": 0,
+        "argv": [],
+        "exports": "IsAdmin",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_MouseClick",
+        "type": "void",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Button",
+                "defaultv": "L\"LEFT\"",
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nClicks",
+                "defaultv": "1",
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nSpeed",
+                "defaultv": "-1",
+                "index": 4
+            }
+        ],
+        "exports": "MouseClick",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_MouseClickDrag",
+        "type": "void",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Button",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nX1",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nY1",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nX2",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nY2",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nSpeed",
+                "defaultv": "-1",
+                "index": 5
+            }
+        ],
+        "exports": "MouseClickDrag",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_MouseDown",
+        "type": "void",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Button",
+                "defaultv": "L\"LEFT\"",
+                "index": 0
+            }
+        ],
+        "exports": "MouseDown",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_MouseGetCursor",
+        "type": "int",
+        "argc": 0,
+        "argv": [],
+        "exports": "MouseGetCursor",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_MouseGetPos",
+        "type": "POINT",
+        "argc": 0,
+        "argv": [],
+        "exports": "MouseGetPos",
+        "js_type": "{x:number, y:number}"
+    },
+    {
+        "name": "fn_AU3_MouseMove",
+        "type": "int",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nSpeed",
+                "defaultv": "-1",
+                "index": 2
+            }
+        ],
+        "exports": "MouseMove",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_MouseUp",
+        "type": "void",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Button",
+                "defaultv": "L\"LEFT\"",
+                "index": 0
+            }
+        ],
+        "exports": "MouseUp",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_MouseWheel",
+        "type": "void",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Direction",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nClicks",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "MouseWheel",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_Opt",
+        "type": "int",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Option",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nValue",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "Opt",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_PixelChecksum",
+        "type": "unsigned int",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "RECT",
+                "name": "lpRect",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nStep",
+                "defaultv": "1",
+                "index": 1
+            }
+        ],
+        "exports": "PixelChecksum",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_PixelGetColor",
+        "type": "int",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "PixelGetColor",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_PixelSearch",
+        "type": "POINT",
+        "argc": 4,
+        "argv": [
+            {
+                "type": "RECT",
+                "name": "lpRect",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nCol",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nVar",
+                "defaultv": "0",
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nStep",
+                "defaultv": "1",
+                "index": 3
+            }
+        ],
+        "exports": "PixelSearch",
+        "js_type": "{x:number, y:number}"
+    },
+    {
+        "name": "fn_AU3_ProcessClose",
+        "type": "void",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Process",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "ProcessClose",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_ProcessExists",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Process",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "ProcessExists",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ProcessSetPriority",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Process",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nPriority",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "ProcessSetPriority",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ProcessWait",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Process",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 1
+            }
+        ],
+        "exports": "ProcessWait",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_ProcessWaitClose",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Process",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 1
+            }
+        ],
+        "exports": "ProcessWaitClose",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_Run",
+        "type": "int",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Program",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Dir",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nShowFlag",
+                "defaultv": "SW_SHOWNORMAL",
+                "index": 2
+            }
+        ],
+        "exports": "Run",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_RunWait",
+        "type": "int",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Program",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Dir",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nShowFlag",
+                "defaultv": "SW_SHOWNORMAL",
+                "index": 2
+            }
+        ],
+        "exports": "RunWait",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_RunAs",
+        "type": "int",
+        "argc": 7,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "User",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Domain",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Password",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nLogonFlag",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Program",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Dir",
+                "defaultv": "L\"\"",
+                "index": 5
+            },
+            {
+                "type": "int",
+                "name": "nShowFlag",
+                "defaultv": "SW_SHOWNORMAL",
+                "index": 6
+            }
+        ],
+        "exports": "RunAs",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_RunAsWait",
+        "type": "int",
+        "argc": 7,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "User",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Domain",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Password",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nLogonFlag",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Program",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Dir",
+                "defaultv": "L\"\"",
+                "index": 5
+            },
+            {
+                "type": "int",
+                "name": "nShowFlag",
+                "defaultv": "SW_SHOWNORMAL",
+                "index": 6
+            }
+        ],
+        "exports": "RunAsWait",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_Send",
+        "type": "void",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "SendText",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nMode",
+                "defaultv": "0",
+                "index": 1
+            }
+        ],
+        "exports": "Send",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_Shutdown",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "int",
+                "name": "nFlags",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "Shutdown",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_Sleep",
+        "type": "void",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "int",
+                "name": "nMilliseconds",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "Sleep",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_StatusbarGetText",
+        "type": "wstring",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": "L\"\"",
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nPart",
+                "defaultv": "1",
+                "index": 2
+            }
+        ],
+        "exports": "StatusbarGetText",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_StatusbarGetTextByHandle",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nPart",
+                "defaultv": "1",
+                "index": 1
+            }
+        ],
+        "exports": "StatusbarGetTextByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_ToolTip",
+        "type": "void",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Tip",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": "AU3_INTDEFAULT",
+                "index": 2
+            }
+        ],
+        "exports": "ToolTip",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinActivate",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinActivate",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinActivateByHandle",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinActivateByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinActive",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinActive",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinActiveByHandle",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinActiveByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinClose",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinClose",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinCloseByHandle",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinCloseByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinExists",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinExists",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinExistsByHandle",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinExistsByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinGetCaretPos",
+        "type": "POINT",
+        "argc": 0,
+        "argv": [],
+        "exports": "WinGetCaretPos",
+        "js_type": "{x:number, y:number}"
+    },
+    {
+        "name": "fn_AU3_WinGetClassList",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetClassList",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetClassListByHandle",
+        "type": "wstring",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetClassListByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetClientSize",
+        "type": "RECT",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetClientSize",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_WinGetClientSizeByHandle",
+        "type": "RECT",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetClientSizeByHandle",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_WinGetHandle",
+        "type": "HWND",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetHandle",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_WinGetHandleAsText",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetHandleAsText",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetPos",
+        "type": "RECT",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetPos",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_WinGetPosByHandle",
+        "type": "RECT",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetPosByHandle",
+        "js_type": "{left:number, top:number,right:number, bottom:number}"
+    },
+    {
+        "name": "fn_AU3_WinGetProcess",
+        "type": "DWORD",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetProcess",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinGetProcessByHandle",
+        "type": "DWORD",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetProcessByHandle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinGetState",
+        "type": "int",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetState",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_WinGetStateByHandle",
+        "type": "int",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetStateByHandle",
+        "js_type": "number"
+    },
+    {
+        "name": "fn_AU3_WinGetText",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetText",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetTextByHandle",
+        "type": "wstring",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetTextByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetTitle",
+        "type": "wstring",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinGetTitle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinGetTitleByHandle",
+        "type": "wstring",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinGetTitleByHandle",
+        "js_type": "string"
+    },
+    {
+        "name": "fn_AU3_WinKill",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            }
+        ],
+        "exports": "WinKill",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinKillByHandle",
+        "type": "bool",
+        "argc": 1,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            }
+        ],
+        "exports": "WinKillByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinMenuSelectItem",
+        "type": "bool",
+        "argc": 10,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Item1",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Item2",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Item3",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Item4",
+                "defaultv": null,
+                "index": 5
+            },
+            {
+                "type": "wstring",
+                "name": "Item5",
+                "defaultv": null,
+                "index": 6
+            },
+            {
+                "type": "wstring",
+                "name": "Item6",
+                "defaultv": null,
+                "index": 7
+            },
+            {
+                "type": "wstring",
+                "name": "Item7",
+                "defaultv": null,
+                "index": 8
+            },
+            {
+                "type": "wstring",
+                "name": "Item8",
+                "defaultv": null,
+                "index": 9
+            }
+        ],
+        "exports": "WinMenuSelectItem",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinMenuSelectItemByHandle",
+        "type": "bool",
+        "argc": 9,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Item1",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "Item2",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "wstring",
+                "name": "Item3",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "wstring",
+                "name": "Item4",
+                "defaultv": null,
+                "index": 4
+            },
+            {
+                "type": "wstring",
+                "name": "Item5",
+                "defaultv": null,
+                "index": 5
+            },
+            {
+                "type": "wstring",
+                "name": "Item6",
+                "defaultv": null,
+                "index": 6
+            },
+            {
+                "type": "wstring",
+                "name": "Item7",
+                "defaultv": null,
+                "index": 7
+            },
+            {
+                "type": "wstring",
+                "name": "Item8",
+                "defaultv": null,
+                "index": 8
+            }
+        ],
+        "exports": "WinMenuSelectItemByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinMinimizeAll",
+        "type": "void",
+        "argc": 0,
+        "argv": [],
+        "exports": "WinMinimizeAll",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinMinimizeAllUndo",
+        "type": "void",
+        "argc": 0,
+        "argv": [],
+        "exports": "WinMinimizeAllUndo",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinMove",
+        "type": "void",
+        "argc": 6,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nWidth",
+                "defaultv": "-1",
+                "index": 4
+            },
+            {
+                "type": "int",
+                "name": "nHeight",
+                "defaultv": "-1",
+                "index": 5
+            }
+        ],
+        "exports": "WinMove",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinMoveByHandle",
+        "type": "void",
+        "argc": 5,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nX",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nY",
+                "defaultv": null,
+                "index": 2
+            },
+            {
+                "type": "int",
+                "name": "nWidth",
+                "defaultv": "-1",
+                "index": 3
+            },
+            {
+                "type": "int",
+                "name": "nHeight",
+                "defaultv": "-1",
+                "index": 4
+            }
+        ],
+        "exports": "WinMoveByHandle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetOnTop",
+        "type": "void",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nFlag",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "WinSetOnTop",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetOnTopByHandle",
+        "type": "void",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nFlag",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinSetOnTopByHandle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetState",
+        "type": "void",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nFlags",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "WinSetState",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetStateByHandle",
+        "type": "void",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nFlags",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinSetStateByHandle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetTitle",
+        "type": "void",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": null,
+                "index": 1
+            },
+            {
+                "type": "wstring",
+                "name": "NewTitle",
+                "defaultv": null,
+                "index": 2
+            }
+        ],
+        "exports": "WinSetTitle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetTitleByHandle",
+        "type": "void",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "NewTitle",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinSetTitleByHandle",
+        "js_type": "undefined"
+    },
+    {
+        "name": "fn_AU3_WinSetTrans",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nTrans",
+                "defaultv": "255",
+                "index": 2
+            }
+        ],
+        "exports": "WinSetTrans",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinSetTransByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTrans",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinSetTransByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWait",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 2
+            }
+        ],
+        "exports": "WinWait",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinWaitByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitActive",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 2
+            }
+        ],
+        "exports": "WinWaitActive",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitActiveByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinWaitActiveByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitClose",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 2
+            }
+        ],
+        "exports": "WinWaitClose",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitCloseByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": null,
+                "index": 1
+            }
+        ],
+        "exports": "WinWaitCloseByHandle",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitNotActive",
+        "type": "bool",
+        "argc": 3,
+        "argv": [
+            {
+                "type": "wstring",
+                "name": "Title",
+                "defaultv": "L\"\"",
+                "index": 0
+            },
+            {
+                "type": "wstring",
+                "name": "Text",
+                "defaultv": "L\"\"",
+                "index": 1
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 2
+            }
+        ],
+        "exports": "WinWaitNotActive",
+        "js_type": "boolean"
+    },
+    {
+        "name": "fn_AU3_WinWaitNotActiveByHandle",
+        "type": "bool",
+        "argc": 2,
+        "argv": [
+            {
+                "type": "HWND",
+                "name": "hWnd",
+                "defaultv": null,
+                "index": 0
+            },
+            {
+                "type": "int",
+                "name": "nTimeout",
+                "defaultv": "0",
+                "index": 1
+            }
+        ],
+        "exports": "WinWaitNotActiveByHandle",
+        "js_type": "boolean"
+    }
+]

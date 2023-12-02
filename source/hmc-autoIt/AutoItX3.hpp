@@ -514,20 +514,17 @@ RECT fn_AU3_ControlGetPos(wstring Title, wstring Text, wstring Control)
 
     try
     {
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
+        
         LPCWSTR szTitle = str2lp(Title);
         LPCWSTR szText = str2lp(Text);
         LPCWSTR szControl = str2lp(Control);
-        if (AU3_ControlGetPos(szTitle, szText, szControl, lpRect) == 1)
+        RECT lpRect;
+        if (AU3_ControlGetPos(szTitle, szText, szControl,&lpRect) == 1)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
+            Pos.bottom =lpRect.bottom;
+            Pos.left =lpRect.left;
+            Pos.right =lpRect.right;
+            Pos.top =lpRect.top;
         }
     }
     HMC_CHECK_CATCH2;
@@ -544,18 +541,9 @@ RECT fn_AU3_ControlGetPosByHandle(HWND hWnd, HWND hCtrl)
 
     try
     {
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
 
-        if (AU3_ControlGetPosByHandle(hWnd, hCtrl, lpRect) == 1)
+        if (AU3_ControlGetPosByHandle(hWnd, hCtrl, &Pos) == 1)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
         }
     }
     HMC_CHECK_CATCH2;
@@ -655,7 +643,7 @@ bool fn_AU3_ControlMoveByHandle(HWND hWnd, HWND hCtrl, int nX, int nY, int nWidt
     return false;
 }
 
-bool AU3_ControlSend(wstring Title, wstring Text, wstring Control, wstring SendText, int nMode = 0)
+bool fn_AU3_ControlSend(wstring Title, wstring Text, wstring Control, wstring SendText, int nMode = 0)
 {
     try
     {
@@ -670,7 +658,7 @@ bool AU3_ControlSend(wstring Title, wstring Text, wstring Control, wstring SendT
     return false;
 }
 
-bool AU3_ControlSendByHandle(HWND hWnd, HWND hCtrl, wstring SendText, int nMode = 0)
+bool fn_AU3_ControlSendByHandle(HWND hWnd, HWND hCtrl, wstring SendText, int nMode = 0)
 {
     try
     {
@@ -681,7 +669,7 @@ bool AU3_ControlSendByHandle(HWND hWnd, HWND hCtrl, wstring SendText, int nMode 
     return false;
 }
 
-bool AU3_ControlSetText(wstring Title, wstring Text, wstring Control, LPCWSTR ControlText)
+bool fn_AU3_ControlSetText(wstring Title, wstring Text, wstring Control, wstring ControlText)
 {
     try
     {
@@ -695,7 +683,7 @@ bool AU3_ControlSetText(wstring Title, wstring Text, wstring Control, LPCWSTR Co
     return false;
 }
 
-bool AU3_ControlSetTextByHandle(HWND hWnd, HWND hCtrl, wstring SendText)
+bool fn_AU3_ControlSetTextByHandle(HWND hWnd, HWND hCtrl, wstring SendText)
 {
     try
     {
@@ -706,32 +694,30 @@ bool AU3_ControlSetTextByHandle(HWND hWnd, HWND hCtrl, wstring SendText)
     return false;
 }
 
-bool AU3_ControlShow(wstring Title, wstring Text, wstring Control, LPCWSTR ControlText)
+bool fn_AU3_ControlShow(wstring Title, wstring Text, wstring Control)
 {
     try
     {
         LPCWSTR szTitle = str2lp(Title);
         LPCWSTR szText = str2lp(Text);
         LPCWSTR szControl = str2lp(Control);
-        LPCWSTR szSendText = str2lp(ControlText);
-        return (AU3_ControlShow(szTitle, szText, szControl, szSendText) == 1) ? true : false;
+        return (AU3_ControlShow(szTitle, szText, szControl) == 1) ? true : false;
     }
     HMC_CHECK_CATCH2;
     return false;
 }
 
-bool AU3_ControlShowByHandle(HWND hWnd, HWND hCtrl, wstring SendText)
+bool fn_AU3_ControlShowByHandle(HWND hWnd, HWND hCtrl)
 {
     try
     {
-        LPCWSTR szSendText = str2lp(SendText);
-        return (AU3_ControlShowByHandle(hWnd, hCtrl, szSendText) == 1) ? true : false;
+        return (AU3_ControlShowByHandle(hWnd, hCtrl) == 1) ? true : false;
     }
     HMC_CHECK_CATCH2;
     return false;
 }
 
-wstring AU3_ControlTreeView(wstring Title, wstring Text, wstring Control, wstring Command, wstring Extra1, wstring Extra2)
+wstring fn_AU3_ControlTreeView(wstring Title, wstring Text, wstring Control, wstring Command, wstring Extra1, wstring Extra2)
 {
     try
     {
@@ -754,7 +740,7 @@ wstring AU3_ControlTreeView(wstring Title, wstring Text, wstring Control, wstrin
     return L"";
 }
 
-wstring AU3_ControlTreeViewByHandle(HWND hWnd, HWND hCtrl, wstring Command, wstring Extra1, wstring Extra2)
+wstring fn_AU3_ControlTreeViewByHandle(HWND hWnd, HWND hCtrl, wstring Command, wstring Extra1, wstring Extra2)
 {
     try
     {
@@ -775,7 +761,7 @@ wstring AU3_ControlTreeViewByHandle(HWND hWnd, HWND hCtrl, wstring Command, wstr
     return L"";
 }
 
-wstring AU3_DriveMapAdd(LPCWSTR Device, LPCWSTR Share, int nFlags, LPCWSTR User = L"", LPCWSTR Pwd = L"")
+wstring fn_AU3_DriveMapAdd(wstring Device, wstring Share, int nFlags, wstring User = L"", wstring Pwd = L"")
 {
     try
     {
@@ -788,7 +774,7 @@ wstring AU3_DriveMapAdd(LPCWSTR Device, LPCWSTR Share, int nFlags, LPCWSTR User 
         LPWSTR szResult = new wchar_t[STR_TEXT_SIZE];
         int nBufSize = STR_TEXT_SIZE;
 
-        AU3_DriveMapAdd(szDevice, szShare, nFlags, szUser, szPwd);
+        AU3_DriveMapAdd(szDevice, szShare, nFlags, szUser, szPwd, szResult, nBufSize);
 
         return hmc_string_util::lpstr_to_string(szResult, nBufSize, true);
     }
@@ -886,12 +872,8 @@ POINT fn_AU3_MouseGetPos()
     result.y = 0;
     try
     {
-        LPPOINT lpPoint = LPPOINT{};
-        result.x = 0;
-        result.y = 0;
-        AU3_MouseGetPos(lpPoint);
-        result.x = lpPoint->x;
-        result.y = lpPoint->y;
+
+        AU3_MouseGetPos(&result);
     }
     HMC_CHECK_CATCH2;
     return result;
@@ -942,12 +924,12 @@ int fn_AU3_Opt(wstring Option, int nValue)
     return 0;
 }
 
-unsigned int fn_AU3_PixelChecksum(LPRECT lpRect, int nStep = 1)
+unsigned int fn_AU3_PixelChecksum(RECT lpRect, int nStep = 1)
 {
     try
     {
 
-        return AU3_PixelChecksum(lpRect, nStep);
+        return AU3_PixelChecksum(&lpRect, nStep);
     }
     HMC_CHECK_CATCH2;
     return -1;
@@ -964,7 +946,7 @@ int fn_AU3_PixelGetColor(int nX, int nY)
     return -1;
 }
 
-POINT fn_AU3_PixelSearch(LPRECT lpRect, int nCol, int nVar = 0, int nStep = 1)
+POINT fn_AU3_PixelSearch(RECT lpRect, int nCol, int nVar = 0, int nStep = 1)
 {
     POINT result = POINT{};
     result.x = 0;
@@ -972,13 +954,7 @@ POINT fn_AU3_PixelSearch(LPRECT lpRect, int nCol, int nVar = 0, int nStep = 1)
 
     try
     {
-        LPPOINT lpPoint = LPPOINT{};
-        result.x = 0;
-        result.y = 0;
-        AU3_MouseGetPos(lpPoint);
-        result.x = lpPoint->x;
-        result.y = lpPoint->y;
-        AU3_PixelSearch(lpRect, nCol, nVar, nStep, lpPoint);
+        AU3_PixelSearch(&lpRect, nCol, nVar, nStep, &result);
     }
     HMC_CHECK_CATCH2;
     return result;
@@ -1279,14 +1255,9 @@ POINT fn_AU3_WinGetCaretPos()
     point.y = 0;
     try
     {
-        LPPOINT lpPoint = LPPOINT{};
-        lpPoint->x = 0;
-        lpPoint->y = 0;
-        if (AU3_WinGetCaretPos(lpPoint) == 1)
+        if (AU3_WinGetCaretPos(&point) == 1)
         {
 
-            point.x = lpPoint->x;
-            point.y = lpPoint->y;
         }
     }
     HMC_CHECK_CATCH2;
@@ -1333,17 +1304,8 @@ RECT fn_AU3_WinGetClientSize(wstring Title, wstring Text = L"")
 
         LPCWSTR szTitle = str2lp(Title);
         LPCWSTR szText = str2lp(Text);
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
-        if (AU3_WinGetClientSize(szTitle, szText, lpRect) != 0)
+        if (AU3_WinGetClientSize(szTitle, szText, &Pos) != 0)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
         }
     }
     HMC_CHECK_CATCH2;
@@ -1359,18 +1321,9 @@ RECT fn_AU3_WinGetClientSizeByHandle(HWND hWnd)
     Pos.top = 0;
     try
     {
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
 
-        if (AU3_WinGetClientSizeByHandle(hWnd, lpRect) != 0)
+        if (AU3_WinGetClientSizeByHandle(hWnd, &Pos) != 0)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
         }
     }
     HMC_CHECK_CATCH2;
@@ -1416,17 +1369,9 @@ RECT fn_AU3_WinGetPos(wstring Title, wstring Text = L"")
     {
         LPCWSTR szText = str2lp(Text);
         LPCWSTR szTitle = str2lp(Title);
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
-        if (AU3_WinGetPos(szTitle, szText, lpRect) != 0)
+
+        if (AU3_WinGetPos(szTitle, szText, &Pos) != 0)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
         }
     }
     HMC_CHECK_CATCH2;
@@ -1443,17 +1388,8 @@ RECT fn_AU3_WinGetPosByHandle(HWND hWnd)
 
     try
     {
-        LPRECT lpRect = LPRECT{};
-        lpRect->bottom = 0;
-        lpRect->left = 0;
-        lpRect->right = 0;
-        lpRect->top = 0;
-        if (AU3_WinGetPosByHandle(hWnd, lpRect) == 1)
+        if (AU3_WinGetPosByHandle(hWnd, &Pos) == 1)
         {
-            Pos.bottom = lpRect->bottom;
-            Pos.left = lpRect->left;
-            Pos.right = lpRect->right;
-            Pos.top = lpRect->top;
         }
     }
     HMC_CHECK_CATCH2;

@@ -370,8 +370,8 @@ import  HMC = require("hmc-win32");
 ------------------------------
 
 - **ipv4** 获取本机局域网的ip(v4)
-- **ip**获取本机局域网的ip(适配器,v4,v6)
-- **adapterIP **获取本机局域网的ip(适配器,v4,v6)
+- **ip** 获取本机局域网的ip(适配器,v4,v6)
+- **adapterIP** 获取本机局域网的ip(适配器,v4,v6)
 - **public_ip** 获取本机公网ip
 - **getNetParams** 获取主机网络信息
 - **freePort** 获取一个tcp空闲端口 (服务)
