@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "HMC_x64",
+      "target_name": "AutoItX_x64",
       "conditions": [
         ['OS=="win"', {
           "sources": [

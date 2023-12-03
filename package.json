@@ -112,6 +112,6 @@
     "node": ">= 6.14.2"
   },
   "devDependencies": {
-    "@types/node": "^16.18.13"
+    "@types/node": "^16.18.66"
   }
 }

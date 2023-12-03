@@ -1,0 +1,819 @@
+[
+    {
+        "name": "Init",
+        "zh-cn": "初始化AutoItX，通常在开始使用AutoItX函数之前调用 ",
+        "en-us": "Initializes the AutoItX library.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "error",
+        "zh-cn": "获取上一次AutoItX函数调用返回的错误代码 ",
+        "en-us": "Retrieves the error code from the last AutoItX function call.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "AutoItSetOption",
+        "zh-cn": "设置AutoIt的选项，可以用来配置AutoIt的一些行为 ",
+        "en-us": "Sets various options for AutoItX, such as timeout and behavior.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ClipGet",
+        "zh-cn": "获取剪贴板的内容 ",
+        "en-us": "Retrieves the content of the Windows clipboard.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ClipPut",
+        "zh-cn": "将文本放入剪贴板 ",
+        "en-us": "Puts text into the Windows clipboard.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlClick",
+        "zh-cn": "模拟控件的点击操作 ",
+        "en-us": "Simulates a mouse click on a specified control (button, checkbox, etc.) in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlClickByHandle",
+        "zh-cn": "使用控件句柄模拟控件的点击操作 ",
+        "en-us": "Same as `AU3_ControlClick` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlCommand",
+        "zh-cn": "发送命令给控件，比如选择列表中的项、设置复选框状态等 ",
+        "en-us": "Sends a command to a control (button, checkbox, radio button, etc.) in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlCommandByHandle",
+        "zh-cn": "使用控件句柄发送命令给控件 ",
+        "en-us": "Same as `AU3_ControlCommand` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlListView",
+        "zh-cn": "操作ListView控件 ",
+        "en-us": "Sends commands to a ListView control (such as list items selection) in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlListViewByHandle",
+        "zh-cn": "使用控件句柄操作ListView控件 ",
+        "en-us": "Same as `AU3_ControlListView` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlDisable",
+        "zh-cn": "禁用控件 ",
+        "en-us": "Disables a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlDisableByHandle",
+        "zh-cn": "使用控件句柄禁用控件 ",
+        "en-us": "Same as `AU3_ControlDisable` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlEnable",
+        "zh-cn": "启用控件 ",
+        "en-us": "Enables a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlEnableByHandle",
+        "zh-cn": "使用控件句柄启用控件 ",
+        "en-us": "Same as `AU3_ControlEnable` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlFocus",
+        "zh-cn": "将焦点设置到控件上 ",
+        "en-us": "Sets focus to a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlFocusByHandle",
+        "zh-cn": "使用控件句柄将焦点设置到控件上 ",
+        "en-us": "Same as `AU3_ControlFocus` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetFocus",
+        "zh-cn": "获取当前具有焦点的控件句柄 ",
+        "en-us": "Retrieves the handle of the control with focus.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetFocusByHandle",
+        "zh-cn": "使用控件句柄获取当前具有焦点的控件句柄 ",
+        "en-us": "Same as `AU3_ControlGetFocus` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetHandle",
+        "zh-cn": "获取控件句柄 ",
+        "en-us": "Retrieves the handle of a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetHandleAsText",
+        "zh-cn": "获取控件句柄并返回为文本 ",
+        "en-us": "Retrieves the handle of a control in a window as text.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetPos",
+        "zh-cn": "获取控件的位置和尺寸 ",
+        "en-us": "Retrieves the position and size of a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetPosByHandle",
+        "zh-cn": "使用控件句柄获取控件的位置和尺寸 ",
+        "en-us": "Same as `AU3_ControlGetPos` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetText",
+        "zh-cn": "获取控件的文本内容 ",
+        "en-us": "Retrieves the text from a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlGetTextByHandle",
+        "zh-cn": "使用控件句柄获取控件的文本内容 ",
+        "en-us": "Same as `AU3_ControlGetText` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlHide",
+        "zh-cn": "隐藏控件 ",
+        "en-us": "Hides a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlHideByHandle",
+        "zh-cn": "使用控件句柄隐藏控件 ",
+        "en-us": "Same as `AU3_ControlHide` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlMove",
+        "zh-cn": "移动控件到指定位置 ",
+        "en-us": "Moves a control within a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlMoveByHandle",
+        "zh-cn": "使用控件句柄移动控件到指定位置 ",
+        "en-us": "Same as `AU3_ControlMove` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlSend",
+        "zh-cn": "向控件发送按键输入 ",
+        "en-us": "Sends keystrokes to a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlSendByHandle",
+        "zh-cn": "使用控件句柄向控件发送按键输入 ",
+        "en-us": "Same as `AU3_ControlSend` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlSetText",
+        "zh-cn": "设置控件的文本内容 ",
+        "en-us": "Sets the text of a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlSetTextByHandle",
+        "zh-cn": "使用控件句柄设置控件的文本内容 ",
+        "en-us": "Sets the text of a control in a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlShow",
+        "zh-cn": "显示控件 ",
+        "en-us": "Shows a control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlShowByHandle",
+        "zh-cn": "使用控件句柄显示控件 ",
+        "en-us": "Shows a control in a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlTreeView",
+        "zh-cn": "操作TreeView控件 ",
+        "en-us": "Sends commands to a TreeView control in a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ControlTreeViewByHandle",
+        "zh-cn": "使用控件句柄操作TreeView控件 ",
+        "en-us": "Same as `AU3_ControlTreeView` but uses a handle instead of window and control IDs.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "DriveMapAdd",
+        "zh-cn": "映射本地驱动器到网络共享路径 ",
+        "en-us": "Maps a network drive.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "DriveMapDel",
+        "zh-cn": "取消驱动器映射 ",
+        "en-us": "Unmaps a network drive.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "DriveMapGet",
+        "zh-cn": "获取驱动器映射的信息 ",
+        "en-us": "Retrieves the mapping of a network drive.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "IsAdmin",
+        "zh-cn": "检查当前用户是否有管理员权限 ",
+        "en-us": "Checks if the current process is running with administrative privileges.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseClick",
+        "zh-cn": "模拟鼠标点击 ",
+        "en-us": "Simulates a mouse click at the current cursor position.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseClickDrag",
+        "zh-cn": "模拟鼠标点击并拖动 ",
+        "en-us": "Simulates dragging the mouse between two points.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseDown",
+        "zh-cn": "模拟鼠标按下 ",
+        "en-us": "Simulates pressing a mouse button.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseGetCursor",
+        "zh-cn": "获取鼠标当前的光标样式 ",
+        "en-us": "Retrieves the mouse cursor's current shape.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseGetPos",
+        "zh-cn": "获取鼠标当前位置 ",
+        "en-us": "Retrieves the current position of the mouse cursor.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseMove",
+        "zh-cn": "移动鼠标到指定位置 ",
+        "en-us": "Moves the mouse cursor to a specified position.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseUp",
+        "zh-cn": "模拟鼠标释放 ",
+        "en-us": "Simulates releasing a mouse button.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "MouseWheel",
+        "zh-cn": "模拟鼠标滚轮滚动 ",
+        "en-us": "Simulates scrolling the mouse wheel.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "Opt",
+        "zh-cn": "设置AutoIt选项 ",
+        "en-us": "Sets options for AutoItX",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "PixelChecksum",
+        "zh-cn": "获取屏幕区域的像素校验和 ",
+        "en-us": "Calculates a checksum of a region of pixels on the screen.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "PixelGetColor",
+        "zh-cn": "获取屏幕上指定位置的像素颜色 ",
+        "en-us": "Retrieves the color of a pixel at a specified position.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "PixelSearch",
+        "zh-cn": "在屏幕上搜索指定颜色的像素 ",
+        "en-us": "Searches for a pixel of a specific color in a region of the screen.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ProcessClose",
+        "zh-cn": "关闭进程 ",
+        "en-us": "Closes a specified process.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ProcessExists",
+        "zh-cn": "检查进程是否存在 ",
+        "en-us": "Checks if a specified process exists.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ProcessSetPriority",
+        "zh-cn": "设置进程的优先级 ",
+        "en-us": "Sets the priority of a specified process.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ProcessWait",
+        "zh-cn": "等待进程的出现 ",
+        "en-us": "Waits for a specified process to exist.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ProcessWaitClose",
+        "zh-cn": "等待进程的结束 ",
+        "en-us": "Waits for a specified process to close.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "Run",
+        "zh-cn": "用于运行外部程序或执行系统命令 ",
+        "en-us": "Runs an external program or opens a document.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "RunWait",
+        "zh-cn": "运行外部程序并等待其完成 ",
+        "en-us": "Runs an external program and waits for it to complete.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "RunAs",
+        "zh-cn": "以其他用户的身份运行外部程序 ",
+        "en-us": "Runs an external program with different credentials (as a different user).",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "RunAsWait",
+        "zh-cn": "以其他用户的身份运行外部程序并等待其完成 ",
+        "en-us": "Runs an external program with different credentials and waits for it to complete.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "Send",
+        "zh-cn": "向活动窗口发送按键输入 ",
+        "en-us": "Sends simulated keystrokes.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "Shutdown",
+        "zh-cn": "关闭或重启系统 ",
+        "en-us": "Shuts down, restarts, or logs off the computer.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "Sleep",
+        "zh-cn": "在脚本中加入暂停/延迟 ",
+        "en-us": "Pauses the script for a specified number of milliseconds.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "StatusbarGetText",
+        "zh-cn": "获取状态栏的文本内容 ",
+        "en-us": "Retrieves the text from the status bar of a window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "StatusbarGetTextByHandle",
+        "zh-cn": "使用控件句柄获取状态栏的文本内容 ",
+        "en-us": "Retrieves the text from the status bar of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "ToolTip",
+        "zh-cn": "显示一个提示框，通常用于在屏幕上显示临时的提示信息 ",
+        "en-us": "Creates a tooltip with the specified text at the current mouse position or on a specific control.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinActivate",
+        "zh-cn": "激活指定的窗口 ",
+        "en-us": "Activates a window by title or window handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinActivateByHandle",
+        "zh-cn": "使用窗口句柄激活指定的窗口 ",
+        "en-us": "Activates a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinActive",
+        "zh-cn": "检查指定的窗口是否处于活动状态 ",
+        "en-us": "Checks if a window is currently active by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinActiveByHandle",
+        "zh-cn": "使用窗口句柄检查指定的窗口是否处于活动状态 ",
+        "en-us": "Checks if a window is currently active using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinClose",
+        "zh-cn": "关闭指定的窗口 ",
+        "en-us": "Closes a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinCloseByHandle",
+        "zh-cn": "使用窗口句柄关闭指定的窗口 ",
+        "en-us": "Closes a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinExists",
+        "zh-cn": "检查指定的窗口是否存在 ",
+        "en-us": "Checks if a window exists by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinExistsByHandle",
+        "zh-cn": "使用窗口句柄检查指定的窗口是否存在 ",
+        "en-us": "Checks if a window exists using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetCaretPos",
+        "zh-cn": "获取当前光标的位置 ",
+        "en-us": "Retrieves the position of the caret in the active window.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetClassList",
+        "zh-cn": "获取指定窗口的类名列表 ",
+        "en-us": "Retrieves a list of classes used by a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetClassListByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的类名列表 ",
+        "en-us": "Retrieves a list of classes used by a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetClientSize",
+        "zh-cn": "获取指定窗口客户区的尺寸 ",
+        "en-us": "Retrieves the client area's size of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetClientSizeByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口客户区的尺寸 ",
+        "en-us": "Retrieves the client area's size of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetHandle",
+        "zh-cn": "获取指定窗口的句柄 ",
+        "en-us": "Retrieves the handle of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetHandleAsText",
+        "zh-cn": "获取指定窗口的句柄并返回为文本 ",
+        "en-us": "Retrieves the handle of a window by title as text.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetPos",
+        "zh-cn": "获取指定窗口的位置和尺寸 ",
+        "en-us": "Retrieves the position and size of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetPosByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的位置和尺寸 ",
+        "en-us": "Retrieves the position and size of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetProcess",
+        "zh-cn": "获取指定窗口的进程ID ",
+        "en-us": "Retrieves the process ID of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetProcessByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的进程ID ",
+        "en-us": "Retrieves the process ID of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetState",
+        "zh-cn": "获取指定窗口的状态 ",
+        "en-us": "Retrieves the state of a window by title (minimized, maximized, etc.).",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetStateByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的状态 ",
+        "en-us": "Retrieves the state of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetText",
+        "zh-cn": "获取指定窗口的文本内容 ",
+        "en-us": "Retrieves the text from a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetTextByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的文本内容 ",
+        "en-us": "Retrieves the text from a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetTitle",
+        "zh-cn": "获取指定窗口的标题 ",
+        "en-us": "Retrieves the title of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinGetTitleByHandle",
+        "zh-cn": "使用窗口句柄获取指定窗口的标题 ",
+        "en-us": "Retrieves the title of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinKill",
+        "zh-cn": "强制关闭指定的窗口 ",
+        "en-us": "Forces a window to close by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinKillByHandle",
+        "zh-cn": "使用窗口句柄强制关闭指定的窗口 ",
+        "en-us": "Forces a window to close using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMenuSelectItem",
+        "zh-cn": "选择窗口的菜单项 ",
+        "en-us": "Selects an item from a menu in a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMenuSelectItemByHandle",
+        "zh-cn": "使用窗口句柄选择窗口的菜单项 ",
+        "en-us": "Selects an item from a menu in a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMinimizeAll",
+        "zh-cn": "最小化所有窗口 ",
+        "en-us": "Minimizes all windows.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMinimizeAllUndo",
+        "zh-cn": "恢复最小化的窗口 ",
+        "en-us": "Undoes the effect of `AU3_WinMinimizeAll`.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMove",
+        "zh-cn": "移动指定窗口到指定位置 ",
+        "en-us": "Moves and/or resizes a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinMoveByHandle",
+        "zh-cn": "使用窗口句柄移动指定窗口到指定位置 ",
+        "en-us": "Moves and/or resizes a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetOnTop",
+        "zh-cn": "设置指定窗口在其他窗口之上 ",
+        "en-us": "Sets a window to be always on top by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetOnTopByHandle",
+        "zh-cn": "使用窗口句柄设置指定窗口在其他窗口之上 ",
+        "en-us": "Sets a window to be always on top using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetState",
+        "zh-cn": "设置指定窗口的状态（最大化、最小化、正常等） ",
+        "en-us": "Sets the state of a window by title (minimize, maximize, etc.).",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetStateByHandle",
+        "zh-cn": "使用窗口句柄设置指定窗口的状态 ",
+        "en-us": "Sets the state of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetTitle",
+        "zh-cn": "设置指定窗口的标题 ",
+        "en-us": "Sets the title of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetTitleByHandle",
+        "zh-cn": "使用窗口句柄设置指定窗口的标题 ",
+        "en-us": "Sets the title of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetTrans",
+        "zh-cn": "设置指定窗口的透明度 ",
+        "en-us": "Sets the transparency level of a window by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinSetTransByHandle",
+        "zh-cn": "使用窗口句柄设置指定窗口的透明度 ",
+        "en-us": "Sets the transparency level of a window using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWait",
+        "zh-cn": "等待指定的窗口出现 ",
+        "en-us": "Waits for a window to exist by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitByHandle",
+        "zh-cn": "使用窗口句柄等待指定的窗口出现 ",
+        "en-us": "Waits for a window to exist using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitActive",
+        "zh-cn": "等待指定的窗口处于活动状态 ",
+        "en-us": "Waits for a window to be active by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitActiveByHandle",
+        "zh-cn": "使用窗口句柄等待指定的窗口处于活动状态 ",
+        "en-us": "Waits for a window to be active using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitClose",
+        "zh-cn": "等待指定的窗口关闭 ",
+        "en-us": "Waits for a window to close by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitCloseByHandle",
+        "zh-cn": "使用窗口句柄等待指定的窗口关闭 ",
+        "en-us": "Waits for a window to close using its handle.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitNotActive",
+        "zh-cn": "等待指定的窗口不处于活动状态 ",
+        "en-us": "Waits for a window to be not active by title.",
+        "returns": "",
+        "arg": []
+    },
+    {
+        "name": "WinWaitNotActiveByHandle",
+        "zh-cn": "使用窗口句柄等待指定的窗口不处于活动状态 ",
+        "en-us": "Waits for a window to be not active using its handle."
+    }
+]
