@@ -7,7 +7,7 @@
   "types": "index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kihlh/hmc-win32.git/source/hmc-autoIt"
+    "url": "git+https://github.com/kihlh/hmc-win32.git"
   },
   "files": [
     "index.d.ts",
