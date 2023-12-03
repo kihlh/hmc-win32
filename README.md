@@ -12,15 +12,25 @@
 
 ### npm :
 
- [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)   [【net-win32】](https://www.npmjs.com/package/net-win32)
+ [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)   [【net-win32】](https://www.npmjs.com/package/net-win32)  [【hmc-autoit】(https://www.npmjs.com/package/hmc-autoit)
 
 ### 子集 (Subset)
 
 #### net : net-win32
 
-net-win32 是hmc的子集 他包含了一些列调用win32的网络接口的函数 例如获取本地ip，公网ip，网卡信息等....
+git: https://github.com/kihlh/hmn-win32
+
+**net-win32 是hmc的子集 他包含了一些列调用win32的网络接口的函数 例如获取本地ip，公网ip，网卡信息等....**
 
 net-win32 is a subset of hmc. It includes a series of functions that call win32 network interfaces, such as obtaining local IP, public IP, network card information, etc.
+
+#### autoit：hmc-autoit
+
+git: https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt
+
+**hmc-autoit 是hmc的子集 他包含了一些列调用 autoitX api的函数，并且和hmc的优点一样，不需要再次编译和ffi魔法**
+
+hmc-autoit is a subset of HMC (Hyper Media Control), which includes a series of functions that invoke AutoItX API. Just like HMC, it doesn't require recompilation or the use of "ffi" magic.
 
 ------------------
 
