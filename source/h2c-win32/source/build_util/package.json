@@ -1,0 +1,16 @@
+{
+  
+"devDependencies": {
+  
+  
+"@types/node": "^20.10.3"
+  
+},
+  
+"dependencies": {
+  
+  
+"hmc-win32": "^1.3.9"
+  
+}
+}
