@@ -1,13 +1,13 @@
 {
   "name": "hmc-autoit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An API forwarding module based on the combination of autoItX and NAPI (Node-API, C) provides a seamless solution without the need for recompilation or the use of \"ffi\" magic. It ensures high security and efficiency.",
   "license": "MIT License",
   "main": "./index.js",
   "types": "index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt"
+    "url": "git+https://github.com/kihlh/hmc-win32.git"
   },
   "files": [
     "index.d.ts",
