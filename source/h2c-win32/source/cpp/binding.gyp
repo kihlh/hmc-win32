@@ -1,11 +1,13 @@
 {
   "targets": [
     {
-      "target_name": "GetProcessCommandLineByPid_x64",
+      "target_name": "HMC_X64",
       "conditions": [
         ['OS=="win"', {
           "sources": [
-            "Main.cpp"
+            "./util/hmc_string_util.cpp",
+            "./util/napi_value_util.cpp",
+            "Main.cpp",
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {
@@ -27,10 +29,7 @@
                 "/wd4018"
               ]
             },
-       "libraries": [
-        "AutoItX3/AutoItX3_DLL.lib",
-        "AutoItX3/AutoItX3_x64_DLL.lib"
-      ],
+       "libraries": [],
             'VCLinkerTool': {
               'AdditionalOptions': [
                 '/guard:cf'

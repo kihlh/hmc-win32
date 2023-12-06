@@ -29,45 +29,35 @@ using namespace std;
 #define shared_close_Library(hModule) std::shared_ptr<void> _shared_close_Library_(nullptr, [&](void *) {if (hModule != NULL) {FreeLibrary(hModule);} });
 #define shared_close_lpsz(lpwsz) std::shared_ptr<void> _shared_close_lpsz_(nullptr, [&](void *) {if (lpwsz != NULL) {GlobalFree(lpwsz);lpwsz = 0; } });
 
-#define HMCERR_Catch                                                  \
-    catch (char *e) { cout << "ERROR:"                                \
-                           << "<" << __LINE__ << "> " << e << endl; } \
-    catch (const std::exception &ex)                                  \
-    {                                                                 \
-        cout << "exception:"                                          \
-             << "<" << __LINE__ << "> " << ex.what() << endl;         \
-    }                                                                 \
-    catch (...) { cout << "ERROR:"                                    \
-                       << "<" << __LINE__ << "> "                     \
+#define HMCERR_Catch                                                                          \
+    catch (char *e) { cout << "ERROR:"                                                        \
+                           << "<" << __FUNCSIG__ << " @ " << __LINE__ << "> " << e << endl; } \
+    catch (const std::exception &ex)                                                          \
+    {                                                                                         \
+        cout << "exception:"                                                                  \
+             << "<" << __FUNCSIG__ << " @ " << __LINE__ << "> " << ex.what() << endl;         \
+    }                                                                                         \
+    catch (...) { cout << "ERROR:"                                                            \
+                       << "<" << __FUNCSIG__ << " @ " << __LINE__ << "> "                     \
                        << "unknown" << endl; };
 
-// 导出一个模块
-#define DECLARE_NAPI_METHOD(func)                \
+// 导出一个 static 函数
+#define EXPORT_NAPI_STATIC_FN(func)              \
     {                                            \
         #func, 0, func, 0, 0, 0, napi_default, 0 \
     }
 
-#define _SELECT(PREFIX, _5, _4, _3, _2, _1, SUFFIX, ...) PREFIX##_##SUFFIX
-
-// #define _DECLARE_NAPI_METHODRM_1(func)                             \
-//     {                                                              \
-//         #func, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
-//     }
-
-// #define _DECLARE_NAPI_METHODRM_2(name, func)                      \
-//     {                                                             \
-//         name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
-//     }
-// #define DECLARE_NAPI_METHODRM(...) _DECLARE_NAPI_METHODRM(_BAR, __VA_ARGS__, N, N, N, N, 1)(__VA_ARGS__)
-
-#define _SELECT(PREFIX, _5, _4, _3, _2, _1, SUFFIX, ...) PREFIX##_##SUFFIX
-
-#define _BAR_1(func)                                               \
+// 导出一个 其他文件的 函数
+#define EXPORT_NAPI_REMOTE_FN(func)                                \
     {                                                              \
         #func, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
     }
-#define _BAR_N(func, ...) printf(fmt "\n", __VA_ARGS__);
-#define BAR(...) _SELECT(_BAR, __VA_ARGS__, N, N, N, N, 1)(__VA_ARGS__)
+
+// 导出一个 其他文件的 函数 并设置名称
+#define EXPORT_NAPI_REMOTE_PAIRFN(name, func)                     \
+    {                                                             \
+        name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
+    }
 
 // 导出一个文本内容
 #define DECLARE_NAPI_VALUE(name, value)                                                  \
