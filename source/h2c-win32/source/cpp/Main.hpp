@@ -17,6 +17,9 @@ using namespace std;
 #include <algorithm>
 #include <map>
 
+#include "./util/hmc_string_util.hpp"
+#include "./util/napi_value_util.hpp"
+
 using namespace std;
 
 #define $napi_get_cb_info(argc, argv)                                                                                          \
@@ -26,10 +29,38 @@ using namespace std;
         return NULL;                                                                                                           \
     }
 
-#define shared_close_Library(hModule) std::shared_ptr<void> _shared_close_Library_(nullptr, [&](void *) {if (hModule != NULL) {FreeLibrary(hModule);} });
-#define shared_close_lpsz(lpwsz) std::shared_ptr<void> _shared_close_lpsz_(nullptr, [&](void *) {if (lpwsz != NULL) {GlobalFree(lpwsz);lpwsz = 0; } });
+// 自动释放dll
+#define hmc_shared_close_Library(hModule) std::shared_ptr<void>##hModule##_shared_close_Library_(nullptr, [&](void *) {if (hModule != NULL) {FreeLibrary(hModule);} });
+// 自动释放文本
+#define hmc_shared_close_lpsz(lpwsz) std::shared_ptr<void>##lpwsz##_shared_close_lpsz_(nullptr, [&](void *) {if (lpwsz != NULL) {GlobalFree(lpwsz);lpwsz = 0; } });
 
-#define HMCERR_Catch                                                                          \
+// 开辟内存 (请注意需要调用 FreeVS 或者 hmc_FreeVSAuto 释放)
+// -> LPSTR pszMem = AllocVS(LPSTR, leng + 1);
+#define hmc_AllocVS(Type, leng)                                                   \
+    (Type) VirtualAlloc((LPVOID)NULL, (DWORD)(leng), MEM_COMMIT, PAGE_READWRITE); 
+
+// 释放空间
+// -> LPSTR pszMem = hmc_AllocVS(LPSTR, leng + 1);
+// -> FreeVS(pszMem);
+#define hmc_FreeVS(Virtua) \
+    if (Virtua != NULL)    \
+        VirtualFree(Virtua, 0, MEM_RELEASE);
+
+// 释放空间
+// -> LPSTR pszMem = hmc_AllocVS(LPSTR, leng + 1);
+// -> FreeVSAuto(pszMem);
+#define hmc_FreeVSAuto(Virtua) \
+    std::shared_ptr<void>##Virtua##_shared_close_FreeVSAuto_(nullptr, [&](void *) {if (Virtua != NULL) {VirtualFree(Virtua, 0, MEM_RELEASE);} });
+
+// 开辟内存
+#define hmc_AllocHeap(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
+// 释放内存
+#define hmc_FreeHeap(variable) HeapFree(GetProcessHeap(), 0, (variable))
+
+// 让代码在异步线程中执行
+#define hmc_Thread (code) std::thread([]() -> void { code }).detach();
+
+#define hmc_Catch                                                                         \
     catch (char *e) { cout << "ERROR:"                                                        \
                            << "<" << __FUNCSIG__ << " @ " << __LINE__ << "> " << e << endl; } \
     catch (const std::exception &ex)                                                          \

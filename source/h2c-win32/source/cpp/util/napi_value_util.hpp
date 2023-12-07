@@ -1011,7 +1011,22 @@ public:
      * @return false
      */
     bool eq(vector<std::tuple<size_t, napi_valuetype>> eq_type, bool throw_error = false);
-
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index,vector<js_valuetype> type_list = {}, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index, vector<napi_valuetype> type_list = {}, bool throw_error = false);
     /**
      * @brief 获取类型列表
      * 

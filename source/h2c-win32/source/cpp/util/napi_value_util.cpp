@@ -2382,9 +2382,10 @@ bool hmcNodeValue::eq(size_t index, js_valuetype type, bool throw_error)
         return results;
     }
 
-    results = hmc_napi_type::getType(env, args[index]) == type;
+    js_valuetype  args_type = hmc_napi_type::getType(env, args[index]);
+    results = args_type == type;
 
-    if (throw_error)
+    if (throw_error&&!results)
     {
 
         string error_msg = "";
@@ -2395,6 +2396,13 @@ bool hmcNodeValue::eq(size_t index, js_valuetype type, bool throw_error)
         error_msg.append(" ] can only be of type [ ");
         error_msg.append(hmc_napi_type::typeName(type));
         error_msg.append(" ]");
+        
+        error_msg.append(" != ");
+        error_msg.append(" Your type: < ");
+        error_msg.append(hmc_napi_type::typeName(args_type));
+        error_msg.append(" >      ");
+        error_msg.append("   \n");
+
         napi_throw_type_error(env, "PARAMETER_ERROR", hmc_string_util::string_to_lpstr(error_msg));
     }
 
@@ -2484,9 +2492,9 @@ bool hmcNodeValue::eq(vector<std::tuple<size_t, js_valuetype>> eq_type, bool thr
             error_message.append(hmc_napi_type::typeName(the_type));
 
             error_message.append(" != ");
-            error_message.append(" [ ");
+            error_message.append(" Your type: < ");
             error_message.append(the_types);
-            error_message.append(" ]      ");
+            error_message.append(" >      ");
             error_message.append("   \n");
             error_message.append("-------------------------------------------\n");
             results = false;
@@ -2542,4 +2550,100 @@ js_valuetype hmcNodeValue::getType(size_t index)
     }
 
     return hmc_napi_type::getType(env, args[index]);
+}
+
+bool hmcNodeValue::eq(size_t index, vector<js_valuetype> type_list, bool throw_error)
+{
+    bool results = false;
+
+    if (!this->exists(index))
+    {
+        if (throw_error)
+        {
+
+            string error_msg = "The current input parameter has two errors:\n";
+            error_msg.append("1.The number of input parameters should be greater than NNNN.\n");
+            error_msg.append("2. The current input parameter does not meet the expected requirements. The expected parameter \n");
+            error_msg.append("[ ");
+            error_msg.append(to_string(index));
+            error_msg.append(" ] can only be of type [ ");
+
+            for (size_t i = 0; i < type_list.size(); i++)
+            {
+                js_valuetype type = type_list[i];
+                error_msg.append(hmc_napi_type::typeName(type));
+                error_msg.append(" , ");
+            }
+            if (!type_list.empty())
+            {
+                // " , "
+                error_msg.pop_back();
+                error_msg.pop_back();
+                error_msg.pop_back();
+            }
+            error_msg.append(" ]");
+
+            napi_throw_type_error(env, "PARAMETER_ERROR", hmc_string_util::string_to_lpstr(error_msg));
+        }
+
+        return results;
+    }
+
+    js_valuetype args_type = hmc_napi_type::getType(env, args[index]);
+
+    for (size_t i = 0; i < type_list.size(); i++)
+    {
+        js_valuetype type = type_list[i];
+        if (args_type == type)
+        {
+            return true;
+        }
+    }
+
+    if (throw_error)
+    {
+
+        string error_msg = "";
+        error_msg.append("The current input parameter has errors:\n");
+        error_msg.append("The current input parameter does not meet the expected requirements. The expected parameter \n");
+        error_msg.append("[ ");
+        error_msg.append(to_string(index));
+        error_msg.append(" ] can only be of type [ ");
+
+        for (size_t i = 0; i < type_list.size(); i++)
+        {
+            js_valuetype type = type_list[i];
+            error_msg.append(hmc_napi_type::typeName(type));
+            error_msg.append(" , ");
+        }
+
+        if (!type_list.empty())
+        {
+            // " , "
+            error_msg.pop_back();
+            error_msg.pop_back();
+            error_msg.pop_back();
+        }
+        error_msg.append(" ]");
+        error_msg.append(" != ");
+        error_msg.append("Your type:  < ");
+        error_msg.append(hmc_napi_type::typeName(args_type));
+        error_msg.append(" >      ");
+        error_msg.append("   \n");
+        napi_throw_type_error(env, "PARAMETER_ERROR", hmc_string_util::string_to_lpstr(error_msg));
+    }
+
+    return results;
+}
+
+bool hmcNodeValue::eq(size_t index, vector<napi_valuetype> type_list, bool throw_error)
+{
+    vector<js_valuetype> new_eq_type = {};
+
+    for (size_t i = 0; i < type_list.size(); i++)
+    {
+        new_eq_type.push_back((js_valuetype)type_list[i]);
+    }
+
+    return eq(index, new_eq_type, throw_error);
 }
