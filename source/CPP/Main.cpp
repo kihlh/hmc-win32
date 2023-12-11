@@ -4920,10 +4920,11 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("killProcess", killProcess),                     //=>4-1UP
         DECLARE_NAPI_METHODRM("getDetailsProcessList", getDetailsProcessList), //=>4-1UP
         DECLARE_NAPI_METHODRM("getProcessList", getProcessList),               //=>4-1UP
-        DECLARE_NAPI_METHODRM("hasProcess", hasProcess),                       //=>4-1UP
-        DECLARE_NAPI_METHODRM("isProcess", isProcess),                         //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessidFilePath", getProcessidFilePath),   //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessName", getProcessName),               //=>4-1UP
+        // 2023-12-11 add support
+        // DECLARE_NAPI_METHODRM("hasProcess", hasProcess),  
+        DECLARE_NAPI_METHODRM("isProcess", fn_hasProcess_v2), 
+        DECLARE_NAPI_METHODRM("getProcessidFilePath", fn_getProcessidFilePath_v2),   //=>4-1UP
+        DECLARE_NAPI_METHODRM("getProcessName", fn_getProcessidBaseName_v2),               //=>4-1UP
         DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),         //=>4-1ADD
         // DECLARE_NAPI_METHODRM("getLockFileProcessList", getLockFileProcessList),    //=>4-1ADD
         DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),                 //=>4-1ADD
@@ -4997,10 +4998,15 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("__debug_AllocConsole", fn_AllocConsole),
         // 2023-11-28 add support
         DECLARE_NAPI_METHODRM("getProcessStartTime", fn_getProcessStartTime),
+        // // 2023-12-11 add support
+        // DECLARE_NAPI_METHODRM("getProcessidFilePath_v2", fn_getProcessidFilePath_v2),
+        // // 2023-12-1 add support
+        // DECLARE_NAPI_METHODRM("getProcessidBaseName_v2", fn_getProcessidBaseName_v2),
     };
     _________HMC___________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
+    _fn_process_exports(env, exports);
     return exports;
 }
 

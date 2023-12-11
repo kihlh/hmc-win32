@@ -15,7 +15,7 @@
 napi_value fn_getVariableAll(napi_env env, napi_callback_info info)
 {
     // wstring variableListJson = hmc_string_util::map_to_jsonW(getVariableAllW());
-    return hmc_napi_util::create_value::Object::Object(env, getVariableAllW());
+    return hmc_napi_create_value::Object::Object(env, getVariableAllW());
 }
 
 // 设置当前进程的工作路径
@@ -28,15 +28,15 @@ napi_value fn_setCwd(napi_env env, napi_callback_info info)
 
     $napi_get_cb_info_v2(argsLen, args, "fn_setCwd");
     // 参数最少要求1个
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 0, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 0, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_setCwd ( utf16(String) )").c_str());
         return NULL;
     }
 
-    wstring w_path = hmc_napi_util::get_value::string_utf16(env, args[0]);
+    wstring w_path = hmc_napi_get_value::string_utf16(env, args[0]);
 
-    return hmc_napi_util::create_value::Boolean(env, hmc_env::setCwd(w_path));
+    return hmc_napi_create_value::Boolean(env, hmc_env::setCwd(w_path));
 }
 
 HWND __HMC_G_ConsoleHwnd = NULL;
@@ -64,7 +64,7 @@ napi_value fn_getRealGlobalVariable(napi_env env, napi_callback_info info)
     // string map_to_jsonA = hmc_string_util::map_to_jsonA((std::any)hmc_env::systemEnv::getGlobalVariable());
 
     // result.append(hmc_string_util::ansi_to_utf16(map_to_jsonA));
-    // return hmc_napi_util::create_value::String(env, result);
+    // return hmc_napi_create_value::String(env, result);
 
 
     map<wstring, wstring> result = {};
@@ -83,9 +83,9 @@ napi_value fn_getRealGlobalVariable(napi_env env, napi_callback_info info)
     wstring path_value = hmc_string_util::ansi_to_utf16(path_value_join);
     result.insert(std::make_pair(L"Path", path_value));
 
-    // return hmc_napi_util::create_value::String(env, hmc_string_util::map_to_jsonW(result) );
+    // return hmc_napi_create_value::String(env, hmc_string_util::map_to_jsonW(result) );
 
-    return hmc_napi_util::create_value::Object::Object(env, result);
+    return hmc_napi_create_value::Object::Object(env, result);
 }
 
 // user 变量的 key 列表
@@ -96,7 +96,7 @@ napi_value fn_getUserKeyList(napi_env env, napi_callback_info info)
 
     // wstring keyList2json = hmc_string_util::vec_to_array_json(keyList2W);
 
-    return hmc_napi_util::create_value::Array::String(env, keyList2W);
+    return hmc_napi_create_value::Array::String(env, keyList2W);
 }
 
 // systm 变量的 key 列表
@@ -104,7 +104,7 @@ napi_value fn_getSystemKeyList(napi_env env, napi_callback_info info)
 {
     std::vector<std::wstring> keyList2W = hmc_string_util::ansi_to_utf16(hmc_env::systemEnv::keySysList());
     wstring keyList2json = hmc_string_util::vec_to_array_json(keyList2W);
-    return hmc_napi_util::create_value::Array::String(env, keyList2W);
+    return hmc_napi_create_value::Array::String(env, keyList2W);
 }
 
 /**
@@ -122,8 +122,8 @@ napi_value fn_updateThis(napi_env env, napi_callback_info info)
    
 
     $napi_get_cb_info_v2(argsLen, args, "fn_updateThis");
-    bool arg0_remove = hmc_napi_util::assert::isBoolean(env, args[0]) ? hmc_napi_util::get_value::boolean_bool(env, args[0]): true;
-    bool arg1_update = hmc_napi_util::assert::isBoolean(env, args[1]) ? hmc_napi_util::get_value::boolean_bool(env, args[1]) : true;
+    bool arg0_remove = hmc_napi_type::isBoolean(env, args[0]) ? hmc_napi_get_value::boolean_bool(env, args[0]): true;
+    bool arg1_update = hmc_napi_type::isBoolean(env, args[1]) ? hmc_napi_get_value::boolean_bool(env, args[1]) : true;
 
     hmc_env::systemEnv::updateThis(arg0_remove, arg1_update);
 
@@ -152,21 +152,21 @@ napi_value fn_getEnvKeyAnalysis(napi_env env, napi_callback_info info)
 
     $napi_get_cb_info_v2(argsLen, args, "fn_getEnvKeyAnalysis");
     // 参数最少要求1个
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 0, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 0, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_getEnvKeyAnalysis ( ansi(String)  )").c_str());
         return NULL;
     }
 
-    string envKey = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    string envKey = hmc_napi_get_value::string_ansi(env, args[0]);
     string pEnvStr = "";
 
     if (hmc_env::systemEnv::get(envKey, pEnvStr))
     {
-        return hmc_napi_util::create_value::StringA(env, pEnvStr);
+        return hmc_napi_create_value::StringA(env, pEnvStr);
     }
 
-    return hmc_napi_util::create_value::Null(env);
+    return hmc_napi_create_value::Null(env);
 }
 
 napi_value fn_putUserVariable(napi_env env, napi_callback_info info)
@@ -177,21 +177,21 @@ napi_value fn_putUserVariable(napi_env env, napi_callback_info info)
     napi_value args[4];
     $napi_get_cb_info_v2(argsLen, args, "fn_putUserVariable");
     // 参数最少要求2个 且 args[0], args[1] 都必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 4) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 4) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_putUserVariable ( ansi(String) , ansi(String)  )").c_str());
         return NULL;
     }
 
     //? (key:string,value?:string,append?:boolean,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
-    std::string arg_Value = hmc_napi_util::get_value::string_ansi(env, args[1]);
-    bool arg_append = (hmc_napi_util::assert::isBoolean(env, args[2]) ? hmc_napi_util::get_value::boolean_bool(env, args[2]) : false);
-    bool arg_transMean = (hmc_napi_util::assert::isBoolean(env, args[3]) ? hmc_napi_util::get_value::boolean_bool(env, args[3]) : false);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
+    std::string arg_Value = hmc_napi_get_value::string_ansi(env, args[1]);
+    bool arg_append = (hmc_napi_type::isBoolean(env, args[2]) ? hmc_napi_get_value::boolean_bool(env, args[2]) : false);
+    bool arg_transMean = (hmc_napi_type::isBoolean(env, args[3]) ? hmc_napi_get_value::boolean_bool(env, args[3]) : false);
 
     bool result = hmc_env::systemEnv::putUse(arg_key, arg_Value, arg_append, arg_transMean);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_putSystemVariable(napi_env env, napi_callback_info info)
@@ -201,21 +201,21 @@ napi_value fn_putSystemVariable(napi_env env, napi_callback_info info)
     napi_value args[4];
     $napi_get_cb_info_v2(argsLen, args, "fn_putSystemVariable");
     // 参数最少要求2个 且 args[0], args[1] 都必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 4) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 4) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_putSystemVariable ( ansi(String) , ansi(String)  )").c_str());
         return NULL;
     }
 
     //? (key:string,value?:string,append?:boolean,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
-    std::string arg_Value = hmc_napi_util::get_value::string_ansi(env, args[1]);
-    bool arg_append = (hmc_napi_util::assert::isBoolean(env, args[2]) ? hmc_napi_util::get_value::boolean_bool(env, args[2]) : false);
-    bool arg_transMean = (hmc_napi_util::assert::isBoolean(env, args[3]) ? hmc_napi_util::get_value::boolean_bool(env, args[3]) : false);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
+    std::string arg_Value = hmc_napi_get_value::string_ansi(env, args[1]);
+    bool arg_append = (hmc_napi_type::isBoolean(env, args[2]) ? hmc_napi_get_value::boolean_bool(env, args[2]) : false);
+    bool arg_transMean = (hmc_napi_type::isBoolean(env, args[3]) ? hmc_napi_get_value::boolean_bool(env, args[3]) : false);
 
     bool result = hmc_env::systemEnv::putSys(arg_key, arg_Value, arg_append, arg_transMean);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_getUserVariable(napi_env env, napi_callback_info info)
@@ -226,25 +226,25 @@ napi_value fn_getUserVariable(napi_env env, napi_callback_info info)
     napi_value args[2];
     $napi_get_cb_info_v2(argsLen, args, "fn_getUserVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_getUserVariable ( ansi(String)  transMean?:boolean )").c_str());
         return NULL;
     }
 
     //? (key:string,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
-    bool arg_transMean = hmc_napi_util::assert::isBoolean(env, args[1]) ? hmc_napi_util::get_value::boolean_bool(env, args[1]) : true;
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
+    bool arg_transMean = hmc_napi_type::isBoolean(env, args[1]) ? hmc_napi_get_value::boolean_bool(env, args[1]) : true;
 
     std::string pEnvStr;
 
     bool result = hmc_env::systemEnv::getUse(arg_key, pEnvStr, arg_transMean);
     if (result)
     {
-        return hmc_napi_util::create_value::StringA(env, pEnvStr);
+        return hmc_napi_create_value::StringA(env, pEnvStr);
     }
 
-    return hmc_napi_util::create_value::Null(env);
+    return hmc_napi_create_value::Null(env);
 }
 
 napi_value fn_getSystemVariable(napi_env env, napi_callback_info info)
@@ -254,25 +254,25 @@ napi_value fn_getSystemVariable(napi_env env, napi_callback_info info)
     napi_value args[2];
     $napi_get_cb_info_v2(argsLen, args, "fn_getSystemVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_getSystemVariable ( ansi(String)  transMean?:boolean )").c_str());
         return NULL;
     }
 
     //? (key:string,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
-    bool arg_transMean = hmc_napi_util::assert::isBoolean(env, args[1]) ? hmc_napi_util::get_value::boolean_bool(env, args[1]) : true;
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
+    bool arg_transMean = hmc_napi_type::isBoolean(env, args[1]) ? hmc_napi_get_value::boolean_bool(env, args[1]) : true;
 
     std::string pEnvStr;
 
     bool result = hmc_env::systemEnv::getSys(arg_key, pEnvStr, arg_transMean);
     if (result)
     {
-        return hmc_napi_util::create_value::StringA(env, pEnvStr);
+        return hmc_napi_create_value::StringA(env, pEnvStr);
     }
 
-    return hmc_napi_util::create_value::Null(env);
+    return hmc_napi_create_value::Null(env);
 }
 
 napi_value fn_removeSystemVariable(napi_env env, napi_callback_info info)
@@ -282,18 +282,18 @@ napi_value fn_removeSystemVariable(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_removeSystemVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_removeSystemVariable ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::removeSys(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_removeUserVariable(napi_env env, napi_callback_info info)
@@ -303,18 +303,18 @@ napi_value fn_removeUserVariable(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_removeUserVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_removeUserVariable ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::removeUse(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_removeAllSingleVariable(napi_env env, napi_callback_info info)
@@ -324,18 +324,18 @@ napi_value fn_removeAllSingleVariable(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_removeAllSingleVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_removeAllSingleVariable ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string,transMean?:boolean)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::removeAll(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_escapeEnvVariable(napi_env env, napi_callback_info info)
@@ -345,18 +345,18 @@ napi_value fn_escapeEnvVariable(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_escapeEnvVariable");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_escapeEnvVariable ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     string result = hmc_env::systemEnv::escapeEnvVariable(arg_key);
 
-    return hmc_napi_util::create_value::StringA(env, result);
+    return hmc_napi_create_value::StringA(env, result);
 }
 
 napi_value fn_hasKeyExists(napi_env env, napi_callback_info info)
@@ -366,18 +366,18 @@ napi_value fn_hasKeyExists(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_hasKeyExists");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_hasKeyExists ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::hasKeyExists(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_hasSysKeyExists(napi_env env, napi_callback_info info)
@@ -387,18 +387,18 @@ napi_value fn_hasSysKeyExists(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "hasSysKeyExists");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect hasSysKeyExists ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::hasSysKeyExists(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_hasUseKeyExists(napi_env env, napi_callback_info info)
@@ -408,18 +408,18 @@ napi_value fn_hasUseKeyExists(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "hasUseKeyExists");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isString(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isString(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect hasUseKeyExists ( ansi(u16) (String) )").c_str());
         return NULL;
     }
 
     //? (key:string)=>boolean
-    std::string arg_key = hmc_napi_util::get_value::string_ansi(env, args[0]);
+    std::string arg_key = hmc_napi_get_value::string_ansi(env, args[0]);
 
     bool result = hmc_env::systemEnv::hasUseKeyExists(arg_key);
 
-    return hmc_napi_util::create_value::Boolean(env, result);
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info)
@@ -429,13 +429,13 @@ napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info)
     napi_value args[1];
     $napi_get_cb_info_v2(argsLen, args, "fn_getProcessStartTime");
     // 参数最少要求1个 且 args[0] 必须是string
-    if (!hmc_napi_util::assert::argsSize(env, argsLen, 1, 1) && hmc_napi_util::assert::isNumber(env, args[0]))
+    if (!hmc_napi_type::argsSize(env, argsLen, 1, 1) && hmc_napi_type::isNumber(env, args[0]))
     {
         napi_throw_type_error(env, NULL, string("parameter Is Incorrect fn_getProcessStartTime ( DWORD (Number) )").c_str());
         return NULL;
     }
 
-    DWORD ProcessID = (DWORD) hmc_napi_util::get_value::number_int64(env, args[0]);
+    DWORD ProcessID = (DWORD) hmc_napi_get_value::number_int64(env, args[0]);
 
     ULONGLONG elapsedTime = 0;
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, ProcessID);
@@ -468,8 +468,8 @@ napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info)
     }
 
     if(elapsedTime==0){
-        return hmc_napi_util::create_value::Null(env);
+        return hmc_napi_create_value::Null(env);
     }
 
-    return hmc_napi_util::create_value::Number(env, (long long) elapsedTime);
+    return hmc_napi_create_value::Number(env, (long long) elapsedTime);
 }

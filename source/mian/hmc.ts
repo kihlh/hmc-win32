@@ -46,6 +46,8 @@ const get_native: () => HMC.Native = (binPath?: string) => {
         function fnStrList(...args: any[]) { console.error(HMCNotPlatform); return [] as string[] }
         function fnStr(...args: any[]) { console.error(HMCNotPlatform); return '' }
         function fnAnyArr(...args: any[]) { console.error(HMCNotPlatform); return [] as any[] }
+        function fnPromise(...args: any[]) { console.error(HMCNotPlatform); return Promise.reject("HMC::HMC current method only supports win32 platform") }
+
         return {
             getProcessStartTime: fnNull,
             __debug_AllocConsole: fnVoid,
@@ -234,7 +236,10 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             putenv: fnVoid,
             findWindowEx: fnNull,
             findWindow: fnNull,
-
+            // getProcessidBaseName_v2:fnStr,
+            // getProcessidFilePath_v2:fnStr,
+            // hasProcess_v2:fnBool,
+            getProcessidFilePathAsync:fnPromise
         }
     })();
     return Native;
@@ -471,6 +476,7 @@ export class HWND extends Number {
         return native.setHandleTransparent(this.HWND, opacity as HMC.HandleTransparent);
     }
 }
+
 // 类型
 export module HMC {
     /**
@@ -899,7 +905,7 @@ export module HMC {
         /**
          * 判断进程id 是否存在
          */
-        hasProcess(ProcessID: ProcessID): boolean;
+        // hasProcess(ProcessID: ProcessID): boolean;
         /** 获取进程名**/
         getProcessName: (ProcessID: ProcessID) => string | null;
         /** 获取进程可执行文件位置**/
@@ -1613,7 +1619,26 @@ export module HMC {
          * 获取系统变量的键列表
          */
         getSystemKeyList(): string[];
-
+        // /**
+        //  * 获取进程id的映像路径
+        //  * @param ProcessID 
+        //  */
+        // getProcessidFilePath_v2(ProcessID: number): string;
+        // /**
+        //  * 判断此进程是否存在
+        //  * @param ProcessID 
+        //  */
+        // hasProcess_v2(ProcessID: number): boolean;
+        // /**
+        //  * 获取进程id的文件名
+        //  * @param ProcessID 
+        //  */
+        // getProcessidBaseName_v2(ProcessID: number): string;
+        /**
+         * 获取进程id的映像路径
+         * @param ProcessID 
+         */
+        getProcessidFilePathAsync(ProcessID: number): Promise<string>;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -5820,6 +5845,40 @@ export function putSystemVariable(key: string, value?: string, append?: boolean,
  * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
  * @default false
  */
+export function setUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean) {
+    return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+
+/**
+ * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export function setSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean) {
+    return native.putSystemVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+
+/**
+ * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
 export function putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean) {
     return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
 }
@@ -6042,6 +6101,8 @@ export const Environment = {
     getUserKeyList,
     getSystemKeyList,
     updateThis,
+    setUserVariable,
+    setSystemVariable
 };
 
 export const Registr = registr;
@@ -6241,7 +6302,9 @@ export const hmc = {
     version,
     watchClipboard,
     watchUSB,
-    windowJitter
+    windowJitter,
+    setUserVariable,
+    setSystemVariable
 }
 export default hmc;
 

@@ -71,20 +71,22 @@ vector<string> util_getModulePathList(DWORD processID)
     return resultsData;
 }
 
-string Attain_getProcessidFilePath(int ProcessID)
-{
-    string Run_lpFilename = "";
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        CloseHandle(hProcess);
-        return Run_lpFilename;
-    }
-    GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    CloseHandle(hProcess);
-    return _A2U8_(lpFilename);
-}
+// string Attain_getProcessidFilePath(int ProcessID)
+// {
+//     EnableShutDownPriv();
+
+//     string Run_lpFilename = "";
+//     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, ProcessID);
+//     char lpFilename[1024];
+//     if (hProcess == nullptr)
+//     {
+//         CloseHandle(hProcess);
+//         return Run_lpFilename;
+//     }
+//     GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
+//     CloseHandle(hProcess);
+//     return _A2U8_(lpFilename);
+// }
 
 // 枚举进程
 vector<DWORD> util_enumProcessesList()
@@ -144,40 +146,40 @@ napi_value killProcess(napi_env env, napi_callback_info info)
     return Kill_info;
 }
 
-// 获取进程可执行文件位置
-napi_value getProcessidFilePath(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
+// // 获取进程可执行文件位置
+// napi_value getProcessidFilePath(napi_env env, napi_callback_info info)
+// {
+//     napi_status status;
+//     napi_value FilePath;
+//     size_t argc = 1;
+//     napi_value args[1];
+//     status = $napi_get_cb_info(argc, args);
+//     assert(status == napi_ok);
+//     if (argc)
+//     {
+//         size_t argc = 1;
+//         napi_value args[1];
+//         status = $napi_get_cb_info(argc, args);
+//         assert(status == napi_ok);
+//     }
 
-    int Process_PID;
-    status = napi_get_value_int32(env, args[0], &Process_PID);
+//     int Process_PID;
+//     status = napi_get_value_int32(env, args[0], &Process_PID);
 
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        napi_get_null(env, &FilePath);
-        return FilePath;
-    }
-    GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
+//     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
+//     char lpFilename[1024];
+//     if (hProcess == nullptr)
+//     {
+//         napi_get_null(env, &FilePath);
+//         return FilePath;
+//     }
+//     GetModuleFileNameExA(hProcess, NULL, (LPSTR)lpFilename, 1024);
+//     napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
 
-    CloseHandle(hProcess);
+//     CloseHandle(hProcess);
 
-    return FilePath;
-}
+//     return FilePath;
+// }
 
 // 获取带有进程可执行文件的 进程列表(慢25ms) 有一个可忽略参数(快照获取延迟XXms)
 napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
@@ -217,19 +219,25 @@ napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
     for (int i = 0; i < numProcesses; ++i)
     {
         DWORD processID = processList[i];
-        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-        if (hProcess)
-        {
-            // LPSTR lpFilename;
-            char Filename[1024];
-            char processName[MAX_PATH];
-            GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
-            GetModuleFileNameExA(hProcess, NULL, Filename, 1024);
-            Pid_List.emplace_back(processID);
-            NameProcessList.emplace_back(processName);
-            FilePathProcessList.emplace_back(string(Filename));
-            CloseHandle(hProcess);
-        }
+        // HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+        // if (hProcess)
+        // {
+        // LPSTR lpFilename;
+        // char Filename[1024];
+        // char processName[MAX_PATH];
+        // GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
+        // GetModuleFileNameExA(hProcess, NULL, Filename, 1024);
+        // Pid_List.emplace_back(processID);
+        // NameProcessList.emplace_back(processName);
+        // FilePathProcessList.emplace_back(string(Filename));
+        // CloseHandle(hProcess);
+        // }
+
+        Pid_List.emplace_back(processID);
+        wstring _ProcessIdFilePath = GetProcessIdFilePathW(processID);
+        NameProcessList.emplace_back(hmc_string_util::utf16_to_ansi(_ProcessIdFilePath));
+        wstring _ProcessIdFileBaseName = hmc_string_util::getPathBaseName(_ProcessIdFilePath);
+        FilePathProcessList.emplace_back(hmc_string_util::utf16_to_ansi(_ProcessIdFileBaseName));
     }
 
     if (Pid_List.size() < 1)
@@ -281,7 +289,7 @@ napi_value getProcessList(napi_env env, napi_callback_info info)
 {
     napi_status status;
     vector<DWORD> Pid_List;
-    vector<string> NameProcessList;
+    vector<wstring> NameProcessList;
     napi_value results_napi_Process_ID_List;
     status = napi_create_array(env, &results_napi_Process_ID_List);
     assert(status == napi_ok);
@@ -295,15 +303,18 @@ napi_value getProcessList(napi_env env, napi_callback_info info)
     for (int i = 0; i < numProcesses; ++i)
     {
         DWORD processID = processList[i];
-        HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-        if (hProcess)
-        {
-            char processName[MAX_PATH];
-            GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
-            Pid_List.emplace_back(processID);
-            NameProcessList.emplace_back(processName);
-            CloseHandle(hProcess);
-        }
+        // HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+        // if (hProcess)
+        // {
+        //     char processName[MAX_PATH];
+        //     GetModuleBaseNameA(hProcess, NULL, processName, MAX_PATH);
+        //     Pid_List.emplace_back(processID);
+        //     NameProcessList.emplace_back(processName);
+        //     CloseHandle(hProcess);
+        // }
+
+        Pid_List.emplace_back(processID);
+        NameProcessList.emplace_back(GetProcessIdFilePathW(processID));
     }
 
     if (Pid_List.size() < 1)
@@ -314,9 +325,9 @@ napi_value getProcessList(napi_env env, napi_callback_info info)
     {
         napi_value cur_item, cur_Index, cur_Name, Objcet_key_Name, Objcet_key_Pid;
         DWORD Index = Pid_List[i];
-        string IndexName = NameProcessList[i];
+        wstring IndexName = NameProcessList[i];
         status = napi_create_int64(env, Index + 0, &cur_Index);
-        status = napi_create_string_utf8(env, _A2U8_(IndexName.c_str()).c_str(), NAPI_AUTO_LENGTH, &cur_Name);
+        status = napi_create_string_utf16(env, (const char16_t *)IndexName.c_str(), NAPI_AUTO_LENGTH, &cur_Name);
         status = napi_create_object(env, &cur_item);
         // {}.name
         string key_Name = "name";
@@ -339,124 +350,124 @@ napi_value getProcessList(napi_env env, napi_callback_info info)
     return results_napi_Process_ID_List;
 }
 
-napi_value hasProcess(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    // napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    napi_value napi_TRUE = _create_bool_Boolean(env, TRUE);
-    napi_value napi_FALSE = _create_bool_Boolean(env, FALSE);
+// napi_value hasProcess(napi_env env, napi_callback_info info)
+// {
+//     napi_status status;
+//     // napi_value FilePath;
+//     size_t argc = 1;
+//     napi_value args[1];
+//     napi_value napi_TRUE = _create_bool_Boolean(env, TRUE);
+//     napi_value napi_FALSE = _create_bool_Boolean(env, FALSE);
 
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
-    else
-    {
-        return napi_FALSE;
-    }
+//     status = $napi_get_cb_info(argc, args);
+//     assert(status == napi_ok);
+//     if (argc)
+//     {
+//         size_t argc = 1;
+//         napi_value args[1];
+//         status = $napi_get_cb_info(argc, args);
+//         assert(status == napi_ok);
+//     }
+//     else
+//     {
+//         return napi_FALSE;
+//     }
 
-    napi_valuetype valuetype0;
-    status = napi_typeof(env, args[0], &valuetype0);
+//     napi_valuetype valuetype0;
+//     status = napi_typeof(env, args[0], &valuetype0);
 
-    // 开始处理传入的方法
-    switch (valuetype0)
-    {
-        // 传入的如果是pid
-    case napi_number:
-    {
-        int Process_PID;
-        status = napi_get_value_int32(env, args[0], &Process_PID);
-        if (Process_PID == 0 || Process_PID == 4)
-            return napi_TRUE;
-        EnableShutDownPriv();
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-        if (GetLastError())
-        {
-            return napi_FALSE;
-        }
-        bool hasProcessId = hProcess != NULL;
-        if (hasProcessId)
-            CloseHandle(hProcess);
-        return _create_bool_Boolean(env, hasProcessId);
-    }
-    // 传入的如果是名称或者路径
-    case napi_string:
-    {
-        string ProcessName = call_String_NAPI_WINAPI_A(env, args[0]);
-        if (ProcessName == string(""))
-            return napi_FALSE;
-        HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        PROCESSENTRY32W entry;
-        entry.dwSize = sizeof entry;
-        if (Process32FirstW(snap, &entry))
-        {
-            do
-            {
-                string ExecFileName = _W2U8_(entry.szExeFile);
-                string ExecFile = Attain_getProcessidFilePath(entry.th32ProcessID);
-                string AddExt_ProcessName = string("").append(ProcessName).append(".exe");
+//     // 开始处理传入的方法
+//     switch (valuetype0)
+//     {
+//         // 传入的如果是pid
+//     case napi_number:
+//     {
+//         int Process_PID;
+//         status = napi_get_value_int32(env, args[0], &Process_PID);
+//         if (Process_PID == 0 || Process_PID == 4)
+//             return napi_TRUE;
+//         EnableShutDownPriv();
+//         HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
+//         if (GetLastError())
+//         {
+//             return napi_FALSE;
+//         }
+//         bool hasProcessId = hProcess != NULL;
+//         if (hasProcessId)
+//             CloseHandle(hProcess);
+//         return _create_bool_Boolean(env, hasProcessId);
+//     }
+//     // 传入的如果是名称或者路径
+//     case napi_string:
+//     {
+//         string ProcessName = call_String_NAPI_WINAPI_A(env, args[0]);
+//         if (ProcessName == string(""))
+//             return napi_FALSE;
+//         HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//         PROCESSENTRY32W entry;
+//         entry.dwSize = sizeof entry;
+//         if (Process32FirstW(snap, &entry))
+//         {
+//             do
+//             {
+//                 string ExecFileName = _W2U8_(entry.szExeFile);
+//                 string ExecFile = Attain_getProcessidFilePath(entry.th32ProcessID);
+//                 string AddExt_ProcessName = string("").append(ProcessName).append(".exe");
 
-                if (ProcessName == ExecFileName ||
-                    ExecFile == ProcessName ||
-                    AddExt_ProcessName == ExecFile ||
-                    AddExt_ProcessName == ExecFileName)
-                    return napi_TRUE;
+//                 if (ProcessName == ExecFileName ||
+//                     ExecFile == ProcessName ||
+//                     AddExt_ProcessName == ExecFile ||
+//                     AddExt_ProcessName == ExecFileName)
+//                     return napi_TRUE;
 
-            } while (Process32NextW(snap, &entry));
-        }
-        return napi_FALSE;
-    }
+//             } while (Process32NextW(snap, &entry));
+//         }
+//         return napi_FALSE;
+//     }
 
-    default:
-        return napi_FALSE;
-    }
-}
-napi_value isProcess(napi_env env, napi_callback_info info)
-{
-    return hasProcess(env, info);
-}
+//     default:
+//         return napi_FALSE;
+//     }
+// }
+// napi_value isProcess(napi_env env, napi_callback_info info)
+// {
+//     return hasProcess(env, info);
+// }
 
-// 获取pid的名称
-napi_value getProcessName(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value FilePath;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        size_t argc = 1;
-        napi_value args[1];
-        status = $napi_get_cb_info(argc, args);
-        assert(status == napi_ok);
-    }
+// // 获取pid的名称
+// napi_value getProcessName(napi_env env, napi_callback_info info)
+// {
+//     napi_status status;
+//     napi_value FilePath;
+//     size_t argc = 1;
+//     napi_value args[1];
+//     status = $napi_get_cb_info(argc, args);
+//     assert(status == napi_ok);
+//     if (argc)
+//     {
+//         size_t argc = 1;
+//         napi_value args[1];
+//         status = $napi_get_cb_info(argc, args);
+//         assert(status == napi_ok);
+//     }
 
-    int Process_PID;
-    status = napi_get_value_int32(env, args[0], &Process_PID);
+//     int Process_PID;
+//     status = napi_get_value_int32(env, args[0], &Process_PID);
 
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
-    char lpFilename[1024];
-    if (hProcess == nullptr)
-    {
-        napi_get_null(env, &FilePath);
-        return FilePath;
-    }
-    GetModuleBaseNameA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
+//     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Process_PID);
+//     char lpFilename[1024];
+//     if (hProcess == nullptr)
+//     {
+//         napi_get_null(env, &FilePath);
+//         return FilePath;
+//     }
+//     GetModuleBaseNameA(hProcess, NULL, (LPSTR)lpFilename, 1024);
+//     napi_create_string_utf8(env, _A2U8_(lpFilename).c_str(), NAPI_AUTO_LENGTH, &FilePath);
 
-    CloseHandle(hProcess);
+//     CloseHandle(hProcess);
 
-    return FilePath;
-}
+//     return FilePath;
+// }
 
 // 获取进程可执行文件位置
 napi_value getModulePathList(napi_env env, napi_callback_info info)
@@ -536,22 +547,6 @@ vector<DWORD> ListProcessThreads(DWORD dwOwnerPID)
     CloseHandle(hThreadSnap);
     return ProcessThreadsList;
 }
-
-// 获取该文件被哪些流氓进程占用着
-// napi_value getLockFileProcessList(napi_env env, napi_callback_info info)
-// {
-//     napi_status status;
-//     size_t argc = 1;
-//     napi_value args[1];
-//     status = $napi_get_cb_info(argc, args);
-//     assert(status == napi_ok);
-//     napi_value resultsModulePathList;
-//     status = napi_create_array(env, &resultsModulePathList);
-//     hmc_is_argv_type(args, 0, 1, napi_string, resultsModulePathList);
-//     string strA_Path = call_String_NAPI_WINAPI_A(env, args[0]);
-
-//     return resultsModulePathList;
-// }
 
 struct enumHandleCout
 {
@@ -1168,20 +1163,6 @@ napi_value clearEnumProcessHandle(napi_env env, napi_callback_info info)
 
 #define MAX_KEY_LENGTH 255
 
-struct HMC_PROCESSENTRY32
-{
-    int pollingId;
-    DWORD dwSize;
-    DWORD cntUsage;
-    DWORD th32ProcessID; // this process
-    DWORD th32DefaultHeapID;
-    DWORD th32ModuleID; // associated exe
-    DWORD cntThreads;
-    DWORD th32ParentProcessID; // this process's parent process
-    DWORD pcPriClassBase;      // Base priority of process's threads
-    DWORD dwFlags;
-    wstring szExeFile; // Path
-};
 vector<HMC_PROCESSENTRY32> enumeratesProcessSnapshotStorage;
 int enumeratesProcessPollingId = 0;
 
@@ -1192,15 +1173,15 @@ void start_enumAllProcess(int pollingId)
     vector<HMC_PROCESSENTRY32> enumProcessList;
 
     HANDLE hProcessSnap;
-    PROCESSENTRY32 pe32;
+    PROCESSENTRY32W pe32;
 
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (hProcessSnap == INVALID_HANDLE_VALUE)
         return;
 
-    pe32.dwSize = sizeof(PROCESSENTRY32);
+    pe32.dwSize = sizeof(PROCESSENTRY32W);
 
-    if (!Process32First(hProcessSnap, &pe32))
+    if (!Process32FirstW(hProcessSnap, &pe32))
     {
         CloseHandle(hProcessSnap);
         return;
@@ -1214,9 +1195,8 @@ void start_enumAllProcess(int pollingId)
         _pe32.dwFlags = pe32.dwFlags;
         _pe32.dwSize = pe32.dwSize;
         _pe32.pcPriClassBase = pe32.pcPriClassBase;
-        // wcout<< pe32.szExeFile<<endl;
-        // _pe32.szExeFile = (wchar_t *)&pe32.szExeFile;
-        _pe32.szExeFile = L"";
+
+        _pe32.szExeFile = pe32.szExeFile;
         _pe32.th32DefaultHeapID = pe32.th32DefaultHeapID;
         _pe32.th32ModuleID = pe32.th32ModuleID;
         _pe32.th32ParentProcessID = pe32.th32ParentProcessID;
@@ -1224,24 +1204,25 @@ void start_enumAllProcess(int pollingId)
         _pe32.pollingId = pollingId;
         enumProcessList.push_back(_pe32);
 
-    } while (Process32Next(hProcessSnap, &pe32));
+    } while (Process32NextW(hProcessSnap, &pe32));
 
     CloseHandle(hProcessSnap);
     for (size_t i = 0; i < enumProcessList.size(); i++)
     {
         HMC_PROCESSENTRY32 p32 = enumProcessList[i];
-        p32.szExeFile = L"";
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, p32.th32ProcessID);
+        // p32.szExeFile = L"";
+        // HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, p32.th32ProcessID);
 
-        wchar_t processName[MAX_PATH];
-        if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
-        {
-            p32.szExeFile = processName;
-        };
-        CloseHandle(hProcess);
+        // wchar_t processName[MAX_PATH];
+        // if (GetModuleBaseNameW(hProcess, NULL, processName, MAX_PATH))
+        // {
+        //     p32.szExeFile = processName;
+        // };
+        // CloseHandle(hProcess);
+        // enumeratesProcessSnapshotStorage.push_back(p32);
+
+        // Sleep(5);
         enumeratesProcessSnapshotStorage.push_back(p32);
-
-        Sleep(5);
     }
 
     HMC_PROCESSENTRY32 _p32end;
@@ -1258,50 +1239,6 @@ void start_enumAllProcess(int pollingId)
     _p32end.pollingId = pollingId;
     enumeratesProcessSnapshotStorage.push_back(_p32end);
 };
-
-// void util_enumAllProcess(vector<HMC_PROCESSENTRY32> &enumProcess)
-// {
-
-//     EnableShutDownPriv();
-//     PROCESSENTRY32 pe32;
-//     pe32.dwSize = sizeof(PROCESSENTRY32);
-
-//     // 获取进程快照
-//     HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-//     if (hSnap == INVALID_HANDLE_VALUE)
-//     {
-//         return;
-//     }
-
-//     // 枚举第一个进程
-//     if (Process32First(hSnap, &pe32))
-//     {
-//         do
-//         {
-//             // 打开进程句柄
-//             HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
-//             if (hProcess)
-//             {
-//                 HMC_PROCESSENTRY32 _pe32;
-//                 _pe32.cntThreads = pe32.cntThreads;
-//                 _pe32.cntUsage = pe32.cntUsage;
-//                 _pe32.dwFlags = pe32.dwFlags;
-//                 _pe32.dwSize = pe32.dwSize;
-//                 _pe32.pcPriClassBase = pe32.pcPriClassBase;
-//                 _pe32.szExeFile = pe32.szExeFile;
-//                 _pe32.th32DefaultHeapID = pe32.th32DefaultHeapID;
-//                 _pe32.th32ModuleID = pe32.th32ModuleID;
-//                 _pe32.th32ParentProcessID = pe32.th32ParentProcessID;
-//                 _pe32.th32ProcessID = pe32.th32ProcessID;
-//                 _pe32.pollingId = 0;
-//                 enumProcess.push_back(_pe32);
-//                 CloseHandle(hProcess);
-//             }
-//         } while (Process32Next(hSnap, &pe32));
-//     }
-
-//     CloseHandle(hSnap);
-// };
 
 void util_getSubProcessList(DWORD ProcessId, vector<DWORD> &SubProcessIDList)
 {

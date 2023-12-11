@@ -1,2282 +1,1141 @@
+#pragma once
+
+// 防止重复导入
+#ifndef MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP
+#define MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP
+
+#include <windows.h>
 #include <assert.h>
 #include <any>
 #include <vector>
 #include <map>
+#include <set>
+#include <string>
 #include <iostream>
 #include <node_api.h>
+#include <iostream>
+#include <functional>
+#include <unordered_map>
+#include <thread>
+#include <shared_mutex>
 
 #include "./hmc_string_util.hpp"
 
-#define _HMC_ALL_UTIL 0x0666
-#define napi_ass_false -66666666
-
 using namespace std;
 
-namespace hmc_napi_util
+// 导出一个 static 函数
+#define EXPORT_NAPI_STATIC_FN(func)              \
+    {                                            \
+        #func, 0, func, 0, 0, 0, napi_default, 0 \
+    }
+// 导出一个 static 函数
+#define EXPORT_NAPI_STATIC_PAIR(name, func)     \
+    {                                           \
+        name, 0, func, 0, 0, 0, napi_default, 0 \
+    }
+
+// 导出一个 其他文件的 函数
+#define EXPORT_NAPI_REMOTE_FN(func)                                \
+    {                                                              \
+        #func, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
+    }
+
+// 导出一个 其他文件的 函数 并设置名称
+#define EXPORT_NAPI_REMOTE_FNPAIR(name, func)                     \
+    {                                                             \
+        name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
+    }
+
+typedef enum
 {
-    bool _hmc_debug = false;
+    // ES6 types (corresponds to typeof)
+    js_undefined = napi_undefined,
+    js_null = napi_null,
+    js_boolean = napi_boolean,
+    js_number = napi_number,
+    js_string = napi_string,
+    js_symbol = napi_symbol,
+    js_object = napi_object,
+    js_function = napi_function,
+    js_external = napi_external,
+    js_bigint = napi_bigint,
+    js_array = 95270,
+    js_date = 95271,
+    js_error = 95272,
+    js_buffer = 95273,
+    js_point = 95277,
+    // js_array_string = 95279,
+    // js_array_number = 95281,
+    // js_array_boolean = 95282,
+    // js_array_bigint = 95283,
+    js_promise = 95285,
+    js_promise_function = 95286,
+    js_rect = 95288,
+    js_unknown = 955666,
+    // js_array_any = 95290,
+} js_valuetype;
 
-#ifdef INCLUDE_NLOHMANN_JSON_HPP_
-
+namespace hmc_napi_get_value
+{
     /**
-     * @brief 由于any序列化大量的obj会出现内存溢出 所有部分获取将会返回一个数字id（ _hmc_Object_id + 1 ） 然后通过这个id查询获取对象
+     * @brief 数字转int
      *
+     * @param env
+     * @param nodeValue
+     * @return int
      */
-    map<long, json> AllObjectValueList;
-#endif // INCLUDE_NLOHMANN_JSON_HPP_
-
-    namespace create_value
-    {
-
-        // 创建一个布尔型
-        napi_value Boolean(napi_env env, bool value = false)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_get_boolean(env, value, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        // 创建一个布尔型
-        napi_value Boolean(napi_env env, int value = 0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_get_boolean(env, (bool)value, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-
-        // 返回一个 string utf8 string
-        napi_value String(napi_env env, string value)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-
-        // 返回一个 string utf8 string
-        napi_value StringA(napi_env env, string value)
-        {
-            napi_status status;
-            napi_value result;
-            wstring result2w = hmc_string_util::ansi_to_utf16(value);
-            status = napi_create_string_utf16(env, (const char16_t *)result2w.c_str(), NAPI_AUTO_LENGTH, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-
-        // 返回一个 string utf16 string
-        napi_value String(napi_env env, wstring value)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_string_utf16(env, (const char16_t *)value.c_str(), NAPI_AUTO_LENGTH, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-
-        napi_value String(napi_env env, wchar_t *value)
-        {
-            return String(env, wstring(value));
-        }
-        napi_value String(napi_env env, char *value)
-        {
-            return String(env, string(value));
-        }
-        napi_value String(napi_env env)
-        {
-            return String(env, "");
-        }
-#ifdef INCLUDE_NLOHMANN_JSON_HPP_
-        /**
-         * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
-         *
-         * @param env
-         * @param jsonValue
-         * @return napi_value
-         */
-        napi_value JSON(napi_env env, json jsonValue)
-        {
-            string jsonValuetoString = string("hmc::api::::json::::");
-            jsonValue.get_to(jsonValuetoString);
-            return String(env, jsonValuetoString);
-        }
-#endif // INCLUDE_NLOHMANN_JSON_HPP_
-
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param number
-         * @return napi_value
-         */
-        napi_value Number(napi_env env, int number = 0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_int32(env, number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param number
-         * @return napi_value
-         */
-        napi_value Number(napi_env env, int64_t number = 0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_int64(env, number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param number
-         * @return napi_value
-         */
-        napi_value Number(napi_env env, double number = 0.0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_double(env, number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param number
-         * @return napi_value
-         */
-        napi_value Number(napi_env env, HWND number)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_int64(env, (long long)number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        napi_value Number(napi_env env, unsigned long number)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_int64(env, (long)number, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param bigint
-         * @return napi_value
-         */
-        napi_value Bigint(napi_env env, long bigint = 0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_bigint_int64(env, bigint, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 number到js
-         *
-         * @param bigint
-         * @return napi_value
-         */
-        napi_value Bigint(napi_env env, long long bigint = 0)
-        {
-            napi_status status;
-            napi_value result;
-            status = napi_create_bigint_int64(env, bigint, &result);
-            assert(status == napi_ok);
-            return result;
-        }
-        /**
-         * @brief 返回一个 Buffer到js(返回的是空值 napi 不支持)
-         *
-         * @param env
-         * @param data
-         * @param size
-         * @return napi_value
-         */
-        napi_value Buffer(napi_env env, vector<unsigned char> &buffer)
-        {
-            napi_status status;
-            napi_value Results;
-            try
-            {
-
-                void *yourPointer = malloc(buffer.size());
-
-                // 很迷惑的函数 这个只能创建空白内存而不是buff
-                // status = napi_create_arraybuffer(env, buffer.size(), &yourPointer, &Results);
-                // assert(status == napi_ok);
-
-                memcpy(yourPointer, buffer.data(), buffer.size());
-                status = napi_create_external_buffer(env, buffer.size(), yourPointer, NULL, NULL, &Results);
-                assert(status == napi_ok);
-                // free(yourPointer);
-            }
-            catch (const std::exception &e)
-            {
-            }
-
-            return Results;
-        }
-        napi_value Buffer(napi_env env, void *data, size_t size)
-        {
-            napi_status status;
-            napi_value Results;
-            try
-            {
-                status = napi_create_external_buffer(env, size, data, NULL, NULL, &Results);
-                assert(status == napi_ok);
-            }
-            catch (const std::exception &e)
-            {
-                void *yourPointer = malloc(0);
-                status = napi_create_buffer(env, 0, &yourPointer, &Results);
-                assert(status == napi_ok);
-            }
-            return Results;
-        }
-
-        /**
-         * @brief 返回一个 null
-         *
-         * @param env
-         * @param data
-         * @param size
-         * @return napi_value
-         */
-        napi_value Null(napi_env env)
-        {
-            napi_status status;
-            napi_value Results;
-            status = napi_get_null(env, &Results);
-            assert(status == napi_ok);
-            return Results;
-        }
-        /**
-         * @brief RECT (位置信息转为Object)
-         *
-         * @param env
-         * @param rect
-         * @return napi_value
-         */
-        napi_value Rect(napi_env env, RECT rect)
-        {
-            napi_value ResultforObject;
-            napi_status status;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "bottom"), create_value::Number(env, rect.bottom));
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "left"), create_value::Number(env, rect.left));
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "right"), create_value::Number(env, rect.right));
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "top"), create_value::Number(env, rect.top));
-            assert(status == napi_ok);
-
-            return ResultforObject;
-        }
-        
-        napi_value Point(napi_env env, POINT point)
-        {
-            napi_value ResultforObject;
-            napi_status status;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "x"), create_value::Number(env, point.x));
-            assert(status == napi_ok);
-
-            status = napi_set_property(env, ResultforObject, create_value::String(env, "y"), create_value::Number(env, point.y));
-            assert(status == napi_ok);
-
-            return ResultforObject;
-        }
-
-        /**
-         * @brief 返回一个 undefined
-         *
-         * @param env
-         * @param data
-         * @param size
-         * @return napi_value
-         */
-        napi_value Undefined(napi_env env)
-        {
-            napi_status status;
-            napi_value Results;
-            status = napi_get_undefined(env, &Results);
-            assert(status == napi_ok);
-            return Results;
-        }
-        /**
-         * @brief 自识别类型
-         *
-         * @param env
-         * @param anyValue
-         * @return napi_value
-         */
-        napi_value New(napi_env env, any anyValue)
-        {
-            napi_status status;
-            napi_value ResultForAny;
-            if (anyValue.has_value())
-            {
-                // 整形
-                if (anyValue.type() == typeid(DWORD))
-                {
-                    ResultForAny = Number(env, any_cast<DWORD>(anyValue));
-                }
-                else if (anyValue.type() == typeid(int))
-                {
-                    ResultForAny = Number(env, any_cast<int>(anyValue));
-                }
-                else if (anyValue.type() == typeid(long))
-                {
-                    ResultForAny = Number(env, any_cast<long>(anyValue));
-                }
-                else if (anyValue.type() == typeid(long long))
-                {
-                    ResultForAny = Number(env, any_cast<long long>(anyValue));
-                }
-                else if (anyValue.type() == typeid(HWND))
-                {
-                    ResultForAny = Number(env, any_cast<HWND>(anyValue));
-                }
-                else if (anyValue.type() == typeid(int64_t))
-                {
-                    ResultForAny = Number(env, any_cast<int64_t>(anyValue));
-                }
-                else if (anyValue.type() == typeid(short))
-                {
-                    ResultForAny = Number(env, any_cast<short>(anyValue));
-                }
-                else if (anyValue.type() == typeid(unsigned long long) || anyValue.type() == typeid(unsigned long))
-                {
-                    ResultForAny = Number(env, (unsigned long)any_cast<unsigned long long>(anyValue));
-                }
-                // 浮点
-                else if (anyValue.type() == typeid(float))
-                {
-                    ResultForAny = Number(env, (double)any_cast<float>(anyValue));
-                }
-                else if (anyValue.type() == typeid(double))
-                {
-                    ResultForAny = Number(env, any_cast<double>(anyValue));
-                }
-                else if (anyValue.type() == typeid(long double))
-                {
-                    ResultForAny = Number(env, (double)any_cast<long double>(anyValue));
-                }
-                // 文本型
-                else if (anyValue.type() == typeid(string))
-                {
-                    ResultForAny = String(env, any_cast<string>(anyValue));
-                }
-                else if (anyValue.type() == typeid(wstring))
-                {
-                    ResultForAny = String(env, any_cast<wstring>(anyValue));
-                }
-                else if (anyValue.type() == typeid(char *))
-                {
-                    ResultForAny = String(env, any_cast<char *>(anyValue));
-                }
-                else if (anyValue.type() == typeid(CHAR *))
-                {
-                    ResultForAny = String(env, any_cast<CHAR *>(anyValue));
-                }
-                else if (anyValue.type() == typeid(WCHAR *))
-                {
-                    ResultForAny = String(env, any_cast<WCHAR *>(anyValue));
-                }
-                // bool
-                else if (anyValue.type() == typeid(bool))
-                {
-                    ResultForAny = Boolean(env, any_cast<bool>(anyValue));
-                }
-                else if (anyValue.type() == typeid(BOOL))
-                {
-                    ResultForAny = Boolean(env, any_cast<BOOL>(anyValue));
-                }
-
-                else
-                {
-                    ResultForAny = Undefined(env);
-                }
-            }
-
-            return ResultForAny;
-        }
-#ifdef INCLUDE_NLOHMANN_JSON_HPP_
-
-        /**
-         * @brief 返回json 对象 napi的js脚本应当对文本的开头进行判断 如果含有"hmc::api::::json::::" 应当转义为json
-         *
-         * @param env
-         * @param jsonValue
-         * @return napi_value
-         */
-        napi_value New(napi_env env, json jsonValue)
-        {
-            try
-            {
-                if (jsonValue.is_array() || jsonValue.is_object())
-                {
-                    string jsonValuetoString = string("hmc::api::::json::::");
-                    jsonValue.get_to(jsonValuetoString);
-                    return String(env, jsonValuetoString);
-                }
-                else if (jsonValue.is_boolean())
-                {
-                    return Boolean(env, jsonValue.template get<bool>());
-                }
-                else if (jsonValue.is_null())
-                {
-                    return Null(env);
-                }
-                else if (jsonValue.is_string())
-                {
-                    auto ansi_to_utf16 = hmc_string_util::ansi_to_utf16(jsonValue.template get<string>());
-                    return String(env, ansi_to_utf16);
-                }
-                else if (jsonValue.is_number())
-                {
-                    if (jsonValue.is_number_float())
-                    {
-                        return Number(env, jsonValue.template get<double>());
-                    }
-                    else
-                    {
-                        return Number(env, jsonValue.template get<long long>());
-                    }
-                }
-                else if (jsonValue.is_binary())
-                {
-                    return Buffer(env, jsonValue.template get<vector<unsigned char>>());
-                }
-            }
-            catch (char *e)
-            {
-            }
-
-            return Undefined(env);
-        }
-#endif // INCLUDE_NLOHMANN_JSON_HPP_
-
-        napi_value New(napi_env env)
-        {
-            return Undefined(env);
-        }
-        namespace Array
-        {
-            /**
-             * @brief 支持多种类型的数组
-             *
-             * @param env
-             * @param wstringVector
-             * @return napi_value
-             */
-            napi_value New(napi_env env, vector<napi_value> wstringVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < wstringVector.size(); index++)
-                {
-                    napi_value push_item_data = wstringVector[index];
-                    status = napi_set_element(env, ResultforArray, index, push_item_data);
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-            napi_value New(napi_env env, vector<any> wstringVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < wstringVector.size(); index++)
-                {
-                    any push_item_data = wstringVector[index];
-                    napi_set_element(env, ResultforArray, index, create_value::New(env, push_item_data));
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-            /**
-             * @brief 创建一个全是文本的数组
-             *
-             * @param env
-             * @param stringVector
-             * @return napi_value
-             */
-            napi_value String(napi_env env, vector<string> stringVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < stringVector.size(); index++)
-                {
-                    string push_item_data = stringVector[index];
-                    status = napi_set_element(env, ResultforArray, index, create_value::String(env, push_item_data));
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-            napi_value String(napi_env env, vector<wstring> wstringVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < wstringVector.size(); index++)
-                {
-                    wstring push_item_data = wstringVector[index];
-                    status = napi_set_element(env, ResultforArray, index, create_value::String(env, push_item_data));
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-            /**
-             * @brief 创建一个全是数字的数组
-             *
-             * @param env
-             * @param intVector
-             * @return napi_value
-             */
-            napi_value Number(napi_env env, vector<int> intVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < intVector.size(); index++)
-                {
-                    napi_value push_item;
-                    int push_item_data = intVector[index];
-                    status = napi_create_int64(env, push_item_data, &push_item);
-                    assert(status == napi_ok);
-                    status = napi_set_element(env, ResultforArray, index, push_item);
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-
-            /**
-             * @brief 创建一个全是数字的数组
-             *
-             * @param env
-             * @param intVector
-             * @return napi_value
-             */
-            napi_value Bigint(napi_env env, vector<int> intVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < intVector.size(); index++)
-                {
-                    napi_value push_item;
-                    int push_item_data = intVector[index];
-                    status = napi_create_int64(env, push_item_data, &push_item);
-                    assert(status == napi_ok);
-                    status = napi_set_element(env, ResultforArray, index, push_item);
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-            /**
-             * @brief 创建一个全是数字的数组
-             *
-             * @param env
-             * @param intVector
-             * @return napi_value
-             */
-            napi_value Boolean(napi_env env, vector<bool> boolVector)
-            {
-                napi_status status;
-                napi_value ResultforArray;
-                status = napi_create_array(env, &ResultforArray);
-                assert(status == napi_ok);
-                for (unsigned index = 0; index < boolVector.size(); index++)
-                {
-                    napi_value push_item;
-                    bool push_item_data = boolVector[index];
-                    status = napi_get_boolean(env, push_item_data, &push_item);
-                    assert(status == napi_ok);
-                    status = napi_set_element(env, ResultforArray, index, push_item);
-                    assert(status == napi_ok);
-                }
-                return ResultforArray;
-            }
-        }
-        namespace Object
-        {
-            napi_value New(napi_env env);
-            napi_value New(napi_env env, map<string, napi_value> mapObject);
-            napi_value New(napi_env env, map<string, int> mapObject);
-            napi_value New(napi_env env, map<string, string> mapObject);
-            napi_value New(napi_env env, map<string, any> mapObject);
-            napi_value New(napi_env env, long hmc_obj_id);
-            napi_value New(napi_env env, map<string, napi_value> mapObject);
-            napi_value Object(napi_env env, map<string, string> mapObject);
-            napi_value Object(napi_env env, map<string, int> mapObject);
-            napi_value Object(napi_env env, map<string, napi_value> mapObject);
-            napi_value Object(napi_env env, map<string, any> mapObject);
-            napi_value Object(napi_env env, long hmc_obj_id);
-
-            /**
-             * @brief 创建一个全是文本的 键值对对象
-             *
-             * @param env
-             * @param mapObject
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, map<string, string> mapObject)
-            {
-                napi_status status;
-                napi_value ResultforObject;
-                status = napi_create_object(env, &ResultforObject);
-                assert(status == napi_ok);
-                map<string, string>::iterator it = mapObject.begin();
-
-                while (it != mapObject.end())
-                {
-                    status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::String(env, it->second));
-                    assert(status == napi_ok);
-                    it++;
-                }
-
-                return ResultforObject;
-            }
-            /**
-             * @brief 创建一个全是文本的 键值对对象
-             *
-             * @param env
-             * @param mapObject
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, map<wstring, wstring> mapObject)
-            {
-                napi_status status;
-                napi_value ResultforObject;
-                status = napi_create_object(env, &ResultforObject);
-                assert(status == napi_ok);
-                map<wstring, wstring>::iterator it = mapObject.begin();
-
-                while (it != mapObject.end())
-                {
-                    status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::String(env, it->second));
-                    assert(status == napi_ok);
-                    it++;
-                }
-
-                return ResultforObject;
-            }
-
-            /**
-             * @brief 创建一个全是int的 键值对对象
-             *
-             * @param env
-             * @param mapObject
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, map<string, int> mapObject)
-            {
-                napi_status status;
-                napi_value ResultforObject;
-                status = napi_create_object(env, &ResultforObject);
-                assert(status == napi_ok);
-                map<string, int>::iterator it = mapObject.begin();
-
-                while (it != mapObject.end())
-                {
-                    status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::Number(env, it->second));
-                    assert(status == napi_ok);
-                    it++;
-                }
-
-                return ResultforObject;
-            }
-            /**
-             * @brief 创建一个全是napi_value的 键值对对象
-             *
-             * @param env
-             * @param mapObject
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, map<string, napi_value> mapObject)
-            {
-                napi_status status;
-                napi_value ResultforObject;
-                status = napi_create_object(env, &ResultforObject);
-                assert(status == napi_ok);
-                map<string, napi_value>::iterator it = mapObject.begin();
-
-                while (it != mapObject.end())
-                {
-                    status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), it->second);
-                    assert(status == napi_ok);
-                    it++;
-                }
-
-                return ResultforObject;
-            }
-            /**
-             * @brief 创建一个任意js支持的类型
-             *
-             * @param env
-             * @param mapObject
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, map<string, any> mapObject)
-            {
-                napi_status status;
-                napi_value ResultforObject;
-                status = napi_create_object(env, &ResultforObject);
-                assert(status == napi_ok);
-                map<string, any>::iterator it = mapObject.begin();
-
-                while (it != mapObject.end())
-                {
-                    status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::New(env, it->second));
-                    assert(status == napi_ok);
-                    it++;
-                }
-
-                return ResultforObject;
-            }
-#ifdef INCLUDE_NLOHMANN_JSON_HPP_
-
-            /**
-             * @brief 通过查询id获取对象
-             *
-             * @param env
-             * @param hmc_obj_id
-             * @return napi_value
-             */
-            napi_value Object(napi_env env, long hmc_obj_id)
-            {
-                if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
-                {
-                    return create_value::New(env, AllObjectValueList[hmc_obj_id]);
-                }
-                else
-                {
-                    return Object::New(env);
-                }
-            }
-#endif // INCLUDE_NLOHMANN_JSON_HPP_
-
-            napi_value New(napi_env env, map<string, any> mapObject)
-            {
-
-                return Object(env, mapObject);
-            }
-            napi_value New(napi_env env, map<string, string> mapObject)
-            {
-
-                return Object(env, mapObject);
-            }
-            napi_value New(napi_env env, map<string, int> mapObject)
-            {
-
-                return Object(env, mapObject);
-            }
-            napi_value New(napi_env env, map<string, napi_value> mapObject)
-            {
-
-                return Object(env, mapObject);
-            }
-
-#ifdef INCLUDE_NLOHMANN_JSON_HPP_
-
-            napi_value New(napi_env env, long hmc_obj_id)
-            {
-                if (AllObjectValueList.find(hmc_obj_id) != AllObjectValueList.end())
-                {
-                    return create_value::New(env, AllObjectValueList[hmc_obj_id]);
-                }
-                else
-                {
-                    return Object::New(env);
-                }
-            }
-#endif // INCLUDE_NLOHMANN_JSON_HPP_
-
-            napi_value New(napi_env env)
-            {
-                return Object(env, map<string, int>{});
-            }
-        }
-    };
-
-    namespace assert
-    {
-        template <typename... Args>
-        int expect(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args);
-        template <typename... Args>
-        int expect(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args);
-        string TypeName(napi_valuetype valuetype);
-        string TypeName(napi_env env, napi_value valuetype);
-        BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2);
-        BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype);
-        BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2);
-        template <typename... Args>
-        bool argsSize(napi_env env, size_t argLength, const Args &...ExpectLength);
-        bool argsSize(napi_env env, size_t argLength, int ExpectLength);
-
-        /**
-         * @brief 获取napi数据的类型文本
-         *
-         * @param valuetype
-         * @return string
-         */
-        string TypeName(napi_valuetype valuetype)
-        {
-            string getTypeName = string();
-            switch (valuetype)
-            {
-            case napi_null:
-                getTypeName.append("null");
-                break;
-            case napi_number:
-                getTypeName.append("number");
-                break;
-            case napi_string:
-                getTypeName.append("string");
-                break;
-            case napi_undefined:
-                getTypeName.append("undefined");
-                break;
-            case napi_object:
-                getTypeName.append("object");
-                break;
-            case napi_function:
-                getTypeName.append("function");
-                break;
-            case napi_boolean:
-                getTypeName.append("boolean");
-                break;
-            default:
-                getTypeName.append("unknown");
-            }
-            return getTypeName;
-        }
-
-        /**
-         * @brief 获取napi类型变量名称（人话）
-         *
-         * @param env
-         * @param valuetype
-         * @return string
-         */
-        string TypeName(napi_env env, napi_value valuetype)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, valuetype, &value_type);
-            return TypeName(value_type);
-        }
-
-        /**
-         * @brief 对比两个变量类型是否相等
-         *
-         * @param valuetype
-         * @param valuetype2
-         * @return BOOL
-         */
-        BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2)
-        {
-            return (valuetype == valuetype2);
-        }
-
-        BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, jsValue, &value_type);
-            return (valuetype == value_type);
-        }
-
-        BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, jsValue, &value_type);
-            napi_valuetype value_type2;
-            napi_typeof(env, jsValue2, &value_type2);
-            return (value_type2 == value_type);
-        }
-
-        /**
-         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
-         *
-         * @return int
-         */
-        template <typename... Args>
-        int expect(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
-        {
-            int result = napi_ass_false;
-            try
-            {
-                napi_valuetype temp[] = {first, args...};
-                size_t length = sizeof(temp) / sizeof(temp[0]);
-
-                for (size_t i = 0; i < length; i++)
-                {
-                    if (temp[i] == valuetype)
-                        return temp[i];
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            return result;
-        }
-
-        /**
-         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
-         *
-         * @return int
-         */
-        template <typename... Args>
-        int expect(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, nodeValue, &value_type);
-            int result = napi_ass_false;
-            try
-            {
-                napi_valuetype temp[] = {first, args...};
-                size_t length = sizeof(temp) / sizeof(temp[0]);
-
-                for (size_t i = 0; i < length; i++)
-                {
-                    if (temp[i] == value_type)
-                        return temp[i];
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            if (_hmc_debug)
-            {
-            }
-            return result;
-        }
-        /**
-         * @brief 判断传入的值数量是否符合当前的要求
-         *
-         * @param env
-         * @param nodeValue
-         * @param argLength
-         * @param index
-         * @return true
-         * @return false
-         */
-        template <typename... Args>
-        bool argsSize(napi_env env, size_t argLength, const Args &..._ExpectLength)
-        {
-            bool argsSizeOK = false;
-            string argSizeEq = "";
-
-            int ExpectLength[] = {_ExpectLength...};
-            size_t length = sizeof(ExpectLength) / sizeof(ExpectLength[0]);
-
-            for (size_t i = 0; i < length; i++)
-            {
-                int of_expectLength = ExpectLength[i];
-                if (argLength >= of_expectLength)
-                {
-                    argsSizeOK = true;
-                    return argsSizeOK;
-                }
-                argSizeEq.append(to_string(of_expectLength)).append(" , ");
-            }
-            if (!argsSizeOK)
-            {
-                napi_throw_error(env, "EINVAL",
-                                 string()
-                                     .append("The current number of parameters passed is lower than required. The input is [")
-                                     .append(to_string(argLength))
-                                     .append("], and the ideal number of parameters should be [")
-                                     .append(argSizeEq)
-                                     .append("].\n")
-                                     .c_str());
-            }
-            return argsSizeOK;
-        }
-
-        /**
-         * @brief 判断传入的值数量是否符合当前的要求
-         *
-         * @param env
-         * @param nodeValue
-         * @param argLength
-         * @param index
-         * @return true
-         * @return false
-         */
-        bool argsSize(napi_env env, size_t argLength, int ExpectLength)
-        {
-            if (argLength >= ExpectLength)
-            {
-                return true;
-            }
-            else
-            {
-                napi_throw_error(env, "EINVAL",
-                                 string()
-                                     .append("The current number of parameters passed is lower than required. The input is [")
-                                     .append(to_string(argLength))
-                                     .append("], and the ideal number of parameters should be [")
-                                     .append(to_string(ExpectLength))
-                                     .append("].\n")
-                                     .c_str());
-                return false;
-            }
-        }
-        bool isBuffer(napi_env env, napi_value value)
-        {
-            bool isBuffer;
-            napi_is_buffer(env, value, &isBuffer);
-            return isBuffer;
-        }
-
-        bool isString(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_string;
-        }
-
-        bool isNumber(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_number;
-        }
-
-        bool isBoolean(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_boolean;
-        }
-
-        bool isBigint(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_bigint;
-        }
-
-        bool isFunction(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_function;
-        }
-
-        bool isObject(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_object;
-        }
-
-        bool isUndefined(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_undefined;
-        }
-
-        bool isNull(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_null;
-        }
-
-        bool isExternal(napi_env env, napi_value value)
-        {
-            napi_valuetype type;
-            napi_typeof(env, value, &type);
-            return type == napi_external;
-        }
-
-        bool isObjectkeyExists(napi_env env, napi_value objectValue, string key)
-        {
-            bool has_property = false;
-
-            if (!isObject(env, objectValue))
-            {
-                return has_property;
-            }
-
-            napi_has_named_property(env, objectValue, key.c_str(), &has_property);
-
-            return has_property;
-        }
-    }
-
-    namespace get_value
-    {
-
-        /**
-         * @brief 对比两个变量类型是否相等
-         *
-         * @param valuetype
-         * @param valuetype2
-         * @return BOOL
-         */
-        BOOL diff(napi_valuetype valuetype, napi_valuetype valuetype2)
-        {
-            return (valuetype == valuetype2);
-        }
-
-        BOOL diff(napi_env env, napi_value jsValue, napi_valuetype valuetype)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, jsValue, &value_type);
-            return (valuetype == value_type);
-        }
-
-        BOOL diff(napi_env env, napi_value jsValue, napi_value jsValue2)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, jsValue, &value_type);
-            napi_valuetype value_type2;
-            napi_typeof(env, jsValue2, &value_type2);
-            return (value_type2 == value_type);
-        }
-
-        /**
-         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
-         *
-         * @return int
-         */
-        template <typename... Args>
-        int expect(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
-        {
-            int result = napi_ass_false;
-            try
-            {
-                napi_valuetype temp[] = {first, args...};
-                size_t length = sizeof(temp) / sizeof(temp[0]);
-
-                for (size_t i = 0; i < length; i++)
-                {
-                    if (temp[i] == valuetype)
-                        return temp[i];
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            return result;
-        }
-#define napi_ass_false -66666666
-
-        /**
-         * @brief 断言是否存在支持的类型 成功则返回类型 失败则报错并返回napi_ass_false
-         *
-         * @return int
-         */
-        template <typename... Args>
-        int expect(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args)
-        {
-            napi_valuetype value_type;
-            napi_typeof(env, nodeValue, &value_type);
-            int result = napi_ass_false;
-            try
-            {
-                napi_valuetype temp[] = {first, args...};
-                size_t length = sizeof(temp) / sizeof(temp[0]);
-
-                for (size_t i = 0; i < length; i++)
-                {
-                    if (temp[i] == value_type)
-                        return temp[i];
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            if (_hmc_debug)
-            {
-            }
-            return result;
-        }
-
-        namespace hmc_assert
-        {
-            bool isBuffer(napi_env env, napi_value value)
-            {
-                bool isBuffer;
-                napi_is_buffer(env, value, &isBuffer);
-                return isBuffer;
-            }
-
-            bool isString(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_string;
-            }
-
-            bool isNumber(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_number;
-            }
-
-            bool isBoolean(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_boolean;
-            }
-
-            bool isBigint(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_bigint;
-            }
-
-            bool isFunction(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_function;
-            }
-
-            bool isObject(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_object;
-            }
-
-            bool isUndefined(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_undefined;
-            }
-
-            bool isNull(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_null;
-            }
-
-            bool isExternal(napi_env env, napi_value value)
-            {
-                napi_valuetype type;
-                napi_typeof(env, value, &type);
-                return type == napi_external;
-            }
-
-        }
-
-        /**
-         * @brief 数字转int
-         *
-         * @param env
-         * @param nodeValue
-         * @return int
-         */
-        int number_int(napi_env env, napi_value nodeValue, int defaultValue = 0)
-        {
-            int result = defaultValue;
-            try
-            {
-                if (expect(env, nodeValue, napi_number, napi_boolean))
-                {
-                    napi_get_value_int32(env, nodeValue, &result);
-                    return result;
-                }
-
-                else if (expect(env, nodeValue, napi_undefined, napi_null))
-                {
-                    return result;
-                }
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            return result;
-        }
-
-        /**
-         * @brief 数字转int64
-         *
-         * @param env
-         * @param nodeValue
-         * @return int64_t
-         */
-        int64_t number_int64(napi_env env, napi_value nodeValue, int64_t defaultValue = 0)
-        {
-            int64_t result = defaultValue;
-            try
-            {
-                if (diff(env, nodeValue, napi_number) || diff(env, nodeValue, napi_boolean))
-                {
-                    napi_get_value_int64(env, nodeValue, &result);
-                    return result;
-                }
-                else if (expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
-                {
-                    return result;
-                }
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return result;
-        }
-
-        /**
-         * @brief 数字转64位浮点
-         *
-         * @param env
-         * @param nodeValue
-         * @return double
-         */
-        double number_double(napi_env env, napi_value nodeValue, int defaultValue = 0.0)
-        {
-            double result = defaultValue;
-            try
-            {
-                if (diff(env, nodeValue, napi_number) || diff(env, nodeValue, napi_boolean))
-                {
-                    napi_get_value_double(env, nodeValue, &result);
-                    return result;
-                }
-                else if (expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
-                {
-                    return result;
-                }
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                return result;
-            }
-        }
-
-        /**
-         * @brief bigint转long
-         *
-         * @param env
-         * @param nodeValue
-         * @return long long
-         */
-        long long bigint_longlong(napi_env env, napi_value nodeValue, long long defaultValue = 0)
-        {
-            long long result = defaultValue;
-            try
-            {
-                if (diff(env, nodeValue, napi_bigint) || diff(env, nodeValue, napi_boolean))
-                {
-                    return result;
-                }
-                else if (expect(env, nodeValue, napi_undefined, napi_boolean, napi_null))
-                {
-                    return result;
-                }
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-            return result;
-        }
-        /**
-         * @brief 获取buff
-         *
-         * @param env
-         * @param nodeValue
-         * @param buffer
-         */
-        template <typename T>
-        void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer)
-        {
-            try
-            {
-                napi_status status;
-                T *dataPtr;
-                size_t len;
-                status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&dataPtr), &len);
-                if (status != napi_ok)
-                    return;
-                // buffer.resize(len);
-                buffer.insert(buffer.begin(), dataPtr, dataPtr + len);
-            }
-            catch (const std::exception &e)
-            {
-            }
-        }
-
-        /**
-         * @brief 获取为布尔值
-         *
-         * @param env
-         * @param nodeValue
-         * @return true
-         * @return false
-         */
-        bool boolean_bool(napi_env env, napi_value nodeValue, bool defaultValue = false)
-        {
-            bool result = defaultValue;
-            try
-            {
-                if (diff(env, nodeValue, napi_number) || diff(env, nodeValue, napi_boolean))
-                {
-                    napi_get_value_bool(env, nodeValue, &result);
-                    return result;
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return result;
-        }
-
-        /**
-         * @brief 获取为utf8标准的文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return string
-         */
-        string string_utf8(napi_env env, napi_value nodeValue, string defaultValue = string(""))
-        {
-            string result = string("");
-            try
-            {
-                if (!nodeValue)
-                {
-                    return result;
-                }
-                if (diff(env, nodeValue, napi_string))
-                {
-                    size_t str_len = 0;
-                    napi_get_value_string_utf8(env, nodeValue, nullptr, 0, &str_len);
-                    result.reserve(str_len + 1);
-                    result.resize(str_len);
-                    napi_get_value_string_utf8(env, nodeValue, &result[0], result.capacity(), nullptr);
-                    return result;
-                }
-                else if (diff(env, nodeValue, napi_number))
-                {
-                    result.append(to_string(get_value::number_int(env, nodeValue)));
-                    return result;
-                }
-                else if (diff(env, nodeValue, napi_undefined))
-                {
-                    return result;
-                }
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return result;
-        }
-
-        /**
-         * @brief 获取为utf8标准的文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return string
-         */
-        wstring string_utf16(napi_env env, napi_value nodeValue, wstring defaultValue = wstring(L""))
-        {
-            wstring result = wstring(L"");
-            try
-            {
-                if (!nodeValue)
-                {
-                    return result;
-                }
-                // Buffer.from('文本', 'utf16le')
-                if (hmc_assert::isBuffer(env, nodeValue))
-                {
-                    vector<wchar_t> buffer;
-                    buffer_vector<wchar_t>(env, nodeValue, buffer);
-                    std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
-                    return wideString;
-                }
-                // "文本"
-                if (diff(env, nodeValue, napi_string))
-                {
-                    size_t str_len;
-                    napi_value tmp;
-                    napi_coerce_to_string(env, nodeValue, &tmp);
-                    napi_get_value_string_utf16(env, tmp, NULL, 0, &str_len);
-                    str_len += 1;
-                    wchar_t *str = new wchar_t[str_len];
-                    napi_get_value_string_utf16(env, tmp, (char16_t *)str, str_len, NULL);
-
-                    for (size_t i = 0; i < str_len; i++)
-                    {
-                        result.push_back(str[i]);
-                    }
-                    delete[] str;
-                    return result;
-                }
-                // 506546
-                else if (diff(env, nodeValue, napi_number))
-                {
-                    result.append(to_wstring(get_value::number_int(env, nodeValue)));
-                    return result;
-                }
-                // undefined
-                else if (diff(env, nodeValue, napi_undefined))
-                {
-                    return result;
-                }
-                else if (diff(env, nodeValue, napi_null))
-                {
-                    result.append(L"null");
-                    return result;
-                }
-                // ...
-                else
-                {
-                    if (_hmc_debug)
-                    {
-                    }
-                }
-                return result;
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return result;
-        }
-
-        /**
-         * @brief 获取为窄(A)文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return string
-         */
-        string string_ansi(napi_env env, napi_value nodeValue, string defaultValue = string(""))
-        {
-            wstring result = string_utf16(env, nodeValue);
-            string string_ansi = hmc_string_util::utf16_to_ansi(result);
-
-            return string_ansi;
-        }
-
-        /**
-         * @brief 获取为宽(W)文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return wstring
-         */
-        wstring string_wide(napi_env env, napi_value nodeValue, wstring defaultValue = wstring(L""))
-        {
-            return string_utf16(env, nodeValue);
-        }
-
-        /**
-         * @brief 获取文本数组
-         *
-         * @param env
-         * @param nodeValue
-         * @return vector<string>
-         */
-        vector<string> array_string_utf8(napi_env env, napi_value nodeValue)
-        {
-            vector<string> unicode_str;
-
-            try
-            {
-                napi_status status;
-                uint32_t size = 0;
-                status = napi_get_array_length(env, nodeValue, &size);
-                if (status != napi_ok)
-                    return unicode_str;
-
-                napi_value value;
-
-                for (size_t i = 0; i < size; i++)
-                {
-                    status = napi_get_element(env, nodeValue, i, &value);
-                    if (status != napi_ok)
-                    {
-                        if (_hmc_debug)
-                        {
-                        }
-                        return unicode_str;
-                    }
-                    unicode_str.push_back(string_utf8(env, value));
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return unicode_str;
-        }
-
-        /**
-         * @brief 获取数字数组
-         *
-         * @param env
-         * @param nodeValue
-         * @return vector<int>
-         */
-        vector<int> array_int(napi_env env, napi_value nodeValue)
-        {
-            vector<int> num_list;
-
-            try
-            {
-                napi_status status;
-                uint32_t size = 0;
-                status = napi_get_array_length(env, nodeValue, &size);
-                if (status != napi_ok)
-                    return num_list;
-
-                napi_value value;
-
-                for (size_t i = 0; i < size; i++)
-                {
-                    status = napi_get_element(env, nodeValue, i, &value);
-                    if (status != napi_ok)
-                    {
-                        if (_hmc_debug)
-                        {
-                        }
-                        return num_list;
-                    }
-                    num_list.push_back(number_int(env, value));
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return num_list;
-        }
-
-        /**
-         * @brief 获取数字数组
-         *
-         * @param env
-         * @param nodeValue
-         * @return vector<int>
-         */
-        vector<int64_t> array_int64(napi_env env, napi_value nodeValue)
-        {
-            vector<int64_t> num_list;
-
-            try
-            {
-                napi_status status;
-                uint32_t size = 0;
-                status = napi_get_array_length(env, nodeValue, &size);
-                if (status != napi_ok)
-                    return num_list;
-
-                napi_value value;
-
-                for (size_t i = 0; i < size; i++)
-                {
-                    status = napi_get_element(env, nodeValue, i, &value);
-                    if (status != napi_ok)
-                    {
-                        if (_hmc_debug)
-                        {
-                        }
-                        return num_list;
-                    }
-                    num_list.push_back(number_int64(env, value));
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return num_list;
-        }
-
-        /**
-         * @brief 获取数字数组
-         *
-         * @param env
-         * @param nodeValue
-         * @return vector<int>
-         */
-        vector<double> array_double(napi_env env, napi_value nodeValue)
-        {
-            vector<double> num_list;
-
-            try
-            {
-                napi_status status;
-                uint32_t size = 0;
-                status = napi_get_array_length(env, nodeValue, &size);
-                if (status != napi_ok)
-                    return num_list;
-
-                napi_value value;
-
-                for (size_t i = 0; i < size; i++)
-                {
-                    status = napi_get_element(env, nodeValue, i, &value);
-                    if (status != napi_ok)
-                    {
-                        if (_hmc_debug)
-                        {
-                        }
-                        return num_list;
-                    }
-                    num_list.push_back(number_double(env, value));
-                }
-            }
-            catch (const std::exception &e)
-            {
-                if (_hmc_debug)
-                {
-                }
-            }
-
-            return num_list;
-        }
-
-        /**
-         * @brief 将文本的显示状态转为CPP的显示状态代码
-         *
-         * @param env
-         * @param nodeValue
-         * @return UINT
-         */
-        UINT showType_UINT(napi_env env, napi_value nodeValue)
-        {
-
-            string key = string_ansi(env, nodeValue);
-            if (key == "MB_OK")
-                return MB_OK;
-            if (key == "MB_ABORTRETRYIGNORE")
-                return MB_ABORTRETRYIGNORE;
-            if (key == "MB_SERVICE_NOTIFICATION")
-                return MB_SERVICE_NOTIFICATION;
-            if (key == "MB_TOPMOST")
-                return MB_TOPMOST;
-            if (key == "MB_SETFOREGROUND")
-                return MB_SETFOREGROUND;
-            if (key == "MB_RTLREADING")
-                return MB_RTLREADING;
-            if (key == "MB_RIGHT")
-                return MB_RIGHT;
-            if (key == "MB_DEFAULT_DESKTOP_ONLY")
-                return MB_DEFAULT_DESKTOP_ONLY;
-            if (key == "MB_TASKMODAL")
-                return MB_TASKMODAL;
-            if (key == "MB_SYSTEMMODAL")
-                return MB_SYSTEMMODAL;
-            if (key == "MB_APPLMODAL")
-                return MB_APPLMODAL;
-            if (key == "MB_DEFBUTTON4")
-                return MB_DEFBUTTON4;
-            if (key == "MB_DEFBUTTON3")
-                return MB_DEFBUTTON3;
-            if (key == "MB_DEFBUTTON2")
-                return MB_DEFBUTTON2;
-            if (key == "MB_ICONHAND")
-                return MB_ICONHAND;
-            if (key == "MB_DEFBUTTON1")
-                return MB_DEFBUTTON1;
-            if (key == "MB_ICONERROR")
-                return MB_ICONERROR;
-            if (key == "MB_ICONSTOP")
-                return MB_ICONSTOP;
-            if (key == "MB_ICONQUESTION")
-                return MB_ICONQUESTION;
-            if (key == "MB_ICONASTERISK")
-                return MB_ICONASTERISK;
-            if (key == "MB_ICONINFORMATION")
-                return MB_ICONINFORMATION;
-            if (key == "MB_ICONWARNING")
-                return MB_ICONWARNING;
-            if (key == "MB_ICONEXCLAMATION")
-                return MB_ICONEXCLAMATION;
-            if (key == "MB_YESNOCANCEL")
-                return MB_YESNOCANCEL;
-            if (key == "MB_YESNO")
-                return MB_YESNO;
-            if (key == "MB_RETRYCANCEL")
-                return MB_RETRYCANCEL;
-            if (key == "MB_OKCANCEL")
-                return MB_OKCANCEL;
-            if (key == "MB_HELP")
-                return MB_HELP;
-            if (key == "MB_CANCELTRYCONTINUE")
-                return MB_CANCELTRYCONTINUE;
-
-            return MB_OK;
-        }
-
-        /**
-         * @brief 转 DWORD
-         *
-         * @param env
-         * @param nodeValue
-         * @return DWORD
-         */
-        DWORD number_DWORD(napi_env env, napi_value nodeValue, int defaultValue = 0)
-        {
-            DWORD result = (DWORD)number_int64(env, nodeValue);
-            return result;
-        }
-
-        /**
-         * @brief 转窗口句柄
-         *
-         * @param env
-         * @param nodeValue
-         * @return HWND
-         */
-        HWND number_HWND(napi_env env, napi_value nodeValue, HWND defaultValue = NULL)
-        {
-            int64_t data = number_int64(env, nodeValue);
-            if (data>0){
-                HWND result = (HWND)number_int64(env, nodeValue);
-            }
-            return defaultValue;
-        }
-
-        /**
-         * @brief 移除和结尾开头的空字符
-         *
-         * @param str
-         * @return std::string
-         */
-        std::string removeNullCharacters(std::string str)
-        {
-
-            string data = string();
-            data.append(str);
-
-            // 移除开头的空字符
-            while (!data.empty() && data.front() == '\0')
-            {
-                data.erase(0, 1);
-            }
-
-            // 移除末尾的空字符
-            while (!data.empty() && data.back() == '\0')
-            {
-                data.pop_back();
-            }
-
-            return data;
-        }
-
-        std::wstring removeNullCharacters(std::wstring str)
-        {
-
-            wstring data = wstring();
-            data.append(str);
-
-            // 移除开头的空字符
-            while (!data.empty() && data.front() == L'\0')
-            {
-                data.erase(0, 1);
-            }
-
-            // 移除末尾的空字符
-            while (!data.empty() && data.back() == L'\0')
-            {
-                data.pop_back();
-            }
-
-            return data;
-        }
-
-        /**
-         * @brief 获取buff内容
-         *
-         * @param env
-         * @param nodeValue
-         * @return vector<unsigned char>
-         */
-        vector<unsigned char> buffer_vector(napi_env env, napi_value nodeValue)
-        {
-            vector<unsigned char> buffer;
-            buffer_vector<unsigned char>(env, nodeValue, buffer);
-            return buffer;
-        }
-
-        /**
-         * @brief 传入缓冲是utf16的文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return wstring
-         */
-        wstring buffer_utf16_strW(napi_env env, napi_value nodeValue)
-        {
-            vector<wchar_t> buffer;
-            buffer_vector<wchar_t>(env, nodeValue, buffer);
-            std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
-            return wideString;
-        }
-
-        /**
-         * @brief 传入缓冲是ansi的文本（winapi转换过得）
-         *
-         * @param env
-         * @param nodeValue
-         * @return string
-         */
-        string buffer_ansi_strA(napi_env env, napi_value nodeValue)
-        {
-            vector<unsigned char> buffer;
-            buffer_vector<unsigned char>(env, nodeValue, buffer);
-            std::string ansiString(buffer.begin(), buffer.end());
-            return ansiString;
-        }
-
-        /**
-         * @brief 传入缓冲是utf8的文本
-         *
-         * @param env
-         * @param nodeValue
-         * @return string
-         */
-        string buffer_utf8_strU8(napi_env env, napi_value nodeValue)
-        {
-            vector<unsigned char> buffer;
-            buffer_vector<unsigned char>(env, nodeValue, buffer);
-            std::string utf8String(buffer.begin(), buffer.end());
-            return utf8String;
-        }
-        /**
-         * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
-         * @param env
-         * @param nodeValue
-         * @return const wchar_t* c标准接口的  const char *
-         */
-        const wchar_t *buffer_utf16_clpStrW(napi_env env, napi_value nodeValue)
-        {
-            vector<wchar_t> buffer;
-            buffer_vector<wchar_t>(env, nodeValue, buffer);
-            std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
-            wchar_t *utf16Ptr = new wchar_t[wideString.size() + 1];
-
-            for (size_t i = 0; i < wideString.size(); i++)
-            {
-                wchar_t data = wideString[i];
-                utf16Ptr[i] = data;
-            }
-            const int end = wideString.size();
-
-            utf16Ptr[end] = *L"\0";
-
-            return utf16Ptr;
-        }
-
-        /**
-         * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
-         * @param env
-         * @param nodeValue
-         * @return const char* c标准接口的  const char *
-         */
-        const char *buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue)
-        {
-            vector<unsigned char> buffer;
-            buffer_vector<unsigned char>(env, nodeValue, buffer);
-            std::string utf8String(buffer.begin(), buffer.end());
-
-            char *utf8Ptr = new char[utf8String.size() + 1];
-
-            for (size_t i = 0; i < utf8String.size(); i++)
-            {
-                char data = utf8String[i];
-                utf8Ptr[i] = data;
-            }
-            const int end = utf8String.size();
-
-            utf8Ptr[end] = *"\0";
-
-            return utf8Ptr;
-        }
-
-        /**
-         * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
-         * @param env
-         * @param nodeValue
-         * @return const char* c标准接口的  const char *
-         */
-        const char *buffer_ansi_clpStrA(napi_env env, napi_value nodeValue)
-        {
-            vector<unsigned char> buffer;
-            buffer_vector<unsigned char>(env, nodeValue, buffer);
-            std::string ansiString(buffer.begin(), buffer.end());
-
-            char *ansiPtr = new char[ansiString.size() + 1];
-
-            for (size_t i = 0; i < ansiString.size(); i++)
-            {
-                char data = ansiString[i];
-                ansiPtr[i] = data;
-            }
-            const int end = ansiString.size();
-
-            ansiPtr[end] = *"\0";
-
-            return ansiPtr;
-        }
-
-        POINT point(napi_env env, napi_value objectValue)
-        {
-            POINT result = POINT{};
-            result.x = 0;
-            result.y = 0;
-            napi_status status;
-            napi_value x_value;
-            napi_value y_value;
-
-            if (napi_get_named_property(env, objectValue, "x", &x_value) != napi_ok)
-            {
-                x_value = create_value::Number(env, 0);
-            }
-
-            if (napi_get_named_property(env, objectValue, "y", &y_value) != napi_ok)
-            {
-                y_value = create_value::Number(env, 0);
-            }
-            result.x = get_value::number_int(env, x_value);
-            result.y = get_value::number_int(env, y_value);
-            return result;
-        }
-
-        napi_value get_object_value(napi_env env, napi_value objectValue, string key)
-        {
-            napi_value result;
-
-            if (!assert::isObjectkeyExists(env, objectValue, key))
-            {
-                return NULL;
-            }
-
-            if (napi_get_named_property(env, objectValue, key.c_str(), &result) == napi_ok)
-            {
-                return result;
-            }
-
-            return NULL;
-        }
-
-        int get_object_value_int(napi_env env, napi_value objectValue, string key, int defaultValue = 0)
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return number_int(env, napi_data, defaultValue);
-        }
-
-        int64_t get_object_value_int64(napi_env env, napi_value objectValue, string key, int64_t defaultValue = 0)
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return number_int64(env, napi_data, defaultValue);
-        }
-
-        double get_object_value_double(napi_env env, napi_value objectValue, string key, double defaultValue = 0)
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return number_double(env, napi_data, defaultValue);
-        }
-
-        bool get_object_value_bool(napi_env env, napi_value objectValue, string key, bool defaultValue = false)
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return boolean_bool(env, napi_data, defaultValue);
-        }
-
-        wstring get_object_value_utf16(napi_env env, napi_value objectValue, string key, wstring defaultValue = wstring(L""))
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return string_utf16(env, napi_data, defaultValue);
-        }
-
-        string get_object_value_utf8(napi_env env, napi_value objectValue, string key, string defaultValue = string(""))
-        {
-
-            napi_value napi_data = get_object_value(env, objectValue, key);
-
-            if (napi_data == NULL || !assert::isNumber(env, napi_data))
-            {
-                return defaultValue;
-            }
-
-            return string_utf8(env, napi_data, defaultValue);
-        }
-
-        RECT rect(napi_env env, napi_value objectValue)
-        {
-            RECT result = RECT{};
-            result.bottom = get_object_value_int(env, objectValue, "bottom", 0);
-            result.top = get_object_value_int(env, objectValue, "top", 0);
-            result.right = get_object_value_int(env, objectValue, "right", 0);
-            result.left = get_object_value_int(env, objectValue, "left", 0);
-            return result;
-        }
-    };
-
+    extern int number_int(napi_env env, napi_value nodeValue, int defaultValue = 0);
     /**
-     * @brief 启用hmc的开发者模式 将会对所有传递值和错误进行报错 而不是尽可能完成任务
+     * @brief 数字转int64
      *
-     * @param is_debug
+     * @param env
+     * @param nodeValue
+     * @return int64_t
      */
-    void set_hmc_debug(bool is_debug)
-    {
-        _hmc_debug = is_debug;
-        return;
-    }
+    extern int64_t number_int64(napi_env env, napi_value nodeValue, int64_t defaultValue = 0);
     /**
-     * @brief 判断是否处于debug
+     * @brief 数字转64位浮点
      *
+     * @param env
+     * @param nodeValue
+     * @return double
+     */
+    extern double number_double(napi_env env, napi_value nodeValue, int defaultValue = 0.0);
+    /**
+     * @brief bigint转long
+     *
+     * @param env
+     * @param nodeValue
+     * @return long long
+     */
+    extern long long bigint_longlong(napi_env env, napi_value nodeValue, long long defaultValue = 0);
+    /**
+     * @brief 获取buff
+     *
+     * @param env
+     * @param nodeValue
+     * @param buffer
+     */
+    template <typename T>
+    extern void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer);
+    /**
+     * @brief 获取为布尔值
+     *
+     * @param env
+     * @param nodeValue
      * @return true
      * @return false
      */
-    bool has_hmc_debug()
+    extern bool boolean_bool(napi_env env, napi_value nodeValue, bool defaultValue = false);
+    /**
+     * @brief 获取为utf8标准的文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return string
+     */
+    extern string string_utf8(napi_env env, napi_value nodeValue, string defaultValue = string(""));
+    /**
+     * @brief 获取为utf8标准的文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return string
+     */
+    extern wstring string_utf16(napi_env env, napi_value nodeValue, wstring defaultValue = wstring(L""));
+    /**
+     * @brief 获取为窄(A)文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return string
+     */
+    extern string string_ansi(napi_env env, napi_value nodeValue, string defaultValue = string(""));
+    /**
+     * @brief 获取为宽(W)文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return wstring
+     */
+    extern wstring string_wide(napi_env env, napi_value nodeValue, wstring defaultValue = wstring(L""));
+    /**
+     * @brief 获取文本数组
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<string>
+     */
+    extern vector<string> array_string_utf8(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取文本数组
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<string>
+     */
+    extern vector<wstring> array_string_utf16(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取数字数组
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<int>
+     */
+    extern vector<int> array_int(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取数字数组
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<int>
+     */
+    extern vector<int64_t> array_int64(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取数字数组
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<int>
+     */
+    extern vector<double> array_double(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 将文本的显示状态转为CPP的显示状态代码
+     *
+     * @param env
+     * @param nodeValue
+     * @return UINT
+     */
+    extern UINT showType_UINT(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 转 DWORD
+     *
+     * @param env
+     * @param nodeValue
+     * @return DWORD
+     */
+    extern DWORD number_DWORD(napi_env env, napi_value nodeValue, int defaultValue = 0);
+    /**
+     * @brief 转窗口句柄
+     *
+     * @param env
+     * @param nodeValue
+     * @return HWND
+     */
+    extern HWND number_HWND(napi_env env, napi_value nodeValue, HWND defaultValue = NULL);
+    /**
+     * @brief 获取buff内容
+     *
+     * @param env
+     * @param nodeValue
+     * @return vector<unsigned char>
+     */
+    extern vector<unsigned char> buffer_vector(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 传入缓冲是utf16的文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return wstring
+     */
+    extern wstring buffer_utf16_strW(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 传入缓冲是ansi的文本（winapi转换过得）
+     *
+     * @param env
+     * @param nodeValue
+     * @return string
+     */
+    extern string buffer_ansi_strA(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 传入缓冲是utf8的文本
+     *
+     * @param env
+     * @param nodeValue
+     * @return string
+     */
+    extern string buffer_utf8_strU8(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
+     * @param env
+     * @param nodeValue
+     * @return const wchar_t* c标准接口的  const char *
+     */
+    extern const wchar_t *buffer_utf16_clpStrW(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
+     * @param env
+     * @param nodeValue
+     * @return const char* c标准接口的  const char *
+     */
+    extern const char *buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
+     * @param env
+     * @param nodeValue
+     * @return const char* c标准接口的  const char *
+     */
+    extern const char *buffer_ansi_clpStrA(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取一个对象并将其转换为 POINT
+     *
+     * @param env
+     * @param objectValue
+     * @return POINT
+     */
+    extern POINT point(napi_env env, napi_value objectValue);
+    /**
+     * @brief 使用键获取napi_value 的值
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @return napi_value
+     */
+    extern napi_value get_object_value(napi_env env, napi_value objectValue, string key);
+    /**
+     * @brief 使用键取值为int
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return int
+     */
+    extern int get_object_value_int(napi_env env, napi_value objectValue, string key, int defaultValue = 0);
+    /**
+     * @brief 使用键取值为int64
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return int64_t
+     */
+    extern int64_t get_object_value_int64(napi_env env, napi_value objectValue, string key, int64_t defaultValue = 0);
+    /**
+     * @brief 使用键取值为double
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return double
+     */
+    extern double get_object_value_double(napi_env env, napi_value objectValue, string key, double defaultValue = 0);
+    /**
+     * @brief 使用键取值为bool
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return true
+     * @return false
+     */
+    extern bool get_object_value_bool(napi_env env, napi_value objectValue, string key, bool defaultValue = false);
+    /**
+     * @brief 使用键取值为 utf16
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return wstring
+     */
+    extern wstring get_object_value_utf16(napi_env env, napi_value objectValue, string key, wstring defaultValue = wstring(L""));
+    /**
+     * @brief 使用键取值为utf8
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return string
+     */
+    extern string get_object_value_utf8(napi_env env, napi_value objectValue, string key, string defaultValue = string(""));
+    /**
+     * @brief 使用键取值为ansi
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @param defaultValue
+     * @return string
+     */
+    extern string get_object_value_ansi(napi_env env, napi_value objectValue, string key, string defaultValue = string(""));
+    /**
+     * @brief 使用键取值为 RECT
+     *
+     * @param env
+     * @param objectValue
+     * @return RECT
+     */
+    extern RECT rect(napi_env env, napi_value objectValue);
+}
+
+namespace hmc_napi_type
+{
+
+    /**
+     * @brief 获取napi数据的类型文本
+     *
+     * @param valuetype
+     * @return string
+     */
+    extern string typeName(js_valuetype valuetype);
+    /**
+     * @brief 获取napi数据的类型文本
+     *
+     * @param valuetype
+     * @return string
+     */
+    extern string typeName(napi_valuetype valuetype);
+    /**
+     * @brief 获取napi类型变量名称（人话）
+     *
+     * @param env
+     * @param valuetype
+     * @return string
+     */
+    extern string typeName(napi_env env, napi_value valuetype);
+
+    /**
+     * @brief 获取node类型的枚举值
+     *
+     * @param env
+     * @param valuetype
+     * @return string
+     */
+    extern js_valuetype getType(napi_env env, napi_value valuetype);
+
+    /**
+     * @brief 对比两个变量类型是否相等
+     *
+     * @param valuetype
+     * @param valuetype2
+     * @return BOOL
+     */
+    extern bool diff(napi_valuetype valuetype, napi_valuetype valuetype2);
+    /**
+     * @brief 判断值与多种类型是否一致
+     *
+     * @param valuetype
+     * @param valuetype2
+     * @param first
+     * @param args
+     * @return true
+     * @return false
+     */
+    template <typename... Args>
+    extern bool diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args);
+    /**
+     * @brief 判断值与多种类型是否一致
+     *
+     * @tparam Args
+     * @param env
+     * @param nodeValue
+     * @param first
+     * @param args
+     * @return int
+     */
+    template <typename... Args>
+    extern bool diff(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args);
+
+    /**
+     * @brief 判断值与类型是否一致
+     *
+     * @param env
+     * @param jsValue
+     * @param valuetype
+     * @return true
+     * @return false
+     */
+    extern bool diff(napi_env env, napi_value jsValue, napi_valuetype valuetype);
+    /**
+     * @brief 判断两个值的类型是否一致
+     *
+     * @param env
+     * @param jsValue
+     * @param jsValue2
+     * @return true
+     * @return false
+     */
+    extern bool diff(napi_env env, napi_value jsValue, napi_value jsValue2);
+    /**
+     * @brief 判断传入的值数量是否符合当前的要求
+     *
+     * @param env
+     * @param nodeValue
+     * @param argLength
+     * @param index
+     * @return true
+     * @return false
+     */
+    extern bool argsSize(napi_env env, size_t argLength, int minLength, int maxLength);
+    /**
+     * @brief 判断传入的值数量是否符合当前的要求
+     *
+     * @param env
+     * @param nodeValue
+     * @param argLength
+     * @param index
+     * @return true
+     * @return false
+     */
+    extern bool argsSize(napi_env env, size_t argLength, int minLength);
+    /**
+     * @brief 是buff
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isBuffer(napi_env env, napi_value value);
+    /**
+     * @brief 是文本
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isString(napi_env env, napi_value value);
+    /**
+     * @brief 是数字
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isNumber(napi_env env, napi_value value);
+    /**
+     * @brief 是布尔
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isBoolean(napi_env env, napi_value value);
+    /**
+     * @brief 是 Bigint
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isBigint(napi_env env, napi_value value);
+    /**
+     * @brief 是函数
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isFunction(napi_env env, napi_value value);
+    /**
+     * @brief 是对象
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isObject(napi_env env, napi_value value);
+    /**
+     * @brief 是 Undefined
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isUndefined(napi_env env, napi_value value);
+    /**
+     * @brief 是null
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isNull(napi_env env, napi_value value);
+    /**
+     * @brief 在 JavaScript 中显示为普通对象
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isExternal(napi_env env, napi_value value);
+    /**
+     * @brief 判断是否是 obj 并且包含了 此key
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @return true
+     * @return false
+     */
+    extern bool isObjectkeyExists(napi_env env, napi_value objectValue, string key);
+    /**
+     * @brief 是数组
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isArray(napi_env env, napi_value value);
+    /**
+     * @brief 是Date
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isDate(napi_env env, napi_value value);
+    /**
+     * @brief 是 Error
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    extern bool isError(napi_env env, napi_value value);
+    /**
+     * @brief 是 C Point
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isPoint(napi_env env, napi_value value);
+    /**
+     * @brief 是 Promise
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isPromise(napi_env env, napi_value value);
+    /**
+     * @brief 是 C Rect
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isRect(napi_env env, napi_value value);
+}
+
+namespace hmc_napi_create_value
+{
+
+    // 创建一个布尔型
+    napi_value Boolean(napi_env env, bool value = false);
+    // 创建一个布尔型
+    napi_value Boolean(napi_env env, int value = 0);
+
+    // 返回一个 string utf8 string
+    napi_value String(napi_env env, string value);
+
+    // 返回一个 string utf8 string
+    napi_value StringA(napi_env env, string value);
+    // 返回一个 string utf16 string
+    napi_value String(napi_env env, wstring value);
+    napi_value String(napi_env env, wchar_t *value);
+    napi_value String(napi_env env, char *value);
+    napi_value String(napi_env env);
+
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param number
+     * @return napi_value
+     */
+    napi_value Number(napi_env env, int number = 0);
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param number
+     * @return napi_value
+     */
+    napi_value Number(napi_env env, int64_t number = 0);
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param number
+     * @return napi_value
+     */
+    napi_value Number(napi_env env, double number = 0.0);
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param number
+     * @return napi_value
+     */
+    napi_value Number(napi_env env, HWND number);
+    napi_value Number(napi_env env, unsigned long number);
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param bigint
+     * @return napi_value
+     */
+    napi_value Bigint(napi_env env, long bigint = 0);
+    /**
+     * @brief 返回一个 number到js
+     *
+     * @param bigint
+     * @return napi_value
+     */
+    napi_value Bigint(napi_env env, long long bigint = 0);
+    /**
+     * @brief 返回一个 Buffer到js(返回的是空值 napi 不支持)
+     *
+     * @param env
+     * @param data
+     * @param size
+     * @return napi_value
+     */
+    napi_value Buffer(napi_env env, vector<unsigned char> &buffer);
+    napi_value Buffer(napi_env env, void *data, size_t size);
+
+    /**
+     * @brief 返回一个 null
+     *
+     * @param env
+     * @param data
+     * @param size
+     * @return napi_value
+     */
+    napi_value Null(napi_env env);
+    /**
+     * @brief RECT (位置信息转为Object)
+     *
+     * @param env
+     * @param rect
+     * @return napi_value
+     */
+    napi_value Rect(napi_env env, RECT rect);
+    napi_value Point(napi_env env, POINT point);
+
+    /**
+     * @brief 返回一个 undefined
+     *
+     * @param env
+     * @param data
+     * @param size
+     * @return napi_value
+     */
+    napi_value Undefined(napi_env env);
+    /**
+     * @brief 自识别类型
+     *
+     * @param env
+     * @param anyValue
+     * @return napi_value
+     */
+    napi_value New(napi_env env, any anyValue);
+
+    napi_value New(napi_env env);
+
+    namespace Array
     {
-        return _hmc_debug;
+        /**
+         * @brief 支持多种类型的数组
+         *
+         * @param env
+         * @param wstringVector
+         * @return napi_value
+         */
+        napi_value New(napi_env env, vector<napi_value> wstringVector);
+        napi_value New(napi_env env, vector<any> wstringVector);
+        /**
+         * @brief 创建一个全是文本的数组
+         *
+         * @param env
+         * @param stringVector
+         * @return napi_value
+         */
+        napi_value String(napi_env env, vector<string> stringVector);
+        napi_value String(napi_env env, vector<wstring> wstringVector);
+        /**
+         * @brief 创建一个全是数字的数组
+         *
+         * @param env
+         * @param intVector
+         * @return napi_value
+         */
+        napi_value Number(napi_env env, vector<int> intVector);
+
+        /**
+         * @brief 创建一个全是数字的数组
+         *
+         * @param env
+         * @param intVector
+         * @return napi_value
+         */
+        napi_value Bigint(napi_env env, vector<int> intVector);
+        /**
+         * @brief 创建一个全是数字的数组
+         *
+         * @param env
+         * @param intVector
+         * @return napi_value
+         */
+        napi_value Boolean(napi_env env, vector<bool> boolVector);
+    }
+
+    namespace Object
+    {
+        /**
+         * @brief 创建一个全是文本的 键值对对象
+         *
+         * @param env
+         * @param mapObject
+         * @return napi_value
+         */
+        napi_value Object(napi_env env, map<string, string> mapObject);
+        /**
+         * @brief 创建一个全是文本的 键值对对象
+         *
+         * @param env
+         * @param mapObject
+         * @return napi_value
+         */
+        napi_value Object(napi_env env, map<wstring, wstring> mapObject);
+
+        /**
+         * @brief 创建一个全是int的 键值对对象
+         *
+         * @param env
+         * @param mapObject
+         * @return napi_value
+         */
+        napi_value Object(napi_env env, map<string, int> mapObject);
+        /**
+         * @brief 创建一个全是napi_value的 键值对对象
+         *
+         * @param env
+         * @param mapObject
+         * @return napi_value
+         */
+        napi_value Object(napi_env env, map<string, napi_value> mapObject);
+        /**
+         * @brief 创建一个任意js支持的类型
+         *
+         * @param env
+         * @param mapObject
+         * @return napi_value
+         */
+        napi_value Object(napi_env env, map<string, any> mapObject);
     }
 
 }
+
+class hmc_NodeArgsValue
+{
+private:
+    std::vector<napi_value> args;
+    napi_env env;
+
+public:
+    hmc_NodeArgsValue(napi_env env, napi_callback_info info);
+    ~hmc_NodeArgsValue();
+    /**
+     * @brief 获取数量
+     *
+     * @return size_t
+     */
+    size_t size();
+    /**
+     * @brief 获取指定索引为 int
+     *
+     * @param index
+     * @param defaultValue
+     * @return int
+     */
+    int getInt(size_t index, int defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 int 64
+     *
+     * @param index
+     * @param defaultValue
+     * @return int64_t
+     */
+    int64_t getInt64(size_t index, int64_t defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 String Ansi
+     *
+     * @param index
+     * @param defaultValue
+     * @return string
+     */
+    string getStringAnsi(size_t index, string defaultValue = string(""));
+    /**
+     * @brief 获取指定索引为  String Wide
+     *
+     * @param index
+     * @param defaultValue
+     * @return wstring
+     */
+    wstring getStringWide(size_t index, wstring defaultValue = wstring(L""));
+    /**
+     * @brief 获取指定索引为  String Utf8
+     *
+     * @param index
+     * @param defaultValue
+     * @return string
+     */
+    string getStringUtf8(size_t index, string defaultValue = string(""));
+    /**
+     * @brief 获取指定索引为 布尔
+     *
+     * @param index
+     * @param defaultValue
+     * @return true
+     * @return false
+     */
+    bool getBool(size_t index, bool defaultValue = false);
+    /**
+     * @brief 获取指定索引为  Buffer
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<unsigned char>
+     */
+    vector<unsigned char> getBuffer(size_t index, vector<unsigned char> defaultValue = {});
+    /**
+     * @brief 获取指定索引为  Double
+     *
+     * @param index
+     * @param defaultValue
+     * @return double
+     */
+    double getDouble(size_t index, double defaultValue = 0.0);
+    /**
+     * @brief 获取指定索引为 DWORD
+     *
+     * @param index
+     * @param defaultValue
+     * @return DWORD
+     */
+    DWORD getDword(size_t index, DWORD defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 HWND
+     *
+     * @param index
+     * @param defaultValue
+     * @return HWND
+     */
+    HWND getHwnd(size_t index, HWND defaultValue = NULL);
+    /**
+     * @brief 获取指定索引为 String 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<string>
+     */
+    vector<string> getArrayString(size_t index, vector<string> defaultValue = {});
+    /**
+     * @brief 获取指定索引为 int 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<int>
+     */
+    vector<int> getArrayInt(size_t index, vector<int> defaultValue = {});
+    /**
+     * @brief 获取指定索引为 utf16 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<wstring>
+     */
+    vector<wstring> getArrayWstring(size_t index, vector<wstring> defaultValue = {});
+    /**
+     * @brief 判断值是否存在
+     *
+     * @param index
+     * @return true
+     * @return false
+     */
+    bool exists(size_t index);
+    /**
+     * @brief 判断值长度是否符合
+     *
+     * @param min_length 最少有多少个
+     * @param max_length 最多有多少个
+     * @return true
+     * @return false
+     */
+    bool argsSize(size_t min_length, size_t max_length, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index, js_valuetype type, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(vector<std::tuple<size_t, js_valuetype>> eq_type, bool throw_error = false);
+
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index, napi_valuetype type, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(vector<std::tuple<size_t, napi_valuetype>> eq_type, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index, vector<js_valuetype> type_list = {}, bool throw_error = false);
+    /**
+     * @brief 判断当前传入的值是否是期待值
+     *
+     * @param eq_type
+     * @return true
+     * @return false
+     */
+    bool eq(size_t index, vector<napi_valuetype> type_list = {}, bool throw_error = false);
+    /**
+     * @brief 获取类型列表
+     *
+     * @return vector<js_valuetype>
+     */
+    vector<js_valuetype> getType();
+    /**
+     * @brief 获取指定索引的 类型
+     *
+     * @param index
+     * @return js_valuetype
+     */
+    js_valuetype getType(size_t index);
+};
+
+namespace hmc_PromiseSession
+{
+
+    // 任务id
+    extern size_t ____$hmcPromise_PromiseSessionID;
+    // 已经完结的任务id 当此处存在 将在取出数据后 立即被释放
+    extern std::set<size_t> ____$hmcPromise_PromiseTaskEndStatusList;
+    // 任务数据容器互斥体
+    extern std::shared_mutex ____$hmcPromise_rwMutex;
+    // 任务数据容器
+    extern std::unordered_map<size_t, vector<any>> ____$hmcPromise_PromiseTaskList;
+    // 任务数据 已读取索引 容器
+    extern std::unordered_map<size_t, size_t> ____$hmcPromise_promise_task_id_send_index_list;
+
+    /**
+     * @brief 判断此任务id是否已经完成 调用了end()
+     *
+     * @param SessionId
+     * @return true
+     * @return false
+     */
+    extern bool isClosed(size_t SessionId);
+    /**
+     * @brief 提交数据push进容器
+     *
+     * @param SessionId 任务id
+     * @param data 数据
+     * @return true
+     * @return false
+     */
+    extern bool send(size_t SessionId, any data = any());
+    /**
+     * @brief 提交数据push进容器
+     *
+     * @param SessionId 任务id
+     * @param data_list 数据
+     */
+    extern void send(size_t SessionId, vector<any> data_list);
+    /**
+     * @brief 提交此ID已经完成 并在 getAll/get 后释放掉容器
+     *
+     * @param SessionId
+     * @param data
+     */
+    extern void end(size_t SessionId, any data = any());
+    /**
+     * @brief 判断此id是否未结束
+     *
+     * @param PromiseID 任务id
+     * @param index 如果被赋值则在 容器中判断此索引是否存在
+     * @return true
+     * @return false
+     */
+    extern bool exists(size_t PromiseID, size_t index = -1);
+    /**
+     * @brief 取出内容并释放掉这部分的any容器 但不移除 并重定向到新的index提供下次获取
+     *
+     * @param PromiseID
+     * @return any
+     */
+    extern any get(size_t PromiseID);
+    /**
+     * @brief 取出内容并释放掉这部分的any容器 但不移除  如果任务已经结束时候则释放所有关联容器
+     *
+     * @param PromiseID
+     * @return vector<any>
+     */
+    extern vector<any> getAll(size_t PromiseID);
+    /**
+     * @brief 在新的线程 启动一个函数 并传入一个vector<any>指针 以及监听此函数的运行结束的回调
+     *
+     * @param func
+     * @return size_t
+     */
+    extern size_t open(std::function<void(vector<any> *data_list)> func);
+    /**
+     * @brief 创建一个新的任务id 并为其开辟容器 但不为其创建 变化管理线程
+     *
+     * @return size_t
+     */
+    extern size_t open();
+    /**
+     * @brief 在新的线程 启动一个函数 以及监听此函数的运行结束的回调 数据必须由此函数返回
+     *
+     * @param func
+     * @return size_t
+     */
+    extern size_t open(std::function<any()> func);
+
+}
+
+#endif // MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP

@@ -294,72 +294,24 @@ napi_value getHidUsbIdList(napi_env env, napi_callback_info info)
     return Results;
 }
 
-// https://learn.microsoft.com/zh-cn/windows/win32/fileio/displaying-volume-paths
-wstring DisplayVolumePaths(__in PWCHAR VolumeName)
+wstring FormatVolumePath(wstring VolumeName)
 {
-    wstring wstrVolumeName;
-    DWORD CharCount = MAX_PATH + 1;
-    PWCHAR Names = NULL;
-    PWCHAR NameIdx = NULL;
-    BOOL Success = FALSE;
+    DWORD VolumePathNamesLeng = MAX_PATH + 1;
+    wstring VolumePathNames = L"";
+    VolumePathNames.reserve(VolumePathNamesLeng);
+    VolumePathNames.resize(VolumePathNamesLeng);
 
-    for (;;)
+    if (GetVolumePathNamesForVolumeNameW(VolumeName.c_str(), &VolumePathNames[0], MAX_PATH, &VolumePathNamesLeng))
     {
-        //
-        //  Allocate a buffer to hold the paths.
-        Names = (PWCHAR) new BYTE[CharCount * sizeof(WCHAR)];
 
-        if (!Names)
-        {
-            //
-            //  If memory can't be allocated, return.
-            return wstrVolumeName;
-        }
-
-        //
-        //  Obtain all of the paths
-        //  for this volume.
-        Success = GetVolumePathNamesForVolumeNameW(
-            VolumeName, Names, CharCount, &CharCount);
-
-        if (Success)
-        {
-            break;
-        }
-
-        if (GetLastError() != ERROR_MORE_DATA)
-        {
-            break;
-        }
-
-        //
-        //  Try again with the
-        //  new suggested size.
-        delete[] Names;
-        Names = NULL;
+        VolumePathNames.resize(VolumePathNamesLeng);
     }
-
-    if (Success)
+    else
     {
-        //
-        //  Display the various paths.
-        for (NameIdx = Names;
-             NameIdx[0] != L'\0';
-             NameIdx += wcslen(NameIdx) + 1)
-        {
-            wstrVolumeName.append(NameIdx);
-            // wprintf(L"  %s", NameIdx);
-        }
-        // wprintf(L"\n");
+        VolumePathNames.clear();
+        VolumePathNames.resize(0);
     }
-
-    if (Names != NULL)
-    {
-        delete[] Names;
-        Names = NULL;
-    }
-
-    return wstrVolumeName;
+    return VolumePathNames;
 }
 
 vector<util_Volume> util_getVolumeList()
@@ -367,83 +319,58 @@ vector<util_Volume> util_getVolumeList()
     vector<util_Volume> Results = {};
     DWORD CharCount = 0;
     WCHAR DeviceName[MAX_PATH] = L"";
-    DWORD Error = ERROR_SUCCESS;
     HANDLE FindHandle = INVALID_HANDLE_VALUE;
     BOOL Found = FALSE;
-    size_t Index = 0;
+    size_t PrefixIndex = 0;
     BOOL Success = FALSE;
     WCHAR VolumeName[MAX_PATH] = L"";
 
-    //
-    //  Enumerate all volumes in the system.
+    // gc
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
+                                              {
+        if (FindHandle != INVALID_HANDLE_VALUE) {
+            FindVolumeClose(FindHandle);
+            FindHandle = INVALID_HANDLE_VALUE;
+        } });
+
+    //  枚举驱动器设备号
     FindHandle = FindFirstVolumeW(VolumeName, ARRAYSIZE(VolumeName));
 
     if (FindHandle == INVALID_HANDLE_VALUE)
-    {
-        Error = GetLastError();
-        // wprintf(L"FindFirstVolumeW failed with error code %d\n", Error);
         return Results;
-    }
-    size_t index = 0;
-    for (;;)
+
+    while (true)
     {
-        //
-        //  Skip the \\?\ prefix and remove the trailing backslash.
-        Index = wcslen(VolumeName) - 1;
+        PrefixIndex = wcslen(VolumeName) - 1;
         if (VolumeName[0] != L'\\' ||
             VolumeName[1] != L'\\' ||
             VolumeName[2] != L'?' ||
             VolumeName[3] != L'\\' ||
-            VolumeName[Index] != L'\\')
+            VolumeName[PrefixIndex] != L'\\')
         {
-            Error = ERROR_BAD_PATHNAME;
-            // wprintf(L"FindFirstVolumeW/FindNextVolumeW returned a bad path: %s\n", VolumeName);
-            // break;
+            break;
         }
 
-        //
-        //  QueryDosDeviceW does not allow a trailing backslash,
-        //  so temporarily remove it.
-        VolumeName[Index] = L'\0';
+        VolumeName[PrefixIndex] = L'\0';
 
         CharCount = QueryDosDeviceW(&VolumeName[4], DeviceName, ARRAYSIZE(DeviceName));
 
-        VolumeName[Index] = L'\\';
+        VolumeName[PrefixIndex] = L'\\';
 
         if (CharCount == 0)
-        {
-            // Error = GetLastError();
-            // wprintf(L"QueryDosDeviceW failed with error code %d\n", Error);
-            // break;
-        }
-        util_Volume cur_item;
-        cur_item.device = wstring(DeviceName);
-        cur_item.path = DisplayVolumePaths(VolumeName);
-        cur_item.name = wstring(VolumeName);
-        Results.push_back(cur_item);
-        Success = FindNextVolumeW(FindHandle, VolumeName, ARRAYSIZE(VolumeName));
-
-        if (!Success)
-        {
-            Error = GetLastError();
-
-            if (Error != ERROR_NO_MORE_FILES)
-            {
-                // wprintf(L"FindNextVolumeW failed with error code %d\n", Error);
-                break;
-            }
-
-            //
-            //  Finished iterating
-            //  through all the volumes.
-            Error = ERROR_SUCCESS;
             break;
-        }
-    index++;
+
+        Results.push_back(util_Volume{
+            FormatVolumePath(VolumeName),
+            wstring(VolumeName),
+            wstring(DeviceName),
+        });
+
+        Success = FindNextVolumeW(FindHandle, VolumeName, ARRAYSIZE(VolumeName));
+        if (!Success)
+            break;
     }
 
-    FindVolumeClose(FindHandle);
-    FindHandle = INVALID_HANDLE_VALUE;
     return Results;
 }
 
@@ -456,7 +383,7 @@ napi_value getVolumeList(napi_env env, napi_callback_info info)
     vector<util_Volume> _getVolumeList = util_getVolumeList();
     for (size_t index = 0; index < _getVolumeList.size(); index++)
     {
-        util_Volume volume = _getVolumeList[index]; 
+        util_Volume volume = _getVolumeList[index];
         napi_value cur_item;
         status = napi_create_object(env, &cur_item);
         if (status != napi_ok)
@@ -473,7 +400,7 @@ napi_value getVolumeList(napi_env env, napi_callback_info info)
         {
             return Results;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "path"),_create_W2U8_string(env, (wchar_t *)volume.path.c_str()));
+        status = napi_set_property(env, cur_item, _create_char_string(env, "path"), _create_W2U8_string(env, (wchar_t *)volume.path.c_str()));
         if (status != napi_ok)
         {
             return Results;
@@ -497,31 +424,10 @@ napi_value formatVolumePath(napi_env env, napi_callback_info info)
     assert(status == napi_ok);
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
     wstring Paths = call_String_NAPI_WINAPI_W(env, args[0]);
-    wstring VolumePaths = DisplayVolumePaths((PWCHAR)Paths.c_str());
+    wstring VolumePaths = FormatVolumePath((PWCHAR)Paths.c_str());
     if (VolumePaths.empty())
     {
         VolumePaths.append(Paths.c_str());
     }
     return _create_W2U8_string(env, (wchar_t *)VolumePaths.c_str());
 }
-
-
-
-// napi_value getVolumeList(napi_env env, napi_callback_info info)
-// {
-//     napi_status status;
-//     napi_value Results;
-//     status = napi_create_array(env, &Results);
-//     assert(status == napi_ok);
-
-//     for (size_t index = 0; index < 0; index++)
-//     {
-//         status = napi_set_element(env, Results, (int)index, _create_String(env, ""));
-//         if (status != napi_ok)
-//         {
-//             return Results;
-//         }
-//     }
-
-//     return Results;
-// }

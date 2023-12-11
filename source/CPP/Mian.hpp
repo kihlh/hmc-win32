@@ -59,6 +59,35 @@ struct util_Volume
     wstring device;
 };
 
+struct HMC_PROCESSENTRY32
+{
+    int pollingId;
+    DWORD dwSize;
+    DWORD cntUsage;
+    DWORD th32ProcessID; // this process
+    DWORD th32DefaultHeapID;
+    DWORD th32ModuleID; // associated exe
+    DWORD cntThreads;
+    DWORD th32ParentProcessID; // this process's parent process
+    DWORD pcPriClassBase;      // Base priority of process's threads
+    DWORD dwFlags;
+    wstring szExeFile; // Path
+};
+
+struct HMC_PROCESSENTRY32W
+{
+    DWORD dwSize;
+    DWORD cntUsage;
+    DWORD th32ProcessID; // this process
+    DWORD th32DefaultHeapID;
+    DWORD th32ModuleID; // associated exe
+    DWORD cntThreads;
+    DWORD th32ParentProcessID; // this process's parent process
+    DWORD pcPriClassBase;      // Base priority of process's threads
+    DWORD dwFlags;
+    wstring szExeFile; // Path
+};
+
 // 判断所有传入参数都为
 #define hmc_is_argv_type(argv, start, size, type, Results)                      \
     for (int i = start; i < (size==NULL?start+1:size); i++)                         \
@@ -159,10 +188,10 @@ napi_value setRegistrQword(napi_env env, napi_callback_info info);
 napi_value getHidUsbIdList(napi_env env, napi_callback_info info);
 napi_value getHidUsbList(napi_env env, napi_callback_info info);
 napi_value getUsbDevsInfo(napi_env env, napi_callback_info info);
-wstring DisplayVolumePaths(__in PWCHAR VolumeName);
 napi_value getVolumeList(napi_env env, napi_callback_info info);
 napi_value formatVolumePath(napi_env env, napi_callback_info info);
 vector<util_Volume> util_getVolumeList();
+wstring FormatVolumePath(wstring VolumeName);
 // napi_value getDeviceUsbList(napi_env env, napi_callback_info info);
 
 // auto.cpp
@@ -197,12 +226,12 @@ napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info);
 
 // process.cpp
 napi_value killProcess(napi_env env, napi_callback_info info);
-napi_value getProcessidFilePath(napi_env env, napi_callback_info info);
+// napi_value getProcessidFilePath(napi_env env, napi_callback_info info);
 napi_value getDetailsProcessList(napi_env env, napi_callback_info info);
 napi_value getProcessList(napi_env env, napi_callback_info info);
-napi_value hasProcess(napi_env env, napi_callback_info info);
-napi_value isProcess(napi_env env, napi_callback_info info);
-napi_value getProcessName(napi_env env, napi_callback_info info);
+// napi_value hasProcess(napi_env env, napi_callback_info info);
+// napi_value isProcess(napi_env env, napi_callback_info info);
+// napi_value getProcessName(napi_env env, napi_callback_info info);
 napi_value getModulePathList(napi_env env, napi_callback_info info);
 napi_value enumProcessHandle(napi_env env, napi_callback_info info);
 // napi_value getLockFileProcessList(napi_env env, napi_callback_info info);
@@ -242,3 +271,17 @@ napi_value fn_hasUseKeyExists(napi_env env, napi_callback_info info);
 napi_value fn_escapeEnvVariable(napi_env env, napi_callback_info info);
 napi_value fn_AllocConsole(napi_env env, napi_callback_info info);
 napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info);
+
+// fn_process.cpp
+
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result = true);
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End);
+DWORD GetParentProcessID(DWORD processID);
+wstring GetProcessSnapshotNameW(DWORD processID);
+bool ExistProcessID(DWORD processID);
+wstring GetProcessIdFilePathW(DWORD processID);
+wstring GetProcessNameW(DWORD processID);
+napi_value fn_getProcessidFilePath_v2(napi_env env, napi_callback_info info);
+napi_value fn_getProcessidBaseName_v2(napi_env env, napi_callback_info info);
+napi_value fn_hasProcess_v2(napi_env env, napi_callback_info info);
+void _fn_process_exports(napi_env env, napi_value exports);

@@ -1,27 +1,40 @@
 
 #include "./Main.hpp"
 
-
 using namespace std;
-
-
-
-
 
 static napi_value mode(napi_env env, napi_callback_info info)
 {
-    hmcNodeValue input = hmcNodeValue(env, info);
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_boolean}, true)){
+    if (!input.eq(0, {js_boolean}, true))
+    {
         return NULL;
     }
 
-    LPSTR output = hmc_AllocVS(LPSTR,1024);
+    LPSTR output = hmc_AllocVS(LPSTR, 1024);
     hmc_FreeVSAuto(output);
 
     return NULL;
 }
+
+static napi_value mode2(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_boolean}, true))
+    {
+        return NULL;
+    }
+
+    LPSTR output = hmc_AllocVS(LPSTR, 1024);
+    hmc_FreeVSAuto(output);
+
+    return NULL;
+}
+
 
 static napi_value Init(napi_env env, napi_value exports)
 {
