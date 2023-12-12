@@ -22,6 +22,8 @@ using namespace std;
 #define hmc_shared_close_Library(hModule) std::shared_ptr<void>##hModule##_shared_close_Library_(nullptr, [&](void *) {if (hModule != NULL) {FreeLibrary(hModule);} });
 // 自动释放文本
 #define hmc_shared_close_lpsz(lpwsz) std::shared_ptr<void>##lpwsz##_shared_close_lpsz_(nullptr, [&](void *) {if (lpwsz != NULL) {GlobalFree(lpwsz);lpwsz = 0; } });
+// 释放进程句柄
+#define hmc_shared_close_handle(handle) std::shared_ptr<void> ##lpwsz##_shared_free_handle(nullptr, [&](void *) {if (handle != NULL) { try{::CloseHandle(handle);}catch(...){}} });
 
 // 开辟内存 (请注意需要调用 FreeVS 或者 hmc_FreeVSAuto 释放)
 // -> LPSTR pszMem = AllocVS(LPSTR, leng + 1);

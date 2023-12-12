@@ -6,6 +6,7 @@
       "conditions": [
         ['OS=="win"', {
           "sources": [
+            "util/napi_value_util.cpp",
             "Main.cpp",
             "test.cpp",
             "usb.cpp",
@@ -18,7 +19,6 @@
             "screen.cpp",
             "util/hmc_string_util.cpp",
             "util/fn_process.cpp",
-            "util/napi_value_util.cpp",
             "util/fn_environment.cpp",
           ],
           'msvs_settings': {

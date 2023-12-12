@@ -1,3 +1,5 @@
+#include "../pch.h"
+
 #include "./napi_value_util.hpp"
 
 // ?hmc_napi_util::type
@@ -2659,9 +2661,11 @@ namespace hmc_PromiseSession
     // 任务数据容器
     std::unordered_map<size_t, vector<any>> ____$hmcPromise_PromiseTaskList = {};
     // 任务数据 已读取索引 容器
-    std::unordered_map<size_t, size_t> ____$hmcPromise_promise_task_id_send_index_list = {};
+    std::unordered_map<size_t, size_t > ____$hmcPromise_promise_task_id_send_index_list = std::unordered_map<size_t, size_t >();
     // 任务数据 工具已经初始化完成
     bool ____$hmcPromise_init = true;
+    // 每次检测线程退出和线程数据的间隔
+    long ___$Sleep_time = 10;
 }
 
 /**
@@ -2674,6 +2678,42 @@ namespace hmc_PromiseSession
 bool hmc_PromiseSession::isClosed(size_t SessionId)
 {
     return (____$hmcPromise_PromiseTaskEndStatusList.find(SessionId) != ____$hmcPromise_PromiseTaskEndStatusList.end());
+}
+
+
+int64_t hmc_PromiseSession::get_next_index(size_t PromiseID) {
+
+    size_t _PromiseTaskDataListSize = 0;
+    
+     //未初始化
+    if (____$hmcPromise_PromiseTaskList.count(PromiseID) < 1) {
+        ____$hmcPromise_PromiseTaskList.insert(pair<size_t, vector<any>>(PromiseID, {}));
+        return -1;
+    }
+
+    _PromiseTaskDataListSize = ____$hmcPromise_PromiseTaskList.at(PromiseID).size();
+
+    // 未初始化索引
+    if (____$hmcPromise_promise_task_id_send_index_list.count(PromiseID) > 0) {
+
+        size_t Psize = ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID);
+
+        if (Psize == 0) { 
+            ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID)++;
+            return (_PromiseTaskDataListSize > 0 ? 0 : -1); }
+
+        // 溢出
+        if (Psize >= _PromiseTaskDataListSize) {
+            return -1;
+        }
+        
+       ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID)++;
+       return Psize;
+    }
+
+    ____$hmcPromise_promise_task_id_send_index_list.insert(pair<size_t, size_t>(PromiseID, 0));
+    return -1;
+    
 }
 
 /**
@@ -2694,11 +2734,12 @@ bool hmc_PromiseSession::send(size_t SessionId, any data)
     ____$hmcPromise_rwMutex.lock();
     if (data.has_value())
     {
-        ____$hmcPromise_PromiseTaskList[SessionId].push_back(data);
+        auto da = ____$hmcPromise_PromiseTaskList;
+        ____$hmcPromise_PromiseTaskList[SessionId].emplace_back(data);
     }
     else
     {
-        ____$hmcPromise_PromiseTaskList[SessionId].push_back(any());
+        ____$hmcPromise_PromiseTaskList[SessionId].emplace_back(any());
     }
 
     ____$hmcPromise_rwMutex.unlock();
@@ -2727,11 +2768,11 @@ void hmc_PromiseSession::send(size_t SessionId, vector<any> data_list)
         auto data = data_list[i];
         if (data.has_value())
         {
-            ____$hmcPromise_PromiseTaskList[SessionId].push_back(data);
+            ____$hmcPromise_PromiseTaskList[SessionId].emplace_back(data);
         }
         else
         {
-            ____$hmcPromise_PromiseTaskList[SessionId].push_back(any());
+            ____$hmcPromise_PromiseTaskList[SessionId].emplace_back(any());
         }
     }
     ____$hmcPromise_rwMutex.unlock();
@@ -2787,64 +2828,45 @@ bool hmc_PromiseSession::exists(size_t PromiseID, size_t index)
 }
 
 /**
- * @brief 取出内容并释放掉这部分的any容器 但不移除 并重定向到新的index提供下次获取
- *
- * @param PromiseID
- * @return any
- */
-any hmc_PromiseSession::get(size_t PromiseID)
-{
-    any result;
-    ____$hmcPromise_rwMutex.lock_shared();
-    size_t index = ____$hmcPromise_promise_task_id_send_index_list[PromiseID] + 1;
-
-    if (exists(PromiseID, index))
-    {
-        result = ____$hmcPromise_PromiseTaskList[PromiseID][index];
-        ____$hmcPromise_promise_task_id_send_index_list[PromiseID] = index;
-        ____$hmcPromise_PromiseTaskList[PromiseID][index].reset();
-    }
-
-    size_t leng = ____$hmcPromise_PromiseTaskList[PromiseID].size();
-    if (isClosed(PromiseID) && (index + 2) > leng)
-    {
-        ____$hmcPromise_PromiseTaskList[PromiseID].clear();
-        ____$hmcPromise_promise_task_id_send_index_list[PromiseID] = 0;
-    }
-
-    ____$hmcPromise_rwMutex.unlock_shared();
-    return result;
-}
-
-/**
  * @brief 取出内容并释放掉这部分的any容器 但不移除  如果任务已经结束时候则释放所有关联容器
  *
  * @param PromiseID
  * @return vector<any>
  */
-vector<any> hmc_PromiseSession::getAll(size_t PromiseID)
+vector<any> hmc_PromiseSession::getAll(size_t PromiseID, size_t max_size)
 {
     vector<any> result;
     ____$hmcPromise_rwMutex.lock_shared();
 
-    size_t index = ____$hmcPromise_promise_task_id_send_index_list[PromiseID] + 1;
+    std::shared_ptr<void>_shared_close_lpsz_(nullptr, [&](void*) {
+        ____$hmcPromise_rwMutex.unlock_shared();
+        });
 
-    if (exists(PromiseID, index))
-    {
-        for (; index < ____$hmcPromise_PromiseTaskList[PromiseID].size(); index++)
+    auto temp_list = ____$hmcPromise_PromiseTaskList[PromiseID];
+
+
+    if (!temp_list.empty()) {
+
+        while (true)
         {
-            result.push_back(____$hmcPromise_PromiseTaskList[PromiseID][index]);
-            ____$hmcPromise_PromiseTaskList[PromiseID][index].reset();
+           int64_t index =  get_next_index(PromiseID);
+
+           if (index == -1) {
+               return result;
+           }
+
+           auto temp = temp_list.at(index);
+           if (temp.has_value()) {
+               result.push_back(temp);
+           }
+
+           //满足最大需求
+           if (result.size()>= max_size) {
+               return result;
+           }
         }
-        ____$hmcPromise_promise_task_id_send_index_list[PromiseID] = index;
-    }
 
-    if (isClosed(PromiseID) && (index + 2) > ____$hmcPromise_PromiseTaskList[PromiseID].size())
-    {
-        ____$hmcPromise_PromiseTaskList[PromiseID].clear();
     }
-
-    ____$hmcPromise_rwMutex.unlock_shared();
     return result;
 }
 
@@ -2856,9 +2878,8 @@ vector<any> hmc_PromiseSession::getAll(size_t PromiseID)
  */
 size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func)
 {
-    size_t PromiseID = ____$hmcPromise_PromiseSessionID++;
-    ____$hmcPromise_PromiseTaskList.insert(std::pair<size_t, vector<any>>(PromiseID, {}));
-    ____$hmcPromise_promise_task_id_send_index_list.insert(std::pair<size_t, size_t>(PromiseID, 0));
+    size_t PromiseID = ___get_open_id();
+
 
     std::thread data = thread([func, PromiseID]()
                               {
@@ -2890,7 +2911,7 @@ size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func
                                               data_2 = nullptr;
                                               data_list.clear();
                                               // 锁定总表并push进数据
-                                              ____$hmcPromise_rwMutex.lock();
+                                               ____$hmcPromise_rwMutex.lock();
 
                                               for (size_t i = 0; i < temp_data_list.size(); i++)
                                               {
@@ -2902,7 +2923,7 @@ size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func
 
                                               end(PromiseID);
 
-                                              ____$hmcPromise_rwMutex.unlock();
+                                               ____$hmcPromise_rwMutex.unlock();
                                               return 0;
                                           }
                                           else
@@ -2919,7 +2940,7 @@ size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func
                                               }
 
                                               //// 锁定总表并push进数据
-                                              ____$hmcPromise_rwMutex.lock();
+                                               ____$hmcPromise_rwMutex.lock();
 
                                               for (size_t i = 0; i < temp_data_list.size(); i++)
                                               {
@@ -2929,10 +2950,10 @@ size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func
 
                                               temp_data_list.clear();
 
-                                              ____$hmcPromise_rwMutex.unlock();
+                                               ____$hmcPromise_rwMutex.unlock();
                                           }
 
-                                          Sleep(50);
+                                          Sleep(___$Sleep_time);
                                       } });
     data.detach();
 
@@ -2946,9 +2967,7 @@ size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func
  */
 size_t hmc_PromiseSession::open()
 {
-    size_t PromiseID = ____$hmcPromise_PromiseSessionID++;
-    ____$hmcPromise_PromiseTaskList.insert(std::pair<size_t, vector<any>>(PromiseID, {}));
-    ____$hmcPromise_promise_task_id_send_index_list.insert(std::pair<size_t, size_t>(PromiseID, 0));
+    size_t PromiseID = ___get_open_id();
     return PromiseID;
 }
 
@@ -2960,13 +2979,285 @@ size_t hmc_PromiseSession::open()
  */
 size_t hmc_PromiseSession::open(std::function<any()> func)
 {
-    size_t PromiseID = ____$hmcPromise_PromiseSessionID++;
-    ____$hmcPromise_PromiseTaskList.insert(std::pair<size_t, vector<any>>(PromiseID, {}));
-    ____$hmcPromise_promise_task_id_send_index_list.insert(std::pair<size_t, size_t>(PromiseID, 0));
+    size_t PromiseID = ___get_open_id();
 
     std::thread data = thread([func, PromiseID]()
                               { end(PromiseID, func()); });
     data.detach();
 
     return PromiseID;
+}
+
+size_t hmc_PromiseSession::data_size(size_t PromiseID)
+{
+
+    if (____$hmcPromise_PromiseTaskList.count(PromiseID) <= 0)
+    {
+        return 0;
+    }
+
+    return ____$hmcPromise_PromiseTaskList[PromiseID].size();
+}
+
+napi_value hmc_PromiseSession::getAll(napi_env env, size_t PromiseID, size_t size )
+{
+    napi_value result;
+
+    vector<any> temp_list = getAll(PromiseID, size);
+    if (temp_list.empty()) {
+        napi_get_undefined(env, &result);
+        return result;
+    }
+    napi_create_array(env, &result);
+
+    for (size_t i = 0; i < temp_list.size(); i++)
+    {
+        any temp = temp_list[i];
+
+        if (!temp.has_value())
+        {
+            napi_set_element(env, result, i, hmc_napi_create_value::Undefined(env));
+            continue;
+        }
+
+        // 能被格式化为wstring
+        if (temp.type() == typeid(vector<wstring>) || temp.type() == typeid(wstring) || temp.type() == typeid(wchar_t) || temp.type() == typeid(wchar_t *))
+        {
+            wstring temp_to_string = L"";
+            hmc_string_util::any_to_string(temp, temp_to_string);
+            napi_set_element(env, result, i, hmc_napi_create_value::String(env, temp_to_string));
+            continue;
+        }
+
+        // 能被格式化为string
+        string temp_to_string = "";
+        if (hmc_string_util::any_to_string(temp, temp_to_string))
+        {
+            napi_set_element(env, result, i, hmc_napi_create_value::String(env, temp_to_string));
+            continue;
+        }
+
+        // 错误
+        napi_value tmep_unknown = hmc_napi_create_value::String(env, string("unknown<").append(temp.type().raw_name()).append(">"));
+        napi_set_element(env, result, i, tmep_unknown);
+    }
+
+    return result;
+}
+
+
+size_t hmc_PromiseSession::___get_open_id() {
+    
+    size_t PromiseID = ____$hmcPromise_PromiseSessionID++;
+    ____$hmcPromise_PromiseTaskList.insert(std::pair<size_t, vector<any>>(PromiseID, {}));
+    ____$hmcPromise_promise_task_id_send_index_list.insert(pair<size_t, size_t>(PromiseID, 0));
+
+    return PromiseID;
+}
+
+/**
+ * @brief 在新的线程 启动一个函数 以及监听此函数的运行结束的回调
+ *
+ * @param func
+ * @return size_t
+ */
+size_t hmc_PromiseSession::open(std::function<void()> func)
+{
+    size_t PromiseID = ___get_open_id();
+    std::thread data = thread([func, PromiseID]()
+                              { func();end(PromiseID, any()); });
+    data.detach();
+
+    return PromiseID;
+}
+
+template <class _Fn, class... _Args>
+size_t hmc_PromiseSession::open2(_Fn &&_Fx, _Args &&..._Ax)
+{
+    size_t PromiseID = ___get_open_id();
+    std::thread data = thread([_Fx, _Ax = std::forward_as_tuple(std::forward<_Args>(_Ax)...), PromiseID]()
+                              { 
+                            std::apply(_Fx, _Ax); // 将_Ax的值作为参数传递给_Fx
+                              end(PromiseID, any()); });
+    data.detach();
+
+    return PromiseID;
+}
+
+size_t hmc_PromiseSession::max_id()
+{
+    return hmc_PromiseSession::____$hmcPromise_PromiseSessionID;
+}
+
+vector<int> hmc_PromiseSession::allTasks()
+{
+    vector<int> result;
+    std::unordered_map<size_t, std::vector<std::any>> temp_List = hmc_PromiseSession::____$hmcPromise_PromiseTaskList;
+
+    for (size_t i = 0; i < hmc_PromiseSession::____$hmcPromise_PromiseSessionID; i++)
+    {
+        if (temp_List.count(i) > 0)
+        {
+            result.push_back(i);
+        }
+    }
+    return result;
+}
+
+vector<int> hmc_PromiseSession::ongoingTasks()
+{
+    vector<int> result;
+    std::unordered_map<size_t, std::vector<std::any>> temp_List = hmc_PromiseSession::____$hmcPromise_PromiseTaskList;
+
+    for (size_t i = 0; i < hmc_PromiseSession::____$hmcPromise_PromiseSessionID; i++)
+    {
+        if (temp_List.count(i) > 0)
+        {
+            // result.push_back(i);
+            if (hmc_PromiseSession::____$hmcPromise_PromiseTaskEndStatusList.count(i) < 1)
+            {
+                result.push_back(i);
+            }
+        }
+    }
+    return result;
+}
+
+vector<int> hmc_PromiseSession::completeTasks()
+{
+    vector<int> result;
+    std::unordered_map<size_t, std::vector<std::any>> temp_List = hmc_PromiseSession::____$hmcPromise_PromiseTaskList;
+
+    for (size_t i = 0; i < hmc_PromiseSession::____$hmcPromise_PromiseSessionID; i++)
+    {
+        if (temp_List.count(i) > 0)
+        {
+            // result.push_back(i);
+            if (hmc_PromiseSession::____$hmcPromise_PromiseTaskEndStatusList.count(i) > 0)
+            {
+                result.push_back(i);
+            }
+        }
+    }
+    return result;
+}
+
+
+napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+    return hmc_PromiseSession::getAll(env, input.getInt64(0), input.exists(1)? input.getInt64(1):999 );
+}
+
+napi_value _PromiseSession_stop(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+    hmc_PromiseSession::end(input.getInt64(0));
+    return hmc_napi_create_value::Undefined(env);
+}
+
+napi_value _PromiseSession_isClosed(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+    bool isClosed = (input.getInt64(0) > hmc_PromiseSession::max_id()) ? false : hmc_PromiseSession::isClosed(input.getInt64(0));
+    return hmc_napi_create_value::Boolean(env, isClosed);
+}
+
+napi_value _PromiseSession_max_id(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Number(env, (int64_t)hmc_PromiseSession::max_id());
+}
+
+napi_value _PromiseSession_data_size(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+    return hmc_napi_create_value::Number(env, (int64_t)hmc_PromiseSession::data_size(input.getInt64(0)));
+}
+
+napi_value _PromiseSession_await(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+
+    int id = input.getInt(0, -999);
+
+    if (hmc_PromiseSession::____$hmcPromise_PromiseTaskList.count(id) > 0)
+    {
+        while (true)
+        {
+            if (!hmc_PromiseSession::isClosed(id))
+            {
+                Sleep(hmc_PromiseSession::___$Sleep_time);
+            }
+            else
+            {
+                return hmc_napi_create_value::Undefined(env);
+            }
+        }
+    }
+
+    return hmc_napi_create_value::Undefined(env);
+}
+
+napi_value _PromiseSession_set_sleep_time(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+
+    int64_t sleep_time = input.getInt64(0, 10);
+
+    if (sleep_time > 0 && sleep_time < 1000000)
+    {
+        hmc_PromiseSession::___$Sleep_time = sleep_time;
+    }
+
+    return hmc_napi_create_value::Number(env, (int64_t)hmc_PromiseSession::___$Sleep_time);
+}
+
+napi_value _PromiseSession_ongoingTasks(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Array::Number(env, hmc_PromiseSession::ongoingTasks());
+}
+
+napi_value _PromiseSession_allTasks(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Array::Number(env, hmc_PromiseSession::allTasks());
+}
+napi_value _PromiseSession_completeTasks(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Array::Number(env, hmc_PromiseSession::completeTasks());
 }

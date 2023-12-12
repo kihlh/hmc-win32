@@ -1059,8 +1059,8 @@ namespace hmc_PromiseSession
     // 任务数据容器
     extern std::unordered_map<size_t, vector<any>> ____$hmcPromise_PromiseTaskList;
     // 任务数据 已读取索引 容器
-    extern std::unordered_map<size_t, size_t> ____$hmcPromise_promise_task_id_send_index_list;
-
+    extern std::unordered_map<size_t, size_t > ____$hmcPromise_promise_task_id_send_index_list;
+    extern long ___$Sleep_time;
     /**
      * @brief 判断此任务id是否已经完成 调用了end()
      *
@@ -1101,20 +1101,27 @@ namespace hmc_PromiseSession
      * @return false
      */
     extern bool exists(size_t PromiseID, size_t index = -1);
+
     /**
      * @brief 取出内容并释放掉这部分的any容器 但不移除 并重定向到新的index提供下次获取
      *
      * @param PromiseID
      * @return any
      */
-    extern any get(size_t PromiseID);
+    extern napi_value getAll(napi_env env, size_t PromiseID, size_t size = 999);
+
+    extern size_t data_size(size_t PromiseID);
+
     /**
      * @brief 取出内容并释放掉这部分的any容器 但不移除  如果任务已经结束时候则释放所有关联容器
      *
      * @param PromiseID
      * @return vector<any>
      */
-    extern vector<any> getAll(size_t PromiseID);
+    extern vector<any> getAll(size_t PromiseID,size_t size = 999);
+    extern int64_t get_next_index (size_t PromiseID);
+
+    extern size_t ___get_open_id ();
     /**
      * @brief 在新的线程 启动一个函数 并传入一个vector<any>指针 以及监听此函数的运行结束的回调
      *
@@ -1135,7 +1142,33 @@ namespace hmc_PromiseSession
      * @return size_t
      */
     extern size_t open(std::function<any()> func);
+    /**
+     * @brief 在新的线程 启动一个函数 以及监听此函数的运行结束的回调
+     *
+     * @param func
+     * @return size_t
+     */
+    extern size_t open(std::function<void()> func);
 
-}
+    template <class _Fn, class... _Args>
+    extern size_t open2(_Fn &&_Fx, _Args &&..._Ax);
+
+    extern size_t max_id();
+    extern vector<int> allTasks();
+    extern vector<int> ongoingTasks();
+    extern vector<int> completeTasks();
+};
+
+extern napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info);
+
+extern napi_value _PromiseSession_stop(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_isClosed(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_max_id(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_data_size(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_await(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_set_sleep_time(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_ongoingTasks(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_allTasks(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_completeTasks(napi_env env, napi_callback_info info);
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP

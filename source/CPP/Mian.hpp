@@ -5,7 +5,6 @@
 #include <node_api.h>
 #include <stdio.h>
 #include <malloc.h>
-#include "./include/pch.h"
 #include <winuser.h>
 #include <ShlObj.h>
 #include <string>
@@ -27,7 +26,7 @@
 #include <time.h>
 #include <signal.h>
 #include <algorithm>
-#include "./util/hmc_string_util.hpp"
+#include "./pch.h"
 
 #pragma comment(lib, "Ws2_32")
 #pragma comment(lib, "dwmapi.lib")
@@ -279,9 +278,14 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End);
 DWORD GetParentProcessID(DWORD processID);
 wstring GetProcessSnapshotNameW(DWORD processID);
 bool ExistProcessID(DWORD processID);
-wstring GetProcessIdFilePathW(DWORD processID);
+wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match = false);
 wstring GetProcessNameW(DWORD processID);
 napi_value fn_getProcessidFilePath_v2(napi_env env, napi_callback_info info);
 napi_value fn_getProcessidBaseName_v2(napi_env env, napi_callback_info info);
 napi_value fn_hasProcess_v2(napi_env env, napi_callback_info info);
 void _fn_process_exports(napi_env env, napi_value exports);
+
+napi_value fn_getProcessidFilePath_$SP(napi_env env, napi_callback_info info);
+napi_value fn_getAllProcessListv2_$SP(napi_env env, napi_callback_info info);
+
+

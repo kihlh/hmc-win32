@@ -4,7 +4,6 @@
 // #include "./environment.hpp";
 // #include "./fmt11.hpp";
 
-
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result)
 {
     vector<HMC_PROCESSENTRY32W> result = {};
@@ -143,7 +142,7 @@ bool ExistProcessID(DWORD processID)
     return false;
 }
 
-wstring GetProcessIdFilePathW(DWORD processID)
+wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
 {
 
     if (processID == (DWORD)0)
@@ -212,16 +211,16 @@ wstring GetProcessIdFilePathW(DWORD processID)
     //
     if (!result.empty() && result.front() == '\\')
     {
-        vector<util_Volume> volumeList = util_getVolumeList();
+        // vector<util_Volume> volumeList = util_getVolumeList();
 
-        for (size_t i = 0; i < volumeList.size(); i++)
-        {
-            util_Volume volume = volumeList[i];
-            if (result.find(volume.device) == 0)
-            {
-                result.replace(0, volume.device.length(), volume.path);
-            }
-        }
+        // for (size_t i = 0; i < volumeList.size(); i++)
+        // {
+        //     util_Volume volume = volumeList[i];
+        //     if (result.find(volume.device) == 0)
+        //     {
+        //         result.replace(0, volume.device.length(), volume.path);
+        //     }
+        // }
     }
 
     // 处理 ntoskrnl.exe 不可见问题
@@ -262,12 +261,18 @@ wstring GetProcessIdFilePathW(DWORD processID)
         }
     }
 
+    // 没获取到 从进程快照中匹配
+    if (result.empty() && is_snapshot_match)
+    {
+        return GetProcessSnapshotNameW(processID);
+    }
+
     return result;
 }
 
 wstring GetProcessNameW(DWORD processID)
 {
-    wstring result = GetProcessIdFilePathW(processID);
+    wstring result = GetProcessIdFilePathW(processID, true);
     return hmc_string_util::getPathBaseName(result);
 }
 
@@ -282,7 +287,7 @@ napi_value fn_getProcessidFilePath_v2(napi_env env, napi_callback_info info)
     }
     EnableShutDownPriv();
 
-    return hmc_napi_create_value::String(env, GetProcessIdFilePathW(input.getInt64(0)));
+    return hmc_napi_create_value::String(env, GetProcessIdFilePathW(input.getInt64(0), true));
 }
 
 napi_value fn_getProcessidBaseName_v2(napi_env env, napi_callback_info info)
@@ -338,7 +343,7 @@ namespace Promise_getProcessidFilePath
     void asyncWorkFun(napi_env env, void *data)
     {
         PromiseData *addon_data = (PromiseData *)data;
-        __Promise_getProcessidFilePath__work_path.append(GetProcessIdFilePathW(__Promise_getProcessidFilePath_work_Pid));
+        __Promise_getProcessidFilePath__work_path.append(GetProcessIdFilePathW(__Promise_getProcessidFilePath_work_Pid, true));
     }
 
     /**
@@ -410,7 +415,7 @@ namespace Promise_getProcessidFilePath
             return NULL;
         }
         EnableShutDownPriv();
-        
+
         __Promise_getProcessidFilePath_work_Pid = input.getDword(0);
 
         // 创建一个延迟的promise对象，在完成时我们将解决它
@@ -476,8 +481,177 @@ namespace Promise_getProcessidFilePath
 
 } // namespace PromiseFun
 
+napi_value fn_getProcessidFilePath_$SP(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    // 参数预设 如果不符合则返回void
+    if (!input.eq(0, {js_number}, true))
+    {
+        return NULL;
+    }
+
+    DWORD ProcessId = input.getInt64(0);
+    bool is_snapshot_match = input.getBool(0, true);
+    size_t SessionID = hmc_PromiseSession::open();
+
+    thread([](size_t SessionID, DWORD ProcessId, bool is_snapshot_match)
+           {
+               EnableShutDownPriv();
+               wstring path_tmep = GetProcessIdFilePathW(ProcessId, is_snapshot_match);
+               hmc_PromiseSession::send(SessionID, path_tmep);
+               hmc_PromiseSession::end(SessionID);
+           },SessionID, ProcessId, is_snapshot_match)
+        .detach();
+    return hmc_napi_create_value::Number(env, (int64_t)SessionID);
+}
+
+/**
+ * @brief 枚举 所有进程id 给异步用的
+ *
+ */
+void GetAllProcessListv2_$SP(size_t SessionID, bool is_pid, bool is_Name, bool is_FilePath, bool is_SnapshotProcess, bool is_EnumProcess, bool is_Snapshot_info)
+{
+    set<DWORD> send_pid_list;
+    EnableShutDownPriv();
+
+    if (is_SnapshotProcess)
+    {
+        HANDLE hProcessSnapshot;
+        PROCESSENTRY32W PE32;
+        hmc_shared_close_handle(hProcessSnapshot);
+
+        hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+        if (hProcessSnapshot == INVALID_HANDLE_VALUE)
+        {
+            goto to_EnumProcess;
+            hmc_PromiseSession::end(SessionID);
+            return;
+        }
+
+        PE32.dwSize = sizeof(PROCESSENTRY32W);
+
+        if (!Process32FirstW(hProcessSnapshot, &PE32))
+        {
+            goto to_EnumProcess;
+            hmc_PromiseSession::end(SessionID);
+            return;
+        }
+
+        do
+        {
+
+            DWORD processID = PE32.th32ProcessID;
+            if (send_pid_list.count(processID) > 0)
+            {
+                continue;
+            }
+            map<wstring, wstring> Process = {};
+
+            if (is_pid)
+                Process.insert(pair<wstring, wstring>(L"pid", to_wstring(processID)));
+
+            if (is_Name || is_FilePath)
+            {
+                wstring path = GetProcessIdFilePathW(processID);
+
+                if (is_Name)
+                {
+                    Process.insert(pair<wstring, wstring>(L"name", hmc_string_util::getPathBaseName(path)));
+                }
+
+                if (is_FilePath)
+                {
+                    Process.insert(pair<wstring, wstring>(L"path", path));
+                }
+            }
+
+            if (is_Snapshot_info) {
+                Process.insert(pair<wstring, wstring>(L"cntThreads", to_wstring(PE32.cntThreads)));
+                Process.insert(pair<wstring, wstring>(L"cntUsage", to_wstring(PE32.cntUsage)));
+                Process.insert(pair<wstring, wstring>(L"dwFlags", to_wstring(PE32.dwFlags)));
+                Process.insert(pair<wstring, wstring>(L"dwSize", to_wstring(PE32.dwSize)));
+                Process.insert(pair<wstring, wstring>(L"pcPriClassBase", to_wstring(PE32.pcPriClassBase)));
+                Process.insert(pair<wstring, wstring>(L"th32DefaultHeapID", to_wstring(PE32.th32DefaultHeapID)));
+                Process.insert(pair<wstring, wstring>(L"th32ModuleID", to_wstring(PE32.th32ModuleID)));
+                Process.insert(pair<wstring, wstring>(L"th32ParentProcessID", to_wstring(PE32.th32ParentProcessID)));
+            }
+
+            hmc_PromiseSession::send(SessionID, hmc_string_util::map_to_jsonW(Process));
+
+            send_pid_list.insert(processID);
+
+        } while (Process32NextW(hProcessSnapshot, &PE32));
+    }
+
+// 扩展 到枚举进程
+to_EnumProcess:
+    if (is_EnumProcess)
+    {
+
+        DWORD processList[1024], cbNeeded;
+
+        if (!EnumProcesses(processList, sizeof(processList), &cbNeeded))
+        {
+            return;
+            hmc_PromiseSession::end(SessionID);
+        }
+
+        int numProcesses = cbNeeded / sizeof(DWORD);
+        for (int i = 0; i < numProcesses; ++i)
+        {
+            DWORD processID = processList[i];
+            if (send_pid_list.count(processID) > 0)
+            {
+                continue;
+            }
+            map<wstring, wstring> Process = {};
+
+            if (is_pid)
+                Process.insert(pair<wstring, wstring>(L"pid", to_wstring(processID)));
+
+            if (is_Name || is_FilePath)
+            {
+                wstring path = GetProcessIdFilePathW(processID);
+
+                if (is_Name)
+                {
+                    Process.insert(pair<wstring, wstring>(L"name", hmc_string_util::getPathBaseName(path)));
+                }
+
+                if (is_FilePath)
+                {
+                    Process.insert(pair<wstring, wstring>(L"path", path));
+                }
+            }
+
+            hmc_PromiseSession::send(SessionID, hmc_string_util::map_to_jsonW(Process));
+            send_pid_list.insert(processID);
+        }
+    }
+
+    hmc_PromiseSession::end(SessionID);
+}
+
+napi_value fn_getAllProcessListv2_$SP(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    bool is_pid = input.getBool(0, true);
+    bool is_Name = input.getBool(1, true);
+    bool is_FilePath = input.getBool(2, true);
+    bool is_SnapshotProcess = input.getBool(3, true);
+    bool is_EnumProcess = input.getBool(4, false);
+    bool is_Snapshot_info = input.getBool(5, false);
+
+    size_t SessionID = hmc_PromiseSession::open();
+
+    thread(GetAllProcessListv2_$SP, SessionID, is_pid, is_Name, is_FilePath, is_SnapshotProcess, is_EnumProcess, is_Snapshot_info).detach();
+
+    return hmc_napi_create_value::Number(env, (int64_t)SessionID);
+}
+
 void _fn_process_exports(napi_env env, napi_value exports)
 {
-
     Promise_getProcessidFilePath::exports(env, exports, "getProcessidFilePathAsync");
 }

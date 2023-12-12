@@ -186,8 +186,8 @@ napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
 {
     napi_status status;
     vector<DWORD> Pid_List;
-    vector<string> NameProcessList;
-    vector<string> FilePathProcessList;
+    vector<wstring> NameProcessList;
+    vector<wstring> FilePathProcessList;
     napi_value results_napi_Process_ID_List;
     status = napi_create_array(env, &results_napi_Process_ID_List);
     assert(status == napi_ok);
@@ -235,9 +235,16 @@ napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
 
         Pid_List.emplace_back(processID);
         wstring _ProcessIdFilePath = GetProcessIdFilePathW(processID);
-        NameProcessList.emplace_back(hmc_string_util::utf16_to_ansi(_ProcessIdFilePath));
+        FilePathProcessList.emplace_back(_ProcessIdFilePath);
+
+        // 处理名称
+        if(_ProcessIdFilePath.empty()){
+          wstring _ProcessIdSnapshotFileBaseName =  GetProcessSnapshotNameW(processID);
+          NameProcessList.emplace_back(_ProcessIdSnapshotFileBaseName);
+        }else{
         wstring _ProcessIdFileBaseName = hmc_string_util::getPathBaseName(_ProcessIdFilePath);
-        FilePathProcessList.emplace_back(hmc_string_util::utf16_to_ansi(_ProcessIdFileBaseName));
+        NameProcessList.emplace_back(_ProcessIdFileBaseName);
+        }
     }
 
     if (Pid_List.size() < 1)
@@ -248,12 +255,12 @@ napi_value getDetailsProcessList(napi_env env, napi_callback_info info)
     {
         napi_value cur_item, cur_Index, cur_Path, cur_Name, Objcet_key_Name, Objcet_key_Pid, Objcet_key_Path;
         DWORD Index = Pid_List[index];
-        string IndexName = NameProcessList[index];
-        string FilePath = FilePathProcessList[index];
+        wstring IndexName = NameProcessList[index];
+        wstring FilePath = FilePathProcessList[index];
 
         status = napi_create_int64(env, Index + 0, &cur_Index);
-        status = napi_create_string_utf8(env, _A2U8_(IndexName.c_str()).c_str(), NAPI_AUTO_LENGTH, &cur_Name);
-        status = napi_create_string_utf8(env, _A2U8_(FilePath.c_str()).c_str(), NAPI_AUTO_LENGTH, &cur_Path);
+        status = napi_create_string_utf16(env,(const char16_t*)IndexName.c_str(), NAPI_AUTO_LENGTH, &cur_Name);
+        status = napi_create_string_utf16(env, (const char16_t*)FilePath.c_str(), NAPI_AUTO_LENGTH, &cur_Path);
         status = napi_create_object(env, &cur_item);
         // {}.name
         string key_Name = "name";
@@ -314,7 +321,11 @@ napi_value getProcessList(napi_env env, napi_callback_info info)
         // }
 
         Pid_List.emplace_back(processID);
-        NameProcessList.emplace_back(GetProcessIdFilePathW(processID));
+        wstring wProcessName = GetProcessNameW(processID);
+        if(wProcessName.empty()){
+            wProcessName.append(GetProcessSnapshotNameW(processID));
+        }
+        NameProcessList.emplace_back(wProcessName);
     }
 
     if (Pid_List.size() < 1)

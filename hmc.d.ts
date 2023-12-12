@@ -480,7 +480,6 @@ export declare module HMC {
         /**
          * 判断进程id 是否存在
          */
-        hasProcess(ProcessID: ProcessID): boolean;
         /** 获取进程名**/
         getProcessName: (ProcessID: ProcessID) => string | null;
         /** 获取进程可执行文件位置**/
@@ -1174,6 +1173,11 @@ export declare module HMC {
          * 获取系统变量的键列表
          */
         getSystemKeyList(): string[];
+        /**
+         * 获取进程id的映像路径
+         * @param ProcessID
+         */
+        getProcessidFilePathAsync(ProcessID: number): Promise<string>;
     };
     export type ProcessHandle = {
         handle: number;
@@ -2276,7 +2280,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 4 | 2 | 3 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -3330,6 +3334,34 @@ export declare function putSystemVariable(key: string, value?: string, append?: 
  * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
  * @default false
  */
+export declare function setUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+/**
+ * 添加一个系统变量 （请注意 win进程获取的优先级: 进程变量 -> 用户变量 -> *系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
+export declare function setSystemVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
+/**
+ * 添加一个用户变量 （请注意 win进程获取的优先级: 进程变量 -> *用户变量 -> 系统变量）
+ * @param key 键
+ * @param value 值
+ * @param append 是否添加到尾部 而不是替换
+ * - false  "ddd" -> "ddd"
+ * - true "ddd" -> "oid...;ddd"
+ * @default false
+ * @param transMean 是个自动转义的值
+ * - false "%AppData%\\hmc-win32" -> "%AppData%\\hmc-win32"
+ * - true "%AppData%\\hmc-win32" -> 'C:\\Users\\...\\AppData\\Roaming\\hmc-win32'
+ * @default false
+ */
 export declare function putUserVariable(key: string, value?: string, append?: boolean, transMean?: boolean): boolean;
 /**
  * 获取所有的值 从环境读取 (进程环境)
@@ -3383,6 +3415,8 @@ export declare const Environment: {
     getUserKeyList: typeof getUserKeyList;
     getSystemKeyList: typeof getSystemKeyList;
     updateThis: typeof updateThis;
+    setUserVariable: typeof setUserVariable;
+    setSystemVariable: typeof setSystemVariable;
 };
 export declare const Registr: {
     /**
@@ -4445,5 +4479,7 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
+    setUserVariable: typeof setUserVariable;
+    setSystemVariable: typeof setSystemVariable;
 };
 export default hmc;

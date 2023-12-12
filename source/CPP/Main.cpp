@@ -1,4 +1,5 @@
 ﻿#include "./Mian.hpp";
+
 bool _________HMC___________;
 
 using namespace std;
@@ -477,9 +478,9 @@ namespace get_value
             }
             else
             {
-                if (_hmc_debug)
+               /* if (_hmc_debug)
                 {
-                }
+                }*/
             }
         }
         catch (const std::exception &e)
@@ -4795,6 +4796,8 @@ napi_value __Popen(napi_env env, napi_callback_info info)
 
 
 
+
+
 static napi_value Init(napi_env env, napi_value exports)
 {
     // napi_value exportsMessage;
@@ -4998,10 +5001,30 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("__debug_AllocConsole", fn_AllocConsole),
         // 2023-11-28 add support
         DECLARE_NAPI_METHODRM("getProcessStartTime", fn_getProcessStartTime),
-        // // 2023-12-11 add support
-        // DECLARE_NAPI_METHODRM("getProcessidFilePath_v2", fn_getProcessidFilePath_v2),
-        // // 2023-12-1 add support
-        // DECLARE_NAPI_METHODRM("getProcessidBaseName_v2", fn_getProcessidBaseName_v2),
+        // 2023-12-11 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_get",_PromiseSession_getAll),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_isClosed", _PromiseSession_isClosed),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_stop", _PromiseSession_stop),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_max_id", _PromiseSession_max_id),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_data_size", _PromiseSession_data_size),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_set_sleep_time", _PromiseSession_set_sleep_time),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_await", _PromiseSession_await),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_ongoingTasks", _PromiseSession_ongoingTasks),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_completeTasks", _PromiseSession_completeTasks),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_allTasks", _PromiseSession_allTasks),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("getProcessidFilePath___SP", fn_getProcessidFilePath_$SP),
+        // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("getAllProcessListv2___SP", fn_getAllProcessListv2_$SP),
     };
     _________HMC___________ = false;
 

@@ -779,6 +779,8 @@ int util_sendKeyT2C(string send_t2cStrA)
         }
         util_sendKeyboardSingle(t2c.keyCode, t2c.isDown);
     }
+
+    return 0;
 }
 // 自定t2c指令解析
 napi_value sendKeyT2CSync(napi_env env, napi_callback_info info)
