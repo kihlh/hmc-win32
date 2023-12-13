@@ -855,6 +855,9 @@ private:
 public:
     hmc_NodeArgsValue(napi_env env, napi_callback_info info);
     ~hmc_NodeArgsValue();
+   std::vector<napi_value> get_args();
+   napi_value at(size_t index);
+   
     /**
      * @brief 获取数量
      *
@@ -1047,6 +1050,294 @@ public:
     js_valuetype getType(size_t index);
 };
 
+class js_value
+{
+private:
+    any data;
+
+public:
+    js_valuetype type;
+    js_value(napi_env env, napi_callback_info info);
+    js_value(napi_env env, napi_callback_info info, size_t index);
+    js_value(napi_env env, napi_value nodeValue);
+    /**
+     * @brief 获取此数据的值
+     *
+     * @return string
+     */
+    string typeName();
+    /**
+     * @brief 获取指定索引为 int
+     *
+     * @param index
+     * @param defaultValue
+     * @return int
+     */
+    int getInt(int defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 int 64
+     *
+     * @param index
+     * @param defaultValue
+     * @return int64_t
+     */
+    int64_t getInt64(int64_t defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 String Ansi
+     *
+     * @param index
+     * @param defaultValue
+     * @return string
+     */
+    string getStringAnsi(string defaultValue = string(""));
+    /**
+     * @brief 获取指定索引为  String Wide
+     *
+     * @param index
+     * @param defaultValue
+     * @return wstring
+     */
+    wstring getStringWide(wstring defaultValue = wstring(L""));
+    /**
+     * @brief 获取指定索引为  String Utf8
+     *
+     * @param index
+     * @param defaultValue
+     * @return string
+     */
+    string getStringUtf8(string defaultValue = string(""));
+    /**
+     * @brief 获取指定索引为 布尔
+     *
+     * @param index
+     * @param defaultValue
+     * @return true
+     * @return false
+     */
+    bool getBool(bool defaultValue = false);
+    /**
+     * @brief 获取指定索引为  Buffer
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<unsigned char>
+     */
+    vector<unsigned char> getBuffer(vector<unsigned char> defaultValue = {});
+    /**
+     * @brief 获取指定索引为  Double
+     *
+     * @param index
+     * @param defaultValue
+     * @return double
+     */
+    double getDouble(double defaultValue = 0.0);
+    /**
+     * @brief 获取指定索引为 DWORD
+     *
+     * @param index
+     * @param defaultValue
+     * @return DWORD
+     */
+    DWORD getDword(DWORD defaultValue = 0);
+    /**
+     * @brief 获取指定索引为 HWND
+     *
+     * @param index
+     * @param defaultValue
+     * @return HWND
+     */
+    HWND getHwnd(HWND defaultValue = NULL);
+    /**
+     * @brief 获取指定索引为 String 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<string>
+     */
+    vector<string> getArrayString(vector<string> defaultValue = {});
+    /**
+     * @brief 获取指定索引为 int 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<int>
+     */
+    vector<int> getArrayInt(vector<int> defaultValue = {});
+    /**
+     * @brief 获取指定索引为 utf16 数组
+     *
+     * @param index
+     * @param defaultValue
+     * @return vector<wstring>
+     */
+    vector<wstring> getArrayWstring(vector<wstring> defaultValue = {});
+    /**
+     * @brief 判断值是否存在
+     *
+     * @param index
+     * @return true
+     * @return false
+     */
+    bool has_value();
+    /**
+     * @brief 是buff
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isBuffer();
+    /**
+     * @brief 是文本
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isString();
+    /**
+     * @brief 是数字
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isNumber();
+    /**
+     * @brief 是布尔
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isBoolean();
+    /**
+     * @brief 是 Bigint
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isBigint();
+    /**
+     * @brief 是函数
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isFunction();
+    /**
+     * @brief 是对象
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isObject();
+    /**
+     * @brief 是 Undefined
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isUndefined();
+    /**
+     * @brief 是null
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isNull();
+    /**
+     * @brief 在 JavaScript 中显示为普通对象
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isExternal();
+    /**
+     * @brief 判断是否是 obj 并且包含了 此key
+     *
+     * @param env
+     * @param objectValue
+     * @param key
+     * @return true
+     * @return false
+     */
+    bool isObjectkeyExists(napi_env env, napi_value objectValue, string key);
+    /**
+     * @brief 是数组
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isArray();
+    /**
+     * @brief 是Date
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isDate();
+    /**
+     * @brief 是 Error
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isError();
+    /**
+     * @brief 是 C Point
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isPoint();
+    /**
+     * @brief 是 Promise
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isPromise();
+    /**
+     * @brief 是 C Rect
+     *
+     * @param env
+     * @param value
+     * @return true
+     * @return false
+     */
+    bool isRect();
+
+    ~js_value();
+};
+
+
 namespace hmc_PromiseSession
 {
 
@@ -1059,7 +1350,7 @@ namespace hmc_PromiseSession
     // 任务数据容器
     extern std::unordered_map<size_t, vector<any>> ____$hmcPromise_PromiseTaskList;
     // 任务数据 已读取索引 容器
-    extern std::unordered_map<size_t, size_t > ____$hmcPromise_promise_task_id_send_index_list;
+    extern std::unordered_map<size_t, size_t> ____$hmcPromise_promise_task_id_send_index_list;
     extern long ___$Sleep_time;
     /**
      * @brief 判断此任务id是否已经完成 调用了end()
@@ -1118,10 +1409,10 @@ namespace hmc_PromiseSession
      * @param PromiseID
      * @return vector<any>
      */
-    extern vector<any> getAll(size_t PromiseID,size_t size = 999);
-    extern int64_t get_next_index (size_t PromiseID);
+    extern vector<any> getAll(size_t PromiseID, size_t size = 999);
+    extern int64_t get_next_index(size_t PromiseID);
 
-    extern size_t ___get_open_id ();
+    extern size_t ___get_open_id();
     /**
      * @brief 在新的线程 启动一个函数 并传入一个vector<any>指针 以及监听此函数的运行结束的回调
      *
@@ -1157,6 +1448,7 @@ namespace hmc_PromiseSession
     extern vector<int> allTasks();
     extern vector<int> ongoingTasks();
     extern vector<int> completeTasks();
+    extern size_t get_sleep_time();
 };
 
 extern napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info);
@@ -1170,5 +1462,6 @@ extern napi_value _PromiseSession_set_sleep_time(napi_env env, napi_callback_inf
 extern napi_value _PromiseSession_ongoingTasks(napi_env env, napi_callback_info info);
 extern napi_value _PromiseSession_allTasks(napi_env env, napi_callback_info info);
 extern napi_value _PromiseSession_completeTasks(napi_env env, napi_callback_info info);
+extern napi_value _PromiseSession_get_sleep_time(napi_env env, napi_callback_info info);
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP

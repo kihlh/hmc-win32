@@ -397,7 +397,7 @@ namespace Promise_getProcessidFilePath
         if (addon_data->work != NULL)
         {
             work_message.append("error < Promise workspace has not been released. > ");
-            napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());
+            //napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());
             return NULL;
         }
 

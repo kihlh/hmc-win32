@@ -2213,6 +2213,21 @@ wstring hmc_NodeArgsValue::getStringWide(size_t index, wstring defaultValue)
     return results;
 }
 
+vector<napi_value> hmc_NodeArgsValue::get_args()
+{
+    return args;
+}
+
+napi_value hmc_NodeArgsValue::at(size_t index)
+{
+    if (this->exists(index))
+    {
+        return this->args[index];
+    }
+
+    return NULL;
+}
+
 string hmc_NodeArgsValue::getStringAnsi(size_t index, string defaultValue)
 {
 
@@ -2661,7 +2676,7 @@ namespace hmc_PromiseSession
     // 任务数据容器
     std::unordered_map<size_t, vector<any>> ____$hmcPromise_PromiseTaskList = {};
     // 任务数据 已读取索引 容器
-    std::unordered_map<size_t, size_t > ____$hmcPromise_promise_task_id_send_index_list = std::unordered_map<size_t, size_t >();
+    std::unordered_map<size_t, size_t> ____$hmcPromise_promise_task_id_send_index_list = std::unordered_map<size_t, size_t>();
     // 任务数据 工具已经初始化完成
     bool ____$hmcPromise_init = true;
     // 每次检测线程退出和线程数据的间隔
@@ -2680,13 +2695,14 @@ bool hmc_PromiseSession::isClosed(size_t SessionId)
     return (____$hmcPromise_PromiseTaskEndStatusList.find(SessionId) != ____$hmcPromise_PromiseTaskEndStatusList.end());
 }
 
-
-int64_t hmc_PromiseSession::get_next_index(size_t PromiseID) {
+int64_t hmc_PromiseSession::get_next_index(size_t PromiseID)
+{
 
     size_t _PromiseTaskDataListSize = 0;
-    
-     //未初始化
-    if (____$hmcPromise_PromiseTaskList.count(PromiseID) < 1) {
+
+    // 未初始化
+    if (____$hmcPromise_PromiseTaskList.count(PromiseID) < 1)
+    {
         ____$hmcPromise_PromiseTaskList.insert(pair<size_t, vector<any>>(PromiseID, {}));
         return -1;
     }
@@ -2694,26 +2710,29 @@ int64_t hmc_PromiseSession::get_next_index(size_t PromiseID) {
     _PromiseTaskDataListSize = ____$hmcPromise_PromiseTaskList.at(PromiseID).size();
 
     // 未初始化索引
-    if (____$hmcPromise_promise_task_id_send_index_list.count(PromiseID) > 0) {
+    if (____$hmcPromise_promise_task_id_send_index_list.count(PromiseID) > 0)
+    {
 
         size_t Psize = ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID);
 
-        if (Psize == 0) { 
+        if (Psize == 0)
+        {
             ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID)++;
-            return (_PromiseTaskDataListSize > 0 ? 0 : -1); }
+            return (_PromiseTaskDataListSize > 0 ? 0 : -1);
+        }
 
         // 溢出
-        if (Psize >= _PromiseTaskDataListSize) {
+        if (Psize >= _PromiseTaskDataListSize)
+        {
             return -1;
         }
-        
-       ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID)++;
-       return Psize;
+
+        ____$hmcPromise_promise_task_id_send_index_list.at(PromiseID)++;
+        return Psize;
     }
 
     ____$hmcPromise_promise_task_id_send_index_list.insert(pair<size_t, size_t>(PromiseID, 0));
     return -1;
-    
 }
 
 /**
@@ -2838,34 +2857,35 @@ vector<any> hmc_PromiseSession::getAll(size_t PromiseID, size_t max_size)
     vector<any> result;
     ____$hmcPromise_rwMutex.lock_shared();
 
-    std::shared_ptr<void>_shared_close_lpsz_(nullptr, [&](void*) {
-        ____$hmcPromise_rwMutex.unlock_shared();
-        });
+    std::shared_ptr<void> _shared_close_lpsz_(nullptr, [&](void *)
+                                              { ____$hmcPromise_rwMutex.unlock_shared(); });
 
     auto temp_list = ____$hmcPromise_PromiseTaskList[PromiseID];
 
-
-    if (!temp_list.empty()) {
+    if (!temp_list.empty())
+    {
 
         while (true)
         {
-           int64_t index =  get_next_index(PromiseID);
+            int64_t index = get_next_index(PromiseID);
 
-           if (index == -1) {
-               return result;
-           }
+            if (index == -1)
+            {
+                return result;
+            }
 
-           auto temp = temp_list.at(index);
-           if (temp.has_value()) {
-               result.push_back(temp);
-           }
+            auto temp = temp_list.at(index);
+            if (temp.has_value())
+            {
+                result.push_back(temp);
+            }
 
-           //满足最大需求
-           if (result.size()>= max_size) {
-               return result;
-           }
+            // 满足最大需求
+            if (result.size() >= max_size)
+            {
+                return result;
+            }
         }
-
     }
     return result;
 }
@@ -2879,7 +2899,6 @@ vector<any> hmc_PromiseSession::getAll(size_t PromiseID, size_t max_size)
 size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func)
 {
     size_t PromiseID = ___get_open_id();
-
 
     std::thread data = thread([func, PromiseID]()
                               {
@@ -2999,12 +3018,13 @@ size_t hmc_PromiseSession::data_size(size_t PromiseID)
     return ____$hmcPromise_PromiseTaskList[PromiseID].size();
 }
 
-napi_value hmc_PromiseSession::getAll(napi_env env, size_t PromiseID, size_t size )
+napi_value hmc_PromiseSession::getAll(napi_env env, size_t PromiseID, size_t size)
 {
     napi_value result;
 
     vector<any> temp_list = getAll(PromiseID, size);
-    if (temp_list.empty()) {
+    if (temp_list.empty())
+    {
         napi_get_undefined(env, &result);
         return result;
     }
@@ -3045,9 +3065,9 @@ napi_value hmc_PromiseSession::getAll(napi_env env, size_t PromiseID, size_t siz
     return result;
 }
 
+size_t hmc_PromiseSession::___get_open_id()
+{
 
-size_t hmc_PromiseSession::___get_open_id() {
-    
     size_t PromiseID = ____$hmcPromise_PromiseSessionID++;
     ____$hmcPromise_PromiseTaskList.insert(std::pair<size_t, vector<any>>(PromiseID, {}));
     ____$hmcPromise_promise_task_id_send_index_list.insert(pair<size_t, size_t>(PromiseID, 0));
@@ -3142,7 +3162,6 @@ vector<int> hmc_PromiseSession::completeTasks()
     return result;
 }
 
-
 napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info)
 {
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
@@ -3152,7 +3171,7 @@ napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info)
     {
         return NULL;
     }
-    return hmc_PromiseSession::getAll(env, input.getInt64(0), input.exists(1)? input.getInt64(1):999 );
+    return hmc_PromiseSession::getAll(env, input.getInt64(0), input.exists(1) ? input.getInt64(1) : 999);
 }
 
 napi_value _PromiseSession_stop(napi_env env, napi_callback_info info)
@@ -3260,4 +3279,307 @@ napi_value _PromiseSession_allTasks(napi_env env, napi_callback_info info)
 napi_value _PromiseSession_completeTasks(napi_env env, napi_callback_info info)
 {
     return hmc_napi_create_value::Array::Number(env, hmc_PromiseSession::completeTasks());
+}
+
+size_t hmc_PromiseSession::get_sleep_time()
+{
+    return hmc_PromiseSession::___$Sleep_time;
+}
+
+napi_value _PromiseSession_get_sleep_time(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Number(env, (int64_t)hmc_PromiseSession::___$Sleep_time);
+}
+
+js_value::js_value(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+    for (size_t i = 0; i < input.size(); i++)
+    {
+        if (input.exists(i))
+        {
+            js_value(env, input.at(i));
+        }
+    }
+}
+
+js_value::js_value(napi_env env, napi_callback_info info, size_t index)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+    if (input.exists(index))
+    {
+        js_value(env, input.at(index));
+    }
+}
+
+js_value::js_value(napi_env env, napi_value nodeValue)
+{
+    switch (hmc_napi_type::getType(env, nodeValue))
+    {
+    // case js_valuetype::js_array:
+
+    //     break;
+    // case js_valuetype::js_date:
+    //     getTypeName.append("date");
+    //     break;
+    // case js_valuetype::js_error:
+    //     getTypeName.append("error");
+    //     break;
+    case js_valuetype::js_buffer:
+        this->data = hmc_napi_get_value::buffer_vector(env, nodeValue);
+        break;
+    case js_valuetype::js_point:
+        this->data = hmc_napi_get_value::point(env, nodeValue);
+        break;
+    case js_valuetype::js_rect:
+        this->data = hmc_napi_get_value::rect(env, nodeValue);
+        break;
+    case napi_null:
+        this->data = NULL;
+        break;
+    case napi_number:
+        // if(hmc_napi_type::is)
+        this->data = hmc_napi_get_value::number_int64(env, nodeValue);
+        break;
+    case napi_string:
+        this->data = hmc_napi_get_value::string_utf16(env, nodeValue);
+        break;
+        // case napi_undefined:
+
+        //     break;
+        // case napi_object:
+        //     this->data = hmc_napi_get_value::buffer_vector(env,nodeValue);
+        //     break;
+
+    case napi_boolean:
+        this->data = hmc_napi_get_value::boolean_bool(env, nodeValue);
+        break;
+    }
+}
+
+string js_value::typeName()
+{
+    return hmc_napi_type::typeName(this->type);
+}
+
+int js_value::getInt(int defaultValue = 0)
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isNumber())
+    {
+        return any_cast<int_least16_t>(this->data);
+    }
+    return defaultValue;
+}
+int64_t js_value::getInt64(int64_t defaultValue = 0)
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isNumber())
+    {
+        return any_cast<int64_t>(this->data);
+    }
+    return defaultValue;
+}
+string js_value::getStringAnsi(string defaultValue = string(""))
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isString())
+    {
+        return hmc_string_util::utf16_to_ansi(any_cast<wstring>(this->data));
+    }
+    return defaultValue;
+}
+wstring js_value::getStringWide(wstring defaultValue = wstring(L""))
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isString())
+    {
+        return (any_cast<wstring>(this->data));
+    }
+    return defaultValue;
+}
+string js_value::getStringUtf8(string defaultValue = string(""))
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isString())
+    {
+        return hmc_string_util::utf16_to_utf8(any_cast<wstring>(this->data));
+    }
+    return defaultValue;
+}
+bool js_value::getBool(bool defaultValue = false)
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isBoolean())
+    {
+        return any_cast<bool>(this->data);
+    }
+    if (this->isNumber())
+    {
+        return any_cast<int>(this->data) == 1;
+    }
+    return defaultValue;
+}
+vector<unsigned char> js_value::getBuffer(vector<unsigned char> defaultValue = {})
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isBuffer())
+    {
+        return any_cast<vector<unsigned char>>(this->data);
+    }
+    return defaultValue;
+}
+double js_value::getDouble(double defaultValue = 0.0)
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    return defaultValue;
+}
+DWORD js_value::getDword(DWORD defaultValue = 0)
+{
+    if (this->isNumber())
+    {
+        return (DWORD)any_cast<long>(this->data);
+    }
+    return defaultValue;
+}
+HWND js_value::getHwnd(HWND defaultValue = NULL)
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    if (this->isNumber())
+    {
+        return (HWND)any_cast<long>(this->data);
+    }
+    return defaultValue;
+}
+vector<string> js_value::getArrayString(vector<string> defaultValue = {})
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    return defaultValue;
+}
+
+vector<int> js_value::getArrayInt(vector<int> defaultValue = {})
+{
+    if (!this->data.has_value())
+        return defaultValue;
+
+    return defaultValue;
+}
+
+vector<wstring> js_value::getArrayWstring(vector<wstring> defaultValue = {})
+{
+    if (!this->data.has_value())
+        return defaultValue;
+    return defaultValue;
+}
+
+bool js_value::has_value()
+{
+    return this->has_value();
+}
+
+bool js_value::isBuffer()
+{
+    return this->type == js_valuetype::js_buffer;
+}
+
+bool js_value::isString()
+{
+    return this->type == js_valuetype::js_string;
+}
+
+bool js_value::isNumber()
+{
+    return this->type == js_valuetype::js_number;
+}
+
+bool js_value::isBoolean()
+{
+    return this->type == js_valuetype::js_boolean;
+}
+
+bool js_value::isBigint()
+{
+    return this->type == js_valuetype::js_bigint;
+}
+
+bool js_value::isFunction()
+{
+    return this->type == js_valuetype::js_function;
+}
+
+bool js_value::isObject()
+{
+    return this->type == js_valuetype::js_object;
+}
+
+bool js_value::isUndefined()
+{
+    return this->type == js_valuetype::js_undefined;
+}
+
+bool js_value::isNull()
+{
+    return this->type == js_valuetype::js_null;
+}
+
+bool js_value::isExternal()
+{
+    return this->type == js_valuetype::js_external;
+}
+
+bool js_value::isArray()
+{
+    return this->type == js_valuetype::js_array;
+}
+
+bool js_value::isDate()
+{
+    return this->type == js_valuetype::js_date;
+}
+
+bool js_value::isError()
+{
+    return this->type == js_valuetype::js_error;
+}
+
+bool js_value::isPoint()
+{
+    return this->type == js_valuetype::js_point;
+}
+
+bool js_value::isPromise()
+{
+    return (this->type == js_valuetype::js_promise) ? true : this->type == js_valuetype::js_promise_function;
+}
+
+bool js_value::isRect()
+{
+    return this->type == js_valuetype::js_rect;
+}
+
+js_value::~js_value()
+{
+    this->data.reset();
+    this->data = any();
 }
