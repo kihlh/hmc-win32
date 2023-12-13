@@ -9,6 +9,7 @@ import child_process = require("child_process");
 import net = require("net");
 const argvSplit: (str: string) => string[] = require("argv-split");
 let $_thenConsole: HWND | null = null;
+
 /**注册表根目录 */
 const Hkey = {
     /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -22,6 +23,8 @@ const Hkey = {
     /**管理系统当前的用户信息 */
     HKEY_CURRENT_USER: "HKEY_CURRENT_USER" as "HKEY_CURRENT_USER",
 };
+
+
 /**
  * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
  * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
@@ -239,7 +242,60 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             // getProcessidBaseName_v2:fnStr,
             // getProcessidFilePath_v2:fnStr,
             // hasProcess_v2:fnBool,
-            getProcessidFilePathAsync:fnPromise
+            getProcessidFilePathAsync: fnPromise,
+            /**
+ * 获取指定id的  [Session Promise] 的所有已经完成的内容 同时回收空间
+ * @param SessionID 内容id
+ * @param size 最多取出多少个
+ * @default 999
+ */
+            _PromiseSession_get: fnNull,
+            /**
+             * 判断指定的  [Session Promise] 是否已经结束
+             * @param SessionID id
+             */
+            _PromiseSession_isClosed: fnBool,
+            /**
+             * 停止一个  [Session Promise] 事件
+             * @param SessionID id
+             */
+            _PromiseSession_stop: fnVoid,
+            /**
+             * 获取当前  Session ID 已经到哪里了
+             */
+            _PromiseSession_max_id: fnNum,
+            /**
+             * 获取指定的id存在了多少个数据
+             * @param SessionID id
+             */
+            _PromiseSession_data_size: fnNum,
+            /**
+             * 设置每次获取 Session Promise 的毫秒数
+             * @param sleep_time 毫秒
+             * @default 5 ms
+             */
+            _PromiseSession_set_sleep_time: fnNum,
+            /**
+             * 将  [Session Promise] 转为同步
+             * @param SessionID id
+             */
+            _PromiseSession_await: fnVoid,
+            /**
+             * 所有任务
+             */
+            _PromiseSession_allTasks: fnAnyArr,
+            /**
+             * 已经完成的任务
+             */
+            _PromiseSession_completeTasks: fnAnyArr,
+            /**
+             * 进行中的任务
+             */
+            _PromiseSession_ongoingTasks: fnAnyArr,
+            /**
+             * 当前的sleep ms 
+             */
+            _PromiseSession_get_sleep_time: fnNum,
         }
     })();
     return Native;
@@ -1639,6 +1695,59 @@ export module HMC {
          * @param ProcessID 
          */
         getProcessidFilePathAsync(ProcessID: number): Promise<string>;
+        /**
+ * 获取指定id的  [Session Promise] 的所有已经完成的内容 同时回收空间
+ * @param SessionID 内容id
+ * @param size 最多取出多少个
+ * @default 999
+ */
+        _PromiseSession_get(SessionID: number, size?: number): undefined | null | any[];
+        /**
+         * 判断指定的  [Session Promise] 是否已经结束
+         * @param SessionID id
+         */
+        _PromiseSession_isClosed(SessionID: number): boolean;
+        /**
+         * 停止一个  [Session Promise] 事件
+         * @param SessionID id
+         */
+        _PromiseSession_stop(SessionID: number): void;
+        /**
+         * 获取当前  Session ID 已经到哪里了
+         */
+        _PromiseSession_max_id(): number;
+        /**
+         * 获取指定的id存在了多少个数据
+         * @param SessionID id
+         */
+        _PromiseSession_data_size(SessionID: number): number;
+        /**
+         * 设置每次获取 Session Promise 的毫秒数
+         * @param sleep_time 毫秒
+         * @default 5 ms
+         */
+        _PromiseSession_set_sleep_time(sleep_time: number): number;
+        /**
+         * 将  [Session Promise] 转为同步
+         * @param SessionID id
+         */
+        _PromiseSession_await(SessionID: number): void;
+        /**
+         * 所有任务
+         */
+        _PromiseSession_allTasks(): number[];
+        /**
+         * 已经完成的任务
+         */
+        _PromiseSession_completeTasks(): number[];
+        /**
+         * 进行中的任务
+         */
+        _PromiseSession_ongoingTasks(): number[];
+        /**
+         * 当前的sleep ms 
+         */
+        _PromiseSession_get_sleep_time(): number;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -1824,14 +1933,14 @@ export module HMC {
         65001: "utf-8"
     };
     export type SystemDecoderKey = keyof chcpList;
-   
-    export type VarValueReBackData = { 
+
+    export type VarValueReBackData = {
         // 被更新的键名称
-        key: string, 
+        key: string,
         // 之前的变量
-        oid_value: string | undefined | null, 
+        oid_value: string | undefined | null,
         // 新的变量内容
-        new_vaule: string | undefined | null , 
+        new_vaule: string | undefined | null,
         /**
          * 更新类型
          * - update 直接替换新的变量内容
@@ -1839,11 +1948,13 @@ export module HMC {
          * - append 添加了新的变量(变量组)
          * - reduce 删除了新的变量(变量组)
          */
-        update_type: "update" | "remove" | "append" |"reduce"
+        update_type: "update" | "remove" | "append" | "reduce"
         // 更新类型为 reduce/ append  时候会有此属性
         value?: string | undefined | null,
     };
-   
+
+    export type PromiseSessionDataType = undefined | null | any;
+
     export type SystemDecoder = chcpList[SystemDecoderKey]
 }
 
@@ -2023,6 +2134,99 @@ function getDefaultTitele(): string {
 
 }
 
+export class PromiseSession {
+    private data_list: Array<undefined | null | any>;
+    private SessionID: number;
+    /**
+     * 将 PromiseSession 转为 Promise
+     * @param format 数据格式化的函数
+     * @returns 
+     */
+    public to_Promise<T>(format: (value: Array<undefined | null | any>) => T): Promise<T> {
+        const this_ = this;
+        return new Promise(function (resolve, reject) {
+            try {
+                setInterval(() => {
+                    const temp = native._PromiseSession_get(this_.SessionID, 50);
+                    for (let index = 0; index < (temp || []).length; index++) {
+                        const element = (temp || [])[index];
+                        this_.data_list.push(element);
+                    }
+                    if (!temp && native._PromiseSession_isClosed(this_.SessionID)) {
+                        resolve(format(this_.data_list));
+                    }
+                }, 25);
+
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * PromiseSession 转为 callBack 
+     * @param format 格式化的函数 如果没有callback 此函数将被作为callBack使用
+     * @param callback 回调函数 接收的第一个参数将会是 format格式化过得内容
+     * @param everyCallback 是否每次回调 当此选项为false 将只会在PromiseSession接收完成时候回调
+     */
+    public to_callback<T>(format: (value: Array<undefined | null | any>) => T, callback?: (value: T) => any, everyCallback?: boolean) {
+        try {
+            const this_ = this;
+            setInterval(() => {
+                const temp = native._PromiseSession_get(this_.SessionID, 50);
+                for (let index = 0; index < (temp || []).length; index++) {
+                    const element = (temp || [])[index];
+                    this_.data_list.push(element);
+                    if (!everyCallback) {
+                        if (callback) {
+                            callback(format(element));
+                        } else {
+                            format(element);
+                        }
+                    }
+                }
+
+                if (!temp && native._PromiseSession_isClosed(this_.SessionID)) {
+                    if (everyCallback) {
+                        if (callback) {
+                            callback(format(this_.data_list));
+                        } else {
+                            format(this_.data_list);
+                        }
+                    }
+                }
+            }, 25);
+
+        } catch (error) {
+
+        }
+    }
+
+    /**
+     * 异步改同步
+     */
+    public await() {
+        native._PromiseSession_await(this.SessionID);
+        return native._PromiseSession_get(this.SessionID, 999999999);
+    }
+
+    /**
+     * 提前结束
+     */
+    public stop() {
+        native._PromiseSession_stop(this.SessionID);
+    }
+    /**
+     * 初始化一个将 hmc_PromiseSession 转为js 异步的方法
+     * hmc_PromiseSession 是一个支持并发异步的调用封装库
+     * 用于解决napi无法连续创建同事件的异步空间 以及napi的异步及其难写的问题
+     * @param SessionID 
+     */
+    constructor(SessionID: number) {
+        this.SessionID = SessionID;
+        this.data_list = [];
+    }
+}
 /**
  * 直达路径解析
  * @param Path 全路径(直达路径)
@@ -5673,9 +5877,9 @@ export function findWindowEx(hWndParent: number | null | HWND, hWndChildAfter: n
  * @param ProcessName 
  * @returns 
  */
-export function findProcess(ProcessName: string | RegExp | number,isMacthFile=false): HMC.enumProcessCont[] {
+export function findProcess(ProcessName: string | RegExp | number, isMacthFile = false): HMC.enumProcessCont[] {
     let result = [];
-    let ProcessList: Array<HMC.enumProcessContP|HMC.enumProcessCont> = isMacthFile?getDetailsProcessList(): getProcessList();
+    let ProcessList: Array<HMC.enumProcessContP | HMC.enumProcessCont> = isMacthFile ? getDetailsProcessList() : getProcessList();
     for (let index = 0; index < ProcessList.length; index++) {
         const Process = ProcessList[index];
         if (typeof ProcessName == "string") {
@@ -5692,7 +5896,7 @@ export function findProcess(ProcessName: string | RegExp | number,isMacthFile=fa
         }
         else {
             // @ts-expect-error
-            if (Process.name.match(ProcessName) || (typeof Process?.path == "string") ? Process.path.match(ProcessName):false) {
+            if (Process.name.match(ProcessName) || (typeof Process?.path == "string") ? Process.path.match(ProcessName) : false) {
                 result.push(Process);
             }
         }
@@ -5898,7 +6102,7 @@ export function getVariableAll() {
 export function getRealGlobalVariableList() {
     let RealGlobalVariableList = JSON.parse(JSON.stringify(native.getRealGlobalVariable())) as HMC.VariableList;
     for (const key in RealGlobalVariableList) {
-        if(key.match(/path/img)){
+        if (key.match(/path/img)) {
             delete RealGlobalVariableList[key];
         }
     }
@@ -5936,11 +6140,11 @@ export function getSystemKeyList() {
  * - RegExp 正则 (key区分大小写(原始值))
 * @returns 
  */
-export function updateThis(remove?: boolean, update_add?: boolean, append?: boolean, 
-        
-    filter?: ((key: string, new_value: string | null | undefined, oid_value: string | null | undefined)=>boolean)|string|string[]|RegExp
-    
-    ): HMC.VarValueReBackData[] {
+export function updateThis(remove?: boolean, update_add?: boolean, append?: boolean,
+
+    filter?: ((key: string, new_value: string | null | undefined, oid_value: string | null | undefined) => boolean) | string | string[] | RegExp
+
+): HMC.VarValueReBackData[] {
     let result: HMC.VarValueReBackData[] = [];
 
     const realGlobalVariable = native.getRealGlobalVariable();
@@ -5949,13 +6153,13 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
         const element = realGlobalVariable[key];
         const p_value = process.env[key];
         // 判断过滤条件
-        if (filter){
+        if (filter) {
             if (typeof filter === 'string') {
-                if (key.toUpperCase() != filter.toUpperCase()){
+                if (key.toUpperCase() != filter.toUpperCase()) {
                     continue;
                 }
             } else if (typeof filter === "function") {
-                
+
                 if (filter(key.toUpperCase(), element, p_value)) {
                     continue;
                 }
@@ -5967,7 +6171,7 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
                         continue;
                     }
                 }
-            }else{
+            } else {
                 if (key.match(filter)) {
                     continue;
                 }
@@ -5991,7 +6195,7 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
                     });
                     continue;
                 }
-                
+
                 // 差分计算 添加
                 if (update_add && append) {
                     let new_vaule = new Set();
@@ -6003,7 +6207,7 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
 
                     // 处理新的
                     for (const iterator of element.split(";")) {
-                        if (!new_vaule.has(iterator)){
+                        if (!new_vaule.has(iterator)) {
                             new_vaule.add(iterator);
                             result.push({
                                 key: key,
@@ -6039,7 +6243,7 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
                                 update_type: "reduce",
                                 value: iterator
                             });
-                        }else{
+                        } else {
                             new_vaule.add(iterator);
                         }
                     }
@@ -6083,6 +6287,15 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
 
 }
 
+
+export const getWindowProcess = getHandleProcessID  ;
+export const getProcessWindow = getProcessHandle  ;
+export const isWindowVisible = isHandleWindowVisible  ;
+export const closeWindow = lookHandleCloseWindow  ;
+export const setWindowShake = windowJitter  ;
+export const isWindowTop = hasWindowTop  ;
+export const getProcessFilePath = getProcessidFilePath ;
+
 export const Environment = {
     hasKeyExists,
     hasUseKeyExists,
@@ -6107,6 +6320,7 @@ export const Environment = {
 
 export const Registr = registr;
 export const hmc = {
+    getWindowProcess,getProcessWindow,isWindowVisible,closeWindow,setWindowShake,isWindowTop,getProcessFilePath,
     Auto,
     Clipboard,
     HMC,

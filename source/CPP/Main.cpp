@@ -5020,6 +5020,8 @@ static napi_value Init(napi_env env, napi_value exports)
         // 2023-12-1 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_completeTasks", _PromiseSession_completeTasks),
         // 2023-12-1 add support
+        DECLARE_NAPI_METHODRM("_PromiseSession_get_sleep_time", _PromiseSession_get_sleep_time),
+        // 2023-12-1 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_allTasks", _PromiseSession_allTasks),
         // 2023-12-1 add support
         DECLARE_NAPI_METHODRM("getProcessidFilePath___SP", fn_getProcessidFilePath_$SP),
