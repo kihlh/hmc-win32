@@ -381,9 +381,13 @@ inline void hmc_string_util::replace(string &sourcePtr, string from, size_t bubb
     }
 }
 
-inline string hmc_string_util::escapeJsonString(const string &input)
+inline string hmc_string_util::escapeJsonString(const string &input, bool is_to_value)
 {
     string output;
+    if (is_to_value) {
+        output.push_back('"');
+    }
+
     for (char ch : input)
     {
         switch (ch)
@@ -391,7 +395,7 @@ inline string hmc_string_util::escapeJsonString(const string &input)
 
         case '\0':
             break;
-        case '\"':
+        case '"':
             output.append("\\\"");
             break;
         case '\\':
@@ -417,19 +421,29 @@ inline string hmc_string_util::escapeJsonString(const string &input)
             break;
         }
     }
+
+    if (is_to_value) {
+        output.push_back('"');
+    }
+
     return output;
 }
 
-inline wstring hmc_string_util::escapeJsonString(const wstring &input)
+inline wstring hmc_string_util::escapeJsonString(const wstring &input, bool is_to_value)
 {
     wstring output;
+
+    if (is_to_value) {
+        output.push_back(L'"');
+    }
+
     for (wchar_t ch : input)
     {
         switch (ch)
         {
         case L'\0':
             break;
-        case L'\"':
+        case L'"':
             output.append(L"\\\"");
             break;
         case L'\\':
@@ -454,6 +468,9 @@ inline wstring hmc_string_util::escapeJsonString(const wstring &input)
             output.push_back(ch);
             break;
         }
+    }
+    if (is_to_value) {
+        output.push_back(L'"');
     }
     return output;
 }
@@ -2476,9 +2493,58 @@ bool hmc_string_util::any_to_string(any input, wstring &output)
 std::wstring hmc_string_util::getPathBaseName(const std::wstring &path)
 {
     size_t lastSlashIndex = path.find_last_of(L"\\/");
+    if (lastSlashIndex != std::wstring::npos)
+    {
+        return path.substr(lastSlashIndex + 1);
+    }
+    return path;
+}
+
+std::string hmc_string_util::getPathBaseName(const std::string& path)
+{
+    size_t lastSlashIndex = path.find_last_of("\\/");
     if (lastSlashIndex != std::string::npos)
     {
         return path.substr(lastSlashIndex + 1);
     }
     return path;
 }
+
+
+std::wstring hmc_string_util::unicodeStringToWString(UNICODE_STRING unicodeString)
+{
+    std::wstring result;
+    if (unicodeString.Buffer)
+    {
+        result = std::wstring(unicodeString.Buffer, unicodeString.Length / sizeof(wchar_t));
+    }
+    return result;
+}
+
+
+std::wstring hmc_string_util::push_json_value(wstring key, any value,bool is_append, bool esp_type) {
+    std::wstring result;
+    if (is_append) {
+        result.append(L",");
+    }
+    result.append(hmc_string_util::escapeJsonString(key,true));
+    result.append(L":");
+    wstring output;
+
+    if (any_to_string(value, output)) {
+        if (is_int(value)) {
+            result.append(output);
+        }
+        //else if (is)(value)) {
+
+        //}
+        else {
+            result.append(hmc_string_util::escapeJsonString(output, (esp_type?true:false)));
+       }
+    }
+    else {
+        result.append(hmc_string_util::escapeJsonString(L"undefined", false));
+    }
+    
+    return result;
+ }

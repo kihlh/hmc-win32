@@ -15,6 +15,7 @@
 #include <tuple>
 #include <limits>    // For numeric_limits
 #include <stdexcept> // For overflow_error
+#include <winternl.h>
 
 using namespace std;
 
@@ -63,6 +64,8 @@ using namespace std;
                        << "<" << __FUNCSIG__ << " @ " << __LINE__ << "> "                     \
                        << "unknown" << endl; };
 
+
+
 namespace hmc_string_util
 {
 
@@ -85,6 +88,14 @@ namespace hmc_string_util
      * @return std::wstring 
      */
     extern std::wstring getPathBaseName(const std::wstring& path);
+
+    /**
+     * @brief 获取路径的文件名
+     *
+     * @param path
+     * @return std::wstring
+     */
+    extern std::string getPathBaseName(const std::string& path);
     /**
      * @brief 判断这个vec是否可以被 hmc string 工具转换到json
      * 
@@ -224,8 +235,8 @@ namespace hmc_string_util
     extern void split(string &sourcePtr, char splitter, vector<string> &item_list);
 
     // 转义json文本
-    extern wstring escapeJsonString(const wstring &input);
-    extern string escapeJsonString(const string &input);
+    extern wstring escapeJsonString(const wstring &input,bool is_to_value = false);
+    extern string escapeJsonString(const string &input, bool is_to_value = false);
 
     // 替换单次
     extern void replace(wstring &sourcePtr, const wstring from, const wstring to);
@@ -497,6 +508,9 @@ namespace hmc_string_util
      */
     extern std::wstring removeNullCharactersAll(std::wstring str);
 
+    extern std::wstring unicodeStringToWString(UNICODE_STRING unicodeString);
+    
+    extern std::wstring push_json_value(wstring key,any value, bool is_append = false,bool esp_type = true );
 };
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_STRING_UTIL_HPP

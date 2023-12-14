@@ -2,8 +2,9 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js $(TargetPath)</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
@@ -11,9 +12,10 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js $(TargetPath)</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>node_x86.exe</LocalDebuggerCommand>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
