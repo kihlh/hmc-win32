@@ -116,19 +116,19 @@ import  HMC = require("hmc-win32");
 
 - **getPointWindowMain** Get the parent window of the window where the mouse is located
 
-- **getHandleProcessID** Get the process ID corresponding to the handle
+- **getWindowProcess** Get the process ID corresponding to the handle
 
-- **getProcessHandle** Get the handle of the main process/thread corresponding to the process
+- **getProcessWindow** Get the handle of the main process/thread corresponding to the process
 
-- **lookHandleGetTitle** Get the title of the handle
+- **getWindowTitle** Get the title of the handle
 
-- **lookHandleSetTitle** Set the title of the handle
+- **setWindowTitle** Set the title of the handle
 
-- **lookHandleShowWindow** Set the window display state through the handle
+- **setShowWindow** Set the window display state through the handle
 
-- **isHandleWindowVisible** Determine if the handle is an active window
+- **isWindowVisible** Determine if the handle is an active window
 
-- **lookHandleCloseWindow** Close the window corresponding to the handle
+- **closeWindow** Close the window corresponding to the handle
 
 - **getForegroundWindow** Get the handle of the active window
 
@@ -138,7 +138,7 @@ import  HMC = require("hmc-win32");
 
 - **setWindowTop** Set the window to the top
 
-- **hasWindowTop** Check if the window is set to the top
+- **setWindowShake** Check if the window is set to the top
 
 - **windowJitter** Shake the window
 
@@ -163,7 +163,6 @@ import  HMC = require("hmc-win32");
 - **getAllWindowsHandle** Get all handles and return a pseudo-number method set of HWND (replacement of getAllWindows, no impact on getting 200,000 processes)
 
 - **HWND** (class) Number (mapping)
-
   - **HWND** number
   - **closed** Close handle forcefully
   - **close** Send a close message to the window
@@ -187,17 +186,17 @@ import  HMC = require("hmc-win32");
   - **isEnabled** Check if it is disabled
   - **setJitter** Window jitter
   - **isTop** Check if it is set to top
-  - **setTopOrCancel** Cancel/set as top window
-  - **setOpacity** Set opacity 0-100 / 0.0-1.0
-  - **setTransparent** Set transparency
-  - **enumChildWindows** Enumerate the child windows of the handle
-  - **setWindowTitleIcon** Set the window title icon
-  - **getWindowClassName** Get the window class name
-  - **getAllWindowsHandle** Get the handles of all windows (Add an additional parameter to specify if only windows are required)
-  - **setForegroundWindow** Set the window focus
-  - **getAllWindows** Default isWindows=true
-  - **getWindowStyle** Get the window class style code
-  - **setWindowIconForExtract** Set the window icon using an executable file or a file with an icon
+- **setTopOrCancel** Cancel/set as top window
+- **setOpacity** Set opacity 0-100 / 0.0-1.0
+- **setTransparent** Set transparency  0-255 (alpha)
+- **enumChildWindows** Enumerate the child windows of the handle
+- **setWindowTitleIcon** Set the window title icon
+- **getWindowClassName** Get the window class name
+- **getAllWindowsHandle** Get the handles of all windows (Add anadditional parameter to specify if only windows are required)
+- **setForegroundWindow** Set the window focus
+- **getAllWindows** Default isWindows=true
+- **getWindowStyle** Get the window class style code
+- **setWindowIconForExtract** Set the window icon using an executable file or a file with an icon
 
 ### Process Control
 
@@ -206,11 +205,11 @@ import  HMC = require("hmc-win32");
   - **openApp** Open an application
   - **getProcessList** Get the list of processes
   - **getDetailsProcessList** Get the detailed process list (slow, 20ms delay)
-  - **getProcessHandle** Get the window handle for the main process/thread corresponding to the process
+  - **getProcessWindow** Get the window handle for the main process/thread corresponding to the process
   - **getProcessName** Get the process name
-  - **getProcessidFilePath** Get the file path of the executable for the process
+  - **getProcessFilePath** Get the file path of the executable for the process
   - **getForegroundWindowProcessID** Get the process ID of the active window
-  - **getHandleProcessID** Get the process ID corresponding to the handle
+  - **getWindowProcess** Get the process ID corresponding to the handle
   - **isProcess** Check if the process ID exists
   - **hasProcess** Check if the process ID exists
   - **killProcessName** Terminate the process with the given name or (regular expression) matching process name

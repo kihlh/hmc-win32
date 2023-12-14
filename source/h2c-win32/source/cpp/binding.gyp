@@ -1,12 +1,13 @@
 {
   "targets": [
     {
-      "target_name": "HMC_X64",
+      "target_name": "hmc_debug",
       "conditions": [
         ['OS=="win"', {
           "sources": [
-            "./util/hmc_string_util.cpp",
-            "./util/napi_value_util.cpp",
+            "../../../util/hmc_string_util.cpp",
+            "../../../util/napi_value_util.cpp",
+            "temp.cpp",
             "Main.cpp",
           ],
           'msvs_settings': {

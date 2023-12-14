@@ -25,6 +25,7 @@ const Hkey = {
 };
 
 
+
 /**
  * @zh-cn 静态调用 hmc.dll (注意如果您不知道这个是什么作用 请勿随意调用 参数错误有可能会导致进程崩溃)
  * @en-us Static call to hmc.dll (Note that if you don't know what this does, don't call it at random.  Parameter errors may cause the process to crash)
@@ -243,58 +244,16 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             // getProcessidFilePath_v2:fnStr,
             // hasProcess_v2:fnBool,
             getProcessidFilePathAsync: fnPromise,
-            /**
- * 获取指定id的  [Session Promise] 的所有已经完成的内容 同时回收空间
- * @param SessionID 内容id
- * @param size 最多取出多少个
- * @default 999
- */
             _PromiseSession_get: fnNull,
-            /**
-             * 判断指定的  [Session Promise] 是否已经结束
-             * @param SessionID id
-             */
             _PromiseSession_isClosed: fnBool,
-            /**
-             * 停止一个  [Session Promise] 事件
-             * @param SessionID id
-             */
             _PromiseSession_stop: fnVoid,
-            /**
-             * 获取当前  Session ID 已经到哪里了
-             */
             _PromiseSession_max_id: fnNum,
-            /**
-             * 获取指定的id存在了多少个数据
-             * @param SessionID id
-             */
             _PromiseSession_data_size: fnNum,
-            /**
-             * 设置每次获取 Session Promise 的毫秒数
-             * @param sleep_time 毫秒
-             * @default 5 ms
-             */
             _PromiseSession_set_sleep_time: fnNum,
-            /**
-             * 将  [Session Promise] 转为同步
-             * @param SessionID id
-             */
             _PromiseSession_await: fnVoid,
-            /**
-             * 所有任务
-             */
             _PromiseSession_allTasks: fnAnyArr,
-            /**
-             * 已经完成的任务
-             */
             _PromiseSession_completeTasks: fnAnyArr,
-            /**
-             * 进行中的任务
-             */
             _PromiseSession_ongoingTasks: fnAnyArr,
-            /**
-             * 当前的sleep ms 
-             */
             _PromiseSession_get_sleep_time: fnNum,
         }
     })();
@@ -535,6 +494,21 @@ export class HWND extends Number {
 
 // 类型
 export module HMC {
+    // hmc的底层函数集
+    export type G_HMC_NATIVE = {
+        _PromiseSession_get: HMC.Native["_PromiseSession_get"],
+        _PromiseSession_isClosed:HMC.Native["_PromiseSession_isClosed"],
+        _PromiseSession_stop:HMC.Native["_PromiseSession_stop"],
+        _PromiseSession_max_id:HMC.Native["_PromiseSession_max_id"],
+        _PromiseSession_data_size:HMC.Native["_PromiseSession_data_size"],
+        _PromiseSession_set_sleep_time:HMC.Native["_PromiseSession_set_sleep_time"],
+        _PromiseSession_await:HMC.Native["_PromiseSession_await"],
+        _PromiseSession_ongoingTasks:HMC.Native["_PromiseSession_ongoingTasks"],
+        _PromiseSession_completeTasks:HMC.Native["_PromiseSession_completeTasks"],
+        _PromiseSession_get_sleep_time:HMC.Native["_PromiseSession_get_sleep_time"],
+        _PromiseSession_allTasks:HMC.Native["_PromiseSession_allTasks"],
+    }
+
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
      */
@@ -6288,13 +6262,13 @@ export function updateThis(remove?: boolean, update_add?: boolean, append?: bool
 }
 
 
-export const getWindowProcess = getHandleProcessID  ;
-export const getProcessWindow = getProcessHandle  ;
-export const isWindowVisible = isHandleWindowVisible  ;
-export const closeWindow = lookHandleCloseWindow  ;
-export const setWindowShake = windowJitter  ;
-export const isWindowTop = hasWindowTop  ;
-export const getProcessFilePath = getProcessidFilePath ;
+export const getWindowProcess = getHandleProcessID;
+export const getProcessWindow = getProcessHandle;
+export const isWindowVisible = isHandleWindowVisible;
+export const closeWindow = lookHandleCloseWindow;
+export const setWindowShake = windowJitter;
+export const isWindowTop = hasWindowTop;
+export const getProcessFilePath = getProcessidFilePath;
 
 export const Environment = {
     hasKeyExists,
@@ -6320,7 +6294,7 @@ export const Environment = {
 
 export const Registr = registr;
 export const hmc = {
-    getWindowProcess,getProcessWindow,isWindowVisible,closeWindow,setWindowShake,isWindowTop,getProcessFilePath,
+    getWindowProcess, getProcessWindow, isWindowVisible, closeWindow, setWindowShake, isWindowTop, getProcessFilePath,
     Auto,
     Clipboard,
     HMC,

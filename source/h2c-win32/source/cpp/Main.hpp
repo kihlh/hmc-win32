@@ -17,8 +17,6 @@ using namespace std;
 #include <algorithm>
 #include <map>
 
-#include "./util/hmc_string_util.hpp"
-#include "./util/napi_value_util.hpp"
 
 using namespace std;
 

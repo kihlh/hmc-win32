@@ -1,49 +1,44 @@
 
 #include "./Main.hpp"
 
-using namespace std;
+#include "./util/hmc_string_util.hpp"
+#include "./util/napi_value_util.hpp"
 
-static napi_value mode(napi_env env, napi_callback_info info)
+namespace fn_getAllProcessList
 {
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN
 
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_boolean}, true))
+    // NEW_PROMISE_FUNCTION_DEFAULT_FUN end
+    any PromiseWorkFunc(vector<any> arguments_list)
     {
-        return NULL;
+        any result = any();
+        return result;
     }
 
-    LPSTR output = hmc_AllocVS(LPSTR, 1024);
-    hmc_FreeVSAuto(output);
-
-    return NULL;
-}
-
-static napi_value mode2(napi_env env, napi_callback_info info)
-{
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
-
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_boolean}, true))
+    napi_value format_to_js_value(napi_env env, any result_any_data)
     {
-        return NULL;
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        return result;
     }
-
-    LPSTR output = hmc_AllocVS(LPSTR, 1024);
-    hmc_FreeVSAuto(output);
-
-    return NULL;
-}
-
+};
 
 static napi_value Init(napi_env env, napi_value exports)
 {
 
     napi_property_descriptor BIND_NAPI_METHOD[] = {
-        EXPORT_NAPI_STATIC_FN(mode),
-
-    };
+        ___EXPORT_NAPI_REMOTE_FN____PROMISE_SESSION};
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
+
+    fn_getAllProcessList::exports(env,exports,"fn_getAllProcessList");
+    fn_getAllProcessList::exportsSync(env, exports, "fn_getAllProcessListSync");
+
     return exports;
 }
 

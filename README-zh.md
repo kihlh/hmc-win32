@@ -108,19 +108,19 @@ import  HMC = require("hmc-win32");
 - **getPointWindowProcessId** 获取鼠标所在窗口的进程id
 - **getPointWindowMain**  获取鼠标所在窗口的父窗口
 - **getPointWindowMain** 获取鼠标所在窗口的父窗口
-- **getHandleProcessID** 获取句柄对应的进程id
-- **getProcessHandle** 获取进程对应的主进程/线程的窗口句柄
-- **lookHandleGetTitle** 获取此句柄的标题
-- **lookHandleSetTitle** 设置此句柄的标题
-- **lookHandleShowWindow** 通过句柄设置窗口显示状态
-- **isHandleWindowVisible** 判断此句柄是否是正在活动中的窗口
-- **lookHandleCloseWindow** 关闭此句柄对应的窗口
+- **getWindowProcess** 获取句柄对应的进程id
+- **getProcessWindow** 获取进程对应的主进程/线程的窗口句柄
+- **getWindowTitle** 获取此句柄的标题
+- **setWindowTitle** 设置此句柄的标题
+- **setShowWindow** 通过句柄设置窗口显示状态
+- **isWindowVisible** 判断此句柄是否是正在活动中的窗口
+- **closeWindow** 关闭此句柄对应的窗口
 - **getForegroundWindow** 获取活动窗口句柄
 - **getAllWindows** 获取所有窗口的信息  
 - **getMainWindow** 获取该句柄下的父窗口
 - **setWindowTop** 顶设窗口
-- **hasWindowTop** 窗口是否被顶设
-- **windowJitter** 窗口抖动
+- **isWindowTop** 窗口是否被顶设
+- **setWindowShake** 窗口抖动
 - **updateWindow** 刷新窗口
 - **setWindowFocus** 设置窗口聚焦
 - **setWindowEnabled** 设置窗口是否支持响应事件(鼠标键盘点击)
@@ -155,9 +155,9 @@ import  HMC = require("hmc-win32");
   - **isEnabled** 是否禁用
   - **setJitter** 窗口抖动
   - **isTop** 是否顶设
-  - **setTopOrCancel**  取消顶设 / 设置顶设
-  - **setOpacity**  设置 不透明度 0-100  / 0.0-1.0
-  - **setTransparent** 设置 不透明度
+- **setTopOrCancel**  取消顶设 / 设置顶设
+- **setOpacity**  设置 不透明度 0-100  / 0.0-1.0
+- **setTransparent** 设置 不透明度  0-255 (alpha)
 - **enumChildWindows** 枚举句柄的子窗口
 - **setWindowTitleIcon**  设置标题窗口图标icon
 - **getWindowClassName** 获取窗口类名
@@ -176,11 +176,11 @@ import  HMC = require("hmc-win32");
 - **openApp** 打开程序
 - **getProcessList** 获取进程列表
 - **getDetailsProcessList** 获取详细进程列表（慢20ms）
-- **getProcessHandle** 获取进程对应的主进程/线程的窗口句柄
+- **getProcessWindow** 获取进程对应的主进程/线程的窗口句柄
 - **getProcessName** 获取进程名
-- **getProcessidFilePath** 获取进程可执行文件位置
+- **getProcessFilePath** 获取进程可执行文件位置
 - **getForegroundWindowProcessID** 获取活动窗口的进程id
-- **getHandleProcessID** 获取句柄对应的进程id
+- **getWindowProcess** 获取句柄对应的进程id
 - **isProcess** 判断进程id 是否存在
 - **hasProcess** 判断进程id 是否存在
 - **killProcessName** 结束该名称 /(正则)匹配的   进程

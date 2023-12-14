@@ -23,3 +23,8 @@ source/CPP_Reconfig/util/dll/hmc_win32_gui_lib/Release
 source/CPP_Reconfig/util/dll/hmc_win32_gui_lib/.vs
 source/CPP_Reconfig/build/
 Debug/
+Release/
+x64_Release/
+x86_Release/
+x64_Debug/
+x86_Debug/
