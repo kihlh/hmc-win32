@@ -534,6 +534,7 @@ export module HMC {
         /**进程名。 */
         szExeFile: string;
     };
+
     /**
      * 是一个结构体，它定义在 `tlhelp32.h` 头文件中。它描述了在系统执行快照时正在执行的线程列表中的条目
      */
@@ -852,6 +853,43 @@ export module HMC {
         /**设备供应商对其设备的控制或者设备控制组的特定用途建议 */
         usUsagePage: number;
     };
+
+    export type PROCESSENTRY_V2 = HMC.PROCESSENTRY & { name: string, pid: number, ppid: number };
+
+    export interface PSYSTEM_PROCESS_INFORMATION{
+        // 下一个结构体实例的偏移量，用于遍历多个结构体。
+        NextEntryOffset: number;
+        // 进程线程数量。
+        NumberOfThreads: number;
+        // 进程的镜像名称
+        ImageName: string;
+        // 进程的基本优先级。
+        BasePriority: number;
+        // 进程的唯一标识符。(pid)
+        UniqueProcessId: number;
+        // 进程的句柄数。
+        HandleCount: number;
+        // 进程所在的会话 ID。
+        SessionId: number;
+        // 进程的峰值虚拟内存大小。
+        PeakVirtualSize: number;
+        // 进程的虚拟内存大小。
+        VirtualSize: number;
+        // 进程的峰值工作集大小。
+        PeakWorkingSetSize: number;
+        // 进程的实际工作集大小。
+        WorkingSetSize: number;
+        // 分配给进程的分页池配额使用量。
+        QuotaPagedPoolUsage: number;
+        // 分配给进程的非分页池配额使用量。非分页池是内核提供的内存池，用于驻留在物理内存中，并且不会被换出到磁盘页面文件。该字段表示进程当前使用的非分页池内存大小。
+        QuotaNonPagedPoolUsage: number;
+        // 进程的页面文件使用量。页面文件是用于交换进程数据的虚拟内存扩展，当物理内存不足时，部分数据会被交换到页面文件中以释放内存。
+        PagefileUsage: number;
+        // 进程的峰值页面文件使用量。这是进程在其生命周期内达到的最高页面文件使用量。
+        PeakPagefileUsage: number;
+        // 进程的私有页计数。私有页是进程专用的虚拟内存页面，不被其他进程共享。
+        PrivatePageCount: number;      
+    }
 
     export type Native = {
         _SET_HMC_DEBUG(): boolean;

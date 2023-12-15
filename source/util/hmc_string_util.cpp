@@ -2225,7 +2225,8 @@ bool hmc_string_util::is_int(any input)
         ___hmc_string_util_eq(unsigned long) ||
         ___hmc_string_util_eq(unsigned long long) ||
         ___hmc_string_util_eq(int) ||
-        ___hmc_string_util_eq(long))
+        ___hmc_string_util_eq(long long) ||
+        ___hmc_string_util_eq(long)) 
     {
         return true;
     }

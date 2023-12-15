@@ -4,6 +4,13 @@
 // #include "./environment.hpp";
 // #include "./fmt11.hpp";
 
+/**
+ * @brief 枚举进程快照
+ *
+ * @param pid_list 过滤指定的pid {0,4,8,16} 就只会匹配此范围要求
+ * @param early_result  满足条件时候立即跳出
+ * @return vector<HMC_PROCESSENTRY32W>
+ */
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result)
 {
     vector<HMC_PROCESSENTRY32W> result = {};
@@ -65,6 +72,14 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool earl
 
     return result;
 }
+
+/**
+ * @brief 枚举进程快照 pid范围 例如 0-99
+ *
+ * @param Start
+ * @param End
+ * @return vector<HMC_PROCESSENTRY32W>
+ */
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End)
 {
     vector<DWORD> pid_list;
@@ -77,6 +92,57 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End)
         return GetProcessSnapshot(pid_list, true);
     }
     return {};
+}
+
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot()
+{
+    vector<HMC_PROCESSENTRY32W> result = {};
+
+    DWORD PID = 0;
+    HANDLE hProcessSnapshot;
+    PROCESSENTRY32W PE32;
+
+    // gc
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
+                                              {
+        if (hProcessSnapshot != NULL) {
+            ::CloseHandle(hProcessSnapshot);
+        } });
+
+    hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+    if (hProcessSnapshot == INVALID_HANDLE_VALUE)
+    {
+        return result;
+    }
+
+    PE32.dwSize = sizeof(PROCESSENTRY32W);
+
+    if (!Process32FirstW(hProcessSnapshot, &PE32))
+    {
+        return result;
+    }
+
+    do
+    {
+
+        HMC_PROCESSENTRY32W data = HMC_PROCESSENTRY32W{
+            PE32.dwSize + 0,
+            PE32.cntUsage + 0,
+            PE32.th32ProcessID + 0,
+            (DWORD)PE32.th32DefaultHeapID + 0,
+            PE32.th32ModuleID + 0,
+            PE32.cntThreads + 0,
+            PE32.th32ParentProcessID + 0,
+            (DWORD)PE32.pcPriClassBase,
+            PE32.dwFlags + 0,
+            wstring(PE32.szExeFile),
+        };
+
+        result.push_back(data);
+
+    } while (Process32NextW(hProcessSnapshot, &PE32));
+
+    return result;
 }
 
 DWORD GetParentProcessID(DWORD processID)
@@ -397,7 +463,7 @@ namespace Promise_getProcessidFilePath
         if (addon_data->work != NULL)
         {
             work_message.append("error < Promise workspace has not been released. > ");
-            //napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());
+            // napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());
             return NULL;
         }
 
@@ -500,8 +566,8 @@ napi_value fn_getProcessidFilePath_$SP(napi_env env, napi_callback_info info)
                EnableShutDownPriv();
                wstring path_tmep = GetProcessIdFilePathW(ProcessId, is_snapshot_match);
                hmc_PromiseSession::send(SessionID, path_tmep);
-               hmc_PromiseSession::end(SessionID);
-           },SessionID, ProcessId, is_snapshot_match)
+               hmc_PromiseSession::end(SessionID); },
+           SessionID, ProcessId, is_snapshot_match)
         .detach();
     return hmc_napi_create_value::Number(env, (int64_t)SessionID);
 }
@@ -566,7 +632,8 @@ void GetAllProcessListv2_$SP(size_t SessionID, bool is_pid, bool is_Name, bool i
                 }
             }
 
-            if (is_Snapshot_info) {
+            if (is_Snapshot_info)
+            {
                 Process.insert(pair<wstring, wstring>(L"cntThreads", to_wstring(PE32.cntThreads)));
                 Process.insert(pair<wstring, wstring>(L"cntUsage", to_wstring(PE32.cntUsage)));
                 Process.insert(pair<wstring, wstring>(L"dwFlags", to_wstring(PE32.dwFlags)));

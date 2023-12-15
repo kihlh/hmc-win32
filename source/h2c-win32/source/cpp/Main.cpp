@@ -289,7 +289,7 @@ BOOL EnableShutDownPriv()
 
 namespace fn_getAllProcessList
 {
-    NEW_PROMISE_FUNCTION_DEFAULT_FUN;
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
     
     wstring GetAllProcessList(bool is_execPath) {
        
@@ -358,6 +358,57 @@ namespace fn_getAllProcessList
 };
 
 
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot()
+{
+    vector<HMC_PROCESSENTRY32W> result = {};
+
+    DWORD PID = 0;
+    HANDLE hProcessSnapshot;
+    PROCESSENTRY32W PE32;
+
+    // gc
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
+        {
+            if (hProcessSnapshot != NULL) {
+                ::CloseHandle(hProcessSnapshot);
+            } });
+
+    hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+    if (hProcessSnapshot == INVALID_HANDLE_VALUE)
+    {
+        return result;
+    }
+
+    PE32.dwSize = sizeof(PROCESSENTRY32W);
+
+    if (!Process32FirstW(hProcessSnapshot, &PE32))
+    {
+        return result;
+    }
+
+    do
+    {
+
+        HMC_PROCESSENTRY32W data = HMC_PROCESSENTRY32W{
+            PE32.dwSize + 0,
+            PE32.cntUsage + 0,
+            PE32.th32ProcessID + 0,
+            (DWORD)PE32.th32DefaultHeapID + 0,
+            PE32.th32ModuleID + 0,
+            PE32.cntThreads + 0,
+            PE32.th32ParentProcessID + 0,
+            (DWORD)PE32.pcPriClassBase,
+            PE32.dwFlags + 0,
+            wstring(PE32.szExeFile),
+        };
+
+        result.push_back(data);
+
+    } while (Process32NextW(hProcessSnapshot, &PE32));
+
+    return result;
+}
+
 
 
 // 定义 ZwQuerySystemInformation 函数签名
@@ -367,16 +418,17 @@ typedef NTSTATUS(NTAPI* ZwQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS, PV
 #define STATUS_SUCCESS 0x00000000
 
 
-
 namespace fn_getAllProcessNtList
 {
-    NEW_PROMISE_FUNCTION_DEFAULT_FUN;
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
+    // NEW_PROMISE_FUNCTION_DEFAULT_FUN end
+
     wstring GetAllProcessList() {
 
         wstring jsonValue = L"[";
 
         // 加载 ntdll.dll
-        HMODULE ntdll = LoadLibraryA("ntdll.dll");
+        HMODULE ntdll = LoadLibraryW(L"ntdll.dll");
         if (ntdll == NULL) {
             return L"[]";
         }
@@ -416,9 +468,9 @@ namespace fn_getAllProcessNtList
         while (processInfo->NextEntryOffset) {
             auto ImageName = hmc_string_util::unicodeStringToWString(processInfo->ImageName);
             
-            jsonValue.append(L"{\"name\":");
-            jsonValue.append(hmc_string_util::escapeJsonString(ImageName,true));
-            jsonValue.append(hmc_string_util::push_json_value(L"pid", to_wstring((INT64)processInfo->UniqueProcessId) ,true, false));
+            jsonValue.append(L"{");
+            jsonValue.append(hmc_string_util::push_json_value(L"ImageName", ImageName , false, true));
+            jsonValue.append(hmc_string_util::push_json_value(L"UniqueProcessId", to_wstring((INT64)processInfo->UniqueProcessId) ,true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"BasePriority", to_wstring((INT64)processInfo->BasePriority), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"NextEntryOffset", to_wstring((INT64)processInfo->NextEntryOffset), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"NumberOfThreads", to_wstring((INT64)processInfo->NumberOfThreads), true, false));
@@ -428,27 +480,24 @@ namespace fn_getAllProcessNtList
 
             jsonValue.append(hmc_string_util::push_json_value(L"PeakWorkingSetSize", to_wstring((INT64)processInfo->PeakWorkingSetSize), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"QuotaNonPagedPoolUsage", to_wstring((INT64)processInfo->QuotaNonPagedPoolUsage), true, false));
-            jsonValue.append(hmc_string_util::push_json_value(L"Reserved1", to_wstring((INT64)processInfo->Reserved1), true,false));
+           /* jsonValue.append(hmc_string_util::push_json_value(L"Reserved1", to_wstring((INT64)processInfo->Reserved1), true,false));
             jsonValue.append(hmc_string_util::push_json_value(L"Reserved2", to_wstring((INT64)processInfo->Reserved2), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"Reserved3", to_wstring((INT64)processInfo->Reserved3), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"Reserved4", to_wstring((INT64)processInfo->Reserved3), true, false));
             jsonValue.append(hmc_string_util::push_json_value(L"Reserved5", to_wstring((INT64)processInfo->Reserved4), true, false));
-            jsonValue.append(hmc_string_util::push_json_value(L"Reserved6", to_wstring((INT64)processInfo->Reserved6), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"Reserved6", to_wstring((INT64)processInfo->Reserved6), true, false));*/
 
             jsonValue.append(L"}");
-            jsonValue.append(L",");
             processInfo = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)processInfo + processInfo->NextEntryOffset);
-        }
-        
-        if (bufferSize != 0) {
-            jsonValue.pop_back();
+            if (processInfo->NextEntryOffset) {
+                jsonValue.append(L",");
+            }
         }
 
         jsonValue.append(L"]");
         return jsonValue;
     }
 
-    // NEW_PROMISE_FUNCTION_DEFAULT_FUN end
     any PromiseWorkFunc(vector<any> arguments_list)
     {
         any result = GetAllProcessList();
@@ -471,6 +520,62 @@ namespace fn_getAllProcessNtList
 };
 
 
+namespace fn_getAllProcessSnpList
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        wstring result = L"[";
+
+        vector<HMC_PROCESSENTRY32W> ProcessSnapshot_list = GetProcessSnapshot();
+        
+        size_t leng = ProcessSnapshot_list.size();
+        for (size_t i = 0; i < leng; i++)
+        {
+            auto data = ProcessSnapshot_list.at(i);
+            wstring item = L"{";
+            item.append(hmc_string_util::push_json_value(L"szExeFile", data.szExeFile, false, true));
+            item.append(hmc_string_util::push_json_value(L"th32ProcessID", to_wstring(data.th32ProcessID), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32ParentProcessID", to_wstring(data.th32ParentProcessID), true, false));
+            item.append(hmc_string_util::push_json_value(L"cntThreads", to_wstring(data.cntThreads), true, false));
+            item.append(hmc_string_util::push_json_value(L"cntUsage", to_wstring(data.cntUsage), true, false));
+            item.append(hmc_string_util::push_json_value(L"dwFlags", to_wstring(data.dwFlags), true, false));
+            item.append(hmc_string_util::push_json_value(L"dwSize", to_wstring(data.dwSize), true, false));
+            item.append(hmc_string_util::push_json_value(L"pcPriClassBase", to_wstring(data.pcPriClassBase), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32DefaultHeapID", to_wstring(data.th32DefaultHeapID), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32ModuleID", to_wstring(data.th32ModuleID), true, false));
+
+            item.append(L"}");
+
+            if (i < leng-1) {
+                item.push_back(L',');
+            }
+
+            result.append(item);
+        }
+
+        result.append(L"]");
+        return result;
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+
+   
+}
+
 
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -481,8 +586,13 @@ static napi_value Init(napi_env env, napi_value exports)
 
     fn_getAllProcessList::exports(env,exports,"getAllProcessList");
     fn_getAllProcessList::exportsSync(env, exports, "getAllProcessListSync");
-    fn_getAllProcessNtList::exports(env, exports, "getAllProcessListNtSync");
-    fn_getAllProcessNtList::exportsSync(env, exports, "getAllProcessListNt");
+
+    fn_getAllProcessNtList::exports(env, exports, "getAllProcessListNt");
+    fn_getAllProcessNtList::exportsSync(env, exports, "getAllProcessListNtSync");
+
+    fn_getAllProcessSnpList::exports(env, exports, "getAllProcessListSnp");
+    fn_getAllProcessSnpList::exportsSync(env, exports, "getAllProcessListSnpSync");
+
     return exports;
 }
 
