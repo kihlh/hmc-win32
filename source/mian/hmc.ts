@@ -6908,7 +6908,7 @@ export async function findProcess2(ProcessName: string | RegExp | number, isMact
             const Process = ProcessList[index];
             if (typeof ProcessName == "string") {
                 // @ts-expect-error
-                if (Process.name.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
+                if (Process?.name?.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
                     result.push(Process);
 
                 }
@@ -6925,7 +6925,7 @@ export async function findProcess2(ProcessName: string | RegExp | number, isMact
             }
             else {
                 // @ts-expect-error
-                if (Process.name.match(ProcessName) || (typeof Process?.path == "string") ? Process.path.match(ProcessName) : false) {
+                if (Process?.name?.match(ProcessName) || (typeof Process?.path == "string") ? Process?.path?.match(ProcessName) : false) {
                     result.push(Process);
                 }
             }
@@ -6949,7 +6949,7 @@ export function findProcess2Sync(ProcessName: string | RegExp | number, isMacthF
     for (let index = 0; index < ProcessList.length; index++) {
         const Process = ProcessList[index];
         if (typeof ProcessName == "string") {
-            if (Process.name.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
+            if (Process?.name?.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
                 result.push(Process);
             }
         }
@@ -6964,7 +6964,7 @@ export function findProcess2Sync(ProcessName: string | RegExp | number, isMacthF
             }
         }
         else {
-            if (Process.name.match(ProcessName) || (typeof Process?.path == "string") ? Process.path.match(ProcessName) : false) {
+            if (Process?.name?.match(ProcessName) || (typeof Process?.path == "string") ? Process?.path?.match(ProcessName) : false) {
                 result.push(Process);
             }
         }

@@ -4311,13 +4311,13 @@ function getProcessName2Sync(ProcessID) {
 }
 async function findProcess2(ProcessName, isMacthFile = false) {
   return new Promise(async (resolve, reject) => {
-    var _a;
+    var _a, _b, _c, _d;
     let result = [];
     let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
     for (let index = 0; index < ProcessList.length; index++) {
       const Process2 = ProcessList[index];
       if (typeof ProcessName == "string") {
-        if (Process2.name.includes(ProcessName) || ((_a = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _a.includes(ProcessName))) {
+        if (((_a = Process2 == null ? void 0 : Process2.name) == null ? void 0 : _a.includes(ProcessName)) || ((_b = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _b.includes(ProcessName))) {
           result.push(Process2);
         }
       } else if (typeof ProcessName == "number") {
@@ -4328,7 +4328,7 @@ async function findProcess2(ProcessName, isMacthFile = false) {
           result.push(Process2);
         }
       } else {
-        if (Process2.name.match(ProcessName) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? Process2.path.match(ProcessName) : false) {
+        if (((_c = Process2 == null ? void 0 : Process2.name) == null ? void 0 : _c.match(ProcessName)) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? (_d = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _d.match(ProcessName) : false) {
           result.push(Process2);
         }
       }
@@ -4337,13 +4337,13 @@ async function findProcess2(ProcessName, isMacthFile = false) {
   });
 }
 function findProcess2Sync(ProcessName, isMacthFile = false) {
-  var _a;
+  var _a, _b, _c, _d;
   let result = [];
   let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
   for (let index = 0; index < ProcessList.length; index++) {
     const Process2 = ProcessList[index];
     if (typeof ProcessName == "string") {
-      if (Process2.name.includes(ProcessName) || ((_a = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _a.includes(ProcessName))) {
+      if (((_a = Process2 == null ? void 0 : Process2.name) == null ? void 0 : _a.includes(ProcessName)) || ((_b = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _b.includes(ProcessName))) {
         result.push(Process2);
       }
     } else if (typeof ProcessName == "number") {
@@ -4354,7 +4354,7 @@ function findProcess2Sync(ProcessName, isMacthFile = false) {
         result.push(Process2);
       }
     } else {
-      if (Process2.name.match(ProcessName) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? Process2.path.match(ProcessName) : false) {
+      if (((_c = Process2 == null ? void 0 : Process2.name) == null ? void 0 : _c.match(ProcessName)) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? (_d = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _d.match(ProcessName) : false) {
         result.push(Process2);
       }
     }
