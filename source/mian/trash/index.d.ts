@@ -951,7 +951,7 @@ declare class hmc_win32 {
      * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
      * @returns
      */
-    messageBox(message: string, title: string, UINT_String: UINT): 1 | 4 | 2 | 3 | 5 | 6 | 7 | 10 | 11;
+    messageBox(message: string, title: string, UINT_String: UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
     /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
     mouse(mouse_event: mouse_event, ms?: number): void;
     /**

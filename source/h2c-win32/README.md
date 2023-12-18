@@ -225,6 +225,63 @@ import  HMC = require("hmc-win32");
   - **enumAllProcessHandle** Enumerate the handles of all process IDs
   - **findProcess** Search for a process
   - **getProcessStartTime** Get the process start time (in ms)
+  - **With "2.0api" at the end, they all support:**
+    - Asynchronous `Promise`
+    - Asynchronous `callback`
+    - Synchronous `Promise`
+    - Concurrent execution
+- **findProcess2**: Search for processes (Asynchronous)
+
+- **findProcess2Sync**: Search for processes (Synchronous)
+
+- **getAllProcessList2**: Get a list of processes (Asynchronous - Enumeration). Enumeration is the fastest method but may not enumerate processes on a 64-bit system where the application is 32-bit. However, the information provided may not be detailed.
+
+  - pid: Process ID
+  - name: Resolved from the image path
+  - path: Image path
+
+- **getAllProcessList2Sync**: Get a list of processes (Synchronous - Enumeration)
+
+- **getAllProcessList2Snp**: Get a list of processes (Asynchronous - Snapshot). Please note that if the executable is 32-bit and the system is 64-bit, information about 64-bit processes will not be retrieved.
+
+  - pid: Process ID
+  - name: Resolved from the image path
+  - ppid: Parent process ID
+  - ... (additional information)
+
+- **getAllProcessListSnp2Sync**: Get a list of processes (Synchronous - Snapshot)
+
+- **getAllProcessListNt2**: Get a list of processes (Asynchronous - Kernel)
+
+  - pid: Process ID
+  - name: Software name
+  - ... (additional information)
+
+- **getAllProcessListNt2Sync**: Get a list of processes (Synchronous - Kernel)
+
+- **getProcessCpuUsage2**: Get CPU usage of a process (Asynchronous)
+
+- **getProcessCpuUsage2Sync**: Get CPU usage of a process (Synchronous)
+
+- **getProcessParentProcessMatch2**: Match parent process information (Asynchronous)
+
+- **getProcessParentProcessMatch2Sync**: Match parent process information (Synchronous)
+
+- **getProcessFilePath2**: Get executable file path of a process (Asynchronous)
+
+- **getProcessFilePath2Sync**: Get executable file path of a process (Synchronous)
+
+- **existProcess2**: Check if a process exists (Asynchronous)
+
+- **existProcess2Sync**: Check if a process exists (Synchronous)
+
+- **getDetailsProcessList2**: For compatibility with old API, export a process list with executable file paths (Asynchronous)
+
+- **getDetailsProcessList2Sync**: For compatibility with old API, export a process list with executable file paths (Synchronous)
+
+- **getProcessName2**: Get the executable file name of a process (Asynchronous)
+
+- **getProcessName2Sync**: Get the executable file name of a process (Synchronous)
 
 ### Status Bar
 

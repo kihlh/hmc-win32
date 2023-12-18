@@ -172,29 +172,97 @@ import  HMC = require("hmc-win32");
 ----------------------------------
 
 - **killProcess** 结束该pid进程
+
 - **sleep** 同步阻塞(进程)
+
 - **openApp** 打开程序
+
 - **getProcessList** 获取进程列表
+
 - **getDetailsProcessList** 获取详细进程列表（慢20ms）
+
 - **getProcessWindow** 获取进程对应的主进程/线程的窗口句柄
+
 - **getProcessName** 获取进程名
+
 - **getProcessFilePath** 获取进程可执行文件位置
+
 - **getForegroundWindowProcessID** 获取活动窗口的进程id
+
 - **getWindowProcess** 获取句柄对应的进程id
+
 - **isProcess** 判断进程id 是否存在
+
 - **hasProcess** 判断进程id 是否存在
+
 - **killProcessName** 结束该名称 /(正则)匹配的   进程
+
 - **processWatchdog** 当监察的进程结束时候执行回调
+
 - **getProcessNameList**  获取该名称 /正则匹配的进程列表
+
 - **getDetailsProcessNameList**  获取该名称 /正则匹配的进程列表 带执行文件路径 慢20ms
+
 - **getModulePathList** 查询进程加载的模块
+
 - **getProcessThreadList** 枚举进程的线程id
+
 - **getProcessParentProcessID** 获取进程的主进程
+
 - **getSubProcessID** 获取子进程id列表
+
 - **enumProcessHandle**  枚举进程id的句柄
+
 - **enumAllProcessHandle** 枚举所有进程id的句柄
+
 - **findProcess** 搜索进程
+
 - **getProcessStartTime** 获取进程启动时间 (ms)
+
+- **findProcess2** 搜索进程 `异步` 
+
+- **findProcess2Sync** 搜索进程 `同步` 
+
+- **getAllProcessList2** `异步` 获取进程列表（枚举） 枚举是最快的也不受应用是32位系统64位导致无法枚举到 但是信息不够细
+
+  - pid 进程id
+  - name 由镜像路径解析
+  - path 镜像路径
+
+- **getAllProcessList2Sync** `同步` 获取进程列表（枚举）
+
+- **getAllProcessList2Snp** `异步` 获取进程列表 (快照)     请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+
+  - pid 进程id
+  - name 由镜像路径解析
+  - ppid 父进程id
+  - ... :  cntThreads cntUsage dwFlags dwSize pcPriClassBase th32DefaultHeapID th32ModuleID
+
+  **getAllProcessListSnp2Sync** `同步` 获取进程列表 (快照)
+
+- **getAllProcessListNt2** `异步` 获取进程列表 (内核)
+
+  - pid 进程id
+  - name 软件名称
+  - BasePriority NextEntryOffset NumberOfThreads PagefileUsage pcPriClassBase PeakPagefileUsage PeakWorkingSetSize QuotaNonPagedPoolUsage Reserved [1-6]
+
+- **getAllProcessListNt2Sync** `同步` 获取进程列表 (内核)
+
+- **getProcessCpuUsage2** `异步` 获取进程占用的cpu
+
+- **getProcessCpuUsage2Sync** `同步` 获取进程占用的cpu
+
+-  **getProcessNameSnpSync** `同步` 获取进程的名称(快照)
+
+-  **getProcessNameSnp** `异步` 获取进程的命令行(快照)
+
+-  **getProcessNameNtSync** `同步` 获取进程的名称(内核)
+
+-  **getProcessNameNt** `异步` 获取进程的命令行(内核)
+
+-  **getProcessNameSync** `同步` 获取进程的名称(正常)
+
+-  **getProcessName** `异步` 获取进程的命令行(正常)
 
 ### 状态栏
 

@@ -139,6 +139,19 @@ export declare class HWND extends Number {
     setTransparent(opacity: number): false | void;
 }
 export declare module HMC {
+    export type G_HMC_NATIVE = {
+        _PromiseSession_get: HMC.Native["_PromiseSession_get"];
+        _PromiseSession_isClosed: HMC.Native["_PromiseSession_isClosed"];
+        _PromiseSession_stop: HMC.Native["_PromiseSession_stop"];
+        _PromiseSession_max_id: HMC.Native["_PromiseSession_max_id"];
+        _PromiseSession_data_size: HMC.Native["_PromiseSession_data_size"];
+        _PromiseSession_set_sleep_time: HMC.Native["_PromiseSession_set_sleep_time"];
+        _PromiseSession_await: HMC.Native["_PromiseSession_await"];
+        _PromiseSession_ongoingTasks: HMC.Native["_PromiseSession_ongoingTasks"];
+        _PromiseSession_completeTasks: HMC.Native["_PromiseSession_completeTasks"];
+        _PromiseSession_get_sleep_time: HMC.Native["_PromiseSession_get_sleep_time"];
+        _PromiseSession_allTasks: HMC.Native["_PromiseSession_allTasks"];
+    };
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
      */
@@ -398,6 +411,29 @@ export declare module HMC {
         /**设备供应商对其设备的控制或者设备控制组的特定用途建议 */
         usUsagePage: number;
     };
+    export type PROCESSENTRY_V2 = HMC.PROCESSENTRY & {
+        name: string;
+        pid: number;
+        ppid: number;
+    };
+    export interface PSYSTEM_PROCESS_INFORMATION {
+        NextEntryOffset: number;
+        NumberOfThreads: number;
+        ImageName: string;
+        BasePriority: number;
+        UniqueProcessId: number;
+        HandleCount: number;
+        SessionId: number;
+        PeakVirtualSize: number;
+        VirtualSize: number;
+        PeakWorkingSetSize: number;
+        WorkingSetSize: number;
+        QuotaPagedPoolUsage: number;
+        QuotaNonPagedPoolUsage: number;
+        PagefileUsage: number;
+        PeakPagefileUsage: number;
+        PrivatePageCount: number;
+    }
     export type Native = {
         _SET_HMC_DEBUG(): boolean;
         /**版本号 */
@@ -473,17 +509,6 @@ export declare module HMC {
         getPointWindowMain: () => number;
         /** 获取鼠标所在位置**/
         getMetrics: () => MousePosn;
-        /**
-         * 判断进程id 是否存在
-         */
-        isProcess(ProcessID: ProcessID): boolean;
-        /**
-         * 判断进程id 是否存在
-         */
-        /** 获取进程名**/
-        getProcessName: (ProcessID: ProcessID) => string | null;
-        /** 获取进程可执行文件位置**/
-        getProcessidFilePath: (ProcessID: ProcessID) => string | null;
         /** 获取活动窗口的进程id**/
         getForegroundWindowProcessID: () => ProcessID | null;
         /** 获取句柄对应的进程id**/
@@ -588,17 +613,13 @@ export declare module HMC {
         showMonitors: () => void;
         /** 获取活动窗口句柄**/
         getForegroundWindow: () => number;
-        /** 获取进程列表**/
-        getProcessList: (ForSleepTime?: number) => enumProcessCont[];
-        /** 获取详细进程列表（慢20ms）**/
-        getDetailsProcessList: (ForSleepTime?: number) => enumProcessContP[];
         /**
-         * 电源控制
-         * - 1001 关机
-         * - 1002 重启
-         * - 1003 注销
-         * - 1005 锁定
-         */
+        * 电源控制
+        * - 1001 关机
+        * - 1002 重启
+        * - 1003 注销
+        * - 1005 锁定
+        */
         powerControl: (Set: 1001 | 1002 | 1003 | 1005) => void;
         /**
          * 打开程序
@@ -918,13 +939,8 @@ export declare module HMC {
          */
         clearEnumAllProcessList(): void;
         /**
-         * 获取进程的主进程
-         * @param ProcessID
-         */
-        getProcessParentProcessID(ProcessID: number): number | null | void;
-        /**
-         * 内联 启动枚举进程快照
-         */
+       * 内联 启动枚举进程快照 与句柄
+       */
         enumAllProcess(): number;
         /**
          * 内联 枚举进程快照结果查询
@@ -1173,11 +1189,146 @@ export declare module HMC {
          * 获取系统变量的键列表
          */
         getSystemKeyList(): string[];
+        _PromiseSession_get(SessionID: number, size?: number): undefined | null | any[];
         /**
-         * 获取进程id的映像路径
-         * @param ProcessID
+         * 判断指定的  [Session Promise] 是否已经结束
+         * @param SessionID id
          */
-        getProcessidFilePathAsync(ProcessID: number): Promise<string>;
+        _PromiseSession_isClosed(SessionID: number): boolean;
+        /**
+         * 停止一个  [Session Promise] 事件
+         * @param SessionID id
+         */
+        _PromiseSession_stop(SessionID: number): void;
+        /**
+         * 获取当前  Session ID 已经到哪里了
+         */
+        _PromiseSession_max_id(): number;
+        /**
+         * 获取指定的id存在了多少个数据
+         * @param SessionID id
+         */
+        _PromiseSession_data_size(SessionID: number): number;
+        /**
+         * 设置每次获取 Session Promise 的毫秒数
+         * @param sleep_time 毫秒
+         * @default 5 ms
+         */
+        _PromiseSession_set_sleep_time(sleep_time: number): number;
+        /**
+         * 将  [Session Promise] 转为同步
+         * @param SessionID id
+         */
+        _PromiseSession_await(SessionID: number): void;
+        /**
+         * 所有任务
+         */
+        _PromiseSession_allTasks(): number[];
+        /**
+         * 已经完成的任务
+         */
+        _PromiseSession_completeTasks(): number[];
+        /**
+         * 进行中的任务
+         */
+        _PromiseSession_ongoingTasks(): number[];
+        /**
+         * 当前的sleep ms
+         */
+        _PromiseSession_get_sleep_time(): number;
+        /**
+         * 获取进程列表（枚举法）
+         * - 枚举是最快的 最安全的 不会出现遗漏
+         * @module 异步
+         * @time  fn() 9.691ms     fn(true)61.681ms
+         * @param is_execPath 需要解析可执行文件路径 (获取延时50ms左右)
+         * @returns
+         */
+        getAllProcessList: (is_execPath?: boolean) => Promise<string> | number;
+        /**
+         * 获取进程列表（枚举法）
+         * - 枚举是最快的 最安全的 不会出现遗漏
+         * @module 同步
+         * @time  fn() 11.147ms     fn(true)44.633ms
+         * @param is_execPath 需要解析可执行文件路径 (获取延时50ms左右)
+         * @returns
+         */
+        getAllProcessListSync: (is_execPath?: boolean) => string;
+        /**
+         * 获取进程列表 (快照法)
+         * - (一般用来枚举进程树)
+         * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+         * @module 异步
+         * @time 66.428ms
+         * @returns
+         */
+        getAllProcessListSnp: () => Promise<string> | number;
+        /**
+         * 获取进程列表 (快照法)
+         * - (一般用来枚举进程树)
+         * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+         * @module 同步
+         * @time 66.428ms
+         * @returns
+         */
+        getAllProcessListSnpSync: () => string;
+        /**
+         * 获取进程列表 (内核法)
+         * - (可以获取内核软件和系统服务的名称)
+         * - 请注意 内核法有可能被杀毒软件拦截
+         * - 有概率第一次获取时失败
+         * @module 异步
+         * @time 30.542ms
+         * @returns
+         */
+        getAllProcessListNt: () => Promise<string> | number;
+        /**
+         * 获取进程列表 (内核法)
+         * - (可以获取内核软件和系统服务的名称)
+         * - 请注意 内核法有可能被杀毒软件拦截
+         * - 有概率第一次获取时失败
+         * @module 同步
+         * @time 30.542ms
+         * @returns
+         */
+        getAllProcessListNtSync: () => string;
+        /**
+         * 获取指定进程的cpu百分比 (10% -> 10.02515102152)
+         * @module 异步
+         * @time 1000ms+
+         * @param pid
+         */
+        getProcessCpuUsage(pid: number): Promise<number>;
+        /**
+         * 获取指定进程的cpu百分比 (10% -> 10.02515102152)
+         * @module 同步
+         * ! 请注意此函数会阻塞进程最少1000ms 因为运算cpu占比需要一秒内进行两次对比
+         * @param pid 进程id
+         */
+        getProcessCpuUsageSync(pid: number): number;
+        /**
+         * 获取指定进程的文件路径
+         * @module 异步
+         * @param pid 进程id
+         */
+        getProcessFilePath(pid: number): Promise<string | null>;
+        /**
+         * @module 同步
+         * @param pid 进程id
+         */
+        getProcessFilePathSync(pid: number): string | null;
+        /**
+         * 判断当前进程是否存在
+         * @module 异步
+         * @param pid
+         */
+        existProcess(pid: number): null | number | Promise<boolean | null>;
+        /**
+        * 判断当前进程是否存在
+        * @module 同步
+        * @param pid
+        */
+        existProcessSync(pid: number): boolean | null;
     };
     export type ProcessHandle = {
         handle: number;
@@ -1370,6 +1521,7 @@ export declare module HMC {
         update_type: "update" | "remove" | "append" | "reduce";
         value?: string | undefined | null;
     };
+    export type PromiseSessionDataType = undefined | null | any;
     export type SystemDecoder = chcpList[SystemDecoderKey];
     export {};
 }
@@ -1445,6 +1597,38 @@ export declare const ref: {
      */
     vkKey: typeof vkKey;
 };
+export declare class PromiseSession {
+    private data_list;
+    private SessionID;
+    /**
+     * 将 PromiseSession 转为 Promise
+     * @param format 数据格式化的函数
+     * @returns
+     */
+    to_Promise<T>(format: (value: Array<undefined | null | any>) => T): Promise<T>;
+    /**
+     * PromiseSession 转为 callBack
+     * @param format 格式化的函数 如果没有callback 此函数将被作为callBack使用
+     * @param callback 回调函数 接收的第一个参数将会是 format格式化过得内容
+     * @param everyCallback 是否每次回调 当此选项为false 将只会在PromiseSession接收完成时候回调
+     */
+    to_callback<T>(format: (value: Array<undefined | null | any>) => T, callback?: (value: T) => any, everyCallback?: boolean): void;
+    /**
+     * 异步改同步
+     */
+    await(): any[] | null | undefined;
+    /**
+     * 提前结束
+     */
+    stop(): void;
+    /**
+     * 初始化一个将 hmc_PromiseSession 转为js 异步的方法
+     * hmc_PromiseSession 是一个支持并发异步的调用封装库
+     * 用于解决napi无法连续创建同事件的异步空间 以及napi的异步及其难写的问题
+     * @param SessionID
+     */
+    constructor(SessionID: number);
+}
 /**
  * 直达路径解析
  * @param Path 全路径(直达路径)
@@ -2196,9 +2380,17 @@ export declare function setClipboardText(text: string): void;
  */
 export declare function clearClipboard(): boolean;
 /** 获取详细进程列表（慢20ms）**/
-export declare function getDetailsProcessList(): HMC.enumProcessContP[];
+export declare function getDetailsProcessList(): {
+    pid: number;
+    name: string;
+    path: string;
+}[];
 /** 获取进程列表**/
-export declare function getProcessList(): HMC.enumProcessCont[];
+export declare function getProcessList(): {
+    pid: number;
+    name: string;
+    path: string;
+}[];
 /**获取活动窗口的进程id */
 export declare function getForegroundWindowProcessID(): number | null;
 /**获取鼠标所在窗口的进程名 */
@@ -2280,7 +2472,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 4 | 2 | 3 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2503,7 +2695,7 @@ export declare function getSubProcessID(ProcessID: number): number[];
  * @param ProcessID 进程id
  * @returns
  */
-export declare function getProcessParentProcessID(ProcessID: number): number | null;
+export declare function getProcessParentProcessID(ProcessID: number, is_SessionCache?: boolean): HMC.PROCESSENTRY_V2 | null;
 /**
  * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
@@ -3397,6 +3589,232 @@ export declare function getSystemKeyList(): string[];
 * @returns
  */
 export declare function updateThis(remove?: boolean, update_add?: boolean, append?: boolean, filter?: ((key: string, new_value: string | null | undefined, oid_value: string | null | undefined) => boolean) | string | string[] | RegExp): HMC.VarValueReBackData[];
+export declare const getWindowProcess: typeof getHandleProcessID;
+export declare const getProcessWindow: typeof getProcessHandle;
+export declare const isWindowVisible: typeof isHandleWindowVisible;
+export declare const closeWindow: typeof lookHandleCloseWindow;
+export declare const setWindowShake: typeof windowJitter;
+export declare const isWindowTop: typeof hasWindowTop;
+export declare const getProcessFilePath: typeof getProcessidFilePath;
+/**
+   * 获取进程列表 (快照法)
+   * - (一般用来枚举进程树)
+   * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+   * @module 异步
+   * @time 66.428ms
+   * @returns
+   */
+export declare function getAllProcessListSnp2(callback: (data_list: Array<HMC.PROCESSENTRY_V2>, err: null | Error) => void): void;
+export declare function getAllProcessListSnp2(): Promise<Array<HMC.PROCESSENTRY_V2>>;
+/**
+   * 获取进程列表 (快照法)   带有一个临时缓冲 在1.2秒内提供高速读取
+   * - (一般用来枚举进程树)
+   * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+   * @module 异步
+   * @time 66.428ms
+   * @returns
+   */
+export declare function getAllProcessListSnpSession2(callback: (data_list: Array<HMC.PROCESSENTRY_V2>, err: null | Error) => void): void;
+export declare function getAllProcessListSnpSession2(): Promise<Array<HMC.PROCESSENTRY_V2>>;
+/**
+   * 获取进程列表 (快照法)   带有一个临时缓冲 在1.2秒内提供高速读取
+   * - (一般用来枚举进程树)
+   * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+   * @module 异步
+   * @time 66.428ms
+   * @returns
+   */
+export declare function getAllProcessListSnpSession2Sync(): Array<HMC.PROCESSENTRY_V2>;
+/**
+ * 获取进程列表 (内核法)
+ * - (可以获取内核软件和系统服务的名称)
+ * - 请注意 内核法有可能被杀毒软件拦截
+ * - 有概率第一次获取时失败
+ * @module 异步
+ * @time 30.542ms
+ * @returns
+ */
+export declare function getAllProcessListNt2(callback: (data_list: Array<HMC.PSYSTEM_PROCESS_INFORMATION & {
+    name: string;
+    pid: number;
+}> | null, err: null | Error) => void): void;
+export declare function getAllProcessListNt2(): Promise<Array<HMC.PSYSTEM_PROCESS_INFORMATION & {
+    name: string;
+    pid: number;
+}>>;
+/**
+ * 获取进程列表（枚举法）
+ * - 枚举是最快的 最安全的 不会出现遗漏
+ * @module 异步
+ * @time  fn() 9.691ms     fn(true)61.681ms
+ * @param is_execPath 需要解析可执行文件路径 (获取延时50ms左右)
+ * @returns
+ */
+export declare function getAllProcessList2(callback: ((data_list: Array<{
+    pid: number;
+}> | null, err: null | Error) => void)): void;
+export declare function getAllProcessList2(callback: ((data_list: Array<{
+    pid: number;
+    name: string;
+    path: string;
+}> | null, err: null | Error) => void), is_execPath: true): void;
+export declare function getAllProcessList2(is_execPath: true): Promise<Array<{
+    pid: number;
+    name: string;
+    path: string;
+}>>;
+export declare function getAllProcessList2(): Promise<Array<{
+    pid: number;
+}>>;
+/**
+ * 获取进程列表（枚举法）
+ * - 枚举是最快的 最安全的 不会出现遗漏
+ * @module 同步
+ * @time  fn() 11.147ms     fn(true)44.633ms
+ * @param is_execPath 需要解析可执行文件路径 (获取延时50ms左右)
+ * @returns
+ */
+export declare function getAllProcessList2Sync(is_execPath?: true): Array<{
+    pid: number;
+    name: string;
+    path: string;
+}>;
+export declare function getAllProcessList2Sync(): Array<{
+    pid: number;
+}>;
+/**
+ * 获取进程列表 (内核法)
+ * - (可以获取内核软件和系统服务的名称)
+ * - 请注意 内核法有可能被杀毒软件拦截
+ * - 有概率第一次获取时失败
+ * @module 同步
+ * @time 30.542ms
+ * @returns
+ */
+export declare function getAllProcessListNt2Sync(): Array<HMC.PSYSTEM_PROCESS_INFORMATION & {
+    name: string;
+    pid: number;
+}>;
+/**
+ * 获取进程列表 (快照法)
+ * - (一般用来枚举进程树)
+ * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
+ * @module 同步
+ * @time 66.428ms
+ * @returns
+ */
+export declare function getAllProcessListSnp2Sync(): Array<HMC.PROCESSENTRY_V2>;
+/**
+ * 获取匹配进程的 父进程信息
+ * @param Process 需要被搜索的子进程 名称/pid/正则名称
+ * @param is_SessionCache 是否启用缓冲区以提高检索速度 （缓冲区有效时间1.2秒）
+ * @returns
+ */
+export declare function getProcessParentProcessMatch2(Process: string | RegExp, is_SessionCache?: boolean): Promise<Array<HMC.PROCESSENTRY_V2>>;
+export declare function getProcessParentProcessMatch2(Process: number, is_SessionCache?: boolean): Promise<HMC.PROCESSENTRY_V2>;
+/**
+ * 获取匹配进程的 父进程信息
+ * @param Process 需要被搜索的子进程 名称/pid/正则名称
+ * @param is_SessionCache 是否启用缓冲区以提高检索速度 （缓冲区有效时间1.2秒）
+ * @returns
+ */
+export declare function getProcessParentProcessMatch2Sync(Process: string | RegExp, is_SessionCache?: boolean): Array<HMC.PROCESSENTRY_V2>;
+export declare function getProcessParentProcessMatch2Sync(Process: number, is_SessionCache?: boolean): HMC.PROCESSENTRY_V2 | null;
+/**
+ * 获取指定进程的可执行文件路径
+ * @param ProcessID 进程id
+ * @param callback 回调函数 如果没有则返回一个 Promise
+ * @returns
+ */
+export declare function getProcessFilePath2(ProcessID: number, callback: (path: string | null, err: null | Error) => void): void;
+export declare function getProcessFilePath2(ProcessID: number): Promise<string | null>;
+/**
+ * 获取指定进程的可执行文件路径
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function getProcessFilePath2Sync(ProcessID: number): string | null;
+/**
+ * 获取指定进程的可执行文件路径
+ * @param ProcessID 进程id
+ * @param callback 回调函数 如果没有则返回一个 Promise
+ * @returns
+ */
+export declare function existProcess2(ProcessID: number, callback: (exist: boolean, err: null | Error) => void): void;
+export declare function existProcess2(ProcessID: number): Promise<boolean>;
+/**
+ * 获取指定进程的可执行文件路径
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function existProcess2Sync(ProcessID: number): boolean;
+/**
+ * 获取一个带有exe path 的进程列表
+ * @returns
+ */
+export declare function getDetailsProcessList2(): {
+    pid: number;
+    name: string;
+    path: string;
+}[];
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @param is_SessionCache  是否使用缓存提高速度
+ * @returns
+ */
+export declare function getProcessNameSnp2Sync(ProcessID: number, is_SessionCache?: boolean): string | null;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @param is_SessionCache  是否使用缓存提高速度
+ * @returns
+ */
+export declare function getProcessNameSnp2(ProcessID: number, is_SessionCache?: boolean): Promise<null | string>;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function getProcessNameNt2Sync(ProcessID: number): string | null;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function getProcessNameNt2(ProcessID: number): Promise<null | string>;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function getProcessName2(ProcessID: number): Promise<null | string>;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+export declare function getProcessName2Sync(ProcessID: number): string | null;
+/**
+ * 按照名称搜索进程
+ * @param ProcessName
+ * @returns
+ */
+export declare function findProcess2(ProcessName: string | RegExp | number, isMacthFile?: boolean): Promise<{
+    pid: number;
+    name: string | null;
+    path: string | null;
+}[]>;
+/**
+ * 按照名称搜索进程
+ * @param ProcessName
+ * @returns
+ */
+export declare function findProcess2Sync(ProcessName: string | RegExp | number, isMacthFile?: boolean): Array<{
+    pid: number;
+    name: string;
+    path: string;
+}>;
 export declare const Environment: {
     hasKeyExists: typeof hasKeyExists;
     hasUseKeyExists: typeof hasUseKeyExists;
@@ -3685,7 +4103,27 @@ export declare const hmc: {
         sequence: typeof getClipboardSequenceNumber;
         watch: typeof watchClipboard;
     };
-    HMC: typeof HMC;
+    Environment: {
+        hasKeyExists: typeof hasKeyExists;
+        hasUseKeyExists: typeof hasUseKeyExists;
+        hasSysKeyExists: typeof hasSysKeyExists;
+        escapeEnvVariable: typeof escapeEnvVariable;
+        removeUserVariable: typeof removeUserVariable;
+        removeVariable: typeof removeVariable;
+        removeSystemVariable: typeof removeSystemVariable;
+        getSystemVariable: typeof getSystemVariable;
+        getUserVariable: typeof getUserVariable;
+        getVariableAnalysis: typeof getVariableAnalysis;
+        putSystemVariable: typeof putSystemVariable;
+        putUserVariable: typeof putUserVariable;
+        getVariableAll: typeof getVariableAll;
+        getRealGlobalVariableList: typeof getRealGlobalVariableList;
+        getUserKeyList: typeof getUserKeyList;
+        getSystemKeyList: typeof getSystemKeyList;
+        updateThis: typeof updateThis;
+        setUserVariable: typeof setUserVariable;
+        setSystemVariable: typeof setSystemVariable;
+    };
     HWND: typeof HWND;
     MessageError: typeof MessageError;
     MessageStop: typeof MessageStop;
@@ -3707,6 +4145,7 @@ export declare const hmc: {
         subPID: typeof getSubProcessID;
         threadList: typeof getProcessThreadList;
     };
+    PromiseSession: typeof PromiseSession;
     Registr: {
         /**
          * 直达路径解析
@@ -4001,6 +4440,7 @@ export declare const hmc: {
     analysisDirectPath: typeof analysisDirectPath;
     captureBmpToFile: typeof captureBmpToFile;
     clearClipboard: typeof clearClipboard;
+    closeWindow: typeof lookHandleCloseWindow;
     closedHandle: typeof closedHandle;
     confirm: typeof confirm;
     createDirSymlink: typeof createDirSymlink;
@@ -4016,11 +4456,21 @@ export declare const hmc: {
     enumRegistrKey: typeof enumRegistrKey;
     escapeEnvVariable: typeof escapeEnvVariable;
     findProcess: typeof findProcess;
+    findProcess2: typeof findProcess2;
+    findProcess2Sync: typeof findProcess2Sync;
     findWindow: typeof findWindow;
     findWindowEx: typeof findWindowEx;
     formatVolumePath: typeof formatVolumePath;
     freePort: typeof freePort;
     getAllEnv: typeof getAllEnv;
+    getAllProcessList2: typeof getAllProcessList2;
+    getAllProcessList2Sync: typeof getAllProcessList2Sync;
+    getAllProcessListNt2: typeof getAllProcessListNt2;
+    getAllProcessListNt2Sync: typeof getAllProcessListNt2Sync;
+    getAllProcessListSnp2: typeof getAllProcessListSnp2;
+    getAllProcessListSnp2Sync: typeof getAllProcessListSnp2Sync;
+    getAllProcessListSnpSession2: typeof getAllProcessListSnpSession2;
+    getAllProcessListSnpSession2Sync: typeof getAllProcessListSnpSession2Sync;
     getAllWindows: typeof getAllWindows;
     getAllWindowsHandle: typeof getAllWindowsHandle;
     getBasicKeys: typeof getBasicKeys;
@@ -4031,6 +4481,7 @@ export declare const hmc: {
     getConsoleHandle: typeof getConsoleHandle;
     getCurrentMonitorRect: typeof getCurrentMonitorRect;
     getDetailsProcessList: typeof getDetailsProcessList;
+    getDetailsProcessList2: typeof getDetailsProcessList2;
     getDetailsProcessNameList: typeof getDetailsProcessNameList;
     getDeviceCaps: typeof getDeviceCaps;
     getDeviceCapsAll: typeof getDeviceCapsAll;
@@ -4047,13 +4498,25 @@ export declare const hmc: {
     getPointWindowMain: typeof getPointWindowMain;
     getPointWindowName: typeof getPointWindowName;
     getPointWindowProcessId: typeof getPointWindowProcessId;
+    getProcessFilePath: typeof getProcessidFilePath;
+    getProcessFilePath2: typeof getProcessFilePath2;
+    getProcessFilePath2Sync: typeof getProcessFilePath2Sync;
     getProcessHandle: typeof getProcessHandle;
     getProcessList: typeof getProcessList;
     getProcessName: typeof getProcessName;
+    getProcessName2: typeof getProcessName2;
+    getProcessName2Sync: typeof getProcessName2Sync;
     getProcessNameList: typeof getProcessNameList;
+    getProcessNameNt2: typeof getProcessNameNt2;
+    getProcessNameNt2Sync: typeof getProcessNameNt2Sync;
+    getProcessNameSnp2: typeof getProcessNameSnp2;
+    getProcessNameSnp2Sync: typeof getProcessNameSnp2Sync;
     getProcessParentProcessID: typeof getProcessParentProcessID;
+    getProcessParentProcessMatch2: typeof getProcessParentProcessMatch2;
+    getProcessParentProcessMatch2Sync: typeof getProcessParentProcessMatch2Sync;
     getProcessStartTime: typeof getProcessStartTime;
     getProcessThreadList: typeof getProcessThreadList;
+    getProcessWindow: typeof getProcessHandle;
     getProcessidFilePath: typeof getProcessidFilePath;
     getRealGlobalVariableList: typeof getRealGlobalVariableList;
     getRegistrBuffValue: typeof getRegistrBuffValue;
@@ -4078,6 +4541,7 @@ export declare const hmc: {
     getVolumeList: typeof getVolumeList;
     getWebView2Info: typeof getWebView2Info;
     getWindowClassName: typeof getWindowClassName;
+    getWindowProcess: typeof getHandleProcessID;
     getWindowRect: typeof getWindowRect;
     getWindowStyle: typeof getWindowStyle;
     getWindowTitle: typeof lookHandleGetTitle;
@@ -4103,6 +4567,8 @@ export declare const hmc: {
     isProcess: typeof isProcess;
     isRegistrTreeKey: typeof isRegistrTreeKey;
     isSystemX64: typeof isSystemX64;
+    isWindowTop: typeof hasWindowTop;
+    isWindowVisible: typeof isHandleWindowVisible;
     keyboardHook: Iohook_Keyboard;
     killProcess: typeof killProcess;
     killProcessName: typeof killProcessName;
@@ -4459,10 +4925,13 @@ export declare const hmc: {
     setRegistrQword: typeof setRegistrQword;
     setShortcutLink: typeof setShortcutLink;
     setShowWindow: typeof lookHandleShowWindow;
+    setSystemVariable: typeof setSystemVariable;
+    setUserVariable: typeof setUserVariable;
     setWindowEnabled: typeof setWindowEnabled;
     setWindowFocus: typeof setWindowFocus;
     setWindowIconForExtract: typeof setWindowIconForExtract;
     setWindowMode: typeof setWindowMode;
+    setWindowShake: typeof windowJitter;
     setWindowTitle: typeof lookHandleSetTitle;
     setWindowTop: typeof setWindowTop;
     showConsole: typeof showConsole;
@@ -4479,7 +4948,5 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
-    setUserVariable: typeof setUserVariable;
-    setSystemVariable: typeof setSystemVariable;
 };
 export default hmc;

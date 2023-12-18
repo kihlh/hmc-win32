@@ -4921,15 +4921,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore), //=>3-6UP
         // process.cpp
         DECLARE_NAPI_METHODRM("killProcess", killProcess),                     //=>4-1UP
-        DECLARE_NAPI_METHODRM("getDetailsProcessList", getDetailsProcessList), //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessList", getProcessList),               //=>4-1UP
-        // 2023-12-11 add support
-        // DECLARE_NAPI_METHODRM("hasProcess", hasProcess),  
-        DECLARE_NAPI_METHODRM("isProcess", fn_hasProcess_v2), 
-        DECLARE_NAPI_METHODRM("getProcessidFilePath", fn_getProcessidFilePath_v2),   //=>4-1UP
-        DECLARE_NAPI_METHODRM("getProcessName", fn_getProcessidBaseName_v2),               //=>4-1UP
         DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),         //=>4-1ADD
-        // DECLARE_NAPI_METHODRM("getLockFileProcessList", getLockFileProcessList),    //=>4-1ADD
         DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),                 //=>4-1ADD
         DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling),   //=>4-2ADD
         DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                         //=>4-1ADD
@@ -4941,6 +4933,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
         DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
+        DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),
         DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
         DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
         DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
@@ -5023,15 +5016,34 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("_PromiseSession_get_sleep_time", _PromiseSession_get_sleep_time),
         // 2023-12-1 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_allTasks", _PromiseSession_allTasks),
-        // 2023-12-1 add support
-        DECLARE_NAPI_METHODRM("getProcessidFilePath___SP", fn_getProcessidFilePath_$SP),
-        // 2023-12-1 add support
-        DECLARE_NAPI_METHODRM("getAllProcessListv2___SP", fn_getAllProcessListv2_$SP),
+
     };
     _________HMC___________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
-    _fn_process_exports(env, exports);
+
+    exports_process_all_v2_fun(/*
+                               
+                                fn_getAllProcessList::exports(env, exports, "getAllProcessList");
+    fn_getAllProcessList::exportsSync(env, exports, "getAllProcessListSync");
+
+    fn_getAllProcessNtList::exports(env, exports, "getAllProcessListNt");
+    fn_getAllProcessNtList::exportsSync(env, exports, "getAllProcessListNtSync");
+
+    fn_getAllProcessSnpList::exports(env, exports, "getAllProcessListSnp");
+    fn_getAllProcessSnpList::exportsSync(env, exports, "getAllProcessListSnpSync");
+
+    fn_getProcessCpuUsage::exports(env, exports, "getProcessCpuUsage");
+    fn_getProcessCpuUsage::exportsSync(env, exports, "getProcessCpuUsageSync");
+
+    fn_GetProcessIdFilePath::exports(env, exports, "getProcessFilePath");
+    fn_GetProcessIdFilePath::exportsSync(env, exports, "getProcessFilePathSync");
+
+    fn_existProcess::exports(env, exports, "existProcess");
+    fn_existProcess::exportsSync(env, exports, "existProcessSync");
+
+                               */env, exports);
+
     return exports;
 }
 

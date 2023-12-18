@@ -175,6 +175,7 @@ __export(hmc_exports, {
   MessageError: () => MessageError,
   MessageStop: () => MessageStop,
   Process: () => Process,
+  PromiseSession: () => PromiseSession,
   Registr: () => Registr,
   SetBlockInput: () => SetBlockInput,
   SetSystemHOOK: () => SetSystemHOOK,
@@ -194,6 +195,7 @@ __export(hmc_exports, {
   analysisDirectPath: () => analysisDirectPath,
   captureBmpToFile: () => captureBmpToFile,
   clearClipboard: () => clearClipboard,
+  closeWindow: () => closeWindow,
   closedHandle: () => closedHandle,
   confirm: () => confirm,
   createDirSymlink: () => createDirSymlink,
@@ -209,12 +211,24 @@ __export(hmc_exports, {
   enumProcessHandle: () => enumProcessHandle,
   enumRegistrKey: () => enumRegistrKey,
   escapeEnvVariable: () => escapeEnvVariable,
+  existProcess2: () => existProcess2,
+  existProcess2Sync: () => existProcess2Sync,
   findProcess: () => findProcess,
+  findProcess2: () => findProcess2,
+  findProcess2Sync: () => findProcess2Sync,
   findWindow: () => findWindow,
   findWindowEx: () => findWindowEx,
   formatVolumePath: () => formatVolumePath,
   freePort: () => freePort,
   getAllEnv: () => getAllEnv,
+  getAllProcessList2: () => getAllProcessList2,
+  getAllProcessList2Sync: () => getAllProcessList2Sync,
+  getAllProcessListNt2: () => getAllProcessListNt2,
+  getAllProcessListNt2Sync: () => getAllProcessListNt2Sync,
+  getAllProcessListSnp2: () => getAllProcessListSnp2,
+  getAllProcessListSnp2Sync: () => getAllProcessListSnp2Sync,
+  getAllProcessListSnpSession2: () => getAllProcessListSnpSession2,
+  getAllProcessListSnpSession2Sync: () => getAllProcessListSnpSession2Sync,
   getAllWindows: () => getAllWindows,
   getAllWindowsHandle: () => getAllWindowsHandle,
   getBasicKeys: () => getBasicKeys,
@@ -225,6 +239,7 @@ __export(hmc_exports, {
   getConsoleHandle: () => getConsoleHandle,
   getCurrentMonitorRect: () => getCurrentMonitorRect,
   getDetailsProcessList: () => getDetailsProcessList,
+  getDetailsProcessList2: () => getDetailsProcessList2,
   getDetailsProcessNameList: () => getDetailsProcessNameList,
   getDeviceCaps: () => getDeviceCaps,
   getDeviceCapsAll: () => getDeviceCapsAll,
@@ -241,13 +256,25 @@ __export(hmc_exports, {
   getPointWindowMain: () => getPointWindowMain,
   getPointWindowName: () => getPointWindowName,
   getPointWindowProcessId: () => getPointWindowProcessId,
+  getProcessFilePath: () => getProcessFilePath,
+  getProcessFilePath2: () => getProcessFilePath2,
+  getProcessFilePath2Sync: () => getProcessFilePath2Sync,
   getProcessHandle: () => getProcessHandle,
   getProcessList: () => getProcessList,
   getProcessName: () => getProcessName,
+  getProcessName2: () => getProcessName2,
+  getProcessName2Sync: () => getProcessName2Sync,
   getProcessNameList: () => getProcessNameList,
+  getProcessNameNt2: () => getProcessNameNt2,
+  getProcessNameNt2Sync: () => getProcessNameNt2Sync,
+  getProcessNameSnp2: () => getProcessNameSnp2,
+  getProcessNameSnp2Sync: () => getProcessNameSnp2Sync,
   getProcessParentProcessID: () => getProcessParentProcessID,
+  getProcessParentProcessMatch2: () => getProcessParentProcessMatch2,
+  getProcessParentProcessMatch2Sync: () => getProcessParentProcessMatch2Sync,
   getProcessStartTime: () => getProcessStartTime,
   getProcessThreadList: () => getProcessThreadList,
+  getProcessWindow: () => getProcessWindow,
   getProcessidFilePath: () => getProcessidFilePath,
   getRealGlobalVariableList: () => getRealGlobalVariableList,
   getRegistrBuffValue: () => getRegistrBuffValue,
@@ -272,6 +299,7 @@ __export(hmc_exports, {
   getVolumeList: () => getVolumeList,
   getWebView2Info: () => getWebView2Info,
   getWindowClassName: () => getWindowClassName,
+  getWindowProcess: () => getWindowProcess,
   getWindowRect: () => getWindowRect,
   getWindowStyle: () => getWindowStyle,
   getWindowTitle: () => getWindowTitle,
@@ -298,6 +326,8 @@ __export(hmc_exports, {
   isProcess: () => isProcess,
   isRegistrTreeKey: () => isRegistrTreeKey,
   isSystemX64: () => isSystemX64,
+  isWindowTop: () => isWindowTop,
+  isWindowVisible: () => isWindowVisible,
   keyboardHook: () => keyboardHook,
   killProcess: () => killProcess,
   killProcessName: () => killProcessName,
@@ -346,10 +376,13 @@ __export(hmc_exports, {
   setRegistrQword: () => setRegistrQword,
   setShortcutLink: () => setShortcutLink,
   setShowWindow: () => setShowWindow,
+  setSystemVariable: () => setSystemVariable,
+  setUserVariable: () => setUserVariable,
   setWindowEnabled: () => setWindowEnabled,
   setWindowFocus: () => setWindowFocus,
   setWindowIconForExtract: () => setWindowIconForExtract,
   setWindowMode: () => setWindowMode,
+  setWindowShake: () => setWindowShake,
   setWindowTitle: () => setWindowTitle,
   setWindowTop: () => setWindowTop,
   showConsole: () => showConsole,
@@ -784,6 +817,14 @@ var get_native = (binPath) => {
       console.error(HMCNotPlatform);
       return [];
     }
+    function fnPromise(...args) {
+      console.error(HMCNotPlatform);
+      return Promise.reject("HMC::HMC current method only supports win32 platform");
+    }
+    function fnArrStr(...args) {
+      console.error(HMCNotPlatform);
+      return "[]";
+    }
     return {
       getProcessStartTime: fnNull,
       __debug_AllocConsole: fnVoid,
@@ -813,8 +854,8 @@ var get_native = (binPath) => {
       getSubProcessID: fnAnyArr,
       enumAllProcessPolling: fnVoid,
       clearEnumAllProcessList: fnVoid,
-      getProcessParentProcessID: fnVoid,
-      enumAllProcess: fnNum,
+      // getProcessParentProcessID: fnVoid,
+      // enumAllProcess: fnNum,
       _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
       isStartHookMouse: fnBool,
@@ -833,6 +874,7 @@ var get_native = (binPath) => {
       SetWindowInTaskbarVisible: fnBool,
       alert: fnBool,
       clearClipboard: fnBool,
+      enumAllProcess: fnNum,
       closedHandle: fnVoid,
       confirm: fnBool,
       createDirSymlink: fnBool,
@@ -854,7 +896,7 @@ var get_native = (binPath) => {
       },
       getClipboardFilePaths: fnStrList,
       getClipboardText: fnStr,
-      getDetailsProcessList: fnAnyArr,
+      // getDetailsProcessList: fnAnyArr,
       getDeviceCaps: () => {
         console.error(HMCNotPlatform);
         return {
@@ -877,9 +919,9 @@ var get_native = (binPath) => {
       getPointWindowName: fnStr,
       getPointWindowProcessId: fnNum,
       getProcessHandle: fnNull,
-      getProcessList: fnAnyArr,
-      getProcessName: fnNull,
-      getProcessidFilePath: fnNull,
+      // getProcessList: fnAnyArr,
+      // getProcessName: fnNull,
+      // getProcessidFilePath: fnNull,
       getRegistrBuffValue: fnVoid,
       getRegistrDword: fnNum,
       getRegistrQword: () => {
@@ -985,7 +1027,31 @@ var get_native = (binPath) => {
       // getUDPPortProcessID: fnNull,
       putenv: fnVoid,
       findWindowEx: fnNull,
-      findWindow: fnNull
+      findWindow: fnNull,
+      // getProcessidFilePathAsync: fnPromise,
+      _PromiseSession_get: fnNull,
+      _PromiseSession_isClosed: fnBool,
+      _PromiseSession_stop: fnVoid,
+      _PromiseSession_max_id: fnNum,
+      _PromiseSession_data_size: fnNum,
+      _PromiseSession_set_sleep_time: fnNum,
+      _PromiseSession_await: fnVoid,
+      _PromiseSession_allTasks: fnAnyArr,
+      _PromiseSession_completeTasks: fnAnyArr,
+      _PromiseSession_ongoingTasks: fnAnyArr,
+      _PromiseSession_get_sleep_time: fnNum,
+      getAllProcessList: fnPromise,
+      getAllProcessListSync: fnArrStr,
+      getAllProcessListSnp: fnPromise,
+      getAllProcessListSnpSync: fnArrStr,
+      getAllProcessListNt: fnPromise,
+      getAllProcessListNtSync: fnArrStr,
+      getProcessCpuUsage: fnPromise,
+      getProcessCpuUsageSync: fnNum,
+      getProcessFilePath: fnPromise,
+      getProcessFilePathSync: fnArrStr,
+      existProcess: fnPromise,
+      existProcessSync: fnBool
     };
   })();
   return Native;
@@ -1414,9 +1480,93 @@ function getDefaultTitele() {
   try {
     return globalThis.document.title;
   } catch (error) {
-    return native.lookHandleGetTitle(native.getProcessHandle(process.pid) || 0) || native.getProcessName(process.pid) || process.title;
+    return native.lookHandleGetTitle(native.getProcessHandle(process.pid) || 0) || getProcessName2Sync(process.pid) || process.title;
   }
 }
+var PromiseSession = class {
+  /**
+   * 将 PromiseSession 转为 Promise
+   * @param format 数据格式化的函数
+   * @returns 
+   */
+  to_Promise(format) {
+    const this_ = this;
+    return new Promise(function(resolve, reject) {
+      try {
+        setInterval(() => {
+          const temp = native._PromiseSession_get(this_.SessionID, 50);
+          for (let index = 0; index < (temp || []).length; index++) {
+            const element = (temp || [])[index];
+            this_.data_list.push(element);
+          }
+          if (!temp && native._PromiseSession_isClosed(this_.SessionID)) {
+            resolve(format(this_.data_list));
+          }
+        }, 25);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+  /**
+   * PromiseSession 转为 callBack 
+   * @param format 格式化的函数 如果没有callback 此函数将被作为callBack使用
+   * @param callback 回调函数 接收的第一个参数将会是 format格式化过得内容
+   * @param everyCallback 是否每次回调 当此选项为false 将只会在PromiseSession接收完成时候回调
+   */
+  to_callback(format, callback, everyCallback) {
+    try {
+      const this_ = this;
+      setInterval(() => {
+        const temp = native._PromiseSession_get(this_.SessionID, 50);
+        for (let index = 0; index < (temp || []).length; index++) {
+          const element = (temp || [])[index];
+          this_.data_list.push(element);
+          if (!everyCallback) {
+            if (callback) {
+              callback(format(element));
+            } else {
+              format(element);
+            }
+          }
+        }
+        if (!temp && native._PromiseSession_isClosed(this_.SessionID)) {
+          if (everyCallback) {
+            if (callback) {
+              callback(format(this_.data_list));
+            } else {
+              format(this_.data_list);
+            }
+          }
+        }
+      }, 25);
+    } catch (error) {
+    }
+  }
+  /**
+   * 异步改同步
+   */
+  await() {
+    native._PromiseSession_await(this.SessionID);
+    return native._PromiseSession_get(this.SessionID, 999999999);
+  }
+  /**
+   * 提前结束
+   */
+  stop() {
+    native._PromiseSession_stop(this.SessionID);
+  }
+  /**
+   * 初始化一个将 hmc_PromiseSession 转为js 异步的方法
+   * hmc_PromiseSession 是一个支持并发异步的调用封装库
+   * 用于解决napi无法连续创建同事件的异步空间 以及napi的异步及其难写的问题
+   * @param SessionID 
+   */
+  constructor(SessionID) {
+    this.SessionID = SessionID;
+    this.data_list = [];
+  }
+};
 function analysisDirectPath(Path, atkey) {
   let directPath = [];
   directPath.push(...Path.split(new RegExp(Object.keys(Hkey).join("|"))));
@@ -2036,7 +2186,7 @@ function openApp(AppPath, Command, cwd, hide, UAC) {
 }
 function getProcessNameList(...Name) {
   let resultList = [];
-  let ProcessList = native.getProcessList();
+  let ProcessList = getAllProcessListSnp2Sync();
   for (let index = 0; index < ProcessList.length; index++) {
     const Process2 = ProcessList[index];
     const { pid, name } = Process2;
@@ -2056,7 +2206,7 @@ function getProcessNameList(...Name) {
 }
 function getDetailsProcessNameList(...Name) {
   let resultList = [];
-  let ProcessList = native.getDetailsProcessList();
+  let ProcessList = getAllProcessList2Sync(true);
   for (let index = 0; index < ProcessList.length; index++) {
     const Process2 = ProcessList[index];
     const { pid, name, path: path2 } = Process2;
@@ -2234,10 +2384,10 @@ function clearClipboard() {
   return native.clearClipboard();
 }
 function getDetailsProcessList() {
-  return native.getDetailsProcessList();
+  return getAllProcessList2Sync(true);
 }
 function getProcessList() {
-  return native.getProcessList();
+  return getAllProcessList2Sync();
 }
 function getForegroundWindowProcessID() {
   return native.getForegroundWindowProcessID();
@@ -2249,10 +2399,10 @@ function getPointWindowProcessId() {
   return native.getPointWindowProcessId();
 }
 function getProcessName(ProcessID) {
-  return native.getProcessName(ref.int(ProcessID));
+  return getProcessName2Sync(ref.int(ProcessID));
 }
 function getProcessidFilePath(ProcessID) {
-  return native.getProcessidFilePath(ref.int(ProcessID));
+  return getProcessFilePath2Sync(ref.int(ProcessID));
 }
 function getShortcutLink(LnkPath) {
   return native.getShortcutLink(ref.string(LnkPath));
@@ -2271,7 +2421,7 @@ function hasKeyActivate(KeysEvent) {
 }
 function hasProcess(...ProcessMatch) {
   if (ProcessMatch.length == 1) {
-    return native.isProcess(ref.int(ProcessMatch[0]));
+    return native.existProcessSync(ref.int(ProcessMatch[0])) || false;
   }
   let _ProcessMatch = [];
   let isString = false;
@@ -2294,7 +2444,7 @@ function hasProcess(...ProcessMatch) {
   let ProcessList = isString ? getProcessList() : [];
   for (let index = 0; index < _ProcessMatch.length; index++) {
     if (!isString) {
-      if (native.isProcess(ref.int(_ProcessMatch[index])))
+      if (native.existProcessSync(ref.int(_ProcessMatch[index])))
         return true;
     }
     for (let index2 = 0; index2 < ProcessList.length; index2++) {
@@ -2309,7 +2459,7 @@ function isAdmin() {
   return native.isAdmin();
 }
 function isProcess(ProcessID) {
-  return native.isProcess(ref.int(ProcessID));
+  return native.existProcessSync(ref.int(ProcessID)) || false;
 }
 function isSystemX64() {
   return native.isSystemX64();
@@ -2681,8 +2831,8 @@ function getProcessThreadList(ProcessID, returnDetail) {
 function getSubProcessID(ProcessID) {
   return native.getSubProcessID(ref.int(ProcessID)) || [];
 }
-function getProcessParentProcessID(ProcessID) {
-  return native.getProcessParentProcessID(ref.int(ProcessID)) || null;
+function getProcessParentProcessID(ProcessID, is_SessionCache = true) {
+  return getProcessParentProcessMatch2Sync(ProcessID, is_SessionCache);
 }
 function enumAllProcessHandle(CallBack) {
   let enumID = native.enumAllProcess();
@@ -3710,6 +3860,12 @@ function getVariableAnalysis(key) {
 function putSystemVariable(key, value, append, transMean) {
   return native.putSystemVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
 }
+function setUserVariable(key, value, append, transMean) {
+  return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
+function setSystemVariable(key, value, append, transMean) {
+  return native.putSystemVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
+}
 function putUserVariable(key, value, append, transMean) {
   return native.putUserVariable(ref.string(key), ref.string(value || ""), ref.bool(typeof append == "undefined" ? false : append), ref.bool(typeof transMean == "undefined" ? false : transMean));
 }
@@ -3841,6 +3997,370 @@ function updateThis(remove, update_add, append, filter) {
   }
   return result;
 }
+var getWindowProcess = getHandleProcessID;
+var getProcessWindow = getProcessHandle;
+var isWindowVisible = isHandleWindowVisible;
+var closeWindow = lookHandleCloseWindow;
+var setWindowShake = windowJitter;
+var isWindowTop = hasWindowTop;
+var getProcessFilePath = getProcessidFilePath;
+function getAllProcessListSnp2(callback) {
+  const data = native.getAllProcessListSnp();
+  let result;
+  if (typeof data == "number") {
+    result = new PromiseSession(data).to_Promise((data2) => {
+      return JSON.parse(data2[0]).map((result2) => {
+        result2.pid = result2.UniqueProcessId;
+        result2.name = result2.ImageName;
+        return result2;
+      });
+    });
+  } else {
+    result = data.then((data2) => {
+      return JSON.parse(data2).map((result2) => {
+        result2.pid = result2.th32ProcessID;
+        result2.name = result2.szExeFile;
+        result2.ppid = result2.th32ParentProcessID;
+        return result2;
+      });
+    });
+  }
+  if (typeof callback === "function") {
+    result.then((data2) => callback(data2, null)).catch((err) => {
+      callback([], err);
+    });
+    return void 0;
+  } else
+    return result;
+}
+var getAllProcessListSnpSessionBuffList = [];
+function getAllProcessListSnpSession2(callback) {
+  return callback ? void 0 : new Promise(async (resolve, reject) => {
+    if (getAllProcessListSnpSessionBuffList.length) {
+      return typeof callback == "function" ? callback(getAllProcessListSnpSessionBuffList, null) : resolve(getAllProcessListSnpSessionBuffList);
+    }
+    for (const iterator of await getAllProcessListSnp2().catch((err) => {
+      if (typeof callback == "function") {
+        callback([], err);
+      } else
+        reject(err);
+    }) || []) {
+      getAllProcessListSnpSessionBuffList.push(iterator);
+    }
+    typeof callback == "function" ? callback(getAllProcessListSnpSessionBuffList, null) : resolve(getAllProcessListSnpSessionBuffList);
+    setTimeout(() => {
+      getAllProcessListSnpSessionBuffList.length = 0;
+    }, 1200);
+  });
+}
+function getAllProcessListSnpSession2Sync() {
+  if (getAllProcessListSnpSessionBuffList.length) {
+    return getAllProcessListSnpSessionBuffList;
+  }
+  for (const iterator of getAllProcessListSnp2Sync() || []) {
+    getAllProcessListSnpSessionBuffList.push(iterator);
+  }
+  setTimeout(() => {
+    getAllProcessListSnpSessionBuffList.length = 0;
+  }, 1200);
+  return getAllProcessListSnpSessionBuffList;
+}
+function getAllProcessListNt2(callback) {
+  const data = native.getAllProcessListNt();
+  let result;
+  if (typeof data == "number") {
+    result = new PromiseSession(data).to_Promise((data2) => {
+      return JSON.parse(data2[0]).map((result2) => {
+        result2.pid = result2.UniqueProcessId;
+        result2.name = result2.ImageName;
+        return result2;
+      });
+    });
+  } else {
+    result = data.then((data2) => {
+      return JSON.parse(data2).map((result2) => {
+        result2.pid = result2.UniqueProcessId;
+        result2.name = result2.ImageName;
+        return result2;
+      });
+    });
+  }
+  if (typeof callback === "function") {
+    result.then((data2) => callback(data2, null)).catch((err) => {
+      callback(null, err);
+    });
+    return void 0;
+  } else
+    return result;
+}
+function getAllProcessList2(callback, is_execPath) {
+  const data = is_execPath ? native.getAllProcessList(true) : native.getAllProcessList();
+  let result;
+  if (typeof data == "number") {
+    result = new PromiseSession(data).to_Promise((data2) => {
+      var _a, _b;
+      let data_list = JSON.parse(data2[0]);
+      const v_list = [];
+      for (let index = 0; index < data_list.length; index++) {
+        const element = data_list[index];
+        if ((_a = element == null ? void 0 : element.path) == null ? void 0 : _a.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
+          if (!v_list.length) {
+            v_list.push(...native.getVolumeList());
+            for (let index2 = 0; index2 < v_list.length; index2++) {
+              const Volume = v_list[index2];
+              element.path = ((_b = element == null ? void 0 : element.path) == null ? void 0 : _b.replace(Volume.device, Volume.path)) || "";
+            }
+          }
+        }
+      }
+      return data_list;
+    });
+  } else {
+    result = data.then((data2) => JSON.parse(data2));
+  }
+  if (typeof callback === "function") {
+    result.then((data2) => callback(data2, null)).catch((err) => {
+      callback(null, err);
+    });
+    return void 0;
+  } else
+    return result;
+}
+function getAllProcessList2Sync(is_execPath) {
+  var _a;
+  return (_a = JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())) == null ? void 0 : _a.map((processList) => {
+    var _a2, _b;
+    let result = [];
+    const v_list = [];
+    for (let index = 0; index < processList.length; index++) {
+      const element = processList[index];
+      if ((_a2 = element == null ? void 0 : element.path) == null ? void 0 : _a2.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
+        if (!v_list.length) {
+          v_list.push(...native.getVolumeList());
+          for (let index2 = 0; index2 < v_list.length; index2++) {
+            const Volume = v_list[index2];
+            element.path = ((_b = element == null ? void 0 : element.path) == null ? void 0 : _b.replace(Volume.device, Volume.path)) || "";
+          }
+        }
+      }
+    }
+    return result;
+  });
+}
+function getAllProcessListNt2Sync() {
+  return JSON.parse(native.getAllProcessListNtSync());
+}
+function getAllProcessListSnp2Sync() {
+  return JSON.parse(native.getAllProcessListSnpSync());
+}
+function getProcessParentProcessMatch2(Process2, is_SessionCache = true) {
+  return new Promise((resolve, reject) => {
+    const fun = is_SessionCache ? getAllProcessListSnpSession2 : getAllProcessListSnp2;
+    const data_list = [];
+    fun().then((process_list) => {
+      for (let index = 0; index < process_list.length; index++) {
+        const process2 = process_list[index];
+        if (typeof Process2 == "number" && process2.pid == Process2) {
+          return resolve(process2);
+        }
+        if (typeof Process2 == "string" && process2.szExeFile == "string") {
+          data_list.push(process2);
+        }
+        if (Process2 instanceof RegExp && process2.szExeFile.match(Process2)) {
+          data_list.push(process2);
+        }
+      }
+      return is_SessionCache ? resolve(null) : resolve(data_list);
+    }).catch(reject);
+  });
+}
+function getProcessParentProcessMatch2Sync(Process2, is_SessionCache = true) {
+  const data_list = [];
+  const process_list = is_SessionCache ? getAllProcessListSnp2Sync() : getAllProcessListSnpSession2Sync();
+  for (let index = 0; index < process_list.length; index++) {
+    const process2 = process_list[index];
+    if (typeof Process2 == "number" && process2.pid == Process2) {
+      return process2;
+    }
+    if (typeof Process2 == "string" && process2.szExeFile == "string") {
+      data_list.push(process2);
+    }
+    if (Process2 instanceof RegExp && process2.szExeFile.match(Process2)) {
+      data_list.push(process2);
+    }
+  }
+  return data_list;
+}
+function getProcessFilePath2(ProcessID, callback) {
+  const data = native.getProcessFilePath(ref.int(ProcessID));
+  let result;
+  if (typeof data == "number") {
+    result = new PromiseSession(data).to_Promise((data2) => {
+      return data2[0] || null;
+    });
+  } else {
+    result = data.then((data2) => data2 || null);
+  }
+  if (typeof callback === "function") {
+    result.then((data2) => callback(data2, null)).catch((err) => {
+      callback(null, err);
+    });
+    return void 0;
+  } else
+    return result;
+}
+function getProcessFilePath2Sync(ProcessID) {
+  const data = native.getProcessFilePathSync(ref.int(ProcessID));
+  return data || null;
+}
+function existProcess2(ProcessID, callback) {
+  const data = native.existProcess(ref.int(ProcessID));
+  let result;
+  if (typeof data == "number") {
+    result = new PromiseSession(data).to_Promise((data2) => {
+      return data2[0] || false;
+    });
+  } else {
+    if (!data) {
+      if (typeof callback === "function") {
+        callback(false, new Error("failed To Create Asynchronous Function"));
+        return void 0;
+      } else {
+        return Promise.resolve(false);
+      }
+    }
+    result = data.then((data2) => data2 || false);
+  }
+  if (typeof callback === "function") {
+    result.then((data2) => callback(data2, null)).catch((err) => {
+      callback(null, err);
+    });
+    return void 0;
+  } else
+    return result;
+}
+function existProcess2Sync(ProcessID) {
+  const data = native.existProcessSync(ref.int(ProcessID));
+  return data || false;
+}
+function getDetailsProcessList2() {
+  return getAllProcessList2Sync(true);
+}
+function getProcessNameSnp2Sync(ProcessID, is_SessionCache) {
+  const data_list = is_SessionCache ? getAllProcessListSnpSession2Sync() : getAllProcessListSnp2Sync();
+  for (let index = 0; index < data_list.length; index++) {
+    const element = data_list[index];
+    if (element.pid == ProcessID) {
+      return element.szExeFile;
+    }
+  }
+  return null;
+}
+function getProcessNameSnp2(ProcessID, is_SessionCache) {
+  return new Promise(async (resolve, reject) => {
+    const data_list = await (is_SessionCache ? getAllProcessListSnpSession2().catch(reject) : getAllProcessListSnp2().catch(reject)) || [];
+    for (let index = 0; index < data_list.length; index++) {
+      const element = data_list[index];
+      if (element.pid == ProcessID) {
+        resolve(element.szExeFile);
+        return;
+      }
+    }
+    resolve(null);
+  });
+}
+function getProcessNameNt2Sync(ProcessID) {
+  const data_list = getAllProcessListNt2Sync();
+  for (let index = 0; index < data_list.length; index++) {
+    const element = data_list[index];
+    if (element.pid == ProcessID) {
+      return element.ImageName;
+    }
+  }
+  return null;
+}
+function getProcessNameNt2(ProcessID) {
+  return new Promise(async (resolve, reject) => {
+    const data_list = await getAllProcessListNt2();
+    for (let index = 0; index < data_list.length; index++) {
+      const element = data_list[index];
+      if (element.pid == ProcessID) {
+        resolve(element.ImageName);
+        return;
+      }
+    }
+    resolve(null);
+  });
+}
+function getProcessName2(ProcessID) {
+  return new Promise(async (resolve, reject) => {
+    var _a;
+    let FilePath = await ((_a = getProcessFilePath2(ProcessID)) == null ? void 0 : _a.catch(reject));
+    if (FilePath) {
+      resolve(FilePath.split(/[\\\/]+/).pop() || null);
+    }
+    return resolve(null);
+  });
+}
+function getProcessName2Sync(ProcessID) {
+  let FilePath = getProcessFilePath2Sync(ProcessID);
+  if (FilePath) {
+    return FilePath.split(/[\\\/]+/).pop() || null;
+  }
+  return null;
+}
+async function findProcess2(ProcessName, isMacthFile = false) {
+  return new Promise(async (resolve, reject) => {
+    var _a;
+    let result = [];
+    let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
+    for (let index = 0; index < ProcessList.length; index++) {
+      const Process2 = ProcessList[index];
+      if (typeof ProcessName == "string") {
+        if (Process2.name.includes(ProcessName) || ((_a = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _a.includes(ProcessName))) {
+          result.push(Process2);
+        }
+      } else if (typeof ProcessName == "number") {
+        if (Process2.pid == ProcessName) {
+          let path2 = await getProcessFilePath2(ProcessName).catch(reject);
+          Process2.path = path2 || null;
+          Process2.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+          result.push(Process2);
+        }
+      } else {
+        if (Process2.name.match(ProcessName) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? Process2.path.match(ProcessName) : false) {
+          result.push(Process2);
+        }
+      }
+    }
+    resolve(result);
+  });
+}
+function findProcess2Sync(ProcessName, isMacthFile = false) {
+  var _a;
+  let result = [];
+  let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
+  for (let index = 0; index < ProcessList.length; index++) {
+    const Process2 = ProcessList[index];
+    if (typeof ProcessName == "string") {
+      if (Process2.name.includes(ProcessName) || ((_a = Process2 == null ? void 0 : Process2.path) == null ? void 0 : _a.includes(ProcessName))) {
+        result.push(Process2);
+      }
+    } else if (typeof ProcessName == "number") {
+      if (Process2.pid == ProcessName) {
+        let path2 = getProcessFilePath2Sync(ProcessName);
+        Process2.path = path2 || null;
+        Process2.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+        result.push(Process2);
+      }
+    } else {
+      if (Process2.name.match(ProcessName) || typeof (Process2 == null ? void 0 : Process2.path) == "string" ? Process2.path.match(ProcessName) : false) {
+        result.push(Process2);
+      }
+    }
+  }
+  return result;
+}
 var Environment = {
   hasKeyExists,
   hasUseKeyExists,
@@ -3858,17 +4378,20 @@ var Environment = {
   getRealGlobalVariableList,
   getUserKeyList,
   getSystemKeyList,
-  updateThis
+  updateThis,
+  setUserVariable,
+  setSystemVariable
 };
 var Registr = registr;
 var hmc = {
   Auto,
   Clipboard,
-  HMC,
+  Environment,
   HWND,
   MessageError,
   MessageStop,
   Process,
+  PromiseSession,
   Registr,
   SetBlockInput,
   SetSystemHOOK,
@@ -3888,6 +4411,7 @@ var hmc = {
   analysisDirectPath,
   captureBmpToFile,
   clearClipboard,
+  closeWindow,
   closedHandle,
   confirm,
   createDirSymlink,
@@ -3903,11 +4427,21 @@ var hmc = {
   enumRegistrKey,
   escapeEnvVariable,
   findProcess,
+  findProcess2,
+  findProcess2Sync,
   findWindow,
   findWindowEx,
   formatVolumePath,
   freePort,
   getAllEnv,
+  getAllProcessList2,
+  getAllProcessList2Sync,
+  getAllProcessListNt2,
+  getAllProcessListNt2Sync,
+  getAllProcessListSnp2,
+  getAllProcessListSnp2Sync,
+  getAllProcessListSnpSession2,
+  getAllProcessListSnpSession2Sync,
   getAllWindows,
   getAllWindowsHandle,
   getBasicKeys,
@@ -3918,6 +4452,7 @@ var hmc = {
   getConsoleHandle,
   getCurrentMonitorRect,
   getDetailsProcessList,
+  getDetailsProcessList2,
   getDetailsProcessNameList,
   getDeviceCaps,
   getDeviceCapsAll,
@@ -3934,13 +4469,25 @@ var hmc = {
   getPointWindowMain,
   getPointWindowName,
   getPointWindowProcessId,
+  getProcessFilePath,
+  getProcessFilePath2,
+  getProcessFilePath2Sync,
   getProcessHandle,
   getProcessList,
   getProcessName,
+  getProcessName2,
+  getProcessName2Sync,
   getProcessNameList,
+  getProcessNameNt2,
+  getProcessNameNt2Sync,
+  getProcessNameSnp2,
+  getProcessNameSnp2Sync,
   getProcessParentProcessID,
+  getProcessParentProcessMatch2,
+  getProcessParentProcessMatch2Sync,
   getProcessStartTime,
   getProcessThreadList,
+  getProcessWindow,
   getProcessidFilePath,
   getRealGlobalVariableList,
   getRegistrBuffValue,
@@ -3965,6 +4512,7 @@ var hmc = {
   getVolumeList,
   getWebView2Info,
   getWindowClassName,
+  getWindowProcess,
   getWindowRect,
   getWindowStyle,
   getWindowTitle,
@@ -3990,6 +4538,8 @@ var hmc = {
   isProcess,
   isRegistrTreeKey,
   isSystemX64,
+  isWindowTop,
+  isWindowVisible,
   keyboardHook,
   killProcess,
   killProcessName,
@@ -4038,10 +4588,13 @@ var hmc = {
   setRegistrQword,
   setShortcutLink,
   setShowWindow,
+  setSystemVariable,
+  setUserVariable,
   setWindowEnabled,
   setWindowFocus,
   setWindowIconForExtract,
   setWindowMode,
+  setWindowShake,
   setWindowTitle,
   setWindowTop,
   showConsole,
@@ -4078,6 +4631,7 @@ process.on("exit", function() {
   MessageError,
   MessageStop,
   Process,
+  PromiseSession,
   Registr,
   SetBlockInput,
   SetSystemHOOK,
@@ -4097,6 +4651,7 @@ process.on("exit", function() {
   analysisDirectPath,
   captureBmpToFile,
   clearClipboard,
+  closeWindow,
   closedHandle,
   confirm,
   createDirSymlink,
@@ -4111,12 +4666,24 @@ process.on("exit", function() {
   enumProcessHandle,
   enumRegistrKey,
   escapeEnvVariable,
+  existProcess2,
+  existProcess2Sync,
   findProcess,
+  findProcess2,
+  findProcess2Sync,
   findWindow,
   findWindowEx,
   formatVolumePath,
   freePort,
   getAllEnv,
+  getAllProcessList2,
+  getAllProcessList2Sync,
+  getAllProcessListNt2,
+  getAllProcessListNt2Sync,
+  getAllProcessListSnp2,
+  getAllProcessListSnp2Sync,
+  getAllProcessListSnpSession2,
+  getAllProcessListSnpSession2Sync,
   getAllWindows,
   getAllWindowsHandle,
   getBasicKeys,
@@ -4127,6 +4694,7 @@ process.on("exit", function() {
   getConsoleHandle,
   getCurrentMonitorRect,
   getDetailsProcessList,
+  getDetailsProcessList2,
   getDetailsProcessNameList,
   getDeviceCaps,
   getDeviceCapsAll,
@@ -4143,13 +4711,25 @@ process.on("exit", function() {
   getPointWindowMain,
   getPointWindowName,
   getPointWindowProcessId,
+  getProcessFilePath,
+  getProcessFilePath2,
+  getProcessFilePath2Sync,
   getProcessHandle,
   getProcessList,
   getProcessName,
+  getProcessName2,
+  getProcessName2Sync,
   getProcessNameList,
+  getProcessNameNt2,
+  getProcessNameNt2Sync,
+  getProcessNameSnp2,
+  getProcessNameSnp2Sync,
   getProcessParentProcessID,
+  getProcessParentProcessMatch2,
+  getProcessParentProcessMatch2Sync,
   getProcessStartTime,
   getProcessThreadList,
+  getProcessWindow,
   getProcessidFilePath,
   getRealGlobalVariableList,
   getRegistrBuffValue,
@@ -4174,6 +4754,7 @@ process.on("exit", function() {
   getVolumeList,
   getWebView2Info,
   getWindowClassName,
+  getWindowProcess,
   getWindowRect,
   getWindowStyle,
   getWindowTitle,
@@ -4200,6 +4781,8 @@ process.on("exit", function() {
   isProcess,
   isRegistrTreeKey,
   isSystemX64,
+  isWindowTop,
+  isWindowVisible,
   keyboardHook,
   killProcess,
   killProcessName,
@@ -4248,10 +4831,13 @@ process.on("exit", function() {
   setRegistrQword,
   setShortcutLink,
   setShowWindow,
+  setSystemVariable,
+  setUserVariable,
   setWindowEnabled,
   setWindowFocus,
   setWindowIconForExtract,
   setWindowMode,
+  setWindowShake,
   setWindowTitle,
   setWindowTop,
   showConsole,

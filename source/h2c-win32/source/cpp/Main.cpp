@@ -157,14 +157,14 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
         }
     }
 
-    DWORD buf_length = ::GetProcessImageFileNameW(hProcess, &result[0], result.size());
+    DWORD buf_length = ::GetModuleFileNameExW(hProcess, NULL, &result[0], result.size());
 
     // 没获取到 用模块法
     if (buf_length == 0)
     {
 
         // 这里获取的不是dos路径
-        buf_length = ::GetModuleFileNameExW(hProcess, NULL, &result[0], result.size());
+        buf_length = ::GetProcessImageFileNameW(hProcess, &result[0], result.size());
         if (buf_length > 0)
         {
             result.reserve(buf_length);
@@ -577,6 +577,182 @@ namespace fn_getAllProcessSnpList
 }
 
 
+/**
+ * @brief 获取CPU核心数
+ *
+ * @return int
+ */
+int _hmc_getCPUCount()
+{
+    SYSTEM_INFO system_info;
+    GetSystemInfo(&system_info);
+    return static_cast<int>(system_info.dwNumberOfProcessors);
+}
+
+// 时间格式转换
+__int64 _hmc_FileTimeToInt64(const FILETIME& time)
+{
+    ULARGE_INTEGER tt;
+    tt.LowPart = time.dwLowDateTime;
+    tt.HighPart = time.dwHighDateTime;
+    return (tt.QuadPart);
+}
+
+/**
+ * @brief 获取指定进程CPU使用率
+ *
+ * @param ProcessID
+ * @return double
+ */
+double getProcessCpuUsage(DWORD ProcessID)
+{
+    static int processor_count_ = -1;     // cpu核心数
+    static __int64 last_system_time_ = 0; // 上一次的系统时间
+    static __int64 last_time_ = 0;        // 上一次的时间
+
+    FILETIME now;
+    FILETIME creation_time;
+    FILETIME exit_time;
+    FILETIME kernel_time;
+    FILETIME user_time;
+
+    __int64 system_time;
+    __int64 time;
+
+    double cpu_usage = -1;
+
+    if (processor_count_ == -1)
+    {
+        processor_count_ = _hmc_getCPUCount();
+    }
+
+    GetSystemTimeAsFileTime(&now);
+
+    HANDLE hProcess = OpenProcess(
+        PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, ProcessID);
+
+    if (!hProcess)
+    {
+        return -1;
+    }
+
+    if (!GetProcessTimes(hProcess, &creation_time, &exit_time, &kernel_time, &user_time))
+    {
+        return -1;
+    }
+
+    system_time = (_hmc_FileTimeToInt64(kernel_time) + _hmc_FileTimeToInt64(user_time)) / processor_count_; // CPU使用时间
+    time = _hmc_FileTimeToInt64(now);                                                                       // 现在的时间
+
+    last_system_time_ = system_time;
+    last_time_ = time;
+
+    CloseHandle(hProcess);
+
+    Sleep(1000); // 睡眠1s
+
+    hProcess = OpenProcess(
+        PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, ProcessID);
+
+    if (!hProcess)
+    {
+        return -1;
+    }
+
+    if (!GetProcessTimes(hProcess, &creation_time, &exit_time, &kernel_time, &user_time))
+    {
+        return -1;
+    }
+
+    GetSystemTimeAsFileTime(&now);
+    system_time = (_hmc_FileTimeToInt64(kernel_time) + _hmc_FileTimeToInt64(user_time)) / processor_count_; // CPU使用时间
+    time = _hmc_FileTimeToInt64(now);                                                                       // 现在的时间
+
+    CloseHandle(hProcess);
+
+    cpu_usage = ((static_cast<double>(system_time - last_system_time_)) / (static_cast<double>(time - last_time_))) * 100;
+    return cpu_usage;
+}
+
+
+namespace fn_getProcessCpuUsage
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty()|| !arguments_list.at(0).has_value() || arguments_list.at(0).type()!= typeid(DWORD) ) {
+            return any();
+        }
+        return getProcessCpuUsage(any_cast<DWORD>(arguments_list.at(0)) );
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::Number(env, any_cast<double>(result_any_data));
+        return result;
+    }
+};
+
+
+namespace fn_GetProcessIdFilePath
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number , true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+        //ArgumentsList.push_back(args_value.getBool(1));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+        return GetProcessIdFilePathW( any_cast<DWORD>(arguments_list.at(0)), false );
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+};
+
+
+
+
+
 static napi_value Init(napi_env env, napi_value exports)
 {
 
@@ -592,6 +768,12 @@ static napi_value Init(napi_env env, napi_value exports)
 
     fn_getAllProcessSnpList::exports(env, exports, "getAllProcessListSnp");
     fn_getAllProcessSnpList::exportsSync(env, exports, "getAllProcessListSnpSync");
+
+    fn_getProcessCpuUsage::exports(env, exports, "getProcessCpuUsage");
+    fn_getProcessCpuUsage::exportsSync(env, exports, "getProcessCpuUsageSync");
+
+    fn_GetProcessIdFilePath::exports(env, exports, "getProcessFilePath");
+    fn_GetProcessIdFilePath::exportsSync(env, exports, "getProcessFilePathSync");
 
     return exports;
 }

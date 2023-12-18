@@ -1,3 +1,4 @@
+/// <reference types="node" />
 export declare const native: HMN.Native;
 export declare module HMN {
     interface Native {

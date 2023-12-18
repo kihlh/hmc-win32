@@ -1,54 +1,5 @@
 export interface Native {
     /**
-     * 获取指定id的  [Session Promise] 的所有已经完成的内容 同时回收空间
-     * @param SessionID 内容id
-     * @param size 最多取出多少个
-     * @default 999
-     */
-    _PromiseSession_get(SessionID: number, size?: number): undefined | null | any[];
-    /**
-     * 判断指定的  [Session Promise] 是否已经结束
-     * @param SessionID id
-     */
-    _PromiseSession_isClosed(SessionID: number): boolean;
-    /**
-     * 停止一个  [Session Promise] 事件
-     * @param SessionID id
-     */
-    _PromiseSession_stop(SessionID: number): void;
-    /**
-     * 获取当前  Session ID 已经到哪里了
-     */
-    _PromiseSession_max_id(): number;
-    /**
-     * 获取指定的id存在了多少个数据
-     * @param SessionID id
-     */
-    _PromiseSession_data_size(SessionID: number): number;
-    /**
-     * 设置每次获取 Session Promise 的毫秒数
-     * @param sleep_time 毫秒
-     * @default 5 ms
-     */
-    _PromiseSession_set_sleep_time(sleep_time: number): number;
-    /**
-     * 将  [Session Promise] 转为同步
-     * @param SessionID id
-     */
-    _PromiseSession_await(SessionID: number): void;
-    /**
-     * 所有任务
-     */
-    _PromiseSession_allTasks(): number[];
-    /**
-     * 已经完成的任务
-     */
-    _PromiseSession_completeTasks(): number[];
-    /**
-     * 进行中的任务
-     */
-    _PromiseSession_ongoingTasks(): number[];
-    /**
      * 获取进程的可执行文件的路径  [Session Promise]
      * @param ProcessID 进程id
      */

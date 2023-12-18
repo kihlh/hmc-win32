@@ -4,13 +4,51 @@
 // #include "./environment.hpp";
 // #include "./fmt11.hpp";
 
-/**
- * @brief 枚举进程快照
- *
- * @param pid_list 过滤指定的pid {0,4,8,16} 就只会匹配此范围要求
- * @param early_result  满足条件时候立即跳出
- * @return vector<HMC_PROCESSENTRY32W>
- */
+
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result);
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End);
+
+bool ExistProcessID(DWORD processID);
+wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match);
+wstring GetProcessSnapshotNameW(DWORD processID);
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot();
+
+
+bool ExistProcessID(DWORD processID)
+{
+    if (processID == 0 || processID == 4)
+    {
+        return true;
+    }
+    HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+    // gc
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
+                                              {
+        if (hProcess != NULL) {
+            ::CloseHandle(hProcess);
+        } });
+
+    // win10 + 用PROCESS_QUERY_INFORMATION| PROCESS_VM_READ 打开可能会导致失败 改权获取
+    if (hProcess == NULL)
+    {
+        hProcess = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processID);
+        if (hProcess == NULL)
+        {
+            return false;
+        }
+    }
+
+    // 复核 防止句柄获取异常
+    DWORD review_pid = GetProcessId(hProcess);
+
+    if (review_pid == processID)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result)
 {
     vector<HMC_PROCESSENTRY32W> result = {};
@@ -20,11 +58,11 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool earl
     PROCESSENTRY32W PE32;
 
     // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
-                                              {
-        if (hProcessSnapshot != NULL) {
-            ::CloseHandle(hProcessSnapshot);
-        } });
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
+        {
+            if (hProcessSnapshot != NULL) {
+                ::CloseHandle(hProcessSnapshot);
+            } });
 
     hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
     if (hProcessSnapshot == INVALID_HANDLE_VALUE)
@@ -73,13 +111,7 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool earl
     return result;
 }
 
-/**
- * @brief 枚举进程快照 pid范围 例如 0-99
- *
- * @param Start
- * @param End
- * @return vector<HMC_PROCESSENTRY32W>
- */
+
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End)
 {
     vector<DWORD> pid_list;
@@ -94,74 +126,10 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End)
     return {};
 }
 
-vector<HMC_PROCESSENTRY32W> GetProcessSnapshot()
-{
-    vector<HMC_PROCESSENTRY32W> result = {};
-
-    DWORD PID = 0;
-    HANDLE hProcessSnapshot;
-    PROCESSENTRY32W PE32;
-
-    // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
-                                              {
-        if (hProcessSnapshot != NULL) {
-            ::CloseHandle(hProcessSnapshot);
-        } });
-
-    hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-    if (hProcessSnapshot == INVALID_HANDLE_VALUE)
-    {
-        return result;
-    }
-
-    PE32.dwSize = sizeof(PROCESSENTRY32W);
-
-    if (!Process32FirstW(hProcessSnapshot, &PE32))
-    {
-        return result;
-    }
-
-    do
-    {
-
-        HMC_PROCESSENTRY32W data = HMC_PROCESSENTRY32W{
-            PE32.dwSize + 0,
-            PE32.cntUsage + 0,
-            PE32.th32ProcessID + 0,
-            (DWORD)PE32.th32DefaultHeapID + 0,
-            PE32.th32ModuleID + 0,
-            PE32.cntThreads + 0,
-            PE32.th32ParentProcessID + 0,
-            (DWORD)PE32.pcPriClassBase,
-            PE32.dwFlags + 0,
-            wstring(PE32.szExeFile),
-        };
-
-        result.push_back(data);
-
-    } while (Process32NextW(hProcessSnapshot, &PE32));
-
-    return result;
-}
-
-DWORD GetParentProcessID(DWORD processID)
-{
-    auto GetProcessSnapshotList = GetProcessSnapshot({processID});
-    if (GetProcessSnapshotList.empty())
-    {
-        return NULL;
-    }
-    else
-    {
-        return GetProcessSnapshotList[0].th32ParentProcessID;
-    }
-    return NULL;
-}
 
 wstring GetProcessSnapshotNameW(DWORD processID)
 {
-    auto GetProcessSnapshotList = GetProcessSnapshot({processID});
+    auto GetProcessSnapshotList = GetProcessSnapshot(vector<DWORD>({ processID }), true);
     if (GetProcessSnapshotList.empty())
     {
         return L"";
@@ -171,41 +139,6 @@ wstring GetProcessSnapshotNameW(DWORD processID)
         return GetProcessSnapshotList[0].szExeFile;
     }
     return L"";
-}
-
-bool ExistProcessID(DWORD processID)
-{
-    if (processID == 0 || processID == 4)
-    {
-        return true;
-    }
-    HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-    // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
-                                              {
-        if (hProcess != NULL) {
-            ::CloseHandle(hProcess);
-        } });
-
-    // win10 + 用PROCESS_QUERY_INFORMATION| PROCESS_VM_READ 打开可能会导致失败 改权获取
-    if (hProcess == NULL)
-    {
-        hProcess = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processID);
-        if (hProcess == NULL)
-        {
-            return false;
-        }
-    }
-
-    // 复核 防止句柄获取异常
-    DWORD review_pid = GetProcessId(hProcess);
-
-    if (review_pid == processID)
-    {
-        return true;
-    }
-
-    return false;
 }
 
 wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
@@ -225,11 +158,11 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
     result.resize(MAX_PATH);
 
     // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
-                                              {
-        if (hProcess != NULL) {
-            ::CloseHandle(hProcess);
-        } });
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
+        {
+            if (hProcess != NULL) {
+                ::CloseHandle(hProcess);
+            } });
 
     // win10 + 用PROCESS_QUERY_INFORMATION| PROCESS_VM_READ 打开可能会导致失败 改权获取
     if (hProcess == NULL)
@@ -241,14 +174,14 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
         }
     }
 
-    DWORD buf_length = ::GetProcessImageFileNameW(hProcess, &result[0], result.size());
+    DWORD buf_length = ::GetModuleFileNameExW(hProcess, NULL, &result[0], result.size());
 
     // 没获取到 用模块法
     if (buf_length == 0)
     {
 
         // 这里获取的不是dos路径
-        buf_length = ::GetModuleFileNameExW(hProcess, NULL, &result[0], result.size());
+        buf_length = ::GetProcessImageFileNameW(hProcess, &result[0], result.size());
         if (buf_length > 0)
         {
             result.reserve(buf_length);
@@ -336,389 +269,524 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
     return result;
 }
 
-wstring GetProcessNameW(DWORD processID)
+
+namespace fn_getAllProcessList
 {
-    wstring result = GetProcessIdFilePathW(processID, true);
-    return hmc_string_util::getPathBaseName(result);
-}
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
 
-napi_value fn_getProcessidFilePath_v2(napi_env env, napi_callback_info info)
-{
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+    wstring GetAllProcessList(bool is_execPath) {
 
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_number}, true))
-    {
-        return NULL;
-    }
-    EnableShutDownPriv();
-
-    return hmc_napi_create_value::String(env, GetProcessIdFilePathW(input.getInt64(0), true));
-}
-
-napi_value fn_getProcessidBaseName_v2(napi_env env, napi_callback_info info)
-{
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
-
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_number}, true))
-    {
-        return NULL;
-    }
-    EnableShutDownPriv();
-
-    return hmc_napi_create_value::String(env, GetProcessNameW(input.getInt64(0)));
-}
-
-napi_value fn_hasProcess_v2(napi_env env, napi_callback_info info)
-{
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
-
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_number}, true))
-    {
-        return NULL;
-    }
-    EnableShutDownPriv();
-    auto out = ExistProcessID(input.getInt64(0));
-
-    return hmc_napi_create_value::Boolean(env, out);
-}
-
-namespace Promise_getProcessidFilePath
-{
-
-    typedef struct
-    {
-        // 工作环境
-        napi_async_work work;
-        // napi处理延迟的内联
-        napi_deferred deferred;
-        // 数据体的内存 必须是固定大小的值 不能动态调整内存
-        // vector<string> data;
-    } PromiseData;
-
-    DWORD __Promise_getProcessidFilePath_work_Pid = 0;
-    wstring __Promise_getProcessidFilePath__work_path;
-    /**
-     * @brief 处理数据更新 这里是异步的
-     *
-     * @param env
-     * @param data
-     */
-    void asyncWorkFun(napi_env env, void *data)
-    {
-        PromiseData *addon_data = (PromiseData *)data;
-        __Promise_getProcessidFilePath__work_path.append(GetProcessIdFilePathW(__Promise_getProcessidFilePath_work_Pid, true));
-    }
-
-    /**
-     * @brief 运行结束的时候会执行此 这里是同步的
-     *
-     * @param env
-     * @param status
-     * @param data
-     */
-    void completeWork(napi_env env, napi_status status, void *data)
-    {
-        if (status != napi_ok)
-        {
-            return;
-        }
-
-        PromiseData *addon_data = (PromiseData *)data;
-
-        napi_resolve_deferred(env, addon_data->deferred, hmc_napi_create_value::String(env, __Promise_getProcessidFilePath__work_path));
-        __Promise_getProcessidFilePath_work_Pid = 0;
-        __Promise_getProcessidFilePath__work_path.clear();
-        __Promise_getProcessidFilePath__work_path.resize(0);
-        __Promise_getProcessidFilePath__work_path.reserve(0);
-        // 清理与此运行关联的工作环境
-        napi_delete_async_work(env, addon_data->work);
-
-        // 将这两个值都设置为NULL，这样JavaScript可以启动新的线程运行。
-        addon_data->work = NULL;
-        addon_data->deferred = NULL;
-    }
-
-    /**
-     * @brief 创建一个 promise对象
-     *
-     * @param env
-     * @param info
-     * @return napi_value
-     */
-    napi_value startWork(napi_env env, napi_callback_info info)
-    {
-        napi_value work_name, promise;
-        PromiseData *addon_data;
-
-        string work_message = string(__FUNCTION__).append("  work_message ->  ");
-
-        // 获取插件的工作数据。
-        napi_get_cb_info(env, info, NULL, NULL, NULL, (void **)(&addon_data));
-
-        // 添加一个工作线程的 结构体
-
-        if (addon_data->work != NULL)
-        {
-            work_message.append("error < Promise workspace has not been released. > ");
-            // napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());
-            return NULL;
-        }
-
-        // 创建一个字符串来描述这个异步操作。
-
-        work_message.append("Node-API Deferred Promise from Async Work Item");
-        napi_create_string_utf8(
-            env, work_message.c_str(), work_message.length(), &work_name);
-
-        hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
-
-        // 参数预设 如果不符合则返回void
-        if (!input.eq(0, {js_number}, true))
-        {
-            return NULL;
-        }
         EnableShutDownPriv();
 
-        __Promise_getProcessidFilePath_work_Pid = input.getDword(0);
+        DWORD processList[1024], lpcbNeeded;
+        if (!EnumProcesses(processList, sizeof(processList), &lpcbNeeded))
+        {
+            return L"[]";
+        }
 
-        // 创建一个延迟的promise对象，在完成时我们将解决它
-        napi_create_promise(env, &(addon_data->deferred), &promise);
+        wstring jsonValue = L"[";
 
-        // 创建一个异步工作项，传递插件数据，这将使
-        // 工作线程访问上述创建的延迟的 promise对象
-        napi_create_async_work(env,
-                               NULL,
-                               work_name,
-                               asyncWorkFun,
-                               completeWork,
-                               addon_data,
-                               &(addon_data->work));
+        int processe_leng = lpcbNeeded / sizeof(DWORD);
+        for (int i = 0; i < processe_leng; ++i)
+        {
+            DWORD pid = processList[i];
+            wstring item = wstring(L"{\"pid\":");
+            item.append(to_wstring(pid));
+            // {"pid":0
+            if (is_execPath) {
+                item.push_back(L',');
+                auto exec_path = GetProcessIdFilePathW(pid, false);
+                item.append(hmc_string_util::escapeJsonString(L"path", true));
+                item.push_back(L':');
+                item.append(hmc_string_util::escapeJsonString(exec_path, true));
+                item.push_back(L',');
+                // {"pid":0,"path":"...",
+                item.append(hmc_string_util::escapeJsonString(L"name", true));
+                item.push_back(L':');
+                item.append(hmc_string_util::escapeJsonString(hmc_string_util::getPathBaseName(exec_path), true));
+                // {"pid":0,"path":"...","name":"..."
+            }
 
-        // 添加进node的异步队列
-        napi_queue_async_work(env, addon_data->work);
+            item.push_back(L'}');
+            if (i < processe_leng - 1) {
+                item.push_back(L',');
+            }
 
-        return promise;
+            jsonValue.append(item);
+        }
+        jsonValue.push_back(L']');
+
+        return jsonValue;
     }
-
-    /**
-     * @brief 释放内存 请注意这里是模块卸载时候才执行
-     *
-     * @param env
-     * @param data
-     * @param hint
-     */
-    void gcWork(napi_env env, void *data, void *hint)
+    // NEW_PROMISE_FUNCTION_DEFAULT_FUN end
+    any PromiseWorkFunc(vector<any> arguments_list)
     {
-        PromiseData *addon_data = (PromiseData *)data;
-
-        free(addon_data);
+        any result = GetAllProcessList(arguments_list.size() == 1);
+        return result;
     }
 
-    /**
-     * @brief 导出这个异步函数
-     *
-     * @param env
-     * @param exports
-     * @param name
-     */
-    void exports(napi_env env, napi_value exports, string name)
+    napi_value format_to_js_value(napi_env env, any result_any_data)
     {
-        PromiseData *addon_data = (PromiseData *)malloc(sizeof(*addon_data));
+        napi_value result;
+        napi_get_null(env, &result);
 
-        addon_data->work = NULL;
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
 
-        napi_value exported_function;
-
-        napi_create_function(env,
-                             name.c_str(),
-                             NAPI_AUTO_LENGTH,
-                             startWork,
-                             addon_data,
-                             &exported_function);
-
-        napi_set_named_property(env, exports, name.c_str(), exported_function);
-
-        // 回收
-        napi_wrap(env, exports, addon_data, gcWork, NULL, NULL);
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
     }
+};
 
-} // namespace PromiseFun
 
-napi_value fn_getProcessidFilePath_$SP(napi_env env, napi_callback_info info)
+vector<HMC_PROCESSENTRY32W> GetProcessSnapshot()
 {
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+    vector<HMC_PROCESSENTRY32W> result = {};
 
-    // 参数预设 如果不符合则返回void
-    if (!input.eq(0, {js_number}, true))
+    DWORD PID = 0;
+    HANDLE hProcessSnapshot;
+    PROCESSENTRY32W PE32;
+
+    // gc
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
+        {
+            if (hProcessSnapshot != NULL) {
+                ::CloseHandle(hProcessSnapshot);
+            } });
+
+    hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
+    if (hProcessSnapshot == INVALID_HANDLE_VALUE)
     {
-        return NULL;
+        return result;
     }
 
-    DWORD ProcessId = input.getInt64(0);
-    bool is_snapshot_match = input.getBool(0, true);
-    size_t SessionID = hmc_PromiseSession::open();
+    PE32.dwSize = sizeof(PROCESSENTRY32W);
 
-    thread([](size_t SessionID, DWORD ProcessId, bool is_snapshot_match)
-           {
-               EnableShutDownPriv();
-               wstring path_tmep = GetProcessIdFilePathW(ProcessId, is_snapshot_match);
-               hmc_PromiseSession::send(SessionID, path_tmep);
-               hmc_PromiseSession::end(SessionID); },
-           SessionID, ProcessId, is_snapshot_match)
-        .detach();
-    return hmc_napi_create_value::Number(env, (int64_t)SessionID);
+    if (!Process32FirstW(hProcessSnapshot, &PE32))
+    {
+        return result;
+    }
+
+    do
+    {
+
+        HMC_PROCESSENTRY32W data = HMC_PROCESSENTRY32W{
+            PE32.dwSize + 0,
+            PE32.cntUsage + 0,
+            PE32.th32ProcessID + 0,
+            (DWORD)PE32.th32DefaultHeapID + 0,
+            PE32.th32ModuleID + 0,
+            PE32.cntThreads + 0,
+            PE32.th32ParentProcessID + 0,
+            (DWORD)PE32.pcPriClassBase,
+            PE32.dwFlags + 0,
+            wstring(PE32.szExeFile),
+        };
+
+        result.push_back(data);
+
+    } while (Process32NextW(hProcessSnapshot, &PE32));
+
+    return result;
+}
+
+
+
+// 定义 ZwQuerySystemInformation 函数签名
+typedef NTSTATUS(NTAPI* ZwQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
+
+#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
+#define STATUS_SUCCESS 0x00000000
+
+
+namespace fn_getAllProcessNtList
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
+    // NEW_PROMISE_FUNCTION_DEFAULT_FUN end
+
+    wstring GetAllProcessList() {
+
+        wstring jsonValue = L"[";
+
+        // 加载 ntdll.dll
+        HMODULE ntdll = LoadLibraryW(L"ntdll.dll");
+        if (ntdll == NULL) {
+            return L"[]";
+        }
+        hmc_shared_close_Library(ntdll);
+
+        // 获取 ZwQuerySystemInformation 函数地址
+        ZwQuerySystemInformation_t ZwQuerySystemInformation = (ZwQuerySystemInformation_t)GetProcAddress(ntdll, "NtQuerySystemInformation");
+        if (ZwQuerySystemInformation == NULL) {
+            return L"[]";
+        }
+
+        // 调用 ZwQuerySystemInformation 获取系统信息
+        NTSTATUS status;
+        ULONG bufferSize = 0;
+        status = ZwQuerySystemInformation(SystemProcessInformation, NULL, 0, &bufferSize);
+        if (status != STATUS_INFO_LENGTH_MISMATCH) {
+            return L"[]";
+        }
+
+
+        PVOID buffer = VirtualAlloc((LPVOID)NULL, (DWORD)(bufferSize), MEM_COMMIT, PAGE_READWRITE);
+
+        hmc_FreeVSAuto(buffer);
+
+        if (buffer == NULL) {
+            return L"[]";
+        }
+
+        status = ZwQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, NULL);
+        if (status != STATUS_SUCCESS) {
+
+            return L"[]";
+        }
+
+        // 处理系统信息
+        PSYSTEM_PROCESS_INFORMATION processInfo = (PSYSTEM_PROCESS_INFORMATION)buffer;
+        while (processInfo->NextEntryOffset) {
+            auto ImageName = hmc_string_util::unicodeStringToWString(processInfo->ImageName);
+
+            jsonValue.append(L"{");
+            jsonValue.append(hmc_string_util::push_json_value(L"ImageName", ImageName, false, true));
+            jsonValue.append(hmc_string_util::push_json_value(L"UniqueProcessId", to_wstring((INT64)processInfo->UniqueProcessId), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"BasePriority", to_wstring((INT64)processInfo->BasePriority), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"NextEntryOffset", to_wstring((INT64)processInfo->NextEntryOffset), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"NumberOfThreads", to_wstring((INT64)processInfo->NumberOfThreads), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"PeakPagefileUsage", to_wstring((INT64)processInfo->PeakPagefileUsage), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"PagefileUsage", to_wstring((INT64)processInfo->PagefileUsage), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"PeakVirtualSize", to_wstring((INT64)processInfo->PeakVirtualSize), true, false));
+
+            jsonValue.append(hmc_string_util::push_json_value(L"PeakWorkingSetSize", to_wstring((INT64)processInfo->PeakWorkingSetSize), true, false));
+            jsonValue.append(hmc_string_util::push_json_value(L"QuotaNonPagedPoolUsage", to_wstring((INT64)processInfo->QuotaNonPagedPoolUsage), true, false));
+            /* jsonValue.append(hmc_string_util::push_json_value(L"Reserved1", to_wstring((INT64)processInfo->Reserved1), true,false));
+             jsonValue.append(hmc_string_util::push_json_value(L"Reserved2", to_wstring((INT64)processInfo->Reserved2), true, false));
+             jsonValue.append(hmc_string_util::push_json_value(L"Reserved3", to_wstring((INT64)processInfo->Reserved3), true, false));
+             jsonValue.append(hmc_string_util::push_json_value(L"Reserved4", to_wstring((INT64)processInfo->Reserved3), true, false));
+             jsonValue.append(hmc_string_util::push_json_value(L"Reserved5", to_wstring((INT64)processInfo->Reserved4), true, false));
+             jsonValue.append(hmc_string_util::push_json_value(L"Reserved6", to_wstring((INT64)processInfo->Reserved6), true, false));*/
+
+            jsonValue.append(L"}");
+            processInfo = (PSYSTEM_PROCESS_INFORMATION)((PUCHAR)processInfo + processInfo->NextEntryOffset);
+            if (processInfo->NextEntryOffset) {
+                jsonValue.append(L",");
+            }
+        }
+
+        jsonValue.append(L"]");
+        return jsonValue;
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        any result = GetAllProcessList();
+        return result;
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+};
+
+
+namespace fn_getAllProcessSnpList
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP;
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        wstring result = L"[";
+
+        vector<HMC_PROCESSENTRY32W> ProcessSnapshot_list = GetProcessSnapshot();
+
+        size_t leng = ProcessSnapshot_list.size();
+        for (size_t i = 0; i < leng; i++)
+        {
+            auto data = ProcessSnapshot_list.at(i);
+            wstring item = L"{";
+            item.append(hmc_string_util::push_json_value(L"szExeFile", data.szExeFile, false, true));
+            item.append(hmc_string_util::push_json_value(L"th32ProcessID", to_wstring(data.th32ProcessID), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32ParentProcessID", to_wstring(data.th32ParentProcessID), true, false));
+            item.append(hmc_string_util::push_json_value(L"cntThreads", to_wstring(data.cntThreads), true, false));
+            item.append(hmc_string_util::push_json_value(L"cntUsage", to_wstring(data.cntUsage), true, false));
+            item.append(hmc_string_util::push_json_value(L"dwFlags", to_wstring(data.dwFlags), true, false));
+            item.append(hmc_string_util::push_json_value(L"dwSize", to_wstring(data.dwSize), true, false));
+            item.append(hmc_string_util::push_json_value(L"pcPriClassBase", to_wstring(data.pcPriClassBase), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32DefaultHeapID", to_wstring(data.th32DefaultHeapID), true, false));
+            item.append(hmc_string_util::push_json_value(L"th32ModuleID", to_wstring(data.th32ModuleID), true, false));
+
+            item.append(L"}");
+
+            if (i < leng - 1) {
+                item.push_back(L',');
+            }
+
+            result.append(item);
+        }
+
+        result.append(L"]");
+        return result;
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+
+
+}
+
+
+/**
+ * @brief 获取CPU核心数
+ *
+ * @return int
+ */
+int _hmc_getCPUCount()
+{
+    SYSTEM_INFO system_info;
+    GetSystemInfo(&system_info);
+    return static_cast<int>(system_info.dwNumberOfProcessors);
+}
+
+// 时间格式转换
+__int64 _hmc_FileTimeToInt64(const FILETIME& time)
+{
+    ULARGE_INTEGER tt;
+    tt.LowPart = time.dwLowDateTime;
+    tt.HighPart = time.dwHighDateTime;
+    return (tt.QuadPart);
 }
 
 /**
- * @brief 枚举 所有进程id 给异步用的
+ * @brief 获取指定进程CPU使用率
  *
+ * @param ProcessID
+ * @return double
  */
-void GetAllProcessListv2_$SP(size_t SessionID, bool is_pid, bool is_Name, bool is_FilePath, bool is_SnapshotProcess, bool is_EnumProcess, bool is_Snapshot_info)
+double getProcessCpuUsage(DWORD ProcessID)
 {
-    set<DWORD> send_pid_list;
-    EnableShutDownPriv();
+    static int processor_count_ = -1;     // cpu核心数
+    static __int64 last_system_time_ = 0; // 上一次的系统时间
+    static __int64 last_time_ = 0;        // 上一次的时间
 
-    if (is_SnapshotProcess)
+    FILETIME now;
+    FILETIME creation_time;
+    FILETIME exit_time;
+    FILETIME kernel_time;
+    FILETIME user_time;
+
+    __int64 system_time;
+    __int64 time;
+
+    double cpu_usage = -1;
+
+    if (processor_count_ == -1)
     {
-        HANDLE hProcessSnapshot;
-        PROCESSENTRY32W PE32;
-        hmc_shared_close_handle(hProcessSnapshot);
-
-        hProcessSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, NULL);
-        if (hProcessSnapshot == INVALID_HANDLE_VALUE)
-        {
-            goto to_EnumProcess;
-            hmc_PromiseSession::end(SessionID);
-            return;
-        }
-
-        PE32.dwSize = sizeof(PROCESSENTRY32W);
-
-        if (!Process32FirstW(hProcessSnapshot, &PE32))
-        {
-            goto to_EnumProcess;
-            hmc_PromiseSession::end(SessionID);
-            return;
-        }
-
-        do
-        {
-
-            DWORD processID = PE32.th32ProcessID;
-            if (send_pid_list.count(processID) > 0)
-            {
-                continue;
-            }
-            map<wstring, wstring> Process = {};
-
-            if (is_pid)
-                Process.insert(pair<wstring, wstring>(L"pid", to_wstring(processID)));
-
-            if (is_Name || is_FilePath)
-            {
-                wstring path = GetProcessIdFilePathW(processID);
-
-                if (is_Name)
-                {
-                    Process.insert(pair<wstring, wstring>(L"name", hmc_string_util::getPathBaseName(path)));
-                }
-
-                if (is_FilePath)
-                {
-                    Process.insert(pair<wstring, wstring>(L"path", path));
-                }
-            }
-
-            if (is_Snapshot_info)
-            {
-                Process.insert(pair<wstring, wstring>(L"cntThreads", to_wstring(PE32.cntThreads)));
-                Process.insert(pair<wstring, wstring>(L"cntUsage", to_wstring(PE32.cntUsage)));
-                Process.insert(pair<wstring, wstring>(L"dwFlags", to_wstring(PE32.dwFlags)));
-                Process.insert(pair<wstring, wstring>(L"dwSize", to_wstring(PE32.dwSize)));
-                Process.insert(pair<wstring, wstring>(L"pcPriClassBase", to_wstring(PE32.pcPriClassBase)));
-                Process.insert(pair<wstring, wstring>(L"th32DefaultHeapID", to_wstring(PE32.th32DefaultHeapID)));
-                Process.insert(pair<wstring, wstring>(L"th32ModuleID", to_wstring(PE32.th32ModuleID)));
-                Process.insert(pair<wstring, wstring>(L"th32ParentProcessID", to_wstring(PE32.th32ParentProcessID)));
-            }
-
-            hmc_PromiseSession::send(SessionID, hmc_string_util::map_to_jsonW(Process));
-
-            send_pid_list.insert(processID);
-
-        } while (Process32NextW(hProcessSnapshot, &PE32));
+        processor_count_ = _hmc_getCPUCount();
     }
 
-// 扩展 到枚举进程
-to_EnumProcess:
-    if (is_EnumProcess)
+    GetSystemTimeAsFileTime(&now);
+
+    HANDLE hProcess = OpenProcess(
+        PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, ProcessID);
+
+    if (!hProcess)
     {
-
-        DWORD processList[1024], cbNeeded;
-
-        if (!EnumProcesses(processList, sizeof(processList), &cbNeeded))
-        {
-            return;
-            hmc_PromiseSession::end(SessionID);
-        }
-
-        int numProcesses = cbNeeded / sizeof(DWORD);
-        for (int i = 0; i < numProcesses; ++i)
-        {
-            DWORD processID = processList[i];
-            if (send_pid_list.count(processID) > 0)
-            {
-                continue;
-            }
-            map<wstring, wstring> Process = {};
-
-            if (is_pid)
-                Process.insert(pair<wstring, wstring>(L"pid", to_wstring(processID)));
-
-            if (is_Name || is_FilePath)
-            {
-                wstring path = GetProcessIdFilePathW(processID);
-
-                if (is_Name)
-                {
-                    Process.insert(pair<wstring, wstring>(L"name", hmc_string_util::getPathBaseName(path)));
-                }
-
-                if (is_FilePath)
-                {
-                    Process.insert(pair<wstring, wstring>(L"path", path));
-                }
-            }
-
-            hmc_PromiseSession::send(SessionID, hmc_string_util::map_to_jsonW(Process));
-            send_pid_list.insert(processID);
-        }
+        return -1;
     }
 
-    hmc_PromiseSession::end(SessionID);
+    if (!GetProcessTimes(hProcess, &creation_time, &exit_time, &kernel_time, &user_time))
+    {
+        return -1;
+    }
+
+    system_time = (_hmc_FileTimeToInt64(kernel_time) + _hmc_FileTimeToInt64(user_time)) / processor_count_; // CPU使用时间
+    time = _hmc_FileTimeToInt64(now);                                                                       // 现在的时间
+
+    last_system_time_ = system_time;
+    last_time_ = time;
+
+    CloseHandle(hProcess);
+
+    Sleep(1000); // 睡眠1s
+
+    hProcess = OpenProcess(
+        PROCESS_QUERY_INFORMATION |
+        PROCESS_VM_READ,
+        FALSE, ProcessID);
+
+    if (!hProcess)
+    {
+        return -1;
+    }
+
+    if (!GetProcessTimes(hProcess, &creation_time, &exit_time, &kernel_time, &user_time))
+    {
+        return -1;
+    }
+
+    GetSystemTimeAsFileTime(&now);
+    system_time = (_hmc_FileTimeToInt64(kernel_time) + _hmc_FileTimeToInt64(user_time)) / processor_count_; // CPU使用时间
+    time = _hmc_FileTimeToInt64(now);                                                                       // 现在的时间
+
+    CloseHandle(hProcess);
+
+    cpu_usage = ((static_cast<double>(system_time - last_system_time_)) / (static_cast<double>(time - last_time_))) * 100;
+    return cpu_usage;
 }
 
-napi_value fn_getAllProcessListv2_$SP(napi_env env, napi_callback_info info)
+
+namespace fn_getProcessCpuUsage
 {
-    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
 
-    bool is_pid = input.getBool(0, true);
-    bool is_Name = input.getBool(1, true);
-    bool is_FilePath = input.getBool(2, true);
-    bool is_SnapshotProcess = input.getBool(3, true);
-    bool is_EnumProcess = input.getBool(4, false);
-    bool is_Snapshot_info = input.getBool(5, false);
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+    }
 
-    size_t SessionID = hmc_PromiseSession::open();
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+        return getProcessCpuUsage(any_cast<DWORD>(arguments_list.at(0)));
+    }
 
-    thread(GetAllProcessListv2_$SP, SessionID, is_pid, is_Name, is_FilePath, is_SnapshotProcess, is_EnumProcess, is_Snapshot_info).detach();
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
 
-    return hmc_napi_create_value::Number(env, (int64_t)SessionID);
-}
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
 
-void _fn_process_exports(napi_env env, napi_value exports)
+        result = hmc_napi_create_value::Number(env, any_cast<double>(result_any_data));
+        return result;
+    }
+};
+
+
+namespace fn_GetProcessIdFilePath
 {
-    Promise_getProcessidFilePath::exports(env, exports, "getProcessidFilePathAsync");
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+        //ArgumentsList.push_back(args_value.getBool(1));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+        return GetProcessIdFilePathW(any_cast<DWORD>(arguments_list.at(0)), false);
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+};
+
+
+
+namespace fn_existProcess
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+        //ArgumentsList.push_back(args_value.getBool(1));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+        return ExistProcessID(any_cast<DWORD>(arguments_list.at(0)));
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::Boolean(env, any_cast<bool>(result_any_data));
+        return result;
+    }
+};
+
+
+void exports_process_all_v2_fun(napi_env env , napi_value exports) {
+
+    fn_getAllProcessList::exports(env, exports, "getAllProcessList");
+    fn_getAllProcessList::exportsSync(env, exports, "getAllProcessListSync");
+
+    fn_getAllProcessNtList::exports(env, exports, "getAllProcessListNt");
+    fn_getAllProcessNtList::exportsSync(env, exports, "getAllProcessListNtSync");
+
+    fn_getAllProcessSnpList::exports(env, exports, "getAllProcessListSnp");
+    fn_getAllProcessSnpList::exportsSync(env, exports, "getAllProcessListSnpSync");
+
+    fn_getProcessCpuUsage::exports(env, exports, "getProcessCpuUsage");
+    fn_getProcessCpuUsage::exportsSync(env, exports, "getProcessCpuUsageSync");
+
+    fn_GetProcessIdFilePath::exports(env, exports, "getProcessFilePath");
+    fn_GetProcessIdFilePath::exportsSync(env, exports, "getProcessFilePathSync");
+
+    fn_existProcess::exports(env, exports, "existProcess");
+    fn_existProcess::exportsSync(env, exports, "existProcessSync");
 }

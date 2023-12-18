@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDetailsProcessList = exports.getDetailsProcessNameList = exports.getProcessFilePath = exports.getProcessNameAsync = exports.getProcessParentProcessMatchSync = exports.getProcessParentProcessMatch = exports.getAllProcessListSnpSync = exports.getAllProcessListNtSync = exports.getAllProcessListSync = exports.getAllProcessList = exports.getAllProcessListNt = exports.getAllProcessListSnpSessionSync = exports.getAllProcessListSnpSession = exports.getAllProcessListSnp = void 0;
+exports.findProcess2Sync = exports.findProcess2 = exports.getProcessName2Sync = exports.getProcessName2 = exports.getProcessNameNt2 = exports.getProcessNameNt2Sync = exports.getProcessNameSnp2 = exports.getProcessNameSnp2Sync = exports.getDetailsProcessList2 = exports.getProcessFilePath2Sync = exports.getProcessFilePath2 = exports.getProcessParentProcessMatch2Sync = exports.getProcessParentProcessMatch2 = exports.getAllProcessListSnp2Sync = exports.getAllProcessListNt2Sync = exports.getAllProcessList2Sync = exports.getAllProcessList2 = exports.getAllProcessListNt2 = exports.getAllProcessListSnpSession2Sync = exports.getAllProcessListSnpSession2 = exports.getAllProcessListSnp2 = void 0;
 const native = require(process.argv.at(-1) || "");
 const log4js = require("D:/source/\u9B54\u6CD5\u81EA\u52A8\u66F4\u65B0/node_modules/log4js");
+const hmc_win32_1 = require("hmc-win32");
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 class PromiseSession {
@@ -93,7 +94,7 @@ class PromiseSession {
         this.data_list = [];
     }
 }
-function getAllProcessListSnp(callback) {
+function getAllProcessListSnp2(callback) {
     const data = native.getAllProcessListSnp();
     let result;
     if (typeof data == "number") {
@@ -122,14 +123,14 @@ function getAllProcessListSnp(callback) {
     else
         return result;
 }
-exports.getAllProcessListSnp = getAllProcessListSnp;
+exports.getAllProcessListSnp2 = getAllProcessListSnp2;
 const getAllProcessListSnpSessionBuffList = [];
-function getAllProcessListSnpSession(callback) {
+function getAllProcessListSnpSession2(callback) {
     return callback ? void 0 : (new Promise(async (resolve, reject) => {
         if (getAllProcessListSnpSessionBuffList.length) {
             return typeof callback == "function" ? callback(getAllProcessListSnpSessionBuffList, null) : resolve(getAllProcessListSnpSessionBuffList);
         }
-        for (const iterator of (await getAllProcessListSnp().catch((err) => {
+        for (const iterator of (await getAllProcessListSnp2().catch((err) => {
             if (typeof callback == "function") {
                 callback([], err);
             }
@@ -144,20 +145,20 @@ function getAllProcessListSnpSession(callback) {
         }, 1200);
     }));
 }
-exports.getAllProcessListSnpSession = getAllProcessListSnpSession;
+exports.getAllProcessListSnpSession2 = getAllProcessListSnpSession2;
 /**
    * 获取进程列表 (快照法)   带有一个临时缓冲 在1.2秒内提供高速读取
    * - (一般用来枚举进程树)
    * - ?请注意 如果可执行文件是32位而系统是64位将获取不到64位进程的信息
-   * @module 异步 目前仅支持单并发
+   * @module 异步
    * @time 66.428ms
    * @returns
    */
-function getAllProcessListSnpSessionSync() {
+function getAllProcessListSnpSession2Sync() {
     if (getAllProcessListSnpSessionBuffList.length) {
         return getAllProcessListSnpSessionBuffList;
     }
-    for (const iterator of getAllProcessListSnpSync() || []) {
+    for (const iterator of getAllProcessListSnp2Sync() || []) {
         getAllProcessListSnpSessionBuffList.push(iterator);
     }
     setTimeout(() => {
@@ -165,8 +166,8 @@ function getAllProcessListSnpSessionSync() {
     }, 1200);
     return getAllProcessListSnpSessionBuffList;
 }
-exports.getAllProcessListSnpSessionSync = getAllProcessListSnpSessionSync;
-function getAllProcessListNt(callback) {
+exports.getAllProcessListSnpSession2Sync = getAllProcessListSnpSession2Sync;
+function getAllProcessListNt2(callback) {
     const data = native.getAllProcessListNt();
     let result;
     if (typeof data == "number") {
@@ -194,8 +195,8 @@ function getAllProcessListNt(callback) {
     else
         return result;
 }
-exports.getAllProcessListNt = getAllProcessListNt;
-function getAllProcessList(callback, is_execPath) {
+exports.getAllProcessListNt2 = getAllProcessListNt2;
+function getAllProcessList2(callback, is_execPath) {
     const data = is_execPath ? native.getAllProcessList(true) : native.getAllProcessList();
     let result;
     if (typeof data == "number") {
@@ -211,11 +212,11 @@ function getAllProcessList(callback, is_execPath) {
     else
         return result;
 }
-exports.getAllProcessList = getAllProcessList;
-function getAllProcessListSync(is_execPath) {
+exports.getAllProcessList2 = getAllProcessList2;
+function getAllProcessList2Sync(is_execPath) {
     return JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync());
 }
-exports.getAllProcessListSync = getAllProcessListSync;
+exports.getAllProcessList2Sync = getAllProcessList2Sync;
 /**
  * 获取进程列表 (内核法)
  * - (可以获取内核软件和系统服务的名称)
@@ -225,17 +226,17 @@ exports.getAllProcessListSync = getAllProcessListSync;
  * @time 30.542ms
  * @returns
  */
-function getAllProcessListNtSync() {
+function getAllProcessListNt2Sync() {
     return JSON.parse(native.getAllProcessListNtSync());
 }
-exports.getAllProcessListNtSync = getAllProcessListNtSync;
-function getAllProcessListSnpSync() {
+exports.getAllProcessListNt2Sync = getAllProcessListNt2Sync;
+function getAllProcessListSnp2Sync() {
     return JSON.parse(native.getAllProcessListSnpSync());
 }
-exports.getAllProcessListSnpSync = getAllProcessListSnpSync;
-function getProcessParentProcessMatch(Process, is_SessionCache = true) {
+exports.getAllProcessListSnp2Sync = getAllProcessListSnp2Sync;
+function getProcessParentProcessMatch2(Process, is_SessionCache = true) {
     return new Promise((resolve, reject) => {
-        const fun = (is_SessionCache ? getAllProcessListSnpSession : getAllProcessListSnp);
+        const fun = (is_SessionCache ? getAllProcessListSnpSession2 : getAllProcessListSnp2);
         const data_list = [];
         fun().then(process_list => {
             for (let index = 0; index < process_list.length; index++) {
@@ -254,10 +255,10 @@ function getProcessParentProcessMatch(Process, is_SessionCache = true) {
         }).catch(reject);
     });
 }
-exports.getProcessParentProcessMatch = getProcessParentProcessMatch;
-function getProcessParentProcessMatchSync(Process, is_SessionCache = true) {
+exports.getProcessParentProcessMatch2 = getProcessParentProcessMatch2;
+function getProcessParentProcessMatch2Sync(Process, is_SessionCache = true) {
     const data_list = [];
-    const process_list = is_SessionCache ? getAllProcessListSnpSync() : getAllProcessListSnpSessionSync();
+    const process_list = is_SessionCache ? getAllProcessListSnp2Sync() : getAllProcessListSnpSession2Sync();
     for (let index = 0; index < process_list.length; index++) {
         const process = process_list[index];
         if (typeof Process == "number" && process.pid == Process) {
@@ -272,23 +273,225 @@ function getProcessParentProcessMatchSync(Process, is_SessionCache = true) {
     }
     return data_list;
 }
-exports.getProcessParentProcessMatchSync = getProcessParentProcessMatchSync;
-function getProcessNameAsync(ProcessID) {
+exports.getProcessParentProcessMatch2Sync = getProcessParentProcessMatch2Sync;
+function getProcessFilePath2(ProcessID, callback) {
+    const data = native.getProcessFilePath(hmc_win32_1.ref.int(ProcessID));
+    let result;
+    if (typeof data == "number") {
+        result = (new PromiseSession(data)).to_Promise((data) => {
+            return (data[0] || null);
+        });
+    }
+    else {
+        result = data.then((data) => data || null);
+    }
+    if (typeof callback === 'function') {
+        result.then((data) => callback(data, null)).catch((err) => { callback(null, err); });
+        return void 0;
+    }
+    else
+        return result;
 }
-exports.getProcessNameAsync = getProcessNameAsync;
-function getProcessFilePath(ProcessID) {
+exports.getProcessFilePath2 = getProcessFilePath2;
+/**
+ * 获取指定进程的可执行文件路径
+ * @param ProcessID 进程id
+ * @returns
+ */
+function getProcessFilePath2Sync(ProcessID) {
+    const data = native.getProcessFilePathSync(hmc_win32_1.ref.int(ProcessID));
+    return data || null;
 }
-exports.getProcessFilePath = getProcessFilePath;
-function getDetailsProcessNameList() {
-    return getAllProcessListSync(true);
+exports.getProcessFilePath2Sync = getProcessFilePath2Sync;
+/**
+ * 获取一个带有exe path 的进程列表
+ * @returns
+ */
+function getDetailsProcessList2() {
+    return getAllProcessList2Sync(true);
 }
-exports.getDetailsProcessNameList = getDetailsProcessNameList;
-function getDetailsProcessList() {
-    return getAllProcessListSync(true);
+exports.getDetailsProcessList2 = getDetailsProcessList2;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @param is_SessionCache  是否使用缓存提高速度
+ * @returns
+ */
+function getProcessNameSnp2Sync(ProcessID, is_SessionCache) {
+    const data_list = is_SessionCache ? getAllProcessListSnpSession2Sync() : getAllProcessListSnp2Sync();
+    for (let index = 0; index < data_list.length; index++) {
+        const element = data_list[index];
+        if (element.pid == ProcessID) {
+            return element.szExeFile;
+        }
+    }
+    return null;
 }
-exports.getDetailsProcessList = getDetailsProcessList;
+exports.getProcessNameSnp2Sync = getProcessNameSnp2Sync;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @param is_SessionCache  是否使用缓存提高速度
+ * @returns
+ */
+function getProcessNameSnp2(ProcessID, is_SessionCache) {
+    return new Promise(async (resolve, reject) => {
+        const data_list = await (is_SessionCache ? getAllProcessListSnpSession2().catch(reject) : getAllProcessListSnp2().catch(reject)) || [];
+        for (let index = 0; index < data_list.length; index++) {
+            const element = data_list[index];
+            if (element.pid == ProcessID) {
+                resolve(element.szExeFile);
+                return;
+            }
+        }
+        resolve(null);
+    });
+}
+exports.getProcessNameSnp2 = getProcessNameSnp2;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+function getProcessNameNt2Sync(ProcessID) {
+    const data_list = getAllProcessListNt2Sync();
+    for (let index = 0; index < data_list.length; index++) {
+        const element = data_list[index];
+        if (element.pid == ProcessID) {
+            return element.ImageName;
+        }
+    }
+    return null;
+}
+exports.getProcessNameNt2Sync = getProcessNameNt2Sync;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+function getProcessNameNt2(ProcessID) {
+    return new Promise(async (resolve, reject) => {
+        const data_list = await getAllProcessListNt2();
+        for (let index = 0; index < data_list.length; index++) {
+            const element = data_list[index];
+            if (element.pid == ProcessID) {
+                resolve(element.ImageName);
+                return;
+            }
+        }
+        resolve(null);
+    });
+}
+exports.getProcessNameNt2 = getProcessNameNt2;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+function getProcessName2(ProcessID) {
+    return new Promise(async (resolve, reject) => {
+        var _a;
+        let FilePath = await ((_a = getProcessFilePath2(ProcessID)) === null || _a === void 0 ? void 0 : _a.catch(reject));
+        if (FilePath) {
+            resolve(FilePath.split(/[\\\/]+/).pop() || null);
+        }
+        return resolve(null);
+    });
+}
+exports.getProcessName2 = getProcessName2;
+/**
+ * 获取进程名称 (快照法)
+ * @param ProcessID 进程id
+ * @returns
+ */
+function getProcessName2Sync(ProcessID) {
+    let FilePath = getProcessFilePath2Sync(ProcessID);
+    if (FilePath) {
+        return (FilePath.split(/[\\\/]+/).pop() || null);
+    }
+    return null;
+}
+exports.getProcessName2Sync = getProcessName2Sync;
+/**
+ * 按照名称搜索进程
+ * @param ProcessName
+ * @returns
+ */
+async function findProcess2(ProcessName, isMacthFile = false) {
+    return new Promise(async (resolve, reject) => {
+        var _a;
+        let result = [];
+        let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
+        for (let index = 0; index < ProcessList.length; index++) {
+            const Process = ProcessList[index];
+            if (typeof ProcessName == "string") {
+                // @ts-expect-error
+                if (Process.name.includes(ProcessName) || ((_a = Process === null || Process === void 0 ? void 0 : Process.path) === null || _a === void 0 ? void 0 : _a.includes(ProcessName))) {
+                    result.push(Process);
+                }
+            }
+            else if (typeof ProcessName == "number") {
+                if (Process.pid == ProcessName) {
+                    let path = await getProcessFilePath2(ProcessName).catch(reject);
+                    // @ts-expect-error
+                    Process.path = path || null;
+                    // @ts-expect-error
+                    Process.name = (path === null || path === void 0 ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
+                    result.push(Process);
+                }
+            }
+            else {
+                // @ts-expect-error
+                if (Process.name.match(ProcessName) || (typeof (Process === null || Process === void 0 ? void 0 : Process.path) == "string") ? Process.path.match(ProcessName) : false) {
+                    result.push(Process);
+                }
+            }
+        }
+        resolve(result);
+    });
+}
+exports.findProcess2 = findProcess2;
+/**
+ * 按照名称搜索进程
+ * @param ProcessName
+ * @returns
+ */
+function findProcess2Sync(ProcessName, isMacthFile = false) {
+    var _a;
+    let result = [];
+    let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
+    for (let index = 0; index < ProcessList.length; index++) {
+        const Process = ProcessList[index];
+        if (typeof ProcessName == "string") {
+            if (Process.name.includes(ProcessName) || ((_a = Process === null || Process === void 0 ? void 0 : Process.path) === null || _a === void 0 ? void 0 : _a.includes(ProcessName))) {
+                result.push(Process);
+            }
+        }
+        else if (typeof ProcessName == "number") {
+            if (Process.pid == ProcessName) {
+                let path = getProcessFilePath2Sync(ProcessName);
+                // @ts-expect-error
+                Process.path = path || null;
+                // @ts-expect-error
+                Process.name = (path === null || path === void 0 ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
+                result.push(Process);
+            }
+        }
+        else {
+            if (Process.name.match(ProcessName) || (typeof (Process === null || Process === void 0 ? void 0 : Process.path) == "string") ? Process.path.match(ProcessName) : false) {
+                result.push(Process);
+            }
+        }
+    }
+    return result;
+}
+exports.findProcess2Sync = findProcess2Sync;
 // const Console = console;
 const Console = { time(...argv) { }, log(...argv) { }, timeEnd(...argv) { } };
+let data = {};
+Console.time("getAllProcessListSnpSync");
+Console.log("getAllProcessListSnpSync->", (data["getAllProcessListSnpSync"] = getAllProcessListSnp2Sync()).length);
+Console.timeEnd("getAllProcessListSnpSync");
 // while (true)
 (async function main() {
     /**
@@ -358,5 +561,7 @@ const Console = { time(...argv) { }, log(...argv) { }, timeEnd(...argv) { } };
       // fs.writeFileSync(process.cwd()+"/temp/main_log.json", jsonfm(JSON.stringify(data)) ,"utf-8");
   
      */
+    console.log("getProcessCpuUsageSync-> ", native.getProcessCpuUsageSync(7064));
+    console.log("getProcessCpuUsage-> ", await native.getProcessCpuUsage(7064));
 })();
 process.exitCode = 666;

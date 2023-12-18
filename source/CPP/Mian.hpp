@@ -225,15 +225,8 @@ napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info);
 
 // process.cpp
 napi_value killProcess(napi_env env, napi_callback_info info);
-// napi_value getProcessidFilePath(napi_env env, napi_callback_info info);
-napi_value getDetailsProcessList(napi_env env, napi_callback_info info);
-napi_value getProcessList(napi_env env, napi_callback_info info);
-// napi_value hasProcess(napi_env env, napi_callback_info info);
-// napi_value isProcess(napi_env env, napi_callback_info info);
-// napi_value getProcessName(napi_env env, napi_callback_info info);
 napi_value getModulePathList(napi_env env, napi_callback_info info);
 napi_value enumProcessHandle(napi_env env, napi_callback_info info);
-// napi_value getLockFileProcessList(napi_env env, napi_callback_info info);
 napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info);
 napi_value getProcessThreadList(napi_env env, napi_callback_info info);
 napi_value clearEnumProcessHandle(napi_env env, napi_callback_info info);
@@ -275,17 +268,12 @@ napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info);
 
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result = true);
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(size_t Start, size_t End);
-DWORD GetParentProcessID(DWORD processID);
+
 wstring GetProcessSnapshotNameW(DWORD processID);
 bool ExistProcessID(DWORD processID);
 wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match = false);
-wstring GetProcessNameW(DWORD processID);
-napi_value fn_getProcessidFilePath_v2(napi_env env, napi_callback_info info);
-napi_value fn_getProcessidBaseName_v2(napi_env env, napi_callback_info info);
-napi_value fn_hasProcess_v2(napi_env env, napi_callback_info info);
-void _fn_process_exports(napi_env env, napi_value exports);
 
-napi_value fn_getProcessidFilePath_$SP(napi_env env, napi_callback_info info);
-napi_value fn_getAllProcessListv2_$SP(napi_env env, napi_callback_info info);
+
+void exports_process_all_v2_fun(napi_env env, napi_value exports);
 
 
