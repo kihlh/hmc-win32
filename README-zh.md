@@ -219,6 +219,13 @@ import  HMC = require("hmc-win32");
 
 - **getProcessStartTime** 获取进程启动时间 (ms)
 
+- **尾部带有2的为2.0api** 均支持异步（2   / 2Sync ）:**
+
+  - 异步 `Promise`
+  - 异步  `callback`
+  - 异步  `Promise`
+  - 均支持并发
+
 - **findProcess2** 搜索进程 `异步` 
 
 - **findProcess2Sync** 搜索进程 `同步` 
@@ -252,17 +259,17 @@ import  HMC = require("hmc-win32");
 
 - **getProcessCpuUsage2Sync** `同步` 获取进程占用的cpu
 
--  **getProcessNameSnpSync** `同步` 获取进程的名称(快照)
+-  **getProcessNameSnp2Sync** `同步` 获取进程的名称(快照)
 
--  **getProcessNameSnp** `异步` 获取进程的命令行(快照)
+-  **getProcessNameSnp2** `异步` 获取进程的命令行(快照)
 
--  **getProcessNameNtSync** `同步` 获取进程的名称(内核)
+-  **getProcessNameNt2Sync** `同步` 获取进程的名称(内核)
 
--  **getProcessNameNt** `异步` 获取进程的命令行(内核)
+-  **getProcessNameNt2** `异步` 获取进程的命令行(内核)
 
--  **getProcessNameSync** `同步` 获取进程的名称(正常)
+-  **getProcessName2Sync** `同步` 获取进程的名称(正常)
 
--  **getProcessName** `异步` 获取进程的命令行(正常)
+-  **getProcessName2** `异步` 获取进程的命令行(正常)
 
 ### 状态栏
 

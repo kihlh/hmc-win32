@@ -175,6 +175,7 @@ __export(hmc_exports, {
   MessageError: () => MessageError,
   MessageStop: () => MessageStop,
   Process: () => Process,
+  PromiseSP: () => PromiseSP,
   PromiseSession: () => PromiseSession,
   Registr: () => Registr,
   SetBlockInput: () => SetBlockInput,
@@ -1567,6 +1568,38 @@ var PromiseSession = class {
     this.data_list = [];
   }
 };
+function PromiseSP(SessionID, format, Callback) {
+  const new_format = typeof format != "function" ? function(a) {
+    return (a == null ? void 0 : a[0]) || null;
+  } : format;
+  let result;
+  try {
+    if (typeof SessionID == "number") {
+      if (typeof Callback == "function") {
+        new PromiseSession(SessionID).to_callback(new_format, function(...data) {
+          Callback(null, ...data);
+        });
+        return void 0;
+      }
+      result = new PromiseSession(SessionID).to_Promise(new_format);
+      return result;
+    }
+    if (typeof Callback == "function") {
+      SessionID.then((data) => {
+        Callback(null, new_format(data));
+      }).catch((err) => Callback(err, null));
+      return void 0;
+    } else {
+      return SessionID.then(new_format);
+    }
+  } catch (error) {
+    if (typeof Callback == "function") {
+      Callback(Error(error + ""), null);
+    } else {
+      return Promise.reject(Error(error + ""));
+    }
+  }
+}
 function analysisDirectPath(Path, atkey) {
   let directPath = [];
   directPath.push(...Path.split(new RegExp(Object.keys(Hkey).join("|"))));
@@ -4094,6 +4127,10 @@ function getAllProcessListNt2(callback) {
     return result;
 }
 function getAllProcessList2(callback, is_execPath) {
+  if (typeof callback == "boolean") {
+    is_execPath = callback;
+    callback = void 0;
+  }
   const data = is_execPath ? native.getAllProcessList(true) : native.getAllProcessList();
   let result;
   if (typeof data == "number") {
@@ -4119,8 +4156,9 @@ function getAllProcessList2(callback, is_execPath) {
     result = data.then((data2) => JSON.parse(data2));
   }
   if (typeof callback === "function") {
-    result.then((data2) => callback(data2, null)).catch((err) => {
-      callback(null, err);
+    const to_callback = callback;
+    result.then((data2) => to_callback(data2, null)).catch((err) => {
+      to_callback(null, err);
     });
     return void 0;
   } else
@@ -4128,23 +4166,19 @@ function getAllProcessList2(callback, is_execPath) {
 }
 function getAllProcessList2Sync(is_execPath) {
   var _a;
-  return (_a = JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())) == null ? void 0 : _a.map((processList) => {
+  const v_list = [];
+  return (_a = JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())) == null ? void 0 : _a.map((item) => {
     var _a2, _b;
-    let result = [];
-    const v_list = [];
-    for (let index = 0; index < processList.length; index++) {
-      const element = processList[index];
-      if ((_a2 = element == null ? void 0 : element.path) == null ? void 0 : _a2.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
-        if (!v_list.length) {
-          v_list.push(...native.getVolumeList());
-          for (let index2 = 0; index2 < v_list.length; index2++) {
-            const Volume = v_list[index2];
-            element.path = ((_b = element == null ? void 0 : element.path) == null ? void 0 : _b.replace(Volume.device, Volume.path)) || "";
-          }
+    if ((_a2 = item == null ? void 0 : item.path) == null ? void 0 : _a2.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
+      if (!v_list.length) {
+        v_list.push(...native.getVolumeList());
+        for (let index = 0; index < v_list.length; index++) {
+          const Volume = v_list[index];
+          item.path = ((_b = item == null ? void 0 : item.path) == null ? void 0 : _b.replace(Volume.device, Volume.path)) || "";
         }
       }
     }
-    return result;
+    return item;
   });
 }
 function getAllProcessListNt2Sync() {
@@ -4309,10 +4343,11 @@ function getProcessName2Sync(ProcessID) {
   }
   return null;
 }
-async function findProcess2(ProcessName, isMacthFile = false) {
+async function findProcess2(ProcessName) {
   return new Promise(async (resolve, reject) => {
     var _a, _b, _c, _d;
     let result = [];
+    const isMacthFile = ProcessName && typeof ProcessName != "number";
     let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
     for (let index = 0; index < ProcessList.length; index++) {
       const Process2 = ProcessList[index];
@@ -4336,9 +4371,10 @@ async function findProcess2(ProcessName, isMacthFile = false) {
     resolve(result);
   });
 }
-function findProcess2Sync(ProcessName, isMacthFile = false) {
+function findProcess2Sync(ProcessName) {
   var _a, _b, _c, _d;
   let result = [];
+  const isMacthFile = ProcessName && typeof ProcessName != "number";
   let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
   for (let index = 0; index < ProcessList.length; index++) {
     const Process2 = ProcessList[index];
@@ -4631,6 +4667,7 @@ process.on("exit", function() {
   MessageError,
   MessageStop,
   Process,
+  PromiseSP,
   PromiseSession,
   Registr,
   SetBlockInput,

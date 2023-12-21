@@ -224,6 +224,37 @@ import  HMC = require("hmc-win32");
   - **enumAllProcessHandle** Enumerate the handles of all process IDs
   - **findProcess** Search for a process
   - **getProcessStartTime** Get the process start time (in ms)
+  - **With "2.0api" at the end, they all support （2   / 2Sync ）:**
+    - Asynchronous `Promise`
+    - Asynchronous `callback`
+    - Synchronous `Promise`
+    - Concurrent execution
+  - **findProcess2**: Search for processes (Asynchronous)
+- **findProcess2Sync**: Search for processes (Synchronous)
+- **getAllProcessList2**: Get process list (Asynchronous - Enumeration). Enumeration is the fastest method and is not affected by whether the application is 32-bit or 64-bit, but the information provided is less detailed.
+  - pid: Process ID
+  - name: Resolved from the image path
+  - path: Image path
+- **getAllProcessList2Sync**: Get process list (Synchronous - Enumeration)
+- **getAllProcessList2Snp**: Get process list (Asynchronous - Snapshot). Note that if the executable file is 32-bit and the system is 64-bit, information about 64-bit processes will not be retrieved.
+  - pid: Process ID
+  - name: Resolved from the image path
+  - ppid: Parent process ID
+  - ...: cntThreads cntUsage dwFlags dwSize pcPriClassBase th32DefaultHeapID th32ModuleID
+- **getAllProcessListSnp2Sync**: Get process list (Synchronous - Snapshot)
+- **getAllProcessListNt2**: Get process list (Asynchronous - Kernel)
+  - pid: Process ID
+  - name: Software name
+  - BasePriority NextEntryOffset NumberOfThreads PagefileUsage pcPriClassBase PeakPagefileUsage PeakWorkingSetSize QuotaNonPagedPoolUsage Reserved [1-6]
+- **getAllProcessListNt2Sync**: Get process list (Synchronous - Kernel)
+- **getProcessCpuUsage2**: Get CPU usage of a process (Asynchronous)
+- **getProcessCpuUsage2Sync**: Get CPU usage of a process (Synchronous)
+- **getProcessNameSnp2Sync**: Get process name (Synchronous - Snapshot)
+- **getProcessNameSnp2**: Get process command line (Asynchronous - Snapshot)
+- **getProcessNameNt2Sync**: Get process name (Synchronous - Kernel)
+- **getProcessNameNt2**: Get process command line (Asynchronous - Kernel)
+- **getProcessName2Sync**: Get process name (Synchronous - Normal)
+- **getProcessName2**: Get process command line (Asynchronous - Normal)
 
 ### Status Bar
 

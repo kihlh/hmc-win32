@@ -2299,6 +2299,51 @@ export class PromiseSession {
     }
 }
 
+// 初始化一个v2 接口的sp对象 并且将其转为callback或者Promise (js标准)
+export function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: ((error: null | Error, ...args: any[]) => any)): void;
+export function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T)): Promise<T>;
+export function PromiseSP<T>(SessionID: number | Promise<any>, format: unknown, Callback?: unknown) {
+
+    const new_format: ((value: Array<undefined | null | any>) => T) = ((typeof format != "function") ? function (a: T[]) { return a?.[0] || null } as (a: T) => T : format) as ((value: Array<undefined | null | any>) => T);
+
+    let result: Promise<T>;
+    try {
+
+        // 是sp回调栈
+        if (typeof SessionID == "number") {
+
+            // 是回调函数
+            if (typeof Callback == "function") {
+                (new PromiseSession(SessionID)).to_callback(new_format, function (...data: any[]) {
+                    Callback(null, ...data)
+                });
+                return void 0;
+            }
+            // 是异步承诺体
+            result = (new PromiseSession(SessionID)).to_Promise(new_format);
+            return result;
+        }
+
+        // 是回调函数
+        if (typeof Callback == "function") {
+            SessionID.then(data => {
+                Callback(null, new_format(data));
+            }).catch(err => Callback(err, null));
+            return void 0;
+        } else {
+            // 是异步承诺
+            return SessionID.then(new_format);
+        }
+
+    } catch (error: any) {
+        if (typeof Callback == "function") {
+            Callback(Error(error + ""), null);
+        } else {
+            return Promise.reject(Error(error + ""));
+        }
+    }
+}
+
 /**
  * 直达路径解析
  * @param Path 全路径(直达路径)
@@ -6523,8 +6568,15 @@ export function getAllProcessList2(callback: ((data_list: Array<{ pid: number, n
 export function getAllProcessList2(is_execPath: true): Promise<Array<{ pid: number, name: string, path: string }>>;
 export function getAllProcessList2(): Promise<Array<{ pid: number }>>;
 export function getAllProcessList2(callback?: unknown, is_execPath?: unknown) {
+    
+    if(typeof callback == "boolean"){
+        is_execPath = callback;
+        callback = void 0;
+    }
+
     const data = is_execPath ? native.getAllProcessList(true) : native.getAllProcessList();
     let result: Promise<any[]>;
+
 
     if (typeof data == "number") {
         result = (new PromiseSession(data)).to_Promise((data) => {
@@ -6551,7 +6603,9 @@ export function getAllProcessList2(callback?: unknown, is_execPath?: unknown) {
     }
 
     if (typeof callback === 'function') {
-        result.then((data) => callback(data, null)).catch((err) => { callback(null, err) });
+        const to_callback = callback;
+
+        result.then((data) => to_callback(data, null)).catch((err) => { to_callback(null, err) });
         return void 0;
 
     } else return result;
@@ -6568,23 +6622,21 @@ export function getAllProcessList2(callback?: unknown, is_execPath?: unknown) {
 export function getAllProcessList2Sync(is_execPath?: true): Array<{ pid: number, name: string, path: string }>;
 export function getAllProcessList2Sync(): Array<{ pid: number }>;
 export function getAllProcessList2Sync(is_execPath?: unknown) {
-    return JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())?.map((processList: any[]) => {
-        let result: { pid: number, name: string, path: string }[] = [];
-        const v_list: HMC.Volume[] = [];// native.getVolumeList(); 
-        for (let index = 0; index < processList.length; index++) {
-            const element = processList[index];
+    const v_list: HMC.Volume[] = [];// native.getVolumeList(); 
+    return JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())?.map((item: { pid: number, name: string, path: string } ) => {
+
             // \\Device\\HarddiskVolume1\1.exe
-            if (element?.path?.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
+            if (item?.path?.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
                 if (!v_list.length) {
                     v_list.push(...native.getVolumeList());
                     for (let index = 0; index < v_list.length; index++) {
                         const Volume = v_list[index];
-                        element.path = element?.path?.replace(Volume.device, Volume.path) || ""
+                        item.path = item?.path?.replace(Volume.device, Volume.path) || ""
                     }
                 }
             }
-        }
-        return result;
+        
+        return item;
     });
 }
 
@@ -6809,6 +6861,7 @@ export function getProcessNameSnp2Sync(ProcessID: number, is_SessionCache?: bool
  */
 export function getProcessNameSnp2(ProcessID: number, is_SessionCache?: boolean): Promise<null | string> {
     return new Promise(async (resolve, reject) => {
+        
         const data_list = await (is_SessionCache ? getAllProcessListSnpSession2().catch(reject) : getAllProcessListSnp2().catch(reject)) || [];
         for (let index = 0; index < data_list.length; index++) {
             const element = data_list[index];
@@ -6899,9 +6952,10 @@ export function getProcessName2Sync(ProcessID: number) {
  * @param ProcessName 
  * @returns 
  */
-export async function findProcess2(ProcessName: string | RegExp | number, isMacthFile = false): Promise<{ pid: number, name: string | null, path: string | null }[]> {
+export async function findProcess2(ProcessName: string | RegExp | number): Promise<{ pid: number, name: string | null, path: string | null }[]> {
     return new Promise(async (resolve, reject) => {
         let result: any = [];
+        const isMacthFile = ProcessName&& (typeof ProcessName != "number");
         let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
 
         for (let index = 0; index < ProcessList.length; index++) {
@@ -6942,8 +6996,10 @@ export async function findProcess2(ProcessName: string | RegExp | number, isMact
  * @param ProcessName 
  * @returns 
  */
-export function findProcess2Sync(ProcessName: string | RegExp | number, isMacthFile = false): Array<{ pid: number, name: string, path: string }> {
+export function findProcess2Sync(ProcessName: string | RegExp | number): Array<{ pid: number, name: string, path: string }> {
     let result: any = [];
+    const isMacthFile =  ProcessName&&(typeof ProcessName != "number");
+
     let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
 
     for (let index = 0; index < ProcessList.length; index++) {

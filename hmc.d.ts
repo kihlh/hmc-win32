@@ -1629,6 +1629,8 @@ export declare class PromiseSession {
      */
     constructor(SessionID: number);
 }
+export declare function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: ((error: null | Error, ...args: any[]) => any)): void;
+export declare function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T)): Promise<T>;
 /**
  * 直达路径解析
  * @param Path 全路径(直达路径)
@@ -2472,7 +2474,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -3800,7 +3802,7 @@ export declare function getProcessName2Sync(ProcessID: number): string | null;
  * @param ProcessName
  * @returns
  */
-export declare function findProcess2(ProcessName: string | RegExp | number, isMacthFile?: boolean): Promise<{
+export declare function findProcess2(ProcessName: string | RegExp | number): Promise<{
     pid: number;
     name: string | null;
     path: string | null;
@@ -3810,7 +3812,7 @@ export declare function findProcess2(ProcessName: string | RegExp | number, isMa
  * @param ProcessName
  * @returns
  */
-export declare function findProcess2Sync(ProcessName: string | RegExp | number, isMacthFile?: boolean): Array<{
+export declare function findProcess2Sync(ProcessName: string | RegExp | number): Array<{
     pid: number;
     name: string;
     path: string;
