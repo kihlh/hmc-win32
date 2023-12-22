@@ -239,6 +239,7 @@ __export(hmc_exports, {
   getColor: () => getColor,
   getConsoleHandle: () => getConsoleHandle,
   getCurrentMonitorRect: () => getCurrentMonitorRect,
+  getCursorPos: () => getCursorPos,
   getDetailsProcessList: () => getDetailsProcessList,
   getDetailsProcessList2: () => getDetailsProcessList2,
   getDetailsProcessNameList: () => getDetailsProcessNameList,
@@ -248,6 +249,7 @@ __export(hmc_exports, {
   getForegroundWindowProcessID: () => getForegroundWindowProcessID,
   getHandleProcessID: () => getHandleProcessID,
   getHidUsbList: () => getHidUsbList,
+  getLastInputTime: () => getLastInputTime,
   getMainWindow: () => getMainWindow,
   getMetrics: () => getMetrics,
   getModulePathList: () => getModulePathList,
@@ -307,6 +309,10 @@ __export(hmc_exports, {
   getenv: () => getenv,
   hasKeyActivate: () => hasKeyActivate,
   hasKeyExists: () => hasKeyExists,
+  hasMouseBtnActivate: () => hasMouseBtnActivate,
+  hasMouseLeftActivate: () => hasMouseLeftActivate,
+  hasMouseMiddleActivate: () => hasMouseMiddleActivate,
+  hasMouseRightActivate: () => hasMouseRightActivate,
   hasMutex: () => hasMutex,
   hasPortTCP: () => hasPortTCP,
   hasPortUDP: () => hasPortUDP,
@@ -859,15 +865,15 @@ var get_native = (binPath) => {
       // enumAllProcess: fnNum,
       _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
-      isStartHookMouse: fnBool,
+      // isStartHookMouse: fnBool,
       clearEnumProcessHandle: fnVoid,
       getProcessThreadList: fnAnyArr,
-      getMouseNextSession: fnAnyArr,
+      // getMouseNextSession: fnAnyArr,
       getKeyboardNextSession: fnAnyArr,
       unKeyboardHook: fnVoid,
-      unHookMouse: fnVoid,
+      // unHookMouse: fnVoid,
       installKeyboardHook: fnVoid,
-      installHookMouse: fnVoid,
+      // installHookMouse: fnVoid,
       MessageError: fnVoid,
       MessageStop: fnBool,
       SetBlockInput: fnBool,
@@ -914,7 +920,7 @@ var get_native = (binPath) => {
         console.error(HMCNotPlatform);
         return { "left": 0, "top": 0, "x": 0, "y": 0 };
       },
-      getMouseMovePoints: fnAnyArr,
+      getMouseMovePoints: fnArrStr,
       getPointWindow: fnNull,
       getPointWindowMain: fnNum,
       getPointWindowName: fnStr,
@@ -1052,7 +1058,13 @@ var get_native = (binPath) => {
       getProcessFilePath: fnPromise,
       getProcessFilePathSync: fnArrStr,
       existProcess: fnPromise,
-      existProcessSync: fnBool
+      existProcessSync: fnBool,
+      getCursorPos: fnArrStr,
+      isStartHookMouse2: fnBool,
+      unHookMouse2: fnVoid,
+      installHookMouse2: fnVoid,
+      getMouseNextSession2: fnArrStr,
+      getLastInputTime: fnNum
     };
   })();
   return Native;
@@ -1321,6 +1333,9 @@ var HMC;
     MouseKeyName2["WM_MOUSEWHEEL"] = "mouse-wheel";
     MouseKeyName2["WM_MOUSEMOVE"] = "move";
   })(MouseKeyName = HMC2.MouseKeyName || (HMC2.MouseKeyName = {}));
+  ;
+  ;
+  ;
 })(HMC || (HMC = {}));
 var ref = {
   /**
@@ -2396,7 +2411,7 @@ function getMetrics() {
   return native.getMetrics();
 }
 function getMouseMovePoints() {
-  return native.getMouseMovePoints();
+  return JSON.parse(native.getMouseMovePoints());
 }
 function getDeviceCaps() {
   return native.getDeviceCaps();
@@ -2559,7 +2574,32 @@ var powerControl = (() => {
 function rightClick(ms) {
   return native.rightClick(ms);
 }
-function setCursorPos(x, y) {
+function setCursorPos(x, y, Must, MustTime = 500) {
+  if (Must) {
+    return new Promise(async function(resolve, _reject) {
+      if (MustTime < 5) {
+        return resolve(native.setCursorPos(ref.int(x), ref.int(y)));
+      }
+      native.setCursorPos(ref.int(x), ref.int(y));
+      let cursor_LastInputTime = getLastInputTime();
+      const must_len = MustTime > 6e3 ? 20 : MustTime > 4e3 ? 8 : MustTime > 3e3 ? 6 : 4;
+      for (let index = 0; index < must_len; index++) {
+        await Sleep(ref.int(500));
+        const the_LastInputTime2 = getLastInputTime();
+        if (the_LastInputTime2 != cursor_LastInputTime) {
+          native.setCursorPos(ref.int(x), ref.int(y));
+          cursor_LastInputTime = the_LastInputTime2;
+        }
+      }
+      const the_LastInputTime = getLastInputTime();
+      await Sleep(500);
+      if (the_LastInputTime == cursor_LastInputTime) {
+        return resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+  }
   return native.setCursorPos(ref.int(x), ref.int(y));
 }
 function setShortcutLink(...args) {
@@ -2913,6 +2953,12 @@ function enumAllProcessHandle(CallBack) {
     resolve(PROCESSENTRYLIST);
   });
 }
+function getCursorPos() {
+  const data = native.getCursorPos();
+  if (data.includes("null"))
+    return null;
+  return JSON.parse(data);
+}
 var version = native.version;
 var desc = native.desc;
 var platform = native.platform;
@@ -2980,46 +3026,90 @@ var Clipboard = {
 };
 var MousePoint = class {
   constructor(str) {
-    const data = str.split("|");
-    this.x = Number(data[0]);
-    this.y = Number(data[1]);
-    this.mouseKeyCode = Number(data[2]);
-    this.event = "unknown" /* UNKNOWN */;
-    this.isDown = ((key = this.mouseKeyCode) => {
-      switch (key) {
-        case 513 /* WM_LBUTTONDOWN */:
-          this.event = "left-button-down" /* WM_LBUTTONDOWN */;
-          break;
-        case 516 /* WM_RBUTTONDOWN */:
-          this.event = "right-button-down" /* WM_RBUTTONDOWN */;
-          break;
-        case 519 /* WM_MBUTTONDOWN */:
-          this.event = "mouse-button-down" /* WM_MBUTTONDOWN */;
-          break;
-        case 514 /* WM_LBUTTONUP */:
-          this.event = "left-button-up" /* WM_LBUTTONUP */;
-          break;
-        case 517 /* WM_RBUTTONUP */:
-          this.event = "right-button-up" /* WM_RBUTTONUP */;
-          break;
-        case 520 /* WM_MBUTTONUP */:
-          this.event = "mouse-button-up" /* WM_MBUTTONUP */;
-          break;
-        case 522 /* WM_MOUSEWHEEL */:
-          this.event = "mouse-wheel" /* WM_MOUSEWHEEL */;
-          break;
-        case 512 /* WM_MOUSEMOVE */:
-          this.event = "move" /* WM_MOUSEMOVE */;
-          break;
+    this._MouseNextSession = null;
+    if (typeof str == "string") {
+      const data = str.split("|");
+      this.x = Number(data[0]);
+      this.y = Number(data[1]);
+      this.mouseKeyCode = Number(data[2]);
+      this.event = "unknown" /* UNKNOWN */;
+      this.isDown = ((key = this.mouseKeyCode) => {
+        switch (key) {
+          case 513 /* WM_LBUTTONDOWN */:
+            this.event = "left-button-down" /* WM_LBUTTONDOWN */;
+            break;
+          case 516 /* WM_RBUTTONDOWN */:
+            this.event = "right-button-down" /* WM_RBUTTONDOWN */;
+            break;
+          case 519 /* WM_MBUTTONDOWN */:
+            this.event = "mouse-button-down" /* WM_MBUTTONDOWN */;
+            break;
+          case 514 /* WM_LBUTTONUP */:
+            this.event = "left-button-up" /* WM_LBUTTONUP */;
+            break;
+          case 517 /* WM_RBUTTONUP */:
+            this.event = "right-button-up" /* WM_RBUTTONUP */;
+            break;
+          case 520 /* WM_MBUTTONUP */:
+            this.event = "mouse-button-up" /* WM_MBUTTONUP */;
+            break;
+          case 522 /* WM_MOUSEWHEEL */:
+            this.event = "mouse-wheel" /* WM_MOUSEWHEEL */;
+            break;
+          case 512 /* WM_MOUSEMOVE */:
+            this.event = "move" /* WM_MOUSEMOVE */;
+            break;
+        }
+        switch (key) {
+          case 513 /* WM_LBUTTONDOWN */:
+          case 516 /* WM_RBUTTONDOWN */:
+          case 519 /* WM_MBUTTONDOWN */:
+            return true;
+        }
+        return false;
+      })();
+    } else {
+      if (str.id)
+        this._MouseNextSession = str;
+      if (!str.id) {
+        this.x = 0;
+        this.y = 0;
+        this.mouseKeyCode = 512 /* WM_MOUSEMOVE */;
+        this.isDown = false;
+        this.event = "unknown" /* UNKNOWN */;
+      } else {
+        this.x = str.button == 512 ? str.x : 0;
+        this.y = str.button == 512 ? str.y : 0;
+        this.mouseKeyCode = str.button;
+        switch (str.button) {
+          case 513 /* WM_LBUTTONDOWN */:
+            this.event = "left-button-down" /* WM_LBUTTONDOWN */;
+            break;
+          case 516 /* WM_RBUTTONDOWN */:
+            this.event = "right-button-down" /* WM_RBUTTONDOWN */;
+            break;
+          case 519 /* WM_MBUTTONDOWN */:
+            this.event = "mouse-button-down" /* WM_MBUTTONDOWN */;
+            break;
+          case 514 /* WM_LBUTTONUP */:
+            this.event = "left-button-up" /* WM_LBUTTONUP */;
+            break;
+          case 517 /* WM_RBUTTONUP */:
+            this.event = "right-button-up" /* WM_RBUTTONUP */;
+            break;
+          case 520 /* WM_MBUTTONUP */:
+            this.event = "mouse-button-up" /* WM_MBUTTONUP */;
+            break;
+          case 522 /* WM_MOUSEWHEEL */:
+            this.event = "mouse-wheel" /* WM_MOUSEWHEEL */;
+            break;
+          case 512 /* WM_MOUSEMOVE */:
+            this.event = "move" /* WM_MOUSEMOVE */;
+            break;
+        }
+        this.isDown = str.id && str.button != 512 && str.buttonDown || false;
       }
-      switch (key) {
-        case 513 /* WM_LBUTTONDOWN */:
-        case 516 /* WM_RBUTTONDOWN */:
-        case 519 /* WM_MBUTTONDOWN */:
-          return true;
-      }
-      return false;
-    })();
+    }
   }
   /**
    * 鼠标左键按下
@@ -3039,6 +3129,51 @@ var MousePoint = class {
   get isMiddle() {
     return Auto.hasKeyActivate(4);
   }
+  // /**
+  //  * 计算出鼠标移动的角度
+  //  * @returns 
+  //  */
+  // direction () : HMC.direction {
+  //     let emit_name: HMC.direction = "middle";
+  //     const {x, y} = this._MouseNextSession?.button ==512?this._MouseNextSession:{x:0,y:0};
+  //     let [x2, y2] = [0, 0];
+  //     // 在之前5个记录中查找出最后一次的坐标
+  //     for (const iterator of mouseHook._history_list.slice(-5,-1)) {
+  //         if(iterator.button == 512){
+  //             x2 = iterator.x;
+  //             y2 = iterator.y;
+  //         }
+  //     }
+  //     if(x2==x&&y==y2)return "middle";
+  //     if(x2+y2 == 0||x+y == 0)return "middle";
+  //     if(!mouseHook._screen_Information)mouseHook._screen_Information = getDeviceCaps();
+  //     // 计算 x, y 方向上的差值
+  //     const diffX = x2 - x;
+  //     const diffY = y2 - y;
+  //     let direction:HMC.direction|"" = '' ;
+  //     // 可忽略偏移量 宽
+  //     const diffX_offset = (mouseHook._screen_Information.width /100 * mouseHook._direction_percentage) ;
+  //     // 可忽略偏移量 高
+  //     const diffY_offset = (mouseHook._screen_Information.height /100 * mouseHook._direction_percentage) ;
+  //     // 可忽略偏移量
+  //     if((Math.abs(x2-x)>diffX_offset && Math.abs(y2-y)>diffY_offset) )return "middle";
+  //     // 计算可忽略偏移量
+  //     if (diffX > 0) {
+  //         direction += 'right';
+  //     } else if (diffX < 0) {
+  //         direction += 'left';
+  //     }
+  //     if(direction){
+  //         direction += '-';
+  //     }
+  //     if (diffY > 0 ) {
+  //         direction += 'bottom';
+  //     } else if (diffY < 0) {
+  //         direction += 'top';
+  //     }
+  //     direction = direction.replace(/--+|-$|^-/g,"") as HMC.direction;
+  //     return direction||emit_name;
+  // }
   /**
    * 在此坐标模拟进行单击
    * @param awitMs 
@@ -3148,7 +3283,8 @@ var Iohook_Mouse = class {
       start: [],
       move: [],
       button: [],
-      wheel: []
+      wheel: [],
+      drag: []
     };
     this._oncelistenerCountList = {
       close: [],
@@ -3157,10 +3293,25 @@ var Iohook_Mouse = class {
       start: [],
       move: [],
       button: [],
-      wheel: []
+      wheel: [],
+      drag: []
     };
+    // 这里会存储之前的64个历史记录
+    this._history_list = [];
+    // 记录主屏幕信息 从而计算出直线的偏移参数
+    this._screen_Information = null;
     this._Close = false;
+    // 计算直线的忽略参百分比
+    this._direction_percentage = 8;
   }
+  /**
+   * 获取之前的0-64个记录 
+   */
+  get history() {
+    const result = [...this._history_list];
+    return result;
+  }
+  // once(eventName: "drag", listener: (x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
   once(eventName, listener) {
     if (typeof eventName === "function") {
       listener = eventName;
@@ -3171,6 +3322,7 @@ var Iohook_Mouse = class {
     mouseHook._oncelistenerCountList[eventName].push(listener);
     return mouseHook;
   }
+  // on(eventName: "drag", listener: (x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
   on(eventName, listener) {
     if (typeof eventName === "function") {
       listener = eventName;
@@ -3187,32 +3339,30 @@ var Iohook_Mouse = class {
    */
   start() {
     SetIohook = true;
-    let start = native.isStartHookMouse();
+    let start = native.isStartHookMouse2();
     if (start)
       throw new Error("the Task Has Started.");
-    native.installHookMouse();
-    const oid_Mouse_info = {
-      x: 0,
-      y: 0,
-      isDown: false
-    };
-    if (native.isStartHookMouse()) {
-      mouseHook._Close = false;
-    }
+    native.installHookMouse2();
+    mouseHook._Close = false;
     mouseHook.emit("start");
     let emit_getMouseNextSession = () => {
       if (mouseHook._Close) {
         return;
       }
       ;
-      let getMouseNextSession = native.getMouseNextSession();
-      if (getMouseNextSession == null ? void 0 : getMouseNextSession.length)
-        mouseHook.emit("data", getMouseNextSession);
+      let getMouseNextSession = native.getMouseNextSession2();
+      getMouseNextSession = JSON.parse(getMouseNextSession);
       if (getMouseNextSession)
         for (let index = 0; index < getMouseNextSession.length; index++) {
           const MouseNextSession = getMouseNextSession[index];
+          if (!MouseNextSession.id)
+            continue;
+          if (this._history_list.length > 60) {
+            this._history_list.splice(0, 5);
+          }
+          this._history_list.push(MouseNextSession);
           const mousePoint = new MousePoint(MouseNextSession);
-          mouseHook.emit("mouse", mousePoint);
+          mouseHook.emit("mouse", mousePoint, MouseNextSession);
           if ([
             513 /* WM_LBUTTONDOWN */,
             514 /* WM_LBUTTONUP */,
@@ -3226,12 +3376,9 @@ var Iohook_Mouse = class {
           if ([522 /* WM_MOUSEWHEEL */].includes(mousePoint.mouseKeyCode)) {
             mouseHook.emit("wheel", mousePoint);
           }
-          if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
-            mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
+          if (MouseNextSession.id && MouseNextSession.button == 512 /* WM_MOUSEMOVE */) {
+            mouseHook.emit("move", MouseNextSession.x, MouseNextSession.y, mousePoint, MouseNextSession);
           }
-          oid_Mouse_info.isDown = mousePoint.isDown;
-          oid_Mouse_info.x = mousePoint.x;
-          oid_Mouse_info.y = mousePoint.y;
         }
     };
     (async () => {
@@ -3247,9 +3394,10 @@ var Iohook_Mouse = class {
    * 结束
    */
   close() {
-    native.unHookMouse();
+    native.unHookMouse2();
     mouseHook.emit("close");
     mouseHook._Close = true;
+    mouseHook._history_list.length = 0;
     mouseHook._oncelistenerCountList.close.length = 0;
     mouseHook._oncelistenerCountList.data.length = 0;
     mouseHook._oncelistenerCountList.mouse.length = 0;
@@ -3257,6 +3405,7 @@ var Iohook_Mouse = class {
     mouseHook._oncelistenerCountList.start.length = 0;
     mouseHook._oncelistenerCountList.button.length = 0;
     mouseHook._oncelistenerCountList.wheel.length = 0;
+    mouseHook._oncelistenerCountList.drag.length = 0;
     mouseHook._onlistenerCountList.close.length = 0;
     mouseHook._onlistenerCountList.data.length = 0;
     mouseHook._onlistenerCountList.mouse.length = 0;
@@ -3264,6 +3413,7 @@ var Iohook_Mouse = class {
     mouseHook._onlistenerCountList.start.length = 0;
     mouseHook._onlistenerCountList.button.length = 0;
     mouseHook._onlistenerCountList.wheel.length = 0;
+    mouseHook._onlistenerCountList.data.length = 0;
   }
   emit(eventName, ...data) {
     const emitFunList = mouseHook._onlistenerCountList[eventName];
@@ -3317,6 +3467,22 @@ var Iohook_Mouse = class {
     return false;
   }
 };
+function hasMouseLeftActivate() {
+  return Auto.hasKeyActivate(1);
+}
+function hasMouseRightActivate() {
+  return Auto.hasKeyActivate(2);
+}
+function hasMouseMiddleActivate() {
+  return Auto.hasKeyActivate(4);
+}
+function hasMouseBtnActivate() {
+  return {
+    "left": Auto.hasKeyActivate(1),
+    "right": Auto.hasKeyActivate(2),
+    "middle": Auto.hasKeyActivate(4)
+  };
+}
 var mouseHook = new Iohook_Mouse();
 function setWindowIconForExtract(handle, Extract, index) {
   if (!Extract)
@@ -3535,7 +3701,14 @@ var Iohook_Keyboard = class {
   }
 };
 var keyboardHook = new Iohook_Keyboard();
+function getLastInputTime() {
+  return native.getLastInputTime();
+}
 var Auto = {
+  hasMouseLeftActivate,
+  hasMouseRightActivate,
+  hasMouseMiddleActivate,
+  hasMouseBtnActivate,
   sendKeyboard,
   sendKeyboardSequence,
   getColor,
@@ -3552,7 +3725,9 @@ var Auto = {
   SetSystemHOOK,
   hasKeyActivate,
   mouseHook,
-  keyboardHook
+  keyboardHook,
+  getCursorPos,
+  getLastInputTime
 };
 var Usb = {
   getHub: getHidUsbList,
@@ -4420,6 +4595,8 @@ var Environment = {
 };
 var Registr = registr;
 var hmc = {
+  getLastInputTime,
+  getCursorPos,
   Auto,
   Clipboard,
   Environment,
@@ -4646,12 +4823,16 @@ var hmc = {
   version,
   watchClipboard,
   watchUSB,
-  windowJitter
+  windowJitter,
+  hasMouseLeftActivate,
+  hasMouseRightActivate,
+  hasMouseMiddleActivate,
+  hasMouseBtnActivate
 };
 var hmc_default = hmc;
 process.on("exit", function() {
   if (SetIohook) {
-    native.unHookMouse();
+    native.unHookMouse2();
     native.unKeyboardHook();
     native.clearEnumAllProcessList();
     native.clearEnumProcessHandle();
@@ -4730,6 +4911,7 @@ process.on("exit", function() {
   getColor,
   getConsoleHandle,
   getCurrentMonitorRect,
+  getCursorPos,
   getDetailsProcessList,
   getDetailsProcessList2,
   getDetailsProcessNameList,
@@ -4739,6 +4921,7 @@ process.on("exit", function() {
   getForegroundWindowProcessID,
   getHandleProcessID,
   getHidUsbList,
+  getLastInputTime,
   getMainWindow,
   getMetrics,
   getModulePathList,
@@ -4798,6 +4981,10 @@ process.on("exit", function() {
   getenv,
   hasKeyActivate,
   hasKeyExists,
+  hasMouseBtnActivate,
+  hasMouseLeftActivate,
+  hasMouseMiddleActivate,
+  hasMouseRightActivate,
   hasMutex,
   hasPortTCP,
   hasPortUDP,

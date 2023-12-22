@@ -197,13 +197,13 @@ wstring FormatVolumePath(wstring VolumeName);
 void InstallKeyboardHook();
 void InstallHookMouse();
 napi_value unKeyboardHook(napi_env env, napi_callback_info info);
-napi_value unHookMouse(napi_env env, napi_callback_info info);
-napi_value getMouseNextSession(napi_env env, napi_callback_info info);
+// napi_value unHookMouse(napi_env env, napi_callback_info info);
+// napi_value getMouseNextSession(napi_env env, napi_callback_info info);
 napi_value getKeyboardNextSession(napi_env env, napi_callback_info info);
-napi_value installHookMouse(napi_env env, napi_callback_info info);
+// napi_value installHookMouse(napi_env env, napi_callback_info info);
 napi_value installKeyboardHook(napi_env env, napi_callback_info info);
 napi_value isStartKeyboardHook(napi_env env, napi_callback_info info);
-napi_value isStartHookMouse(napi_env env, napi_callback_info info);
+// napi_value isStartHookMouse(napi_env env, napi_callback_info info);
 napi_value hasKeyActivate(napi_env env, napi_callback_info info);
 napi_value getMouseMovePoints(napi_env env, napi_callback_info info);
 napi_value leftClick(napi_env env, napi_callback_info info);
@@ -215,6 +215,13 @@ napi_value sendKeyT2C(napi_env env, napi_callback_info info);
 napi_value sendKeyboard(napi_env env, napi_callback_info info);
 napi_value sendKeyT2CSync(napi_env env, napi_callback_info info);
 napi_value sendBasicKeys(napi_env env, napi_callback_info info);
+napi_value getCursorPos(napi_env env, napi_callback_info info);
+napi_value isStartHookMouse2(napi_env env, napi_callback_info info);
+napi_value getMouseNextSession2(napi_env env, napi_callback_info info);
+napi_value unHookMouse2(napi_env env, napi_callback_info info);
+napi_value installHookMouse2(napi_env env, napi_callback_info info);
+napi_value getLastInputTime(napi_env env, napi_callback_info info);
+
 
 // Windows.cpp
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);

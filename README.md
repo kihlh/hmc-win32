@@ -37,29 +37,29 @@ We provide programming language documentation for understanding API usage, but p
 
 ## We have categorized several functionalities for you:
 
-- ##### Window Operations: Adjustment / Enumeration / Disable / Query / Change
+- ##### [Window Operations](#Window Operation): Adjustment / Enumeration / Disable / Query / Change
 
-- **Process Control: Kill / Information / Handle / Window / Change**
+- **[Process Control](#Process Control): Kill / Information / Handle / Window / Change**
 
-- **Network: Port / Network Card / LAN / IP**
+- **[Network](#Network (net)): Port / Network Card / LAN / IP**
 
-- **File System: Symbolic Link / Hard Link / USB**
+- **[File System](#File Links/Shortcuts): Symbolic Link / Hard Link / USB**
 
-- ##### Environment Variables: User Variables / System Variables / Synchronization / Escape
+- ##### [Environment Variables](#Environment Variables): User Variables / System Variables / Synchronization / Escape
 
-- **Clipboard: File List / Read and Write / Text / Change**
+- **[Clipboard](#System Operations): File List / Read and Write / Text / Change**
 
-- **Automation: Keyboard / Mouse / Execution / Reading / AutoIt3**
+- **[Automation](#Keyboard Mouse USB): Keyboard / Mouse / Execution / Reading / AutoIt3**
 
-- **Registry: Read / Write** 
+- **[Registry](#Registry Editing): Read / Write** 
 
-- ##### Power Control: Shutdown / Restart / Logoff / Monitor / Startup Time
+- ##### [Power Control](#Power Control): Shutdown / Restart / Logoff / Monitor / Startup Time
 
-- **Shell: Recycle Bin / Message / Shortcut / Run Software / Select File / Save File**
+- **[Shell](#System Operations): Recycle Bin / Message / Shortcut / Run Software / Select File / Save File**
 
-- **Mutex: Create / Destroy (to prevent process duplicates)**
+- **[Mutex](#)System Operations: Create / Destroy (to prevent process duplicates)**
 
-- **Tray: Create / Enumerate / Destroy**
+- **[Tray](#Status Bar): Create / Enumerate / Destroy**
 
 
 
@@ -375,6 +375,11 @@ import  HMC = require("hmc-win32");
 - **sendKeyboardSequence** Send a sequence of keyboard events
 - **sendKeyT2CSync** Execute t2c script synchronously (a convenient and human-friendly text-based scripting language for simulating keyboard and mouse operations)
 - **sendKeyT2C** Execute t2c script asynchronously
+- **getCursorPos** Get the coordinates of the mouse cursor's current position
+- **hasMouseLeftActivate**: Determine if the left mouse button is pressed.
+- **hasMouseRightActivate**: Determine if the right mouse button is pressed.
+- **hasMouseMiddleActivate**: Determine if the middle mouse button is pressed.
+- **hasMouseBtnActivate**: Determine the overall pressed state of the mouse buttons.
 
 ### File Links/Shortcuts
 

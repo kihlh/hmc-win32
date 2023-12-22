@@ -152,6 +152,12 @@ export declare module HMC {
         _PromiseSession_get_sleep_time: HMC.Native["_PromiseSession_get_sleep_time"];
         _PromiseSession_allTasks: HMC.Native["_PromiseSession_allTasks"];
     };
+    export type MouseMovePoints = {
+        "x": number | null;
+        "y": number | null;
+        "time": number | null;
+        "dwExtraInfo": number | null;
+    };
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
      */
@@ -283,6 +289,7 @@ export declare module HMC {
         WM_MBUTTONUP = 520,
         WM_MOUSEWHEEL = 522
     }
+    export type direction = "right" | "left" | "right-top" | "left-bottom" | "left-top" | "right-bottom" | "bottom" | "top" | "middle";
     export enum MouseKeyName {
         UNKNOWN = "unknown",
         WM_LBUTTONDOWN = "left-button-down",
@@ -294,6 +301,27 @@ export declare module HMC {
         WM_MOUSEWHEEL = "mouse-wheel",
         WM_MOUSEMOVE = "move"
     }
+    export interface MouseNotEventData {
+        "id": null;
+        "time": null;
+    }
+    export interface MouseMoveEventData {
+        "id": number;
+        "time": number;
+        "button": MouseKey.WM_MOUSEMOVE;
+        "x": number;
+        "y": number;
+    }
+    export interface MouseMouseEventData {
+        "id": number;
+        "time": number;
+        "button": MouseKey.WM_LBUTTONDOWN | MouseKey.WM_LBUTTONUP | MouseKey.WM_MBUTTONDOWN | MouseKey.WM_MBUTTONUP | MouseKey.WM_MOUSEWHEEL | MouseKey.WM_RBUTTONDOWN | MouseKey.WM_RBUTTONUP;
+        "buttonDown": boolean;
+        "wheelDelta": number | null;
+        "name": "left-mouse-button" | "right-mouse-button" | "middle-mouse-button" | null;
+    }
+    export type MouseEventDataAll = MouseMouseEventData | MouseMoveEventData | MouseNotEventData;
+    export type MouseEventDataOK = MouseMouseEventData | MouseMoveEventData;
     export interface Rect {
         /**
          * (x)从屏幕左边到所在位置得像素数
@@ -645,7 +673,7 @@ export declare module HMC {
         /** 获取剪贴板文本**/
         getClipboardText: () => string;
         /** 获取鼠标之前64个位置**/
-        getMouseMovePoints: () => MovePoint[];
+        getMouseMovePoints: () => string;
         /**
          * 获取所有窗口的句柄
          */
@@ -860,7 +888,6 @@ export declare module HMC {
         /**
          * 移除鼠标挂钩
          */
-        unHookMouse(): void;
         /**
          * 移除键盘挂钩
          */
@@ -868,7 +895,6 @@ export declare module HMC {
         /**
          * 启动鼠标动作挂钩
          */
-        installHookMouse(): void;
         /**
          * 启动键盘动作挂钩
          */
@@ -880,11 +906,9 @@ export declare module HMC {
         /**
          * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
          */
-        getMouseNextSession(): `${number}|${number}|${HMC.MouseKey}`[] | undefined;
         /**
          * 鼠标挂钩是否已经启用
          */
-        isStartHookMouse(): boolean;
         /**
          * 键盘挂钩是否已经启用
          */
@@ -1329,6 +1353,12 @@ export declare module HMC {
         * @param pid
         */
         existProcessSync(pid: number): boolean | null;
+        getCursorPos(): string;
+        isStartHookMouse2(): boolean;
+        unHookMouse2(): void;
+        installHookMouse2(): void;
+        getMouseNextSession2(): string;
+        getLastInputTime(): number;
     };
     export type ProcessHandle = {
         handle: number;
@@ -2347,7 +2377,7 @@ export declare function getMetrics(): HMC.MousePosn;
  * 获取鼠标之前64个位置
  * @returns 之前64个位置
  */
-export declare function getMouseMovePoints(): HMC.MovePoint[];
+export declare function getMouseMovePoints(): Array<HMC.MouseMovePoints>;
 /**
  * 获取屏幕大小
  */
@@ -2474,7 +2504,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2535,9 +2565,12 @@ export declare function rightClick(ms?: number): void;
  * 设置鼠标位置
  * @param x 左边开始的像素数坐标
  * @param y 上方到下方的像素数坐标
+ * @param Must 尝试必须到达此坐标 (每 MustTime /5 ms 检测一次坐标是否到达 如果未到达则重试)
+ * @param MustTime 锁定键盘到达此坐标的有效时间 ms
  * @returns
  */
 export declare function setCursorPos(x: number, y: number): boolean;
+export declare function setCursorPos(x: number, y: number, Must: true, MustTime?: number): Promise<boolean>;
 /**
  * 创建快捷方式
  * @param LnkPath 快捷方式位置
@@ -2705,6 +2738,14 @@ export declare function getProcessParentProcessID(ProcessID: number, is_SessionC
  * @returns
  */
 export declare function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => void): Promise<unknown> | undefined;
+/**
+ * 获取鼠标所在坐标
+ * @returns
+ */
+export declare function getCursorPos(): null | {
+    x: number;
+    y: number;
+};
 export declare const version: string;
 export declare const desc: string;
 export declare const platform: string;
@@ -2779,7 +2820,8 @@ declare class MousePoint {
     isDown: boolean;
     mouseKeyCode: HMC.MouseKey;
     event: HMC.MouseKeyName;
-    constructor(str: `${number}|${number}|${HMC.MouseKey}`);
+    private _MouseNextSession;
+    constructor(str: `${number}|${number}|${HMC.MouseKey}` | HMC.MouseEventDataAll);
     /**
      * 鼠标左键按下
      */
@@ -2855,22 +2897,27 @@ declare class Keyboard {
 declare class Iohook_Mouse {
     private _onlistenerCountList;
     private _oncelistenerCountList;
+    _history_list: Array<HMC.MouseEventDataOK>;
+    _screen_Information: null | HMC.DeviceCaps;
     private _Close;
+    _direction_percentage: number;
     constructor();
+    /**
+     * 获取之前的0-64个记录
+     */
+    get history(): Array<HMC.MouseEventDataOK>;
     once(eventName: "start" | "close", listener: () => void): this;
-    once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "mouse", listener: (MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataAll) => void): this;
     once(listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
     once(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
-    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    once(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
+    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
     on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
-    on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "mouse", listener: (MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataAll) => void): this;
     on(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
     on(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
-    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    on(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
+    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
     /**
      * 开始
      * @returns
@@ -2880,21 +2927,42 @@ declare class Iohook_Mouse {
      * 结束
      */
     close(): void;
-    emit(eventName: "data", data: `${number}|${number}|${number}`[]): boolean;
     emit(eventName: "start" | "close"): boolean;
-    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
-    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
     emit(eventName: "wheel", MousePoint: MousePoint): boolean;
-    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataOK): boolean;
+    emit(eventName: "drag", x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     /**
      * 关闭监听
      * @param eventName
      * @param data
      * @returns
      */
-    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
+    off(eventName: "start" | "drag" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function): boolean;
 }
+/**
+ * 鼠标左键被按下
+ * @returns
+ */
+export declare function hasMouseLeftActivate(): boolean;
+/**
+ * 鼠标右键被按下
+ */
+export declare function hasMouseRightActivate(): boolean;
+/**
+ * 鼠标中键被按下
+ */
+export declare function hasMouseMiddleActivate(): boolean;
+/**
+ * 判断鼠标三按钮是否被按下
+ * @returns
+ */
+export declare function hasMouseBtnActivate(): {
+    left: boolean;
+    right: boolean;
+    middle: boolean;
+};
 /**
  * 设置一个低级鼠标变化监听
  * @example ```javascript
@@ -3053,7 +3121,12 @@ declare class Iohook_Keyboard {
  *
  */
 export declare const keyboardHook: Iohook_Keyboard;
+export declare function getLastInputTime(): number;
 export declare const Auto: {
+    hasMouseLeftActivate: typeof hasMouseLeftActivate;
+    hasMouseRightActivate: typeof hasMouseRightActivate;
+    hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
+    hasMouseBtnActivate: typeof hasMouseBtnActivate;
     sendKeyboard: typeof sendKeyboard;
     sendKeyboardSequence: typeof sendKeyboardSequence;
     getColor: typeof getColor;
@@ -3097,6 +3170,8 @@ export declare const Auto: {
     hasKeyActivate: typeof hasKeyActivate;
     mouseHook: Iohook_Mouse;
     keyboardHook: Iohook_Keyboard;
+    getCursorPos: typeof getCursorPos;
+    getLastInputTime: typeof getLastInputTime;
 };
 export declare const Usb: {
     getHub: typeof getHidUsbList;
@@ -4051,7 +4126,13 @@ export declare const Registr: {
     isRegistrTreeKey: typeof isRegistrTreeKey;
 };
 export declare const hmc: {
+    getLastInputTime: typeof getLastInputTime;
+    getCursorPos: typeof getCursorPos;
     Auto: {
+        hasMouseLeftActivate: typeof hasMouseLeftActivate;
+        hasMouseRightActivate: typeof hasMouseRightActivate;
+        hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
+        hasMouseBtnActivate: typeof hasMouseBtnActivate;
         sendKeyboard: typeof sendKeyboard;
         sendKeyboardSequence: typeof sendKeyboardSequence;
         getColor: typeof getColor;
@@ -4095,6 +4176,8 @@ export declare const hmc: {
         hasKeyActivate: typeof hasKeyActivate;
         mouseHook: Iohook_Mouse;
         keyboardHook: Iohook_Keyboard;
+        getCursorPos: typeof getCursorPos;
+        getLastInputTime: typeof getLastInputTime;
     };
     Clipboard: {
         clear: typeof clearClipboard;
@@ -4950,5 +5033,9 @@ export declare const hmc: {
     watchClipboard: typeof watchClipboard;
     watchUSB: typeof watchUSB;
     windowJitter: typeof windowJitter;
+    hasMouseLeftActivate: typeof hasMouseLeftActivate;
+    hasMouseRightActivate: typeof hasMouseRightActivate;
+    hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
+    hasMouseBtnActivate: typeof hasMouseBtnActivate;
 };
 export default hmc;

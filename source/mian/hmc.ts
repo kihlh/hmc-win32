@@ -82,15 +82,15 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             // enumAllProcess: fnNum,
             _SET_HMC_DEBUG: fnBool,
             isStartKeyboardHook: fnBool,
-            isStartHookMouse: fnBool,
+            // isStartHookMouse: fnBool,
             clearEnumProcessHandle: fnVoid,
             getProcessThreadList: fnAnyArr,
-            getMouseNextSession: fnAnyArr,
+            // getMouseNextSession: fnAnyArr,
             getKeyboardNextSession: fnAnyArr,
             unKeyboardHook: fnVoid,
-            unHookMouse: fnVoid,
+            // unHookMouse: fnVoid,
             installKeyboardHook: fnVoid,
-            installHookMouse: fnVoid,
+            // installHookMouse: fnVoid,
             MessageError: fnVoid,
             MessageStop: fnBool,
             SetBlockInput: fnBool,
@@ -134,7 +134,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getHidUsbList: fnAnyArr,
             getMainWindow: fnNull,
             getMetrics: () => { console.error(HMCNotPlatform); return { "left": 0, "top": 0, "x": 0, "y": 0 } },
-            getMouseMovePoints: fnAnyArr,
+            getMouseMovePoints: fnArrStr,
             getPointWindow: fnNull,
             getPointWindowMain: fnNum,
             getPointWindowName: fnStr,
@@ -266,6 +266,12 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getProcessFilePathSync: fnArrStr,
             existProcess: fnPromise,
             existProcessSync: fnBool,
+            getCursorPos: fnArrStr,
+            isStartHookMouse2: fnBool,
+            unHookMouse2: fnVoid,
+            installHookMouse2: fnVoid,
+            getMouseNextSession2: fnArrStr,
+            getLastInputTime: fnNum,
         }
     })();
     return Native;
@@ -520,6 +526,17 @@ export module HMC {
         _PromiseSession_allTasks: HMC.Native["_PromiseSession_allTasks"],
     }
 
+    export type MouseMovePoints = {
+        // 坐标 x 左边到右边的距离(px)
+        "x": number | null,
+        // 坐标 y 顶边到底部的距离(px)
+        "y": number | null,
+        // 此任务的发生时间
+        "time": number | null,
+        // 预留数据
+        "dwExtraInfo": number | null
+    }
+
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
      */
@@ -702,6 +719,8 @@ export module HMC {
         WM_MOUSEWHEEL = 522,
     }
 
+    export type direction = "right" | "left" | "right-top" | "left-bottom" | "left-top" | "right-bottom" | "bottom" | "top"|"middle";
+
     // 鼠标按钮变化
     export enum MouseKeyName {
         UNKNOWN = "unknown",
@@ -722,6 +741,45 @@ export module HMC {
         // 鼠标移动
         WM_MOUSEMOVE = "move"
     }
+
+    // 返回的数据无效
+    export interface MouseNotEventData {
+        // 无效id
+        "id": null,
+        // 无效时间
+        "time": null
+    };
+
+    export interface MouseMoveEventData {
+        // 鼠标 hook 的唯一id
+        "id": number,
+        // 事件发生的时间
+        "time": number,
+        // 按钮类型
+        "button": MouseKey.WM_MOUSEMOVE,
+        // (left) 从屏幕左边到所在位置得像素数
+        "x": number,
+        //  (top) 从屏幕顶部边到所在位置得像素数
+        "y": number
+    };
+
+    export interface MouseMouseEventData {
+        // 鼠标 hook 的唯一id
+        "id": number,
+        // 事件发生的时间
+        "time": number,
+        // 按钮类型
+        "button": MouseKey.WM_LBUTTONDOWN | MouseKey.WM_LBUTTONUP | MouseKey.WM_MBUTTONDOWN | MouseKey.WM_MBUTTONUP | MouseKey.WM_MOUSEWHEEL | MouseKey.WM_RBUTTONDOWN | MouseKey.WM_RBUTTONUP,
+        // 按钮是否是按下状态/ 滚轮是否向上
+        "buttonDown": boolean,
+        // 滚轮向量 如果是正值为向上 负值为向下
+        "wheelDelta": number | null,
+        // 按钮名称
+        "name": "left-mouse-button" | "right-mouse-button" | "middle-mouse-button" | null
+    };
+
+    export type MouseEventDataAll = MouseMouseEventData | MouseMoveEventData | MouseNotEventData;
+    export type MouseEventDataOK = MouseMouseEventData | MouseMoveEventData ;
 
     // 传回的位置信息
     export interface Rect {
@@ -1114,7 +1172,7 @@ export module HMC {
         /** 获取剪贴板文本**/
         getClipboardText: () => string;
         /** 获取鼠标之前64个位置**/
-        getMouseMovePoints: () => MovePoint[];
+        getMouseMovePoints: () => string;
         /**
          * 获取所有窗口的句柄
          */
@@ -1329,7 +1387,7 @@ export module HMC {
         /**
          * 移除鼠标挂钩
          */
-        unHookMouse(): void;
+        // unHookMouse(): void;
         /**
          * 移除键盘挂钩
          */
@@ -1337,7 +1395,7 @@ export module HMC {
         /**
          * 启动鼠标动作挂钩
          */
-        installHookMouse(): void;
+        // installHookMouse(): void;
         /**
          * 启动键盘动作挂钩
          */
@@ -1349,11 +1407,11 @@ export module HMC {
         /**
          * 获取已经记录了的低级键盘动作数据 出于性能优化使用了(文本数组)
          */
-        getMouseNextSession(): `${number}|${number}|${HMC.MouseKey}`[] | undefined
+        // getMouseNextSession(): `${number}|${number}|${HMC.MouseKey}`[] | undefined
         /**
          * 鼠标挂钩是否已经启用
          */
-        isStartHookMouse(): boolean;
+        // isStartHookMouse(): boolean;
         /**
          * 键盘挂钩是否已经启用
          */
@@ -1819,6 +1877,12 @@ export module HMC {
         * @param pid 
         */
         existProcessSync(pid: number): boolean | null;
+        getCursorPos(): string;
+        isStartHookMouse2(): boolean;
+        unHookMouse2(): void;
+        installHookMouse2(): void;
+        getMouseNextSession2(): string;
+        getLastInputTime(): number;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -3811,8 +3875,8 @@ export function getMetrics() {
  * 获取鼠标之前64个位置
  * @returns 之前64个位置
  */
-export function getMouseMovePoints() {
-    return native.getMouseMovePoints();
+export function getMouseMovePoints(): Array<HMC.MouseMovePoints> {
+    return JSON.parse(native.getMouseMovePoints());
 }
 
 /**
@@ -4130,9 +4194,49 @@ export function rightClick(ms?: number) {
  * 设置鼠标位置
  * @param x 左边开始的像素数坐标
  * @param y 上方到下方的像素数坐标
+ * @param Must 尝试必须到达此坐标 (每 MustTime /5 ms 检测一次坐标是否到达 如果未到达则重试)
+ * @param MustTime 锁定键盘到达此坐标的有效时间 ms
  * @returns 
  */
-export function setCursorPos(x: number, y: number) {
+export function setCursorPos(x: number, y: number): boolean;
+export function setCursorPos(x: number, y: number, Must: true, MustTime?: number): Promise<boolean>
+export function setCursorPos(x: number, y: number, Must?: boolean, MustTime = 500) {
+    if (Must) {
+        return new Promise(async function (resolve, _reject) {
+            if (MustTime < 5) {
+                return resolve(native.setCursorPos(ref.int(x), ref.int(y)));
+            }
+
+            native.setCursorPos(ref.int(x), ref.int(y));
+
+            let cursor_LastInputTime = getLastInputTime();
+
+            const must_len = MustTime > 6000 ? 20 : MustTime > 4000 ? 8 : MustTime > 3000 ? 6 : 4;
+
+            for (let index = 0; index < must_len; index++) {
+                await Sleep(ref.int(500));
+
+                const the_LastInputTime = getLastInputTime();
+
+                if (the_LastInputTime != cursor_LastInputTime) {
+                    native.setCursorPos(ref.int(x), ref.int(y));
+                    cursor_LastInputTime = the_LastInputTime;
+                }
+
+            }
+
+            const the_LastInputTime = getLastInputTime();
+
+            await Sleep(500);
+
+            if (the_LastInputTime == cursor_LastInputTime) {
+                return resolve(true);
+            }
+            else {
+                resolve(false);
+            }
+        });
+    }
     return native.setCursorPos(ref.int(x), ref.int(y));
 }
 
@@ -4701,6 +4805,18 @@ export function enumAllProcessHandle(CallBack?: (PHandle: HMC.PROCESSENTRY) => v
 
 }
 
+
+/**
+ * 获取鼠标所在坐标
+ * @returns 
+ */
+export function getCursorPos(): null | { x: number, y: number } {
+    const data = native.getCursorPos();
+    if (data.includes("null")) return null;
+    return JSON.parse(data);
+}
+
+
 // hmc.node 的版本号
 export const version = native.version;
 
@@ -4791,53 +4907,106 @@ class MousePoint {
     mouseKeyCode: HMC.MouseKey;
     // 当前鼠标按键的事件 名称
     event: HMC.MouseKeyName;
+    private _MouseNextSession:null| HMC.MouseEventDataOK = null;
 
-    constructor(str: `${number}|${number}|${HMC.MouseKey}`) {
-        const data = str.split("|");
-        this.x = Number(data[0]);
-        this.y = Number(data[1]);
-        this.mouseKeyCode = Number(data[2]) as HMC.MouseKey;
-        this.event = HMC.MouseKeyName.UNKNOWN;
+    constructor(str: `${number}|${number}|${HMC.MouseKey}` | HMC.MouseEventDataAll) {
+        if (typeof str == "string") {
 
-        this.isDown = ((key = this.mouseKeyCode) => {
+            const data = str.split("|");
+            this.x = Number(data[0]);
+            this.y = Number(data[1]);
+            this.mouseKeyCode = Number(data[2]) as HMC.MouseKey;
+            this.event = HMC.MouseKeyName.UNKNOWN;
 
-            switch (key) {
-                case HMC.MouseKey.WM_LBUTTONDOWN:
-                    this.event = HMC.MouseKeyName.WM_LBUTTONDOWN;
-                    break;
-                case HMC.MouseKey.WM_RBUTTONDOWN:
-                    this.event = HMC.MouseKeyName.WM_RBUTTONDOWN;
-                    break;
-                case HMC.MouseKey.WM_MBUTTONDOWN:
-                    this.event = HMC.MouseKeyName.WM_MBUTTONDOWN;
-                    break;
-                case HMC.MouseKey.WM_LBUTTONUP:
-                    this.event = HMC.MouseKeyName.WM_LBUTTONUP;
-                    break;
-                case HMC.MouseKey.WM_RBUTTONUP:
-                    this.event = HMC.MouseKeyName.WM_RBUTTONUP;
-                    break;
-                case HMC.MouseKey.WM_MBUTTONUP:
-                    this.event = HMC.MouseKeyName.WM_MBUTTONUP;
-                    break;
-                case HMC.MouseKey.WM_MOUSEWHEEL:
-                    this.event = HMC.MouseKeyName.WM_MOUSEWHEEL;
-                    break;
+            this.isDown = ((key = this.mouseKeyCode) => {
 
-                case HMC.MouseKey.WM_MOUSEMOVE:
-                    this.event = HMC.MouseKeyName.WM_MOUSEMOVE;
-                    break;
+                switch (key) {
+                    case HMC.MouseKey.WM_LBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_LBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_RBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_RBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_MBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_MBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_LBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_LBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_RBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_RBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_MBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_MBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_MOUSEWHEEL:
+                        this.event = HMC.MouseKeyName.WM_MOUSEWHEEL;
+                        break;
+
+                    case HMC.MouseKey.WM_MOUSEMOVE:
+                        this.event = HMC.MouseKeyName.WM_MOUSEMOVE;
+                        break;
+                }
+
+                switch (key) {
+                    case HMC.MouseKey.WM_LBUTTONDOWN:
+                    case HMC.MouseKey.WM_RBUTTONDOWN:
+                    case HMC.MouseKey.WM_MBUTTONDOWN:
+                        return true;
+                }
+
+                return false;
+            })();
+        } else {
+            if(str.id)
+            this._MouseNextSession = str;
+
+            if (!str.id) {
+                this.x = 0;
+                this.y = 0;
+                this.mouseKeyCode = HMC.MouseKey.WM_MOUSEMOVE
+                this.isDown = false;
+                this.event = HMC.MouseKeyName.UNKNOWN;
+            } else {
+
+                this.x = str.button == 512 ? str.x : 0;
+                this.y = str.button == 512 ? str.y : 0;
+
+                this.mouseKeyCode = str.button;
+
+                switch (str.button) {
+                    case HMC.MouseKey.WM_LBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_LBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_RBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_RBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_MBUTTONDOWN:
+                        this.event = HMC.MouseKeyName.WM_MBUTTONDOWN;
+                        break;
+                    case HMC.MouseKey.WM_LBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_LBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_RBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_RBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_MBUTTONUP:
+                        this.event = HMC.MouseKeyName.WM_MBUTTONUP;
+                        break;
+                    case HMC.MouseKey.WM_MOUSEWHEEL:
+                        this.event = HMC.MouseKeyName.WM_MOUSEWHEEL;
+                        break;
+
+                    case HMC.MouseKey.WM_MOUSEMOVE:
+                        this.event = HMC.MouseKeyName.WM_MOUSEMOVE;
+                        break;
+                }
+
+                this.isDown = str.id && str.button != 512 && str.buttonDown || false;
             }
 
-            switch (key) {
-                case HMC.MouseKey.WM_LBUTTONDOWN:
-                case HMC.MouseKey.WM_RBUTTONDOWN:
-                case HMC.MouseKey.WM_MBUTTONDOWN:
-                    return true;
-            }
+        }
 
-            return false;
-        })();
     }
 
     /**
@@ -4858,6 +5027,66 @@ class MousePoint {
     get isMiddle() {
         return Auto.hasKeyActivate(0x04);
     }
+
+    // /**
+    //  * 计算出鼠标移动的角度
+    //  * @returns 
+    //  */
+    // direction () : HMC.direction {
+    //     let emit_name: HMC.direction = "middle";
+    //     const {x, y} = this._MouseNextSession?.button ==512?this._MouseNextSession:{x:0,y:0};
+        
+    //     let [x2, y2] = [0, 0];
+
+    //     // 在之前5个记录中查找出最后一次的坐标
+    //     for (const iterator of mouseHook._history_list.slice(-5,-1)) {
+    //         if(iterator.button == 512){
+    //             x2 = iterator.x;
+    //             y2 = iterator.y;
+    //         }
+    //     }
+
+    //     if(x2==x&&y==y2)return "middle";
+        
+    //     if(x2+y2 == 0||x+y == 0)return "middle";
+
+    //     if(!mouseHook._screen_Information)mouseHook._screen_Information = getDeviceCaps();
+        
+    //     // 计算 x, y 方向上的差值
+    //     const diffX = x2 - x;
+    //     const diffY = y2 - y;
+
+    //     let direction:HMC.direction|"" = '' ;
+    //     // 可忽略偏移量 宽
+    //     const diffX_offset = (mouseHook._screen_Information.width /100 * mouseHook._direction_percentage) ;
+    //     // 可忽略偏移量 高
+    //     const diffY_offset = (mouseHook._screen_Information.height /100 * mouseHook._direction_percentage) ;
+
+    //     // 可忽略偏移量
+    //     if((Math.abs(x2-x)>diffX_offset && Math.abs(y2-y)>diffY_offset) )return "middle";
+
+        
+    //     // 计算可忽略偏移量
+    //     if (diffX > 0) {
+    //         direction += 'right';
+    //     } else if (diffX < 0) {
+    //         direction += 'left';
+    //     }
+
+    //     if(direction){
+    //         direction += '-';
+    //     }
+        
+    //     if (diffY > 0 ) {
+    //         direction += 'bottom';
+    //     } else if (diffY < 0) {
+    //         direction += 'top';
+    //     }
+
+    //     direction = direction.replace(/--+|-$|^-/g,"") as HMC.direction;
+    //     return direction||emit_name;
+    // }
+
     /**
      * 在此坐标模拟进行单击
      * @param awitMs 
@@ -4984,6 +5213,7 @@ class Iohook_Mouse {
         move: [] as Function[],
         button: [] as Function[],
         wheel: [] as Function[],
+        drag: [] as Function[],
     };
     private _oncelistenerCountList = {
         close: [] as Function[],
@@ -4993,18 +5223,36 @@ class Iohook_Mouse {
         move: [] as Function[],
         button: [] as Function[],
         wheel: [] as Function[],
+        drag: [] as Function[],
     };
-    private _Close = false;
-    constructor() {
+    // 这里会存储之前的64个历史记录
+     _history_list :Array<HMC.MouseEventDataOK> = [];
+    // 记录主屏幕信息 从而计算出直线的偏移参数
+     _screen_Information:null|HMC.DeviceCaps = null;
 
+    private _Close = false;
+    // 计算直线的忽略参百分比
+    _direction_percentage = 8;
+    
+    constructor() {
     }
+    
+    /**
+     * 获取之前的0-64个记录 
+     */
+    get history():Array<HMC.MouseEventDataOK> {
+        const result = [...this._history_list];
+        return result;
+    }
+
     once(eventName: "start" | "close", listener: () => void): this;
-    once(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    once(eventName: "mouse", listener: (MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataAll) => void): this;
     once(listener: (MousePoint: MousePoint) => void): this;
     once(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
     once(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
-    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    once(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
+    once(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
+    // once(eventName: "drag", listener: (x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
+
     once(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -5016,11 +5264,12 @@ class Iohook_Mouse {
     };
     on(listener: (MousePoint: MousePoint) => void): this;
     on(eventName: "start" | "close", listener: () => void): this;
-    on(eventName: "mouse", listener: (MousePoint: MousePoint) => void): this;
+    on(eventName: "mouse", listener: (MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataAll) => void): this;
     on(eventName: "button", listener: (event: HMC.MouseKeyName, MousePoint: MousePoint) => void): this;
     on(eventName: "wheel", listener: (MousePoint: MousePoint) => void): this;
-    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint) => void): this;
-    on(eventName: "data", listener: (data: `${number}|${number}|${HMC.MouseKey}`[]) => void): this;
+    on(eventName: "move", listener: (x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
+    // on(eventName: "drag", listener: (x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData) => void): this;
+
     on(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -5036,27 +5285,32 @@ class Iohook_Mouse {
      */
     start() {
         SetIohook = true;
-        let start = native.isStartHookMouse();
+        let start = native.isStartHookMouse2();
         if (start) throw new Error("the Task Has Started.");
-        native.installHookMouse();
-        const oid_Mouse_info = {
-            x: 0,
-            y: 0,
-            isDown: false,
-        };
-        if (native.isStartHookMouse()) {
-            mouseHook._Close = false;
-        }
+        native.installHookMouse2();
+        mouseHook._Close = false;
+
         mouseHook.emit("start");
+
         let emit_getMouseNextSession = () => {
             if (mouseHook._Close) { return };
-            let getMouseNextSession = native.getMouseNextSession();
-            if (getMouseNextSession?.length) mouseHook.emit("data", getMouseNextSession);
+            let getMouseNextSession: string | Array<HMC.MouseEventDataAll> = native.getMouseNextSession2();
+
+            getMouseNextSession = JSON.parse(getMouseNextSession) as Array<HMC.MouseEventDataAll>;
+
             if (getMouseNextSession)
                 for (let index = 0; index < getMouseNextSession.length; index++) {
-                    const MouseNextSession = getMouseNextSession[index];
+                    const MouseNextSession: HMC.MouseEventDataAll = getMouseNextSession[index];
+                    if(!MouseNextSession.id)continue;
+
+                    if(this._history_list.length>60){
+                        // 移除前面五个
+                        this._history_list.splice(0,5);
+                    }
+                    this._history_list.push(MouseNextSession);
+
                     const mousePoint = new MousePoint(MouseNextSession);
-                    mouseHook.emit("mouse", mousePoint);
+                    mouseHook.emit("mouse", mousePoint, MouseNextSession);
 
                     // 响应按钮
                     if ([
@@ -5075,15 +5329,20 @@ class Iohook_Mouse {
                         mouseHook.emit("wheel", mousePoint);
                     }
 
-                    if (oid_Mouse_info.x != mousePoint.x || oid_Mouse_info.y != mousePoint.y) {
-                        mouseHook.emit("move", mousePoint.x, mousePoint.y, mousePoint);
+                    if (MouseNextSession.id && MouseNextSession.button == HMC.MouseKey.WM_MOUSEMOVE) {
+                        mouseHook.emit("move", MouseNextSession.x, MouseNextSession.y, mousePoint, MouseNextSession);
+                        
+                        // 计算拖拽的偏移量
+                        // if ((mouseHook._oncelistenerCountList.drag.length||mouseHook._onlistenerCountList.drag.length)&&Auto.hasKeyActivate(0x01)) {
+                      
+                            // mouseHook.emit("drag", MouseNextSession.x, MouseNextSession.y, mousePoint.direction(), mousePoint, MouseNextSession);
+                        // }
                     }
-                    oid_Mouse_info.isDown = mousePoint.isDown;
-                    oid_Mouse_info.x = mousePoint.x;
-                    oid_Mouse_info.y = mousePoint.y;
+
                 }
 
         }
+
         (async () => {
             while (true) {
                 if (mouseHook._Close) return;
@@ -5096,10 +5355,11 @@ class Iohook_Mouse {
      * 结束
      */
     close() {
-        native.unHookMouse();
+        native.unHookMouse2();
 
         mouseHook.emit("close");
         mouseHook._Close = true;
+        mouseHook._history_list.length = 0;
         mouseHook._oncelistenerCountList.close.length = 0;
         mouseHook._oncelistenerCountList.data.length = 0;
         mouseHook._oncelistenerCountList.mouse.length = 0;
@@ -5107,6 +5367,8 @@ class Iohook_Mouse {
         mouseHook._oncelistenerCountList.start.length = 0;
         mouseHook._oncelistenerCountList.button.length = 0;
         mouseHook._oncelistenerCountList.wheel.length = 0;
+        mouseHook._oncelistenerCountList.drag.length = 0;
+
 
         mouseHook._onlistenerCountList.close.length = 0;
         mouseHook._onlistenerCountList.data.length = 0;
@@ -5115,14 +5377,15 @@ class Iohook_Mouse {
         mouseHook._onlistenerCountList.start.length = 0;
         mouseHook._onlistenerCountList.button.length = 0;
         mouseHook._onlistenerCountList.wheel.length = 0;
+        mouseHook._onlistenerCountList.data.length = 0;
     }
-    emit(eventName: "data", data: `${number}|${number}|${number}`[]): boolean;
+
     emit(eventName: "start" | "close"): boolean;
-    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint): boolean;
-    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "move", x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
     emit(eventName: "wheel", MousePoint: MousePoint): boolean;
-    emit(eventName: "mouse", MousePoint: MousePoint): boolean;
+    emit(eventName: "mouse", MousePoint: MousePoint, MouseNextSession: HMC.MouseEventDataOK): boolean;
+    emit(eventName: "drag", x: number, y: number, direction: HMC.direction, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
         const emitFunList = mouseHook._onlistenerCountList[eventName as "data"];
         const onceEmitFunList = mouseHook._oncelistenerCountList[eventName as "data"];
@@ -5143,7 +5406,7 @@ class Iohook_Mouse {
      * @param data 
      * @returns 
      */
-    off(eventName: "start" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function) {
+    off(eventName: "start" | "drag" | "close" | "mouse" | "move" | "data" | "button" | "wheel", treatmentMode: "on" | "once" | Function, data?: Function) {
         switch (treatmentMode) {
             case "on": {
                 if (data) {
@@ -5171,6 +5434,41 @@ class Iohook_Mouse {
             }
         }
         return false;
+    }
+}
+
+/**
+ * 鼠标左键被按下
+ * @returns 
+ */
+export function hasMouseLeftActivate() {
+    return Auto.hasKeyActivate(0x01);
+}
+
+/**
+ * 鼠标右键被按下
+ */
+export function hasMouseRightActivate() {
+    return Auto.hasKeyActivate(0x02);
+}
+
+/**
+ * 鼠标中键被按下
+ */
+export function hasMouseMiddleActivate() {
+    return Auto.hasKeyActivate(0x04);
+}
+
+
+/**
+ * 判断鼠标三按钮是否被按下
+ * @returns 
+ */
+export function hasMouseBtnActivate(){
+    return {
+       "left" :Auto.hasKeyActivate(0x01),
+       "right":Auto.hasKeyActivate(0x02),
+       "middle":Auto.hasKeyActivate(0x04)
     }
 }
 
@@ -5583,9 +5881,17 @@ class Iohook_Keyboard {
  */
 export const keyboardHook = new Iohook_Keyboard();
 
+// 获取当前输入设备的最后执行时间
+export function getLastInputTime() {
+    return native.getLastInputTime();
+}
 
 // 自动化工具集   (拥有统一化名称) 
 export const Auto = {
+    hasMouseLeftActivate,
+    hasMouseRightActivate,
+    hasMouseMiddleActivate,
+    hasMouseBtnActivate,
     sendKeyboard,
     sendKeyboardSequence,
     getColor,
@@ -5602,7 +5908,9 @@ export const Auto = {
     SetSystemHOOK,
     hasKeyActivate,
     mouseHook,
-    keyboardHook
+    keyboardHook,
+    getCursorPos,
+    getLastInputTime
 }
 
 // USB 控制的归档   (拥有统一化名称)
@@ -6568,8 +6876,8 @@ export function getAllProcessList2(callback: ((data_list: Array<{ pid: number, n
 export function getAllProcessList2(is_execPath: true): Promise<Array<{ pid: number, name: string, path: string }>>;
 export function getAllProcessList2(): Promise<Array<{ pid: number }>>;
 export function getAllProcessList2(callback?: unknown, is_execPath?: unknown) {
-    
-    if(typeof callback == "boolean"){
+
+    if (typeof callback == "boolean") {
         is_execPath = callback;
         callback = void 0;
     }
@@ -6623,19 +6931,19 @@ export function getAllProcessList2Sync(is_execPath?: true): Array<{ pid: number,
 export function getAllProcessList2Sync(): Array<{ pid: number }>;
 export function getAllProcessList2Sync(is_execPath?: unknown) {
     const v_list: HMC.Volume[] = [];// native.getVolumeList(); 
-    return JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())?.map((item: { pid: number, name: string, path: string } ) => {
+    return JSON.parse(is_execPath ? native.getAllProcessListSync(true) : native.getAllProcessListSync())?.map((item: { pid: number, name: string, path: string }) => {
 
-            // \\Device\\HarddiskVolume1\1.exe
-            if (item?.path?.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
-                if (!v_list.length) {
-                    v_list.push(...native.getVolumeList());
-                    for (let index = 0; index < v_list.length; index++) {
-                        const Volume = v_list[index];
-                        item.path = item?.path?.replace(Volume.device, Volume.path) || ""
-                    }
+        // \\Device\\HarddiskVolume1\1.exe
+        if (item?.path?.match(/^[\\\/][\\\/]?Device[\\\/][\\\/]?HarddiskVolume/)) {
+            if (!v_list.length) {
+                v_list.push(...native.getVolumeList());
+                for (let index = 0; index < v_list.length; index++) {
+                    const Volume = v_list[index];
+                    item.path = item?.path?.replace(Volume.device, Volume.path) || ""
                 }
             }
-        
+        }
+
         return item;
     });
 }
@@ -6861,7 +7169,7 @@ export function getProcessNameSnp2Sync(ProcessID: number, is_SessionCache?: bool
  */
 export function getProcessNameSnp2(ProcessID: number, is_SessionCache?: boolean): Promise<null | string> {
     return new Promise(async (resolve, reject) => {
-        
+
         const data_list = await (is_SessionCache ? getAllProcessListSnpSession2().catch(reject) : getAllProcessListSnp2().catch(reject)) || [];
         for (let index = 0; index < data_list.length; index++) {
             const element = data_list[index];
@@ -6955,7 +7263,7 @@ export function getProcessName2Sync(ProcessID: number) {
 export async function findProcess2(ProcessName: string | RegExp | number): Promise<{ pid: number, name: string | null, path: string | null }[]> {
     return new Promise(async (resolve, reject) => {
         let result: any = [];
-        const isMacthFile = ProcessName&& (typeof ProcessName != "number");
+        const isMacthFile = ProcessName && (typeof ProcessName != "number");
         let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
 
         for (let index = 0; index < ProcessList.length; index++) {
@@ -6998,7 +7306,7 @@ export async function findProcess2(ProcessName: string | RegExp | number): Promi
  */
 export function findProcess2Sync(ProcessName: string | RegExp | number): Array<{ pid: number, name: string, path: string }> {
     let result: any = [];
-    const isMacthFile =  ProcessName&&(typeof ProcessName != "number");
+    const isMacthFile = ProcessName && (typeof ProcessName != "number");
 
     let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
 
@@ -7052,6 +7360,8 @@ export const Environment = {
 
 export const Registr = registr;
 export const hmc = {
+    getLastInputTime,
+    getCursorPos,
     Auto,
     Clipboard,
     Environment,
@@ -7278,13 +7588,17 @@ export const hmc = {
     version,
     watchClipboard,
     watchUSB,
-    windowJitter
+    windowJitter,
+    hasMouseLeftActivate,
+    hasMouseRightActivate,
+    hasMouseMiddleActivate,
+    hasMouseBtnActivate,
 }
 export default hmc;
 
 process.on('exit', function () {
     if (SetIohook) {
-        native.unHookMouse();
+        native.unHookMouse2();
         native.unKeyboardHook();
         native.clearEnumAllProcessList();
         native.clearEnumProcessHandle();

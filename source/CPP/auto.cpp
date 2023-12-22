@@ -5,7 +5,7 @@ HHOOK MouseHook = 0;    // 钩子句柄、
 bool Keyboard_HOOK_next = false;
 bool Mouse_HOOK_next = false;
 vector<vector<int>> KeyboardRecordList;
-vector<vector<int>> MouseRecordList;
+// vector<vector<int>> MouseRecordList;
 
 int oid_is_key_Down = 0;
 int oid_is_key_vkCode = 0;
@@ -44,70 +44,70 @@ LRESULT CALLBACK LowLevelKeyboardProc(_In_ int nCode, _In_ WPARAM wParam, _In_ L
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
-int oid_MouseRecord_x = 0;
-int oid_MouseRecord_y = 0;
-int oid_MouseRecord_change_key = 0x0200;
-clock_t MouseRecord_update_time = clock();
+// int oid_MouseRecord_x = 0;
+// int oid_MouseRecord_y = 0;
+// int oid_MouseRecord_change_key = 0x0200;
+// clock_t MouseRecord_update_time = clock();
 
-void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
-{
+// void asyncCallMouseHook(WPARAM wParam, MOUSEHOOKSTRUCT *ms)
+// {
 
-    int x = 0;
-    int y = 0;
-    int theMouseRecord_change_key = 0x0200;
+//     int x = 0;
+//     int y = 0;
+//     int theMouseRecord_change_key = 0x0200;
 
-    theMouseRecord_change_key = (int)wParam;
+//     theMouseRecord_change_key = (int)wParam;
 
-    if (ms->pt.x > 0 && ms->pt.x < 400000000)
-    {
-        x = ms->pt.x;
-    }
-    if (ms->pt.y > 0 && ms->pt.y < 400000000)
-    {
-        y = ms->pt.y;
-    }
+//     if (ms->pt.x > 0 && ms->pt.x < 400000000)
+//     {
+//         x = ms->pt.x;
+//     }
+//     if (ms->pt.y > 0 && ms->pt.y < 400000000)
+//     {
+//         y = ms->pt.y;
+//     }
 
-    // 降低反馈的刷新激进程度 为每次相距10px以上（且间隔15ms）  或者有松放变化 或者超过45ms 数据无变化时拒绝反馈
-    // 滚轮变化不降反馈
-    clock_t end = clock();
+//     // 降低反馈的刷新激进程度 为每次相距10px以上（且间隔15ms）  或者有松放变化 或者超过45ms 数据无变化时拒绝反馈
+//     // 滚轮变化不降反馈
+//     clock_t end = clock();
 
-    if (x != oid_MouseRecord_x && y != oid_MouseRecord_y || theMouseRecord_change_key ==522 || theMouseRecord_change_key != oid_MouseRecord_change_key)
-        if (
-            // 间隔大于45ms
-            (end - MouseRecord_update_time > 45) ||
-            // 相距上次的数据5px以上
-            (((x - oid_MouseRecord_x > 10 || x - oid_MouseRecord_x > -10) ||
-              (y - oid_MouseRecord_y > 10 || y - oid_MouseRecord_y > -10)) &&
-             end - MouseRecord_update_time > 15) ||
-            // 按键按下或者取消有变化
-            theMouseRecord_change_key != oid_MouseRecord_change_key)
-        {
+//     if (x != oid_MouseRecord_x && y != oid_MouseRecord_y || theMouseRecord_change_key ==522 || theMouseRecord_change_key != oid_MouseRecord_change_key)
+//         if (
+//             // 间隔大于45ms
+//             (end - MouseRecord_update_time > 45) ||
+//             // 相距上次的数据5px以上
+//             (((x - oid_MouseRecord_x > 10 || x - oid_MouseRecord_x > -10) ||
+//               (y - oid_MouseRecord_y > 10 || y - oid_MouseRecord_y > -10)) &&
+//              end - MouseRecord_update_time > 15) ||
+//             // 按键按下或者取消有变化
+//             theMouseRecord_change_key != oid_MouseRecord_change_key)
+//         {
 
-            // 监控鼠标
-            vector<int> push = {x, y, theMouseRecord_change_key};
+//             // 监控鼠标
+//             vector<int> push = {x, y, theMouseRecord_change_key};
             
-            MouseRecordList.push_back(push);
-            MouseRecord_update_time = clock();
-            oid_MouseRecord_x = x;
-            oid_MouseRecord_y = y;
-            oid_MouseRecord_change_key = theMouseRecord_change_key;
-        }
-    // cout << x << "-" << y << "-" << isDown << endl;
-    // 将消息传递给钩子链中的下一个钩子
-}
+//             MouseRecordList.push_back(push);
+//             MouseRecord_update_time = clock();
+//             oid_MouseRecord_x = x;
+//             oid_MouseRecord_y = y;
+//             oid_MouseRecord_change_key = theMouseRecord_change_key;
+//         }
+//     // cout << x << "-" << y << "-" << isDown << endl;
+//     // 将消息传递给钩子链中的下一个钩子
+// }
 
-LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
-{
-    // 没有键值
-    if (nCode < 0)
-    {
-        return CallNextHookEx(NULL, nCode, wParam, lParam);
-    }
-    WPARAM _wParam = wParam + 0;
-    MOUSEHOOKSTRUCT *ms = (MOUSEHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
-    std::thread(asyncCallMouseHook, _wParam, ms).detach();
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
-}
+// LRESULT CALLBACK Call_MouseHook(_In_ int nCode, _In_ WPARAM wParam, _In_ LPARAM lParam)
+// {
+//     // 没有键值
+//     if (nCode < 0)
+//     {
+//         return CallNextHookEx(NULL, nCode, wParam, lParam);
+//     }
+//     WPARAM _wParam = wParam + 0;
+//     MOUSEHOOKSTRUCT *ms = (MOUSEHOOKSTRUCT *)lParam; // 低级键盘输入事件信息
+//     std::thread(asyncCallMouseHook, _wParam, ms).detach();
+//     return CallNextHookEx(NULL, nCode, wParam, lParam);
+// }
 
 void InstallKeyboardHook()
 {
@@ -144,40 +144,40 @@ void InstallKeyboardHook()
     KeyboardRecordList.clear();
 }
 
-void InstallHookMouse()
-{
-    Mouse_HOOK_next = true;
+// void InstallHookMouse()
+// {
+//     Mouse_HOOK_next = true;
 
-    MouseHook = SetWindowsHookExA(
-        WH_MOUSE_LL,            // 钩子类型 安装用于监视低级别键盘输入事件的挂钩过程 与  安装用于监视低级别鼠标输入事件的挂钩过程
-        Call_MouseHook,         // 指向钩子函数的指针
-        GetModuleHandleA(NULL), // 没有模块句柄
-        NULL);
-    if (MouseHook == 0)
-    {
-        return;
-    }
+//     MouseHook = SetWindowsHookExA(
+//         WH_MOUSE_LL,            // 钩子类型 安装用于监视低级别键盘输入事件的挂钩过程 与  安装用于监视低级别鼠标输入事件的挂钩过程
+//         Call_MouseHook,         // 指向钩子函数的指针
+//         GetModuleHandleA(NULL), // 没有模块句柄
+//         NULL);
+//     if (MouseHook == 0)
+//     {
+//         return;
+//     }
 
-    // 消息处理 并且每次都进行返回
-    MSG tagMSG;
-    while (Mouse_HOOK_next)
-    {
-        // 如果消息队列中有消息
-        if (PeekMessageA(&tagMSG, NULL, NULL, NULL, PM_REMOVE))
-        {
-            // 按键消息传递给字符消息
-            TranslateMessage(&tagMSG);
+//     // 消息处理 并且每次都进行返回
+//     MSG tagMSG;
+//     while (Mouse_HOOK_next)
+//     {
+//         // 如果消息队列中有消息
+//         if (PeekMessageA(&tagMSG, NULL, NULL, NULL, PM_REMOVE))
+//         {
+//             // 按键消息传递给字符消息
+//             TranslateMessage(&tagMSG);
 
-            // 消息分发给窗口程序处理
-            DispatchMessageA(&tagMSG);
-        }
-        else
-            Sleep(2); // 避免资源消耗
-    }
-    // 移除系统钩子
-    UnhookWindowsHookEx(MouseHook);
-    MouseRecordList.clear();
-}
+//             // 消息分发给窗口程序处理
+//             DispatchMessageA(&tagMSG);
+//         }
+//         else
+//             Sleep(2); // 避免资源消耗
+//     }
+//     // 移除系统钩子
+//     UnhookWindowsHookEx(MouseHook);
+//     MouseRecordList.clear();
+// }
 
 napi_value installKeyboardHook(napi_env env, napi_callback_info info)
 {
@@ -189,15 +189,15 @@ napi_value installKeyboardHook(napi_env env, napi_callback_info info)
     return NULL;
 }
 
-napi_value installHookMouse(napi_env env, napi_callback_info info)
-{
-    if (Mouse_HOOK_next)
-    {
-        return NULL;
-    }
-    std::thread(InstallHookMouse).detach();
-    return NULL;
-}
+// napi_value installHookMouse(napi_env env, napi_callback_info info)
+// {
+//     if (Mouse_HOOK_next)
+//     {
+//         return NULL;
+//     }
+//     std::thread(InstallHookMouse).detach();
+//     return NULL;
+// }
 
 napi_value unKeyboardHook(napi_env env, napi_callback_info info)
 {
@@ -218,66 +218,66 @@ napi_value unKeyboardHook(napi_env env, napi_callback_info info)
     return NULL;
 }
 
-napi_value unHookMouse(napi_env env, napi_callback_info info)
-{
-    Mouse_HOOK_next = false;
-    if (MouseRecordList.size() > 0)
-    {
-        for (size_t i = 0; i < MouseRecordList.size(); i++)
-        {
-            // 释放数组 里的int数组内存
-            MouseRecordList[i].clear();
-        }
-        // 释放数组
-        for (size_t i = 0; i < MouseRecordList.size(); i++)
-        {
-            MouseRecordList.erase(MouseRecordList.begin());
-        }
-    }
-    return NULL;
-}
+// napi_value unHookMouse(napi_env env, napi_callback_info info)
+// {
+//     Mouse_HOOK_next = false;
+//     if (MouseRecordList.size() > 0)
+//     {
+//         for (size_t i = 0; i < MouseRecordList.size(); i++)
+//         {
+//             // 释放数组 里的int数组内存
+//             MouseRecordList[i].clear();
+//         }
+//         // 释放数组
+//         for (size_t i = 0; i < MouseRecordList.size(); i++)
+//         {
+//             MouseRecordList.erase(MouseRecordList.begin());
+//         }
+//     }
+//     return NULL;
+// }
 
-napi_value getMouseNextSession(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value Results;
-    if (!Mouse_HOOK_next || !MouseRecordList.size())
-    {
-        return NULL;
-    }
-    status = napi_create_array(env, &Results);
-    assert(status == napi_ok);
-    // 复制并清空上次的所有记录
-    vector<vector<int>> copy_MouseRecordList;
-    for (int index = 0; index < MouseRecordList.size(); index++)
-    {
-        vector<int> mouse = MouseRecordList[index];
-        copy_MouseRecordList.push_back(mouse);
-    }
-    MouseRecordList.clear();
+// napi_value getMouseNextSession(napi_env env, napi_callback_info info)
+// {
+//     napi_status status;
+//     napi_value Results;
+//     if (!Mouse_HOOK_next || !MouseRecordList.size())
+//     {
+//         return NULL;
+//     }
+//     status = napi_create_array(env, &Results);
+//     assert(status == napi_ok);
+//     // 复制并清空上次的所有记录
+//     vector<vector<int>> copy_MouseRecordList;
+//     for (int index = 0; index < MouseRecordList.size(); index++)
+//     {
+//         vector<int> mouse = MouseRecordList[index];
+//         copy_MouseRecordList.push_back(mouse);
+//     }
+//     MouseRecordList.clear();
 
-    // 枚举并返回数据
-    for (int index = 0; index < copy_MouseRecordList.size(); index++)
-    {
-        vector<int> mouse = copy_MouseRecordList[index];
-        // "x|y|is"
-        string mouseInfo = "";
-        mouseInfo.append(to_string(mouse[0]));
-        mouseInfo.append("|");
-        mouseInfo.append(to_string(mouse[1]));
-        mouseInfo.append("|");
-        mouseInfo.append(to_string(mouse[2]));
-        // push
-        status = napi_set_element(env, Results, index, _create_String(env, mouseInfo));
-        if (status != napi_ok)
-        {
-            return Results;
-        };
-        mouse.clear();
-    }
+//     // 枚举并返回数据
+//     for (int index = 0; index < copy_MouseRecordList.size(); index++)
+//     {
+//         vector<int> mouse = copy_MouseRecordList[index];
+//         // "x|y|is"
+//         string mouseInfo = "";
+//         mouseInfo.append(to_string(mouse[0]));
+//         mouseInfo.append("|");
+//         mouseInfo.append(to_string(mouse[1]));
+//         mouseInfo.append("|");
+//         mouseInfo.append(to_string(mouse[2]));
+//         // push
+//         status = napi_set_element(env, Results, index, _create_String(env, mouseInfo));
+//         if (status != napi_ok)
+//         {
+//             return Results;
+//         };
+//         mouse.clear();
+//     }
 
-    return Results;
-}
+//     return Results;
+// }
 
 napi_value getKeyboardNextSession(napi_env env, napi_callback_info info)
 {
@@ -325,10 +325,10 @@ napi_value isStartKeyboardHook(napi_env env, napi_callback_info info)
     return _create_bool_Boolean(env, Keyboard_HOOK_next);
 }
 
-napi_value isStartHookMouse(napi_env env, napi_callback_info info)
-{
-    return _create_bool_Boolean(env, Mouse_HOOK_next);
-}
+// napi_value isStartHookMouse(napi_env env, napi_callback_info info)
+// {
+//     return _create_bool_Boolean(env, Mouse_HOOK_next);
+// }
 
 // 判断是否按下三大金刚
 napi_value getBasicKeys(napi_env env, napi_callback_info info)
@@ -401,41 +401,6 @@ napi_value leftClick(napi_env env, napi_callback_info info)
         Sleep(Set_Sleep_time);
     mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
     return NULL;
-}
-
-// 获取鼠标前64次的位置
-napi_value getMouseMovePoints(napi_env env, napi_callback_info info)
-{
-    // 当前的鼠标位置
-    POINT currentMousePosition = {0};
-    GetCursorPos(&currentMousePosition);
-    // 放置鼠标位置的容器
-    MOUSEMOVEPOINT mousePositionContainer = {0};
-    mousePositionContainer.x = currentMousePosition.x;
-    mousePositionContainer.y = currentMousePosition.y;
-    // 微软规定只会返回的最大数据为64 任何大于64的值都是错误的
-    const DWORD dwMaxPoints = 64;
-    // 鼠标轨迹列表
-    MOUSEMOVEPOINT mobileProgressList[dwMaxPoints] = {0};
-    const DWORD dwMode = GMMP_USE_DISPLAY_POINTS;
-    // 获取全部的 鼠标轨迹 并返回轨迹数量
-    const int PointsLength = GetMouseMovePointsEx(sizeof(mousePositionContainer), &mousePositionContainer, mobileProgressList, dwMaxPoints, dwMode);
-    // 容器
-    napi_value mobileProgressJavaScriptArrayList;
-    napi_create_array(env, &mobileProgressJavaScriptArrayList);
-    for (int PointsIndex = 0; PointsIndex < PointsLength; PointsIndex++)
-    {
-        napi_value Points;
-        napi_create_object(env, &Points);
-        napi_set_property(env, Points, _create_char_string(env, "x"), _create_int64_Number(env, mobileProgressList[PointsIndex].x));
-        napi_set_property(env, Points, _create_char_string(env, "y"), _create_int64_Number(env, mobileProgressList[PointsIndex].y));
-        napi_set_property(env, Points, _create_char_string(env, "time"), _create_int64_Number(env, mobileProgressList[PointsIndex].time));
-        napi_set_property(env, Points, _create_char_string(env, "dwExtraInfo"), _create_int64_Number(env, mobileProgressList[PointsIndex].dwExtraInfo));
-        // [].push({x:number, y:number,time:number,dwExtraInfo:number});
-        napi_set_element(env, mobileProgressJavaScriptArrayList, PointsIndex, Points);
-    }
-
-    return mobileProgressJavaScriptArrayList;
 }
 
 // 判断是否按下当前按键
@@ -1046,3 +1011,521 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     results = _create_bool_Boolean(env, true);
     return results;
 }
+
+
+namespace hmc_mouse
+{
+
+	/**
+	 * @brief 获取当前鼠标坐标
+	 *
+	 * @return json
+	 */
+	string getCursorPosJsonA()
+	{
+		POINT cursorPos = {0};
+
+		if (::GetCursorPos(&cursorPos))
+		{
+			int x = cursorPos.x;
+			int y = cursorPos.y;
+			string res = string(R"({"x":)");
+			res.append(to_string(x));
+			res.append(string(R"(,"y":)"));
+			res.append(to_string(x));
+			res.append("}");
+			return res;
+		}
+		return string(R"({"x":null,"y":null})");
+	}
+
+	/**
+	 * @brief 获取鼠标之前的64个坐标位置
+	 *
+	 * @return vector<MOUSEMOVEPOINT>
+	 */
+	vector<MOUSEMOVEPOINT> getMouseMovePoints()
+	{
+		vector<MOUSEMOVEPOINT> results;
+
+		// 预算出 计算方式 因为有可能数据是负数或者是不规整屏幕
+
+		int nVirtualWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		int nVirtualHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int nVirtualLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		int nVirtualTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+		// 当前的鼠标位置
+		POINT currentMousePosition = {0};
+		GetCursorPos(&currentMousePosition);
+		// 放置鼠标位置的容器
+		MOUSEMOVEPOINT mousePositionContainer = {0};
+		mousePositionContainer.x = currentMousePosition.x;
+		mousePositionContainer.y = currentMousePosition.y;
+
+		// 微软规定只会返回的最大数据为64
+		const DWORD dwMaxPoints = 64;
+		// 鼠标轨迹列表
+		MOUSEMOVEPOINT mobileProgressList[dwMaxPoints] = {0};
+		const DWORD dwMode = GMMP_USE_DISPLAY_POINTS;
+		// 获取全部的 鼠标轨迹 并返回轨迹数量
+		const int PointsLength = ::GetMouseMovePointsEx(sizeof(mousePositionContainer), &mousePositionContainer, mobileProgressList, dwMaxPoints, dwMode);
+
+		if (PointsLength < 0)
+		{
+			return results;
+		}
+
+		// 处理多屏幕数据
+		for (int i = PointsLength - 1; i >= 0; i--)
+		{
+			auto &mp = mobileProgressList[i];
+
+			switch (dwMode)
+			{
+			// 使用显示分辨率检索点。
+			case GMMP_USE_DISPLAY_POINTS:
+			{
+				if (mp.x >= 0x8000)
+					mp.x -= 0x10000;
+				if (mp.y >= 0x8000)
+					mp.y -= 0x10000;
+				break;
+			}
+			// 检索高分辨率点
+			case GMMP_USE_HIGH_RESOLUTION_POINTS:
+			{
+				mp.x = ((mp.x * (nVirtualWidth - 1)) - (nVirtualLeft * 65536)) / nVirtualWidth;
+				mp.y = ((mp.y * (nVirtualHeight - 1)) - (nVirtualTop * 65536)) / nVirtualHeight;
+				break;
+			}
+			}
+
+			results.push_back(MOUSEMOVEPOINT{mp.x, mp.y, mp.time, mp.dwExtraInfo});
+		}
+
+		return results;
+	}
+
+	/**
+	 * @brief 获取鼠标之前的64个坐标位置 并转为json
+	 *
+	 * @return json
+	 */
+	string getMouseMovePointsJsonA()
+	{
+		string result = "[";
+		auto data_list = getMouseMovePoints();
+		size_t leng = data_list.size();
+
+		for (size_t i = 0; i < leng; i++)
+		{
+			auto &data = data_list[i];
+			string item_data = string(R"({"x":{x},"y":{y},"time":{time},"dwExtraInfo":{dwExtraInfo}})");
+			item_data.replace(item_data.find("{x}"), sizeof("{x}") - 1, to_string(data.x));
+			item_data.replace(item_data.find("{y}"), sizeof("{y}") - 1, to_string(data.y));
+			item_data.replace(item_data.find("{time}"), sizeof("{time}") - 1, to_string(data.time));
+			item_data.replace(item_data.find("{dwExtraInfo}"), sizeof("{dwExtraInfo}") - 1, to_string(data.dwExtraInfo));
+
+			if (i + 1 < leng)
+			{
+				item_data.append(",");
+			}
+
+			result.append(item_data);
+		}
+
+		result.push_back(']');
+		return result;
+	}
+
+	/**
+	 * @brief 获取最后一次输入事件的时间 （键盘/鼠标）
+	 *
+	 * @return DWORD
+	 */
+	DWORD getLastInputTime()
+	{
+		LASTINPUTINFO lii;
+		lii.cbSize = sizeof(LASTINPUTINFO);
+
+		if (::GetLastInputInfo(&lii))
+		{
+			return lii.dwTime;
+		}
+
+		return 0; // 默认返回 0，表示获取失败
+	}
+
+	bool _is_Mouse_Next_Hook = false;			   // 是否继续执行
+	DWORD _This_Event_Time = 0;					   // 上次输入体的时间
+	HHOOK _This_MouseHook = NULL;				   // 钩子句柄
+	DWORD shake_Event_time = 35;				   // 消除抖动的ms
+	long long _This_Event_id = 0;				   // 当前id
+
+	struct MouseEvent
+	{
+		// 事件id
+		long long id;
+		// 按钮是哪个
+		long button;
+		// 滚轮数据 如果向上则为正值 向下则为负值
+		long wheelDelta;
+		// 按钮是否按下状态的  如果滚轮则为向上
+		bool buttonDown;
+		// 事件时间
+		DWORD time;
+
+		// 坐标 左到右边
+		long x;
+		// 坐标 顶部到底部
+		long y;
+
+	};
+
+	vector<MouseEvent> _This_MouseEvent_List = {}; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
+	MouseEvent _This_MouseEvent = { 0 }; 
+
+	/**
+	 * 将MouseEvent 格式化为文本json
+	 * 
+	 * \param event 事件体
+	 * \return 
+	 */
+	string MouseEventJsonA(MouseEvent event)
+	{
+		//需要区分开两个数据结构的json 因为json序列化非常费劲 v8也不例外
+		if (event.time > 0)
+		{
+			string item_data =   event.button== WM_MOUSEMOVE ?
+				// WM_MOUSEMOVE
+				string(R"({ "id":{id},"time":{time},"button":{button},"x":{x},"y":{y} })"): 
+				// ...
+				string(R"({ "id":{id},"time":{time},"button":{button},"buttonDown":{buttonDown},"wheelDelta":{wheelDelta},"name":"{buttonName}" })");
+
+
+			item_data.replace(item_data.find("{id}"), sizeof("{id}") - 1, to_string(event.id));
+			item_data.replace(item_data.find("{time}"), sizeof("{time}") - 1, to_string(event.time));
+			item_data.replace(item_data.find("{button}"), sizeof("{button}") - 1, to_string(event.button));
+
+
+
+			if (event.button == WM_MOUSEMOVE) {
+				item_data.replace(item_data.find("{x}"), sizeof("{x}") - 1, to_string(event.x));
+				item_data.replace(item_data.find("{y}"), sizeof("{y}") - 1, to_string(event.y));
+			}
+			else {
+
+				item_data.replace(item_data.find("{buttonDown}"), sizeof("{buttonDown}") - 1, (event.buttonDown ? "true" : "false"));
+				item_data.replace(item_data.find("{wheelDelta}"), sizeof("{wheelDelta}") - 1, (event.button != WM_MOUSEWHEEL ? "null" : to_string(event.wheelDelta)));
+
+
+				switch (event.button)
+				{
+				case WM_LBUTTONDOWN:
+				case WM_LBUTTONUP:
+				{
+
+					item_data.replace(item_data.find("{buttonName}"), sizeof("{buttonName}") - 1, "left-mouse-button");
+					break;
+				}
+
+				case WM_RBUTTONDOWN:
+				case WM_RBUTTONUP:
+				{
+
+					item_data.replace(item_data.find("{buttonName}"), sizeof("{buttonName}") - 1, "right-mouse-button");
+					break;
+				}
+				case WM_MBUTTONDOWN:
+					// 中键释放
+				case WM_MBUTTONUP:
+				{
+
+					item_data.replace(item_data.find("{buttonName}"), sizeof("{buttonName}") - 1, "middle-mouse-button");
+					break;
+				}
+				default:
+				{
+
+					item_data.replace(item_data.find("\"{buttonName}\""), sizeof("\"{buttonName}\"") - 1, "null");
+				}
+
+				}
+
+			}
+			 
+
+			return item_data;
+		}
+		return string(R"({ "id":null,"time":null})");
+	}
+
+    bool isStartHookMouse(){
+        if(!_is_Mouse_Next_Hook){
+            if (_This_MouseHook != NULL)
+			{
+				UnhookWindowsHookEx(_This_MouseHook);
+			}
+        }
+        
+        return _is_Mouse_Next_Hook;
+    }
+
+	// push进容器
+	void push_Mouse_Event(MouseEvent event)
+	{
+		_This_MouseEvent_List.push_back(event);
+	}
+
+
+	LRESULT CALLBACK WinApiCallBackMouseHook(int nCode, WPARAM wParam, LPARAM lParam)
+	{
+		// cout << "WinApiCallBackMouseHook" << endl;
+		//  没有键值
+		if (nCode < 0)
+		{
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+
+		// 结束监听或者句柄丢失
+		if (!_is_Mouse_Next_Hook || _This_MouseHook == NULL)
+		{
+			if (_This_MouseHook != NULL)
+			{
+				UnhookWindowsHookEx(_This_MouseHook);
+			}
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+
+		_This_MouseEvent.id = _This_Event_id;
+
+		_This_Event_id = _This_Event_id + 1;
+
+		const MSLLHOOKSTRUCT *const pMouseLLHook = reinterpret_cast<MSLLHOOKSTRUCT *>(lParam);
+
+		switch (wParam)
+		{
+		// 左键按下
+		case WM_LBUTTONDOWN:
+		// 右键按下
+		case WM_RBUTTONDOWN:
+		// 左键释放
+		case WM_LBUTTONUP:
+		// 右键释放
+		case WM_RBUTTONUP:
+		// 中键按下
+		case WM_MBUTTONDOWN:
+		// 中键释放
+		case WM_MBUTTONUP:
+		{
+			_This_MouseEvent.buttonDown = (wParam == WM_LBUTTONDOWN) || (wParam == WM_RBUTTONDOWN) || (wParam == WM_MBUTTONDOWN);
+			_This_MouseEvent.button = (long)wParam;
+			_This_MouseEvent.time = (DWORD)pMouseLLHook->time;
+			push_Mouse_Event(_This_MouseEvent);
+			_This_MouseEvent = {0};
+
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+		// 滚轮 滚轮需要获取向量
+		case WM_MOUSEWHEEL:
+		{
+
+			const int wheelDelta = GET_WHEEL_DELTA_WPARAM(pMouseLLHook->mouseData);
+
+			_This_MouseEvent.buttonDown = wheelDelta > 0;
+			_This_MouseEvent.wheelDelta = wheelDelta;
+			_This_MouseEvent.button = WM_MOUSEWHEEL;
+			_This_MouseEvent.time = (DWORD)pMouseLLHook->time;
+			push_Mouse_Event(_This_MouseEvent);
+			_This_MouseEvent = {0};
+
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+		// move
+		case WM_MOUSEMOVE:
+		{
+			// 如果是move事件进行防抖 刷新率为 < shake_Event_time ?? 35 >ms
+
+			if (pMouseLLHook->time >= _This_Event_Time + shake_Event_time)
+			{
+
+				_This_MouseEvent.x = pMouseLLHook->pt.x;
+				_This_MouseEvent.y = pMouseLLHook->pt.y;
+				_This_MouseEvent.time = (DWORD)pMouseLLHook->time;
+				_This_MouseEvent.button = WM_MOUSEMOVE;
+
+				push_Mouse_Event(_This_MouseEvent);
+
+				_This_Event_Time = _This_MouseEvent.time;
+
+				_This_MouseEvent = { 0 };
+
+			}
+
+			return CallNextHookEx(NULL, nCode, wParam, lParam);
+		}
+		}
+
+		return CallNextHookEx(NULL, nCode, wParam, lParam);
+	}
+
+    /**
+     * 结束监听
+     *
+     */
+    void StopHookMouse() {
+
+        if (_This_MouseHook != NULL)
+        {
+            if (UnhookWindowsHookEx(_This_MouseHook)) {
+                _This_MouseHook = NULL;
+            }
+        }
+
+        _This_MouseEvent_List.clear();
+        _This_MouseEvent_List.resize(0);
+
+        _is_Mouse_Next_Hook = false;
+        _This_Event_Time = 0;
+        _This_MouseEvent = { 0 };
+
+    }
+
+	/**
+	 * 初始化一个 低级的键盘hook函数
+	 *
+	 */
+	void InitHookMouse()
+	{
+        if(isStartHookMouse()){
+            return ;
+        }
+		_is_Mouse_Next_Hook = true;
+		_This_MouseEvent_List.reserve(256);
+		_This_MouseHook = SetWindowsHookExA(
+			WH_MOUSE_LL,			 // 钩子类型 安装用于监视低级别键盘输入事件的挂钩过程 与  安装用于监视低级别鼠标输入事件的挂钩过程
+			WinApiCallBackMouseHook, // 指向钩子函数的指针
+			nullptr,				 // 没有模块句柄
+			NULL);
+
+		BOOL bRet;
+		MSG msg;
+
+		// 获取消息循环
+		while ((bRet = GetMessageW(&msg, nullptr, 0, 0)) != 0)
+		{
+			if (bRet == -1 || (!_is_Mouse_Next_Hook || _This_MouseHook == NULL))
+			{
+				break;
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		// 移除系统钩子
+		if (_This_MouseHook != NULL)
+		{
+			UnhookWindowsHookEx(_This_MouseHook);
+		}
+        StopHookMouse();
+
+	}
+
+
+	/**
+	 * @brief 当前的所有事件数据并清空内存块
+	 *
+	 * @return 数据体copy
+	 */
+	vector<MouseEvent> getMouseEvent() {
+		
+		vector<MouseEvent> event_list;
+		
+		size_t len = _This_MouseEvent_List.size();
+
+		if (len<=0) {
+			return event_list;
+		}
+		
+		for (size_t i = 0; i < len; i++)
+		{
+
+			event_list.push_back(_This_MouseEvent_List[i]);
+
+		}
+
+		_This_MouseEvent_List.erase(_This_MouseEvent_List.begin() + 0, _This_MouseEvent_List.begin() + len);
+
+		return event_list;
+	}
+
+	/**
+	 * @brief 当前的所有事件数据并清空内存块
+	 * 
+	 * @return json
+	 */
+	string getMouseEventListJsonA() {
+		vector<MouseEvent> event_btn_list = getMouseEvent();
+		
+		string result = "[";
+
+		for (size_t i = 0; i < event_btn_list.size(); i++)
+		{
+			auto& item = event_btn_list[i];
+
+			result.append(MouseEventJsonA(item));
+
+			if (i+1 < event_btn_list.size()) {
+				result.push_back(',');
+			}
+		}
+
+		result.push_back(']');
+		return result;
+	}
+
+}
+
+// 获取鼠标前64次的位置
+napi_value getMouseMovePoints(napi_env env, napi_callback_info info)
+{
+
+    return hmc_napi_create_value::String(env,hmc_mouse::getMouseMovePointsJsonA());
+}
+
+napi_value getCursorPos(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::String(env,hmc_mouse::getCursorPosJsonA());
+}
+
+
+napi_value installHookMouse2(napi_env env, napi_callback_info info)
+{
+	std::thread(hmc_mouse::InitHookMouse).detach();
+    return hmc_napi_create_value::Undefined(env);
+}
+
+
+napi_value unHookMouse2(napi_env env, napi_callback_info info)
+{
+    hmc_mouse::StopHookMouse();
+    return hmc_napi_create_value::Undefined(env);
+}
+
+napi_value getMouseNextSession2(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::String(env,hmc_mouse::getMouseEventListJsonA());
+}
+
+napi_value isStartHookMouse2(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Boolean(env,hmc_mouse::isStartHookMouse());
+}
+
+
+napi_value getLastInputTime(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Number(env,hmc_mouse::getLastInputTime());
+}
+

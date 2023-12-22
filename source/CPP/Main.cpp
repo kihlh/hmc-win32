@@ -4909,12 +4909,12 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                     //=>3-1UP
         DECLARE_NAPI_METHODRM("mouse", mouse),                                   //=>3-1UP
         DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>3-1ADD
-        DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>3-1ADD
+        //DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>12-22 del
+        //DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>12-22 del
         DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>3-1ADD
         DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>3-1ADD
-        DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>3-1ADD
+        //DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>12-22 del
+        //DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>12-22 del
         DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),       //=>3-1ADD
         // windows.cpp
         DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),         //=>3-6UP
@@ -4933,7 +4933,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
         DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
-        DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),
         DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
         DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
         DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
@@ -4994,6 +4993,18 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("__debug_AllocConsole", fn_AllocConsole),
         // 2023-11-28 add support
         DECLARE_NAPI_METHODRM("getProcessStartTime", fn_getProcessStartTime),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("getCursorPos", getCursorPos),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("isStartHookMouse2", isStartHookMouse2),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("getMouseNextSession2", getMouseNextSession2),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("unHookMouse2", unHookMouse2),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("installHookMouse2", installHookMouse2),
+        // 2023-12-22 add support
+        DECLARE_NAPI_METHODRM("getLastInputTime", getLastInputTime),
         // 2023-12-11 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_get",_PromiseSession_getAll),
         // 2023-12-1 add support

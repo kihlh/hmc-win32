@@ -33,33 +33,31 @@
 - **hmc在大多数情况下对内存的消耗几乎可以忽略不计**
 
 
-## 我们为您总结了几种功能的分类
+## 为您总结了几种功能的分类
 
-- ##### 窗口操作：调整  /  枚举  /  禁用   /  查询  /  变化
+- ##### [窗口操作](#Window Operation)：调整  /  枚举  /  禁用   /  查询  /  变化
 
-- **进程控制：kill  /  信息  /  句柄  /  窗口 / 变化**
+- **[进程控制](#Process Control)：kill  /  信息  /  句柄  /  窗口 / 变化**
 
-- **网    络    ：端口  /  网卡  /  局域网  /  IP**
+- **[网    络](#Network (net))    ：端口  /  网卡  /  局域网  /  IP**
 
-- **文件系统 ：软链接  /  硬链接  /  USB**
+- **[文件系统](#File Links/Shortcuts) ：软链接  /  硬链接  /  USB**
 
-- ##### 环境变量 ：用户变量  /  系统变量  /  同步  /  转义
+- ##### [环境变量](#Environment Variables) ：用户变量  /  系统变量  /  同步  /  转义
 
-- **剪 贴 板   ：文件列表  /  读写  /  文本  /  变化** 
+- **[剪 贴 板](#System Operations)   ：文件列表  /  读写  /  文本  /  变化** 
 
-- **自 动 化   ：键盘  /  鼠标  /   执行  /  读取  /  autoit3**
+- **[自 动 化](#Keyboard Mouse USB):   ：键盘  /  鼠标  /   执行  /  读取  /  autoit3**
 
-- **注 册 表   ：读 / 写** 
+- **[注 册 表](#Registry Editing)   ：读 / 写** 
 
-- ##### 电源控制 : 关机  /  重启   /  注销  /   显示器  /  启动时间 
+- ##### [电源控制](#Power Control) : 关机  /  重启   /  注销  /   显示器  /  启动时间 
 
-- **Shell       ：回收站  / Message  / 快捷方式 / 执行软件 / 选取文件 / 保存文件**
+- **[Shell](#System Operations)       ：回收站  / Message  / 快捷方式 / 执行软件 / 选取文件 / 保存文件**
 
-- **互斥体    ： 创建 / 销毁  （防止进程重复启动）**
+- **[互斥体](#System Operations)    ： 创建 / 销毁  （防止进程重复启动）**
 
-- **托 盘       ：创建 / 枚举 / 销毁**
-
-
+- **[托 盘](#Status Bar)**       ：创建 / 枚举 / 销毁
 
 
 
@@ -399,6 +397,11 @@ import  HMC = require("hmc-win32");
 - **sendKeyboardSequence**  发送键盘事件序列
 - **sendKeyT2CSync**  同步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
 - **sendKeyT2C**  异步执行t2c 脚本  （一种快捷的 更加符合人类编写键鼠操作的文本微脚本）
+- **getCursorPos** 获取鼠标光标所在位置的坐标
+- **hasMouseLeftActivate**  判断鼠标左键是否被按下
+- **hasMouseRightActivate**  判断鼠标右键是否被按下
+- **hasMouseMiddleActivate** 判断鼠标中键是否被按下
+- **hasMouseBtnActivate** 判断鼠标的按钮按下状态
 
 ### 文件链接/快捷方式
 
