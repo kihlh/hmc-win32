@@ -259,6 +259,10 @@ __export(hmc_exports, {
   getPointWindowMain: () => getPointWindowMain,
   getPointWindowName: () => getPointWindowName,
   getPointWindowProcessId: () => getPointWindowProcessId,
+  getProcessCommand2: () => getProcessCommand2,
+  getProcessCommand2Sync: () => getProcessCommand2Sync,
+  getProcessCwd2: () => getProcessCwd2,
+  getProcessCwd2Sync: () => getProcessCwd2Sync,
   getProcessFilePath: () => getProcessFilePath,
   getProcessFilePath2: () => getProcessFilePath2,
   getProcessFilePath2Sync: () => getProcessFilePath2Sync,
@@ -378,6 +382,7 @@ __export(hmc_exports, {
   setCloseWindow: () => setCloseWindow,
   setCursorPos: () => setCursorPos,
   setHandleTransparent: () => setHandleTransparent,
+  setLimitMouseRange: () => setLimitMouseRange,
   setRegistrDword: () => setRegistrDword,
   setRegistrKey: () => setRegistrKey,
   setRegistrQword: () => setRegistrQword,
@@ -1064,7 +1069,14 @@ var get_native = (binPath) => {
       unHookMouse2: fnVoid,
       installHookMouse2: fnVoid,
       getMouseNextSession2: fnArrStr,
-      getLastInputTime: fnNum
+      getLastInputTime: fnNum,
+      hasLimitMouseRangeWorker: fnBool,
+      setLimitMouseRange: fnBool,
+      stopLimitMouseRangeWorker: fnBool,
+      getProcessCommand: fnPromise,
+      getProcessCommandSync: fnNull,
+      getProcessCwd: fnPromise,
+      getProcessCwdSync: fnStr
     };
   })();
   return Native;
@@ -3561,6 +3573,65 @@ function sendBasicKeys(ctrlKey, shiftKey, altKey, winKey, KeyCode) {
     throw new Error("The current function can only execute standard shortcuts and cannot enter a key value alone or without a regular keystroke");
   }
 }
+function getProcessCwd2(pid) {
+  return PromiseSP(native.getProcessCwd(ref.int(pid)), (data) => {
+    if (typeof data === "string")
+      return data;
+    return (data == null ? void 0 : data[0]) ? String(data == null ? void 0 : data[0]) : null;
+  });
+}
+function getProcessCwd2Sync(pid) {
+  return native.getProcessCwdSync(ref.int(pid));
+}
+function getProcessCommand2(pid) {
+  return PromiseSP(native.getProcessCommand(ref.int(pid)), (data) => {
+    if (typeof data === "string")
+      return data;
+    return String((data == null ? void 0 : data[0]) || "");
+  });
+}
+function getProcessCommand2Sync(pid) {
+  return native.getProcessCommandSync(ref.int(pid));
+}
+function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
+  ms = Math.abs(ref.int(ms));
+  x = Math.abs(ref.int(x));
+  y = Math.abs(ref.int(y));
+  right = Math.abs(ref.int(right)) || 1;
+  bottom = Math.abs(ref.int(bottom)) || 1;
+  if (ms > 30 * 1e3 || ms < 30) {
+    throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).");
+  }
+  native.setLimitMouseRange(ms, x, y, right, bottom);
+  const res = {
+    ms,
+    x,
+    y,
+    right,
+    bottom,
+    closed: (() => {
+      setTimeout(() => {
+        res.closed = native.hasLimitMouseRangeWorker();
+      }, ms + 80);
+      return false;
+    })(),
+    /**
+     * 停止本次
+     * @returns 
+     */
+    close() {
+      return native.stopLimitMouseRangeWorker();
+    },
+    /**
+     * 是否正在执行中
+     * @returns 
+     */
+    has() {
+      return !native.hasLimitMouseRangeWorker();
+    }
+  };
+  return res;
+}
 var Iohook_Keyboard = class {
   constructor() {
     this._onlistenerCountList = {
@@ -3705,6 +3776,7 @@ function getLastInputTime() {
   return native.getLastInputTime();
 }
 var Auto = {
+  setLimitMouseRange,
   hasMouseLeftActivate,
   hasMouseRightActivate,
   hasMouseMiddleActivate,
@@ -4827,7 +4899,12 @@ var hmc = {
   hasMouseLeftActivate,
   hasMouseRightActivate,
   hasMouseMiddleActivate,
-  hasMouseBtnActivate
+  hasMouseBtnActivate,
+  setLimitMouseRange,
+  getProcessCwd2Sync,
+  getProcessCwd2,
+  getProcessCommand2,
+  getProcessCommand2Sync
 };
 var hmc_default = hmc;
 process.on("exit", function() {
@@ -4931,6 +5008,10 @@ process.on("exit", function() {
   getPointWindowMain,
   getPointWindowName,
   getPointWindowProcessId,
+  getProcessCommand2,
+  getProcessCommand2Sync,
+  getProcessCwd2,
+  getProcessCwd2Sync,
   getProcessFilePath,
   getProcessFilePath2,
   getProcessFilePath2Sync,
@@ -5050,6 +5131,7 @@ process.on("exit", function() {
   setCloseWindow,
   setCursorPos,
   setHandleTransparent,
+  setLimitMouseRange,
   setRegistrDword,
   setRegistrKey,
   setRegistrQword,
