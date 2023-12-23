@@ -221,7 +221,9 @@ napi_value getMouseNextSession2(napi_env env, napi_callback_info info);
 napi_value unHookMouse2(napi_env env, napi_callback_info info);
 napi_value installHookMouse2(napi_env env, napi_callback_info info);
 napi_value getLastInputTime(napi_env env, napi_callback_info info);
-
+napi_value hasLimitMouseRangeWorker(napi_env env, napi_callback_info info);
+napi_value setLimitMouseRange(napi_env env, napi_callback_info info);
+napi_value stopLimitMouseRangeWorker(napi_env env, napi_callback_info info);
 
 // Windows.cpp
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);

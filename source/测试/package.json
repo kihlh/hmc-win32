@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^16.18.66"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "hmc-shake": "^1.0.2",
+    "hmc-win32": "^1.4.3",
+    "jsonfm": "^1.0.2",
+    "log4js": "^6.9.1"
+  }
+}

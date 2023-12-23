@@ -2,14 +2,28 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>D:\source\ENV\node-v20.2.0-win-x64\node.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
-    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>node_x86.exe</LocalDebuggerCommand>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommand>D:\source\ENV\node-v20.2.0-win-x64\node.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerCommand>node_x86.exe</LocalDebuggerCommand>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

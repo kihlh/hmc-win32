@@ -272,6 +272,13 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             installHookMouse2: fnVoid,
             getMouseNextSession2: fnArrStr,
             getLastInputTime: fnNum,
+            hasLimitMouseRangeWorker: fnBool,
+            setLimitMouseRange: fnBool,
+            stopLimitMouseRangeWorker: fnBool,
+            getProcessCommand: fnPromise,
+            getProcessCommandSync: fnNull,
+            getProcessCwd: fnPromise,
+            getProcessCwdSync: fnStr,
         }
     })();
     return Native;
@@ -719,7 +726,7 @@ export module HMC {
         WM_MOUSEWHEEL = 522,
     }
 
-    export type direction = "right" | "left" | "right-top" | "left-bottom" | "left-top" | "right-bottom" | "bottom" | "top"|"middle";
+    export type direction = "right" | "left" | "right-top" | "left-bottom" | "left-top" | "right-bottom" | "bottom" | "top" | "middle";
 
     // 鼠标按钮变化
     export enum MouseKeyName {
@@ -779,7 +786,7 @@ export module HMC {
     };
 
     export type MouseEventDataAll = MouseMouseEventData | MouseMoveEventData | MouseNotEventData;
-    export type MouseEventDataOK = MouseMouseEventData | MouseMoveEventData ;
+    export type MouseEventDataOK = MouseMouseEventData | MouseMoveEventData;
 
     // 传回的位置信息
     export interface Rect {
@@ -1883,6 +1890,58 @@ export module HMC {
         installHookMouse2(): void;
         getMouseNextSession2(): string;
         getLastInputTime(): number;
+        /**
+         * 是否 正在调用着 限制鼠标可移动范围的线程
+         */
+        hasLimitMouseRangeWorker(): boolean;
+        /**
+         * 限制鼠标光标可移动范围 (异步)
+         * @description 可以调用stopLimitMouseRangeWorker提前结束 
+         * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms 
+         * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
+         * @param ms 本次限制的时间
+         * @param x 限制左边初始化点的位置
+         * @param y 限制顶部初始化点的位置
+         * @param right 允许的范围(左边到右边部)
+         * @param bottom 允许光标移动的范围(顶到底部)
+         */
+        setLimitMouseRange(ms: number, x: number, y: number, right: number, bottom: number): boolean;
+        /**
+         * 提前结束限制鼠标可移动范围 一旦调用则立即解锁 返回的布尔是解锁线程是否成功 
+         */
+        stopLimitMouseRangeWorker(): boolean;
+        /**
+         * 获取指定进程得出命令行 
+         * @description 由于跨进程权限问题 不保证获取得到
+         * ?此功能在win8及以下系统 需要读取进程内存
+         * @module 异步async
+         * @param pid 进程id
+         */
+        getProcessCommand(pid: number): Promise<string | null>;
+        /**
+         * 获取指定进程得出命令行
+         * @description 由于跨进程权限问题 不保证获取得到
+         * ?此功能在win8及以下系统 需要读取进程内存
+         * @module 同步Sync
+         * @param pid 
+         */
+        getProcessCommandSync(pid: number): string | null;
+        /**
+         * 获取指定进程的工作目录
+         * @description 由于跨进程权限问题 不保证获取得到
+         * !此功能需要读取进程内存
+         * @module 异步async
+         * @param pid 
+         */
+        getProcessCwd(pid: number): Promise<string>;
+        /**
+         * 获取指定进程的工作目录
+         * @description 由于跨进程权限问题 不保证获取得到
+         * !此功能需要读取进程内存
+         * @module 同步Sync
+         * @param pid 
+         */
+        getProcessCwdSync(pid: number): string;
     }
     export type ProcessHandle = {
         // 句柄 
@@ -2364,7 +2423,7 @@ export class PromiseSession {
 }
 
 // 初始化一个v2 接口的sp对象 并且将其转为callback或者Promise (js标准)
-export function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: ((error: null | Error, ...args: any[]) => any)): void;
+export function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: undefined | ((error: null | Error, ...args: any[]) => any)): void;
 export function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T)): Promise<T>;
 export function PromiseSP<T>(SessionID: number | Promise<any>, format: unknown, Callback?: unknown) {
 
@@ -4907,7 +4966,7 @@ class MousePoint {
     mouseKeyCode: HMC.MouseKey;
     // 当前鼠标按键的事件 名称
     event: HMC.MouseKeyName;
-    private _MouseNextSession:null| HMC.MouseEventDataOK = null;
+    private _MouseNextSession: null | HMC.MouseEventDataOK = null;
 
     constructor(str: `${number}|${number}|${HMC.MouseKey}` | HMC.MouseEventDataAll) {
         if (typeof str == "string") {
@@ -4958,8 +5017,8 @@ class MousePoint {
                 return false;
             })();
         } else {
-            if(str.id)
-            this._MouseNextSession = str;
+            if (str.id)
+                this._MouseNextSession = str;
 
             if (!str.id) {
                 this.x = 0;
@@ -5035,7 +5094,7 @@ class MousePoint {
     // direction () : HMC.direction {
     //     let emit_name: HMC.direction = "middle";
     //     const {x, y} = this._MouseNextSession?.button ==512?this._MouseNextSession:{x:0,y:0};
-        
+
     //     let [x2, y2] = [0, 0];
 
     //     // 在之前5个记录中查找出最后一次的坐标
@@ -5047,11 +5106,11 @@ class MousePoint {
     //     }
 
     //     if(x2==x&&y==y2)return "middle";
-        
+
     //     if(x2+y2 == 0||x+y == 0)return "middle";
 
     //     if(!mouseHook._screen_Information)mouseHook._screen_Information = getDeviceCaps();
-        
+
     //     // 计算 x, y 方向上的差值
     //     const diffX = x2 - x;
     //     const diffY = y2 - y;
@@ -5065,7 +5124,7 @@ class MousePoint {
     //     // 可忽略偏移量
     //     if((Math.abs(x2-x)>diffX_offset && Math.abs(y2-y)>diffY_offset) )return "middle";
 
-        
+
     //     // 计算可忽略偏移量
     //     if (diffX > 0) {
     //         direction += 'right';
@@ -5076,7 +5135,7 @@ class MousePoint {
     //     if(direction){
     //         direction += '-';
     //     }
-        
+
     //     if (diffY > 0 ) {
     //         direction += 'bottom';
     //     } else if (diffY < 0) {
@@ -5226,21 +5285,21 @@ class Iohook_Mouse {
         drag: [] as Function[],
     };
     // 这里会存储之前的64个历史记录
-     _history_list :Array<HMC.MouseEventDataOK> = [];
+    _history_list: Array<HMC.MouseEventDataOK> = [];
     // 记录主屏幕信息 从而计算出直线的偏移参数
-     _screen_Information:null|HMC.DeviceCaps = null;
+    _screen_Information: null | HMC.DeviceCaps = null;
 
     private _Close = false;
     // 计算直线的忽略参百分比
     _direction_percentage = 8;
-    
+
     constructor() {
     }
-    
+
     /**
      * 获取之前的0-64个记录 
      */
-    get history():Array<HMC.MouseEventDataOK> {
+    get history(): Array<HMC.MouseEventDataOK> {
         const result = [...this._history_list];
         return result;
     }
@@ -5301,11 +5360,11 @@ class Iohook_Mouse {
             if (getMouseNextSession)
                 for (let index = 0; index < getMouseNextSession.length; index++) {
                     const MouseNextSession: HMC.MouseEventDataAll = getMouseNextSession[index];
-                    if(!MouseNextSession.id)continue;
+                    if (!MouseNextSession.id) continue;
 
-                    if(this._history_list.length>60){
+                    if (this._history_list.length > 60) {
                         // 移除前面五个
-                        this._history_list.splice(0,5);
+                        this._history_list.splice(0, 5);
                     }
                     this._history_list.push(MouseNextSession);
 
@@ -5331,11 +5390,11 @@ class Iohook_Mouse {
 
                     if (MouseNextSession.id && MouseNextSession.button == HMC.MouseKey.WM_MOUSEMOVE) {
                         mouseHook.emit("move", MouseNextSession.x, MouseNextSession.y, mousePoint, MouseNextSession);
-                        
+
                         // 计算拖拽的偏移量
                         // if ((mouseHook._oncelistenerCountList.drag.length||mouseHook._onlistenerCountList.drag.length)&&Auto.hasKeyActivate(0x01)) {
-                      
-                            // mouseHook.emit("drag", MouseNextSession.x, MouseNextSession.y, mousePoint.direction(), mousePoint, MouseNextSession);
+
+                        // mouseHook.emit("drag", MouseNextSession.x, MouseNextSession.y, mousePoint.direction(), mousePoint, MouseNextSession);
                         // }
                     }
 
@@ -5464,11 +5523,11 @@ export function hasMouseMiddleActivate() {
  * 判断鼠标三按钮是否被按下
  * @returns 
  */
-export function hasMouseBtnActivate(){
+export function hasMouseBtnActivate() {
     return {
-       "left" :Auto.hasKeyActivate(0x01),
-       "right":Auto.hasKeyActivate(0x02),
-       "middle":Auto.hasKeyActivate(0x04)
+        "left": Auto.hasKeyActivate(0x01),
+        "right": Auto.hasKeyActivate(0x02),
+        "middle": Auto.hasKeyActivate(0x04)
     }
 }
 
@@ -5713,6 +5772,121 @@ export function sendBasicKeys(ctrlKey: unknown, shiftKey?: unknown, altKey?: unk
     }
 }
 
+
+/**
+ * 获取指定进程的工作目录
+ * @time 5.449ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 异步async
+ * @param pid 
+ */
+export function getProcessCwd2(pid: number): Promise<string | null> {
+    return PromiseSP(native.getProcessCwd(ref.int(pid)), (data) => {
+        if (typeof data === 'string') return data;
+        return data?.[0] ? String(data?.[0]) : null;
+    });
+}
+
+/**
+ * 获取指定进程的工作目录
+ * @time 0.435ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 同步Sync
+ * @param pid 
+ */
+export function getProcessCwd2Sync(pid: number): string | null {
+    return native.getProcessCwdSync(ref.int(pid));
+}
+
+/**
+ * 获取指定进程得出命令行 
+ * @time 1.095ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 异步async
+ * @param pid 进程id
+ */
+export function getProcessCommand2(pid: number): Promise<string> {
+    return PromiseSP(native.getProcessCommand(ref.int(pid)), (data) => {
+        if (typeof data === 'string') return data;
+
+        return String(data?.[0] || "");
+    });
+}
+
+/**
+ * 获取指定进程得出命令行
+ * @time 0.386ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 同步Sync
+ * @param pid 
+ */
+export function getProcessCommand2Sync(pid: number): string | null {
+    return native.getProcessCommandSync(ref.int(pid));
+}
+
+
+/**
+ * 限制鼠标光标可移动范围 (异步)
+ * @description 可以调用 stop 提前结束 
+ * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms 
+ * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
+ * @param ms 本次限制的时间
+ * @param x 限制左边初始化点的位置
+ * @param y 限制顶部初始化点的位置
+ * @param right 允许的范围(左边到右边部)
+ * @param bottom 允许光标移动的范围(顶到底部)
+ */
+export function setLimitMouseRange(ms: number, x: number, y: number, right: number = 1, bottom: number = 1) {
+
+    ms = Math.abs(ref.int(ms));
+    x = Math.abs(ref.int(x));
+    y = Math.abs(ref.int(y));
+    right = Math.abs(ref.int(right)) || 1;
+    bottom = Math.abs(ref.int(bottom)) || 1;
+
+    if (ms > 30 * 1000 || ms < 30) {
+        throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).")
+    }
+
+    native.setLimitMouseRange(ms, x, y, right, bottom);
+
+
+    const res = {
+        ms, x, y, right, bottom,
+        closed: (() => {
+            setTimeout(() => {
+                // 这一步看着很多余实际上确实多余
+                // !请注意此地方不能取消
+                /*请注意此地方不能取消 不然node提前结束将会导致无法解锁 避免进程提前退出导致无法结束 */
+                res.closed = native.hasLimitMouseRangeWorker();
+            }, ms + 80);
+            return false;
+        })() as boolean,
+        /**
+         * 停止本次
+         * @returns 
+         */
+        close() {
+            return native.stopLimitMouseRangeWorker();
+        },
+
+        /**
+         * 是否正在执行中
+         * @returns 
+         */
+        has() {
+            return !native.hasLimitMouseRangeWorker();
+        }
+
+    }
+
+    return res;
+}
+
 class Iohook_Keyboard {
     private _onlistenerCountList = {
         close: [] as Function[],
@@ -5888,6 +6062,7 @@ export function getLastInputTime() {
 
 // 自动化工具集   (拥有统一化名称) 
 export const Auto = {
+    setLimitMouseRange,
     hasMouseLeftActivate,
     hasMouseRightActivate,
     hasMouseMiddleActivate,
@@ -7593,7 +7768,13 @@ export const hmc = {
     hasMouseRightActivate,
     hasMouseMiddleActivate,
     hasMouseBtnActivate,
+    setLimitMouseRange,
+    getProcessCwd2Sync,
+    getProcessCwd2,
+    getProcessCommand2,
+    getProcessCommand2Sync,
 }
+
 export default hmc;
 
 process.on('exit', function () {

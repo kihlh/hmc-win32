@@ -1,93 +1,131 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const hmc = require(process.argv.at(-1) || "");
-class PromiseSession {
-    /**
-     * 将 PromiseSession 转为 Promise
-     * @param format 数据格式化的函数
-     * @returns
-     */
-    to_Promise(format) {
-        const this_ = this;
-        return new Promise(function (resolve, reject) {
-            try {
-                setInterval(() => {
-                    const temp = hmc._PromiseSession_get(this_.SessionID, 50);
-                    for (let index = 0; index < (temp || []).length; index++) {
-                        const element = (temp || [])[index];
-                        this_.data_list.push(element);
-                    }
-                    if (!temp && hmc._PromiseSession_isClosed(this_.SessionID)) {
-                        resolve(format(this_.data_list));
-                    }
-                }, 25);
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    /**
-     * PromiseSession 转为 callBack
-     * @param format 格式化的函数 如果没有callback 此函数将被作为callBack使用
-     * @param callback 回调函数 接收的第一个参数将会是 format格式化过得内容
-     * @param everyCallback 是否每次回调 当此选项为false 将只会在PromiseSession接收完成时候回调
-     */
-    to_callback(format, callback, everyCallback) {
-        try {
-            const this_ = this;
-            setInterval(() => {
-                const temp = hmc._PromiseSession_get(this_.SessionID, 50);
-                for (let index = 0; index < (temp || []).length; index++) {
-                    const element = (temp || [])[index];
-                    this_.data_list.push(element);
-                    if (!everyCallback) {
-                        if (callback) {
-                            callback(format(element));
-                        }
-                        else {
-                            format(element);
-                        }
-                    }
-                }
-                if (!temp && hmc._PromiseSession_isClosed(this_.SessionID)) {
-                    if (everyCallback) {
-                        if (callback) {
-                            callback(format(this_.data_list));
-                        }
-                        else {
-                            format(this_.data_list);
-                        }
-                    }
-                }
-            }, 25);
-        }
-        catch (error) {
-        }
-    }
-    /**
-     * 异步改同步
-     */
-    await() {
-        hmc._PromiseSession_await(this.SessionID);
-        return hmc._PromiseSession_get(this.SessionID, 999999999);
-    }
-    /**
-     * 提前结束
-     */
-    stop() {
-        hmc._PromiseSession_stop(this.SessionID);
-    }
-    /**
-     * 初始化一个将 hmc_PromiseSession 转为js 异步的方法
-     * hmc_PromiseSession 是一个支持并发异步的调用封装库
-     * 用于解决napi无法连续创建同事件的异步空间 以及napi的异步及其难写的问题
-     * @param SessionID
-     */
-    constructor(SessionID) {
-        this.SessionID = SessionID;
-        this.data_list = [];
-    }
+exports.setLimitMouseRange = exports.getProcessCommand2Sync = exports.getProcessCommand2 = exports.getProcessCwd2Sync = exports.getProcessCwd2 = void 0;
+const log4js = require("log4js");
+const hmc_win32_1 = require("hmc-win32");
+log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
+const log = log4js.getLogger("cheese");
+process.exitCode = 666;
+const native = require(process.argv.at(-1) || "");
+/**
+ * 获取指定进程的工作目录
+ * @time 5.449ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 异步async
+ * @param pid
+ */
+function getProcessCwd2(pid) {
+    return (0, hmc_win32_1.PromiseSP)(native.getProcessCwd(hmc_win32_1.ref.int(pid)), (data) => {
+        if (typeof data === 'string')
+            return data;
+        return (data === null || data === void 0 ? void 0 : data[0]) ? String(data === null || data === void 0 ? void 0 : data[0]) : null;
+    });
 }
-console.log((new PromiseSession(hmc.getProcessidFilePath___SP(4))).await());
-(new PromiseSession(hmc.getAllProcessListv2___SP(true, true, true, true, true, true))).to_Promise(_ => _).then(console.log);
+exports.getProcessCwd2 = getProcessCwd2;
+/**
+ * 获取指定进程的工作目录
+ * @time 0.435ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 同步Sync
+ * @param pid
+ */
+function getProcessCwd2Sync(pid) {
+    return native.getProcessCwdSync(hmc_win32_1.ref.int(pid));
+}
+exports.getProcessCwd2Sync = getProcessCwd2Sync;
+/**
+ * 获取指定进程得出命令行
+ * @time 1.095ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 异步async
+ * @param pid 进程id
+ */
+function getProcessCommand2(pid) {
+    return (0, hmc_win32_1.PromiseSP)(native.getProcessCommand(hmc_win32_1.ref.int(pid)), (data) => {
+        if (typeof data === 'string')
+            return data;
+        return String((data === null || data === void 0 ? void 0 : data[0]) || "");
+    });
+}
+exports.getProcessCommand2 = getProcessCommand2;
+/**
+ * 获取指定进程得出命令行
+ * @time 0.386ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 同步Sync
+ * @param pid
+ */
+function getProcessCommand2Sync(pid) {
+    return native.getProcessCommandSync(hmc_win32_1.ref.int(pid));
+}
+exports.getProcessCommand2Sync = getProcessCommand2Sync;
+/**
+ * 限制鼠标光标可移动范围 (异步)
+ * @description 可以调用 stop 提前结束
+ * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms
+ * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
+ * @param ms 本次限制的时间
+ * @param x 限制左边初始化点的位置
+ * @param y 限制顶部初始化点的位置
+ * @param right 允许的范围(左边到右边部)
+ * @param bottom 允许光标移动的范围(顶到底部)
+ */
+function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
+    ms = Math.abs(hmc_win32_1.ref.int(ms));
+    x = Math.abs(hmc_win32_1.ref.int(x));
+    y = Math.abs(hmc_win32_1.ref.int(y));
+    right = Math.abs(hmc_win32_1.ref.int(right)) || 1;
+    bottom = Math.abs(hmc_win32_1.ref.int(bottom)) || 1;
+    if (ms > 30 * 1000 || ms < 30) {
+        throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).");
+    }
+    native.setLimitMouseRange(ms, x, y, right, bottom);
+    const res = {
+        ms, x, y, right, bottom,
+        closed: (() => {
+            setTimeout(() => {
+                // 这一步看着很多余实际上确实多余
+                // !请注意此地方不能取消
+                /*请注意此地方不能取消 不然node提前结束将会导致无法解锁 避免进程提前退出导致无法结束 */
+                res.closed = native.hasLimitMouseRangeWorker();
+            }, ms + 80);
+            return false;
+        })(),
+        /**
+         * 停止本次
+         * @returns
+         */
+        close() {
+            return native.stopLimitMouseRangeWorker();
+        },
+        /**
+         * 是否正在执行中
+         * @returns
+         */
+        has() {
+            return !native.hasLimitMouseRangeWorker();
+        }
+    };
+    return res;
+}
+exports.setLimitMouseRange = setLimitMouseRange;
+(async function main() {
+    console.time("hmc.getProcessCwd()->");
+    console.log("hmc.getProcessCwd()->", await getProcessCwd2(process.pid));
+    console.timeEnd("hmc.getProcessCwd()->");
+    console.time("hmc.getProcessCwdSync()->");
+    console.log("hmc.getProcessCwdSync()->", getProcessCwd2Sync(process.pid));
+    console.timeEnd("hmc.getProcessCwdSync()->");
+    console.time("hmc.getProcessCommand()->");
+    console.log("hmc.getProcessCommand()->", await getProcessCommand2(process.pid));
+    console.timeEnd("hmc.getProcessCommand()->");
+    console.time("hmc.getProcessCommand()->");
+    console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
+    console.timeEnd("hmc.getProcessCommand()->");
+    const setLimitMouse = setLimitMouseRange(5000, 1, 1, 1, 500);
+    setTimeout(() => { setLimitMouse.close(); }, 1000);
+})();

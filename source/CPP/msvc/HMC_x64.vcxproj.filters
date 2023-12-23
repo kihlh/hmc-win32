@@ -135,5 +135,8 @@
     <None Include="..\binding.gyp">
       <Filter>..</Filter>
     </None>
+    <ClCompile Include="..\util\hmc_mouse.cpp">
+      <Filter>..\util</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

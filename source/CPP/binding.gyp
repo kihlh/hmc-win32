@@ -7,6 +7,7 @@
         ['OS=="win"', {
           "sources": [
             "util/napi_value_util.cpp",
+            "util/hmc_string_util.cpp",
             "Main.cpp",
             "test.cpp",
             "usb.cpp",
@@ -17,9 +18,9 @@
             "windows.cpp",
             "process.cpp",
             "screen.cpp",
-            "util/hmc_string_util.cpp",
             "util/fn_process.cpp",
             "util/fn_environment.cpp",
+            "util/hmc_mouse.cpp",
           ],
           'msvs_settings': {
             'VCCLCompilerTool': {

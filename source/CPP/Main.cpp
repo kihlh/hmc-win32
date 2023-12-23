@@ -5027,6 +5027,12 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("_PromiseSession_get_sleep_time", _PromiseSession_get_sleep_time),
         // 2023-12-1 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_allTasks", _PromiseSession_allTasks),
+        // 2023-12-23 add support
+        DECLARE_NAPI_METHODRM("hasLimitMouseRangeWorker", hasLimitMouseRangeWorker),
+        // 2023-12-23 add support
+        DECLARE_NAPI_METHODRM("setLimitMouseRange", setLimitMouseRange),
+        // 2023-12-23 add support
+        DECLARE_NAPI_METHODRM("stopLimitMouseRangeWorker", stopLimitMouseRangeWorker),
 
     };
     _________HMC___________ = false;
@@ -5035,7 +5041,7 @@ static napi_value Init(napi_env env, napi_value exports)
 
     exports_process_all_v2_fun(/*
                                
-                                fn_getAllProcessList::exports(env, exports, "getAllProcessList");
+    fn_getAllProcessList::exports(env, exports, "getAllProcessList");
     fn_getAllProcessList::exportsSync(env, exports, "getAllProcessListSync");
 
     fn_getAllProcessNtList::exports(env, exports, "getAllProcessListNt");
@@ -5052,6 +5058,12 @@ static napi_value Init(napi_env env, napi_value exports)
 
     fn_existProcess::exports(env, exports, "existProcess");
     fn_existProcess::exportsSync(env, exports, "existProcessSync");
+
+    fn_GetProcessCommandLineByPid::exports(env, exports, "getProcessCommand");
+    fn_GetProcessCommandLineByPid::exportsSync(env, exports, "getProcessCommandSync");
+
+    fn_GetCurrentWorkingDirectory::exports(env, exports, "getProcessCwd");
+    fn_GetCurrentWorkingDirectory::exportsSync(env, exports, "getProcessCwdSync");
 
                                */env, exports);
 

@@ -1359,6 +1359,58 @@ export declare module HMC {
         installHookMouse2(): void;
         getMouseNextSession2(): string;
         getLastInputTime(): number;
+        /**
+         * 是否 正在调用着 限制鼠标可移动范围的线程
+         */
+        hasLimitMouseRangeWorker(): boolean;
+        /**
+         * 限制鼠标光标可移动范围 (异步)
+         * @description 可以调用stopLimitMouseRangeWorker提前结束
+         * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms
+         * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
+         * @param ms 本次限制的时间
+         * @param x 限制左边初始化点的位置
+         * @param y 限制顶部初始化点的位置
+         * @param right 允许的范围(左边到右边部)
+         * @param bottom 允许光标移动的范围(顶到底部)
+         */
+        setLimitMouseRange(ms: number, x: number, y: number, right: number, bottom: number): boolean;
+        /**
+         * 提前结束限制鼠标可移动范围 一旦调用则立即解锁 返回的布尔是解锁线程是否成功
+         */
+        stopLimitMouseRangeWorker(): boolean;
+        /**
+         * 获取指定进程得出命令行
+         * @description 由于跨进程权限问题 不保证获取得到
+         * ?此功能在win8及以下系统 需要读取进程内存
+         * @module 异步async
+         * @param pid 进程id
+         */
+        getProcessCommand(pid: number): Promise<string | null>;
+        /**
+         * 获取指定进程得出命令行
+         * @description 由于跨进程权限问题 不保证获取得到
+         * ?此功能在win8及以下系统 需要读取进程内存
+         * @module 同步Sync
+         * @param pid
+         */
+        getProcessCommandSync(pid: number): string | null;
+        /**
+         * 获取指定进程的工作目录
+         * @description 由于跨进程权限问题 不保证获取得到
+         * !此功能需要读取进程内存
+         * @module 异步async
+         * @param pid
+         */
+        getProcessCwd(pid: number): Promise<string>;
+        /**
+         * 获取指定进程的工作目录
+         * @description 由于跨进程权限问题 不保证获取得到
+         * !此功能需要读取进程内存
+         * @module 同步Sync
+         * @param pid
+         */
+        getProcessCwdSync(pid: number): string;
     };
     export type ProcessHandle = {
         handle: number;
@@ -1659,7 +1711,7 @@ export declare class PromiseSession {
      */
     constructor(SessionID: number);
 }
-export declare function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: ((error: null | Error, ...args: any[]) => any)): void;
+export declare function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T), Callback: undefined | ((error: null | Error, ...args: any[]) => any)): void;
 export declare function PromiseSP<T>(SessionID: number | Promise<any>, format: ((value: Array<undefined | null | any>) => T)): Promise<T>;
 /**
  * 直达路径解析
@@ -3069,6 +3121,71 @@ export declare function sendBasicKeys(basicKeysStr: string): void;
  * @param KeyCode 键盘隐射值
  */
 export declare function sendBasicKeys(ctrlKey: boolean, shiftKey: boolean, altKey: boolean, winKey: boolean, KeyCode: number | string): void;
+/**
+ * 获取指定进程的工作目录
+ * @time 5.449ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 异步async
+ * @param pid
+ */
+export declare function getProcessCwd2(pid: number): Promise<string | null>;
+/**
+ * 获取指定进程的工作目录
+ * @time 0.435ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * !此功能需要读取进程内存
+ * @module 同步Sync
+ * @param pid
+ */
+export declare function getProcessCwd2Sync(pid: number): string | null;
+/**
+ * 获取指定进程得出命令行
+ * @time 1.095ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 异步async
+ * @param pid 进程id
+ */
+export declare function getProcessCommand2(pid: number): Promise<string>;
+/**
+ * 获取指定进程得出命令行
+ * @time 0.386ms
+ * @description 由于跨进程权限问题 不保证获取得到
+ * ?此功能在win8及以下系统 需要读取进程内存
+ * @module 同步Sync
+ * @param pid
+ */
+export declare function getProcessCommand2Sync(pid: number): string | null;
+/**
+ * 限制鼠标光标可移动范围 (异步)
+ * @description 可以调用 stop 提前结束
+ * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms
+ * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
+ * @param ms 本次限制的时间
+ * @param x 限制左边初始化点的位置
+ * @param y 限制顶部初始化点的位置
+ * @param right 允许的范围(左边到右边部)
+ * @param bottom 允许光标移动的范围(顶到底部)
+ */
+export declare function setLimitMouseRange(ms: number, x: number, y: number, right?: number, bottom?: number): {
+    ms: number;
+    x: number;
+    y: number;
+    right: number;
+    bottom: number;
+    closed: boolean;
+    /**
+     * 停止本次
+     * @returns
+     */
+    close(): boolean;
+    /**
+     * 是否正在执行中
+     * @returns
+     */
+    has(): boolean;
+};
 declare class Iohook_Keyboard {
     private _onlistenerCountList;
     private _oncelistenerCountList;
@@ -3123,6 +3240,7 @@ declare class Iohook_Keyboard {
 export declare const keyboardHook: Iohook_Keyboard;
 export declare function getLastInputTime(): number;
 export declare const Auto: {
+    setLimitMouseRange: typeof setLimitMouseRange;
     hasMouseLeftActivate: typeof hasMouseLeftActivate;
     hasMouseRightActivate: typeof hasMouseRightActivate;
     hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
@@ -4129,6 +4247,7 @@ export declare const hmc: {
     getLastInputTime: typeof getLastInputTime;
     getCursorPos: typeof getCursorPos;
     Auto: {
+        setLimitMouseRange: typeof setLimitMouseRange;
         hasMouseLeftActivate: typeof hasMouseLeftActivate;
         hasMouseRightActivate: typeof hasMouseRightActivate;
         hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
@@ -4987,55 +5106,4 @@ export declare const hmc: {
         removeStringRegValue: typeof removeStringRegValue;
         removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
         removeStringTree: typeof removeStringTree;
-        isRegistrTreeKey: typeof isRegistrTreeKey;
-    };
-    removeStringRegKey: typeof removeStringRegKey;
-    removeStringRegKeyWalk: typeof removeStringRegKeyWalk;
-    removeStringRegValue: typeof removeStringRegValue;
-    removeStringTree: typeof removeStringTree;
-    removeSystemVariable: typeof removeSystemVariable;
-    removeUserVariable: typeof removeUserVariable;
-    removeVariable: typeof removeVariable;
-    rightClick: typeof rightClick;
-    sendBasicKeys: typeof sendBasicKeys;
-    sendKeyboard: typeof sendKeyboard;
-    sendKeyboardSequence: typeof sendKeyboardSequence;
-    setClipboardFilePaths: typeof setClipboardFilePaths;
-    setClipboardText: typeof setClipboardText;
-    setCloseWindow: typeof lookHandleCloseWindow;
-    setCursorPos: typeof setCursorPos;
-    setHandleTransparent: typeof setHandleTransparent;
-    setRegistrDword: typeof setRegistrDword;
-    setRegistrKey: typeof setRegistrKey;
-    setRegistrQword: typeof setRegistrQword;
-    setShortcutLink: typeof setShortcutLink;
-    setShowWindow: typeof lookHandleShowWindow;
-    setSystemVariable: typeof setSystemVariable;
-    setUserVariable: typeof setUserVariable;
-    setWindowEnabled: typeof setWindowEnabled;
-    setWindowFocus: typeof setWindowFocus;
-    setWindowIconForExtract: typeof setWindowIconForExtract;
-    setWindowMode: typeof setWindowMode;
-    setWindowShake: typeof windowJitter;
-    setWindowTitle: typeof lookHandleSetTitle;
-    setWindowTop: typeof setWindowTop;
-    showConsole: typeof showConsole;
-    showMonitors: typeof showMonitors;
-    shutMonitors: typeof shutMonitors;
-    sleep: typeof sleep;
-    system: typeof system;
-    systemChcp: typeof systemChcp;
-    systemStartTime: typeof systemStartTime;
-    trash: typeof deleteFile;
-    updateThis: typeof updateThis;
-    updateWindow: typeof updateWindow;
-    version: string;
-    watchClipboard: typeof watchClipboard;
-    watchUSB: typeof watchUSB;
-    windowJitter: typeof windowJitter;
-    hasMouseLeftActivate: typeof hasMouseLeftActivate;
-    hasMouseRightActivate: typeof hasMouseRightActivate;
-    hasMouseMiddleActivate: typeof hasMouseMiddleActivate;
-    hasMouseBtnActivate: typeof hasMouseBtnActivate;
-};
-export default hmc;
+        isRegistrTreeKey: typeof isRegistrTreeKey

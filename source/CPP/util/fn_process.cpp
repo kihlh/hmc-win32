@@ -3,6 +3,7 @@
 #include "./napi_value_util.hpp";
 // #include "./environment.hpp";
 // #include "./fmt11.hpp";
+#include "./GetProcessCommandLineByPid.hpp";
 
 
 vector<HMC_PROCESSENTRY32W> GetProcessSnapshot(vector<DWORD> pid_list, bool early_result);
@@ -661,7 +662,6 @@ double getProcessCpuUsage(DWORD ProcessID)
     return cpu_usage;
 }
 
-
 namespace fn_getProcessCpuUsage
 {
     NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
@@ -695,7 +695,6 @@ namespace fn_getProcessCpuUsage
         return result;
     }
 };
-
 
 namespace fn_GetProcessIdFilePath
 {
@@ -732,8 +731,6 @@ namespace fn_GetProcessIdFilePath
     }
 };
 
-
-
 namespace fn_existProcess
 {
     NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
@@ -769,6 +766,89 @@ namespace fn_existProcess
     }
 };
 
+namespace fn_GetProcessCommandLineByPid
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+        //ArgumentsList.push_back(args_value.getBool(1));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+
+        long status2 = -1;
+        wstring result = GetProcessCommandLineByPid(any_cast<DWORD>(arguments_list.at(0)),&status2);
+        
+        if (status2 != 0)
+        {
+            return any();
+        }
+
+        return any(result);
+
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+};
+
+namespace fn_GetCurrentWorkingDirectory
+{
+    NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG;
+
+    void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any>& ArgumentsList, hmc_NodeArgsValue args_value) {
+        if (!args_value.eq(0, js_number, true)) {
+            return;
+        }
+        ArgumentsList.push_back(args_value.getDword(0));
+        //ArgumentsList.push_back(args_value.getBool(1));
+    }
+
+    any PromiseWorkFunc(vector<any> arguments_list)
+    {
+        if (arguments_list.empty() || !arguments_list.at(0).has_value() || arguments_list.at(0).type() != typeid(DWORD)) {
+            return any();
+        }
+
+        wstring result = GetCurrentWorkingDirectory(any_cast<DWORD>(arguments_list.at(0)));
+        
+        return any(result);
+    }
+
+    napi_value format_to_js_value(napi_env env, any result_any_data)
+    {
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (!result_any_data.has_value())
+        {
+            return result;
+        }
+
+        result = hmc_napi_create_value::String(env, any_cast<wstring>(result_any_data));
+        return result;
+    }
+};
+
 
 void exports_process_all_v2_fun(napi_env env , napi_value exports) {
 
@@ -789,4 +869,11 @@ void exports_process_all_v2_fun(napi_env env , napi_value exports) {
 
     fn_existProcess::exports(env, exports, "existProcess");
     fn_existProcess::exportsSync(env, exports, "existProcessSync");
+
+    fn_GetProcessCommandLineByPid::exports(env, exports, "getProcessCommand");
+    fn_GetProcessCommandLineByPid::exportsSync(env, exports, "getProcessCommandSync");
+
+    fn_GetCurrentWorkingDirectory::exports(env, exports, "getProcessCwd");
+    fn_GetCurrentWorkingDirectory::exportsSync(env, exports, "getProcessCwdSync");
+
 }
