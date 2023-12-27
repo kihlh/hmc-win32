@@ -138,5 +138,8 @@
     <ClCompile Include="..\util\hmc_mouse.cpp">
       <Filter>..\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\shell_v2.cpp">
+      <Filter>..</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

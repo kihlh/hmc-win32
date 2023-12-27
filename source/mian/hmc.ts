@@ -1084,8 +1084,11 @@ export module HMC {
         createHardLink(LinkPath: string, sourcePath: string): boolean;
         /** 设置窗口不透明度 0-255**/
         setHandleTransparent(Handle: number, opacity: HandleTransparent): void;
-        /** 获取托盘图标列表**/
-        getTrayList(): TRAY_ICON[];
+        /**
+         * 获取托盘图标列表
+         * 1.4.6 起返回json文本
+         */
+        getTrayList(): TRAY_ICON[]|string;
         /** 判断当前是否为64位系统**/
         isSystemX64(): boolean;
         /** 同 C++/C 的system */
@@ -4057,8 +4060,14 @@ export function getSystemMenu(Handle: number | HWND, boolean: boolean) {
 }
 
 /**获取托盘图标列表 */
-export function getTrayList() {
-    return native.getTrayList();
+export function getTrayList(): HMC.TRAY_ICON[] {
+    const result = native.getTrayList();
+
+    if(typeof result =="string"){
+        return JSON.parse(result);
+    }
+
+    return result;
 }
 
 /**判断该按键是否被按下  https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-getkeystate **/

@@ -9,6 +9,7 @@
             "util/napi_value_util.cpp",
             "util/hmc_string_util.cpp",
             "Main.cpp",
+            "shell_v2.cpp",
             "test.cpp",
             "usb.cpp",
             "util.cpp",

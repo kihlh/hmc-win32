@@ -44,31 +44,6 @@ napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)
     return Results;
 }
 
-void do_something_asynchronous(napi_env env, napi_deferred deferred)
-{
-    napi_value undefined;
-    napi_status status;
-    Sleep(5000);
-    status = napi_get_undefined(env, &undefined);
-    napi_resolve_deferred(env, deferred, undefined);
-
-    deferred = NULL;
-}
-
-
-// 获取所有窗口
-napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info)
-{
-    napi_deferred deferred;
-    napi_value promise;
-    napi_status status;
-
-    status = napi_create_promise(env, &deferred, &promise);
-    if (status != napi_ok)
-        return NULL;
-    std::thread(do_something_asynchronous, env, deferred).detach();
-    return promise;
-}
 
 // url https://www.codeproject.com/Tips/76427/How-to-Bring-Window-to-Top-with-SetForegroundWindo
 void SetForegroundWindowInternal(HWND hWnd)
@@ -102,7 +77,7 @@ void SetForegroundWindowInternal(HWND hWnd)
         ::AttachThreadInput(dwThisTID, dwCurrTID, FALSE);
     }
 }
-// url https://www.codeproject.com/Tips/76427/How-to-Bring-Window-to-Top-with-SetForegroundWindo
+
 
 void SetForegroundWindowInternalc(HWND hWnd)
 {

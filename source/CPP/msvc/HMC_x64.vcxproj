@@ -262,6 +262,7 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\shell_v2.cpp" />
     <ClCompile Include="..\util\hmc_mouse.cpp" />
     <ClCompile Include="..\util\napi_value_util.cpp">
       <ObjectFileName>$(IntDir)\util\napi_value_util.obj</ObjectFileName>

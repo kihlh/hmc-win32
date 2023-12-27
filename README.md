@@ -255,6 +255,10 @@ import  HMC = require("hmc-win32");
 - **getProcessNameNt2**: Get process command line (Asynchronous - Kernel)
 - **getProcessName2Sync**: Get process name (Synchronous - Normal)
 - **getProcessName2**: Get process command line (Asynchronous - Normal)
+- **getProcessCommand2**: Get the startup command line of a specified process (Asynchronous)
+- **getProcessCommand2Sync**: Get the startup command line of a specified process (Synchronous)
+- **getProcessCwd2**: Get the working directory of a specified process (Asynchronous)
+- **getProcessCwd2Sync**: Get the working directory of a specified process (Synchronous)
 
 ### Status Bar
 
@@ -380,6 +384,7 @@ import  HMC = require("hmc-win32");
 - **hasMouseRightActivate**: Determine if the right mouse button is pressed.
 - **hasMouseMiddleActivate**: Determine if the middle mouse button is pressed.
 - **hasMouseBtnActivate**: Determine the overall pressed state of the mouse buttons.
+- **setLimitMouseRange**: Set the mouse coordinates to a specified position and limit it within a certain range (in milliseconds).
 
 ### File Links/Shortcuts
 

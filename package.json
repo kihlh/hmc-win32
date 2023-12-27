@@ -1,6 +1,6 @@
 {
   "name": "hmc-win32",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Connect to the system api in the easiest way (win-api)",
   "license": "MIT License",
   "main": "./index.js",

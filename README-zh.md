@@ -267,7 +267,15 @@ import  HMC = require("hmc-win32");
 
 -  **getProcessName2Sync** `同步` 获取进程的名称(正常)
 
--  **getProcessName2** `异步` 获取进程的命令行(正常)
+- **getProcessName2** `异步` 获取进程的命令行(正常)
+
+- **getProcessCommand2**  `异步` 获取指定进程的启动命令行
+
+- **getProcessCommand2Sync** `同步`  获取指定进程的工作目录
+
+- **getProcessCwd2**  `异步` 获取指定进程的工作目录
+
+- **getProcessCwd2Sync** `同步`  获取指定进程的启动命令行
 
 ### 状态栏
 
@@ -402,6 +410,7 @@ import  HMC = require("hmc-win32");
 - **hasMouseRightActivate**  判断鼠标右键是否被按下
 - **hasMouseMiddleActivate** 判断鼠标中键是否被按下
 - **hasMouseBtnActivate** 判断鼠标的按钮按下状态
+- **setLimitMouseRange** 设置鼠标坐标到指定位置 并且限制在一定范围内(时间ms)
 
 ### 文件链接/快捷方式
 
