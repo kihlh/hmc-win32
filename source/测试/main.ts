@@ -4,7 +4,7 @@ import jsonfm = require("jsonfm");
 import shake = require("hmc-shake");
 import log4js = require("log4js");
 
-import { ref, PromiseSP } from "hmc-win32";
+import hmc, { ref, PromiseSP } from "../../";
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 
@@ -133,28 +133,32 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
 
 (async function main() {
 
-    console.time("hmc.getProcessCwd()->");
-    console.log("hmc.getProcessCwd()->", await getProcessCwd2(process.pid));
-    console.timeEnd("hmc.getProcessCwd()->");
+    // console.time("hmc.getProcessCwd()->");
+    // console.log("hmc.getProcessCwd()->", await getProcessCwd2(process.pid));
+    // console.timeEnd("hmc.getProcessCwd()->");
 
 
-    console.time("hmc.getProcessCwdSync()->");
-    console.log("hmc.getProcessCwdSync()->", getProcessCwd2Sync(process.pid));
-    console.timeEnd("hmc.getProcessCwdSync()->");
+    // console.time("hmc.getProcessCwdSync()->");
+    // console.log("hmc.getProcessCwdSync()->", getProcessCwd2Sync(process.pid));
+    // console.timeEnd("hmc.getProcessCwdSync()->");
 
 
-    console.time("hmc.getProcessCommand()->");
-    console.log("hmc.getProcessCommand()->", await getProcessCommand2(process.pid));
-    console.timeEnd("hmc.getProcessCommand()->");
+    // console.time("hmc.getProcessCommand()->");
+    // console.log("hmc.getProcessCommand()->", await getProcessCommand2(process.pid));
+    // console.timeEnd("hmc.getProcessCommand()->");
 
 
-    console.time("hmc.getProcessCommand()->");
-    console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
-    console.timeEnd("hmc.getProcessCommand()->");
+    // console.time("hmc.getProcessCommand()->");
+    // console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
+    // console.timeEnd("hmc.getProcessCommand()->");
 
     const setLimitMouse = setLimitMouseRange(5000,1,1,1,500);
-    
-    setTimeout(() =>{setLimitMouse.close();},1000);
+   
+    hmc.Auto.mouseHook.on("mouse",console.log);
+    hmc.Auto.mouseHook.start();
+
+    // 模拟意外退出
+    process.exit(555);
 
 })();
 

@@ -1,8 +1,31 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setLimitMouseRange = exports.getProcessCommand2Sync = exports.getProcessCommand2 = exports.getProcessCwd2Sync = exports.getProcessCwd2 = void 0;
 const log4js = require("log4js");
-const hmc_win32_1 = require("hmc-win32");
+const __1 = __importStar(require("../../"));
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 process.exitCode = 666;
@@ -16,7 +39,7 @@ const native = require(process.argv.at(-1) || "");
  * @param pid
  */
 function getProcessCwd2(pid) {
-    return (0, hmc_win32_1.PromiseSP)(native.getProcessCwd(hmc_win32_1.ref.int(pid)), (data) => {
+    return (0, __1.PromiseSP)(native.getProcessCwd(__1.ref.int(pid)), (data) => {
         if (typeof data === 'string')
             return data;
         return (data === null || data === void 0 ? void 0 : data[0]) ? String(data === null || data === void 0 ? void 0 : data[0]) : null;
@@ -32,7 +55,7 @@ exports.getProcessCwd2 = getProcessCwd2;
  * @param pid
  */
 function getProcessCwd2Sync(pid) {
-    return native.getProcessCwdSync(hmc_win32_1.ref.int(pid));
+    return native.getProcessCwdSync(__1.ref.int(pid));
 }
 exports.getProcessCwd2Sync = getProcessCwd2Sync;
 /**
@@ -44,7 +67,7 @@ exports.getProcessCwd2Sync = getProcessCwd2Sync;
  * @param pid 进程id
  */
 function getProcessCommand2(pid) {
-    return (0, hmc_win32_1.PromiseSP)(native.getProcessCommand(hmc_win32_1.ref.int(pid)), (data) => {
+    return (0, __1.PromiseSP)(native.getProcessCommand(__1.ref.int(pid)), (data) => {
         if (typeof data === 'string')
             return data;
         return String((data === null || data === void 0 ? void 0 : data[0]) || "");
@@ -60,7 +83,7 @@ exports.getProcessCommand2 = getProcessCommand2;
  * @param pid
  */
 function getProcessCommand2Sync(pid) {
-    return native.getProcessCommandSync(hmc_win32_1.ref.int(pid));
+    return native.getProcessCommandSync(__1.ref.int(pid));
 }
 exports.getProcessCommand2Sync = getProcessCommand2Sync;
 /**
@@ -75,11 +98,11 @@ exports.getProcessCommand2Sync = getProcessCommand2Sync;
  * @param bottom 允许光标移动的范围(顶到底部)
  */
 function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
-    ms = Math.abs(hmc_win32_1.ref.int(ms));
-    x = Math.abs(hmc_win32_1.ref.int(x));
-    y = Math.abs(hmc_win32_1.ref.int(y));
-    right = Math.abs(hmc_win32_1.ref.int(right)) || 1;
-    bottom = Math.abs(hmc_win32_1.ref.int(bottom)) || 1;
+    ms = Math.abs(__1.ref.int(ms));
+    x = Math.abs(__1.ref.int(x));
+    y = Math.abs(__1.ref.int(y));
+    right = Math.abs(__1.ref.int(right)) || 1;
+    bottom = Math.abs(__1.ref.int(bottom)) || 1;
     if (ms > 30 * 1000 || ms < 30) {
         throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).");
     }
@@ -114,18 +137,21 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
 }
 exports.setLimitMouseRange = setLimitMouseRange;
 (async function main() {
-    console.time("hmc.getProcessCwd()->");
-    console.log("hmc.getProcessCwd()->", await getProcessCwd2(process.pid));
-    console.timeEnd("hmc.getProcessCwd()->");
-    console.time("hmc.getProcessCwdSync()->");
-    console.log("hmc.getProcessCwdSync()->", getProcessCwd2Sync(process.pid));
-    console.timeEnd("hmc.getProcessCwdSync()->");
-    console.time("hmc.getProcessCommand()->");
-    console.log("hmc.getProcessCommand()->", await getProcessCommand2(process.pid));
-    console.timeEnd("hmc.getProcessCommand()->");
-    console.time("hmc.getProcessCommand()->");
-    console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
-    console.timeEnd("hmc.getProcessCommand()->");
+    // console.time("hmc.getProcessCwd()->");
+    // console.log("hmc.getProcessCwd()->", await getProcessCwd2(process.pid));
+    // console.timeEnd("hmc.getProcessCwd()->");
+    // console.time("hmc.getProcessCwdSync()->");
+    // console.log("hmc.getProcessCwdSync()->", getProcessCwd2Sync(process.pid));
+    // console.timeEnd("hmc.getProcessCwdSync()->");
+    // console.time("hmc.getProcessCommand()->");
+    // console.log("hmc.getProcessCommand()->", await getProcessCommand2(process.pid));
+    // console.timeEnd("hmc.getProcessCommand()->");
+    // console.time("hmc.getProcessCommand()->");
+    // console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
+    // console.timeEnd("hmc.getProcessCommand()->");
     const setLimitMouse = setLimitMouseRange(5000, 1, 1, 1, 500);
-    setTimeout(() => { setLimitMouse.close(); }, 1000);
+    __1.default.Auto.mouseHook.on("mouse", console.log);
+    __1.default.Auto.mouseHook.start();
+    // 模拟意外退出
+    process.exit(555);
 })();

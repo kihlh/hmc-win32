@@ -3,6 +3,7 @@
 #include "./util/hmc_string_util.hpp"
 #include "./util/napi_value_util.hpp"
 #include "./shell_v2.h"
+#include "./util/hmc_mouse.h"
 
 bool _________HMC___________;
 
@@ -47,7 +48,6 @@ bool vsErrorCodeAssert(DWORD check, std::string LogUserName = "HMC_CHECK")
     return result;
 }
 
-
 void ____HMC__RUN_MESS____(napi_env env, string error_message)
 {
     if (_________HMC___________)
@@ -59,7 +59,6 @@ void ____HMC__RUN_MESS____(napi_env env, string error_message)
         napi_run_script(env, _create_String(env, error_message_str), &run_script_result);
     }
 }
-
 
 // 系统空闲时间
 napi_value getSystemIdleTime(napi_env env, napi_callback_info info)
@@ -771,13 +770,11 @@ napi_value isSystemX64(napi_env env, napi_callback_info info)
     return info_isAdmin;
 }
 
-
 // 获取托盘图标
 static napi_value getTrayList(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::String(env, GetTaryIconList::getTrayListJsonW() );
+    return hmc_napi_create_value::String(env, GetTaryIconList::getTrayListJsonW());
 }
-
 
 // 设置句柄的不透明度
 static napi_value setHandleTransparent(napi_env env, napi_callback_info info)
@@ -1897,7 +1894,6 @@ vector<HWND> enumChildWindowsList;
 static BOOL CALLBACK enumchildWindowCallback(HWND hWnd, LPARAM lparam)
 {
     enumChildWindowsList.push_back(hWnd);
-    // cout << hWnd <<endl;
     return TRUE;
 }
 
@@ -3587,8 +3583,6 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
     wstring className = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_className) : ToUpper(hmc_string_util::removeNullCharactersAll(_className));
     wstring titleName = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_titleName) : ToUpper(hmc_string_util::removeNullCharactersAll(_titleName));
 
-    wcout << L"( className-> " << className << "titleName-> " << titleName << "isWindow-> " << flag_isWindow << "isCaseSensitive-> " << flag_isCaseSensitive << " ) " << endl;
-
     HWND winEnumerable = GetTopWindow(0);
 
     vector<int> hwnd_list = vector<int>();
@@ -3638,10 +3632,6 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
                     hwnd_list.push_back((int)winEnumerable);
                 }
             }
-
-            wcout << L"the_class->" << the_class << L"the_titleName" << the_titleName << endl;
-            wcout << L"className->" << className << L"titleName" << titleName << endl;
-            wcout << L"-----------------------------------" << endl;
         }
         winEnumerable = GetNextWindow(winEnumerable, GW_HWNDNEXT);
     }
@@ -3660,6 +3650,28 @@ napi_value __Popen(napi_env env, napi_callback_info info)
     return Popen(env, info);
 }
 //? -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief 当进程结束或者进程奔溃时候执行的gc程序
+ *
+ */
+static void hmc_gc_func()
+{
+
+    // 防止鼠标被锁定
+    if (!hmc_mouse::_is_un_Mouse_Lock_worker)
+    {
+        hmc_mouse::stopLimitMouseRange_worker();
+    }
+
+    // 释放鼠标监听的线程
+    if (!hmc_mouse::isStartHookMouse())
+    {
+        hmc_mouse::StopHookMouse();
+    }
+
+    
+}
 
 static napi_value Init(napi_env env, napi_value exports)
 {
@@ -3780,8 +3792,7 @@ static napi_value Init(napi_env env, napi_value exports)
         // DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>12-22 del
         DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook), //=>3-1ADD
         // windows.cpp
-        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle),         //=>3-6UP
-        DECLARE_NAPI_METHODRM("getProcessIdHandleStore", getProcessIdHandleStore), //=>3-6UP
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle), //=>3-6UP
         // process.cpp
         DECLARE_NAPI_METHODRM("killProcess", killProcess),                             //=>4-1UP
         DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),                 //=>4-1ADD
@@ -3930,6 +3941,8 @@ static napi_value Init(napi_env env, napi_value exports)
 
                                */
                                env, exports);
+
+    atexit(hmc_gc_func);
 
     return exports;
 }

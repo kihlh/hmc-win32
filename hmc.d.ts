@@ -579,8 +579,11 @@ export declare module HMC {
         createHardLink(LinkPath: string, sourcePath: string): boolean;
         /** 设置窗口不透明度 0-255**/
         setHandleTransparent(Handle: number, opacity: HandleTransparent): void;
-        /** 获取托盘图标列表**/
-        getTrayList(): TRAY_ICON[];
+        /**
+         * 获取托盘图标列表
+         * 1.4.6 起返回json文本
+         */
+        getTrayList(): TRAY_ICON[] | string;
         /** 判断当前是否为64位系统**/
         isSystemX64(): boolean;
         /** 同 C++/C 的system */
@@ -2556,7 +2559,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**

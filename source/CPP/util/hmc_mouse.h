@@ -36,7 +36,8 @@ namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
 	extern vector<MouseEvent> _This_MouseEvent_List; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
 	extern MouseEvent _This_Temp_MouseEvent;         // 预开劈缓冲区 每次鼠标回调不会动态创建 而是把此变量作为temp
 	extern std::thread* __LimitMouseRange_worker;    // 限制鼠标可移动范围 的句柄
-
+	extern bool _is_un_Mouse_Lock_worker; // 本次的鼠标光标是否解锁了 当进程奔溃或者退出时候将访问此布尔 进行灾难性解锁
+	
 	/**
 	 * @brief 将MouseEvent 格式化为文本json
 	 *

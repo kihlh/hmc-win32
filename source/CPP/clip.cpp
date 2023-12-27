@@ -13,15 +13,15 @@ napi_value getClipboardFilePaths(napi_env env)
         HDROP hDrop = HDROP(::GetClipboardData(CF_HDROP));
         if (hDrop != NULL)
         {
-            char szFilePathName[MAX_PATH + 1] = {0};
-            UINT UintAllFiles = DragQueryFileA(hDrop, 0xFFFFFFFF, NULL, 0);
+            wchar_t szFilePathName[MAX_PATH + 1] = {0};
+            UINT UintAllFiles = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
 
             for (UINT index = 0; index < UintAllFiles; index++)
             {
                 memset(szFilePathName, 0, MAX_PATH + 1);
                 // get path
-                DragQueryFileA(hDrop, index, szFilePathName, MAX_PATH);
-                value = _create_A2U8_string(env, szFilePathName);
+                DragQueryFileW(hDrop, index, szFilePathName, MAX_PATH);
+                value = hmc_napi_create_value::String(env, szFilePathName);
                 // push path to Array
                 status = napi_set_element(env, filePaths, index, value);
                 if (status != napi_ok)

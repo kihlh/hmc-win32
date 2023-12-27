@@ -228,7 +228,6 @@ napi_value stopLimitMouseRangeWorker(napi_env env, napi_callback_info info);
 // Windows.cpp
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info);
 napi_value setForegroundWindow(napi_env env, napi_callback_info info);
-napi_value getProcessIdHandleStore(napi_env env, napi_callback_info info);
 
 
 
