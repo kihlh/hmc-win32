@@ -2474,7 +2474,11 @@ function getSystemMenu(Handle, boolean) {
   return native.getSystemMenu(ref.int(Handle), ref.bool(boolean));
 }
 function getTrayList() {
-  return native.getTrayList();
+  const result = native.getTrayList();
+  if (typeof result == "string") {
+    return JSON.parse(result);
+  }
+  return result;
 }
 function hasKeyActivate(KeysEvent) {
   return native.hasKeyActivate(ref.int(KeysEvent));
@@ -2917,7 +2921,8 @@ function getSubProcessID(ProcessID) {
   return native.getSubProcessID(ref.int(ProcessID)) || [];
 }
 function getProcessParentProcessID(ProcessID, is_SessionCache = true) {
-  return getProcessParentProcessMatch2Sync(ProcessID, is_SessionCache);
+  var _a;
+  return ((_a = getProcessParentProcessMatch2Sync(ProcessID, is_SessionCache)) == null ? void 0 : _a.th32ParentProcessID) || null;
 }
 function enumAllProcessHandle(CallBack) {
   let enumID = native.enumAllProcess();
@@ -3427,6 +3432,10 @@ var Iohook_Mouse = class {
     mouseHook._onlistenerCountList.wheel.length = 0;
     mouseHook._onlistenerCountList.data.length = 0;
   }
+  // 结束
+  stop() {
+    return this.close();
+  }
   emit(eventName, ...data) {
     const emitFunList = mouseHook._onlistenerCountList[eventName];
     const onceEmitFunList = mouseHook._oncelistenerCountList[eventName];
@@ -3621,6 +3630,10 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
      */
     close() {
       return native.stopLimitMouseRangeWorker();
+    },
+    // 停止本次
+    stop() {
+      return this.close();
     },
     /**
      * 是否正在执行中
@@ -4429,10 +4442,23 @@ function getAllProcessList2Sync(is_execPath) {
   });
 }
 function getAllProcessListNt2Sync() {
-  return JSON.parse(native.getAllProcessListNtSync());
+  const data_list = JSON.parse(native.getAllProcessListNtSync());
+  for (let index = 0; index < data_list.length; index++) {
+    const data = data_list[index];
+    data.pid = data.UniqueProcessId;
+    data.name = data.ImageName;
+  }
+  return data_list;
 }
 function getAllProcessListSnp2Sync() {
-  return JSON.parse(native.getAllProcessListSnpSync());
+  const data_list = JSON.parse(native.getAllProcessListSnpSync());
+  for (let index = 0; index < data_list.length; index++) {
+    const data = data_list[index];
+    data.ppid = data.th32ParentProcessID;
+    data.pid = data.th32ProcessID;
+    data.name = data.szExeFile;
+  }
+  return data_list;
 }
 function getProcessParentProcessMatch2(Process2, is_SessionCache = true) {
   return new Promise((resolve, reject) => {
@@ -4440,15 +4466,15 @@ function getProcessParentProcessMatch2(Process2, is_SessionCache = true) {
     const data_list = [];
     fun().then((process_list) => {
       for (let index = 0; index < process_list.length; index++) {
-        const process2 = process_list[index];
-        if (typeof Process2 == "number" && process2.pid == Process2) {
-          return resolve(process2);
+        const for_process_item = process_list[index];
+        if (typeof Process2 == "number" && for_process_item.th32ProcessID == Process2) {
+          return resolve(for_process_item);
         }
-        if (typeof Process2 == "string" && process2.szExeFile == "string") {
-          data_list.push(process2);
+        if (typeof Process2 == "string" && for_process_item.szExeFile == "string") {
+          data_list.push(for_process_item);
         }
-        if (Process2 instanceof RegExp && process2.szExeFile.match(Process2)) {
-          data_list.push(process2);
+        if (Process2 instanceof RegExp && for_process_item.szExeFile.match(Process2)) {
+          data_list.push(for_process_item);
         }
       }
       return is_SessionCache ? resolve(null) : resolve(data_list);
@@ -4459,28 +4485,74 @@ function getProcessParentProcessMatch2Sync(Process2, is_SessionCache = true) {
   const data_list = [];
   const process_list = is_SessionCache ? getAllProcessListSnp2Sync() : getAllProcessListSnpSession2Sync();
   for (let index = 0; index < process_list.length; index++) {
-    const process2 = process_list[index];
-    if (typeof Process2 == "number" && process2.pid == Process2) {
-      return process2;
+    const for_process_item = process_list[index];
+    if (typeof Process2 == "number" && for_process_item.th32ProcessID == Process2) {
+      return for_process_item;
     }
-    if (typeof Process2 == "string" && process2.szExeFile == "string") {
-      data_list.push(process2);
+    if (typeof Process2 == "string" && for_process_item.szExeFile == "string") {
+      data_list.push(for_process_item);
     }
-    if (Process2 instanceof RegExp && process2.szExeFile.match(Process2)) {
-      data_list.push(process2);
+    if (Process2 instanceof RegExp && for_process_item.szExeFile.match(Process2)) {
+      data_list.push(for_process_item);
     }
   }
   return data_list;
+}
+function get_sy_ProcessFilePathSync(error_name, ProcessID) {
+  if (ProcessID == 0 || ProcessID == 4) {
+    return ProcessID == 0 ? "[System Process]" : "C:\\Windows\\System32\\ntoskrnl.exe";
+  }
+  if (!error_name)
+    return null;
+  if (!(error_name == null ? void 0 : error_name.match(/error:::.+?5.+?5/))) {
+    return (error_name == null ? void 0 : error_name.includes("error:::")) ? null : error_name || null;
+  }
+  const name = getProcessNameSnp2Sync(ProcessID) || getProcessNameNt2Sync(ProcessID) || getProcessNameNt2Sync(ProcessID);
+  if (!name || name.match(/error:::/)) {
+    return null;
+  }
+  const sy_path = path.resolve("C:\\Windows\\System32", name);
+  if (fs.existsSync(sy_path)) {
+    return sy_path;
+  }
+  return name;
+}
+async function get_sy_ProcessFilePath(error_name, ProcessID) {
+  return new Promise(async function(resolve, _reject) {
+    var _a, _b, _c;
+    if (ProcessID == 0 || ProcessID == 4) {
+      return resolve(ProcessID == 0 ? "[System Process]" : "C:\\Windows\\System32\\ntoskrnl.exe");
+    }
+    if (!error_name)
+      return resolve(null);
+    if (!(error_name == null ? void 0 : error_name.match(/error:::.+?5.+?5/))) {
+      return resolve((error_name == null ? void 0 : error_name.includes("error:::")) ? null : error_name || null);
+    }
+    const not_fun = () => {
+    };
+    const name = await ((_a = getProcessNameSnp2(ProcessID)) == null ? void 0 : _a.catch(not_fun)) || await ((_b = getProcessNameNt2(ProcessID)) == null ? void 0 : _b.catch(not_fun)) || await ((_c = getProcessNameNt2(ProcessID)) == null ? void 0 : _c.catch(not_fun));
+    if (!name || (name == null ? void 0 : name.match(/error:::/))) {
+      return resolve(null);
+    }
+    const sy_path = path.resolve("C:\\Windows\\System32", name);
+    if (fs.existsSync(sy_path)) {
+      return resolve(sy_path);
+    }
+    return resolve(name);
+  });
 }
 function getProcessFilePath2(ProcessID, callback) {
   const data = native.getProcessFilePath(ref.int(ProcessID));
   let result;
   if (typeof data == "number") {
     result = new PromiseSession(data).to_Promise((data2) => {
-      return data2[0] || null;
+      return data2[0];
+    }).then(async (data2) => {
+      return await get_sy_ProcessFilePath(data2, ref.int(ProcessID)).catch((err) => {
+      }) || null;
     });
   } else {
-    result = data.then((data2) => data2 || null);
+    result = data.then(async (data2) => await get_sy_ProcessFilePath(data2, ref.int(ProcessID)));
   }
   if (typeof callback === "function") {
     result.then((data2) => callback(data2, null)).catch((err) => {
@@ -4492,7 +4564,8 @@ function getProcessFilePath2(ProcessID, callback) {
 }
 function getProcessFilePath2Sync(ProcessID) {
   const data = native.getProcessFilePathSync(ref.int(ProcessID));
-  return data || null;
+  return get_sy_ProcessFilePathSync(data, ref.int(ProcessID));
+  ;
 }
 function existProcess2(ProcessID, callback) {
   const data = native.existProcess(ref.int(ProcessID));
@@ -4575,19 +4648,35 @@ function getProcessNameNt2(ProcessID) {
 }
 function getProcessName2(ProcessID) {
   return new Promise(async (resolve, reject) => {
-    var _a;
+    var _a, _b, _c, _d;
     let FilePath = await ((_a = getProcessFilePath2(ProcessID)) == null ? void 0 : _a.catch(reject));
-    if (FilePath) {
-      resolve(FilePath.split(/[\\\/]+/).pop() || null);
-    }
+    if (FilePath)
+      return resolve(FilePath.split(/[\\\/]+/).pop() || null);
+    FilePath = await ((_b = getProcessNameSnp2(ProcessID)) == null ? void 0 : _b.catch(reject));
+    if (FilePath)
+      return resolve(FilePath || null);
+    FilePath = await ((_c = getProcessNameNt2(ProcessID)) == null ? void 0 : _c.catch(reject));
+    if (FilePath)
+      return resolve(FilePath || null);
+    FilePath = await ((_d = getProcessNameNt2(ProcessID)) == null ? void 0 : _d.catch(reject));
+    if (FilePath)
+      return resolve(FilePath || null);
     return resolve(null);
   });
 }
 function getProcessName2Sync(ProcessID) {
   let FilePath = getProcessFilePath2Sync(ProcessID);
-  if (FilePath) {
+  if (FilePath)
     return FilePath.split(/[\\\/]+/).pop() || null;
-  }
+  FilePath = getProcessNameSnp2Sync(ProcessID);
+  if (FilePath)
+    return FilePath;
+  FilePath = getProcessNameNt2Sync(ProcessID);
+  if (FilePath)
+    return FilePath;
+  FilePath = getProcessNameNt2Sync(ProcessID);
+  if (FilePath)
+    return FilePath;
   return null;
 }
 async function findProcess2(ProcessName) {

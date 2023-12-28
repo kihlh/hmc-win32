@@ -1088,7 +1088,7 @@ export module HMC {
          * 获取托盘图标列表
          * 1.4.6 起返回json文本
          */
-        getTrayList(): TRAY_ICON[]|string;
+        getTrayList(): TRAY_ICON[] | string;
         /** 判断当前是否为64位系统**/
         isSystemX64(): boolean;
         /** 同 C++/C 的system */
@@ -4063,7 +4063,7 @@ export function getSystemMenu(Handle: number | HWND, boolean: boolean) {
 export function getTrayList(): HMC.TRAY_ICON[] {
     const result = native.getTrayList();
 
-    if(typeof result =="string"){
+    if (typeof result == "string") {
         return JSON.parse(result);
     }
 
@@ -4814,13 +4814,14 @@ export function getProcessThreadList(ProcessID: unknown, returnDetail?: unknown)
 export function getSubProcessID(ProcessID: number) {
     return native.getSubProcessID(ref.int(ProcessID)) || [];
 }
+
 /**
  * 获取进程id的主进程
  * @param ProcessID 进程id
  * @returns 
  */
-export function getProcessParentProcessID(ProcessID: number, is_SessionCache: boolean = true) {
-    return getProcessParentProcessMatch2Sync(ProcessID, is_SessionCache);
+export function getProcessParentProcessID(ProcessID: number, is_SessionCache: boolean = true): number | null {
+    return getProcessParentProcessMatch2Sync(ProcessID, is_SessionCache)?.th32ParentProcessID || null;
 }
 
 /**
@@ -5448,6 +5449,10 @@ class Iohook_Mouse {
         mouseHook._onlistenerCountList.data.length = 0;
     }
 
+    // 结束
+    stop() {
+        return this.close();
+    }
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
@@ -5871,6 +5876,7 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
                 // 这一步看着很多余实际上确实多余
                 // !请注意此地方不能取消
                 /*请注意此地方不能取消 不然node提前结束将会导致无法解锁 避免进程提前退出导致无法结束 */
+                // 12-27 不执行已经不影响解锁 已经启用意外退出自动解锁
                 res.closed = native.hasLimitMouseRangeWorker();
             }, ms + 80);
             return false;
@@ -5882,7 +5888,10 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
         close() {
             return native.stopLimitMouseRangeWorker();
         },
-
+        // 停止本次
+        stop() {
+            return this.close();
+        },
         /**
          * 是否正在执行中
          * @returns 
@@ -7143,7 +7152,13 @@ export function getAllProcessList2Sync(is_execPath?: unknown) {
  * @returns 
  */
 export function getAllProcessListNt2Sync(): Array<HMC.PSYSTEM_PROCESS_INFORMATION & { name: string, pid: number }> {
-    return JSON.parse(native.getAllProcessListNtSync());
+    const data_list = JSON.parse(native.getAllProcessListNtSync()) as Array<HMC.PSYSTEM_PROCESS_INFORMATION & { name: string, pid: number }>;
+    for (let index = 0; index < data_list.length; index++) {
+        const data = data_list[index];
+        data.pid = data.UniqueProcessId;
+        data.name = data.ImageName;
+    }
+    return data_list;
 }
 
 /**
@@ -7156,8 +7171,16 @@ export function getAllProcessListNt2Sync(): Array<HMC.PSYSTEM_PROCESS_INFORMATIO
  */
 export function getAllProcessListSnp2Sync(): Array<HMC.PROCESSENTRY_V2>;
 export function getAllProcessListSnp2Sync() {
-    return JSON.parse(native.getAllProcessListSnpSync());
+    const data_list = JSON.parse(native.getAllProcessListSnpSync());
+    for (let index = 0; index < data_list.length; index++) {
+        const data = data_list[index];
+        data.ppid = data.th32ParentProcessID;
+        data.pid = data.th32ProcessID;
+        data.name = data.szExeFile;
+    }
+    return data_list;
 }
+
 
 
 /**
@@ -7174,18 +7197,18 @@ export function getProcessParentProcessMatch2(Process: unknown, is_SessionCache 
         const data_list: Array<HMC.PROCESSENTRY_V2> = [];
         fun().then(process_list => {
             for (let index = 0; index < process_list.length; index++) {
-                const process = process_list[index];
+                const for_process_item = process_list[index];
 
-                if (typeof Process == "number" && process.pid == Process) {
-                    return resolve(process);
+                if (typeof Process == "number" && for_process_item.th32ProcessID == Process) {
+                    return resolve(for_process_item);
                 }
 
-                if (typeof Process == "string" && process.szExeFile == "string") {
-                    data_list.push(process);
+                if (typeof Process == "string" && for_process_item.szExeFile == "string") {
+                    data_list.push(for_process_item);
                 }
 
-                if (Process instanceof RegExp && process.szExeFile.match(Process)) {
-                    data_list.push(process);
+                if (Process instanceof RegExp && for_process_item.szExeFile.match(Process)) {
+                    data_list.push(for_process_item);
                 }
 
             }
@@ -7210,18 +7233,18 @@ export function getProcessParentProcessMatch2Sync(Process: unknown, is_SessionCa
     const data_list: Array<HMC.PROCESSENTRY_V2> = [];
     const process_list = is_SessionCache ? getAllProcessListSnp2Sync() : getAllProcessListSnpSession2Sync();
     for (let index = 0; index < process_list.length; index++) {
-        const process = process_list[index];
+        const for_process_item = process_list[index];
 
-        if (typeof Process == "number" && process.pid == Process) {
-            return process;
+        if (typeof Process == "number" && for_process_item.th32ProcessID == Process) {
+            return for_process_item;
         }
 
-        if (typeof Process == "string" && process.szExeFile == "string") {
-            data_list.push(process);
+        if (typeof Process == "string" && for_process_item.szExeFile == "string") {
+            data_list.push(for_process_item);
         }
 
-        if (Process instanceof RegExp && process.szExeFile.match(Process)) {
-            data_list.push(process);
+        if (Process instanceof RegExp && for_process_item.szExeFile.match(Process)) {
+            data_list.push(for_process_item);
         }
 
     }
@@ -7229,8 +7252,72 @@ export function getProcessParentProcessMatch2Sync(Process: unknown, is_SessionCa
     return data_list;
 }
 
+function get_sy_ProcessFilePathSync(error_name: string | null, ProcessID: number) {
+
+    // 最高权限的win内核
+    if (ProcessID == 0 || ProcessID == 4) {
+        return ProcessID == 0 ? "[System Process]" : "C:\\Windows\\System32\\ntoskrnl.exe" ;
+    }
+
+    if (!error_name) return null;
+
+
+    // 不是最高权限的应用  ->  != error:::[5,5]
+    if (!error_name?.match(/error:::.+?5.+?5/)) {
+        return error_name?.includes("error:::") ? null : error_name || null;
+    }
+
+    const name = getProcessNameSnp2Sync(ProcessID) || getProcessNameNt2Sync(ProcessID) || getProcessNameNt2Sync(ProcessID);
+    if (!name || name.match(/error:::/)) {
+        return null;
+    }
+
+    const sy_path = path.resolve("C:\\Windows\\System32", name);
+
+    if (fs.existsSync(sy_path)) {
+        return sy_path;
+    }
+
+    return name;
+}
+
+
+async function get_sy_ProcessFilePath(error_name: string | null, ProcessID: number): Promise<string | null> {
+    return new Promise(async function (resolve, _reject) {
+
+        // 最高权限的win内核
+        if (ProcessID == 0 || ProcessID == 4) {
+            return resolve(ProcessID == 0 ? "[System Process]" : "C:\\Windows\\System32\\ntoskrnl.exe" );
+        }
+        if (!error_name) return resolve(null);
+
+        // 不是最高权限的应用  ->  != error:::[5,5]
+        if (!error_name?.match(/error:::.+?5.+?5/)) {
+            return resolve(error_name?.includes("error:::") ? null : error_name || null);
+        }
+
+        const not_fun = () => { };
+
+        const name = await getProcessNameSnp2(ProcessID)?.catch(not_fun) || await getProcessNameNt2(ProcessID)?.catch(not_fun) || await getProcessNameNt2(ProcessID)?.catch(not_fun);
+
+        if (!name || name?.match(/error:::/)) {
+            return resolve(null);
+        }
+
+        const sy_path = path.resolve("C:\\Windows\\System32", name);
+
+        if (fs.existsSync(sy_path)) {
+            return resolve(sy_path);
+        }
+
+        return resolve(name);
+
+    });
+}
+
+
 /**
- * 获取指定进程的可执行文件路径
+ * 获取指定进程的可执行文件路径 合集(穷尽法)
  * @param ProcessID 进程id
  * @param callback 回调函数 如果没有则返回一个 Promise
  * @returns 
@@ -7244,10 +7331,12 @@ export function getProcessFilePath2(ProcessID: unknown, callback?: unknown) {
 
     if (typeof data == "number") {
         result = (new PromiseSession(data)).to_Promise((data) => {
-            return (data[0] || null);
+            return data[0];
+        }).then(async data => {
+            return (await get_sy_ProcessFilePath(data, ref.int(ProcessID)).catch((err) => { })) || null;
         });
     } else {
-        result = data.then((data) => data || null);
+        result = data.then(async (data) => await get_sy_ProcessFilePath(data, ref.int(ProcessID)));
     }
 
     if (typeof callback === 'function') {
@@ -7258,13 +7347,13 @@ export function getProcessFilePath2(ProcessID: unknown, callback?: unknown) {
 }
 
 /**
- * 获取指定进程的可执行文件路径
+ * 获取指定进程的可执行文件路径 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns 
  */
 export function getProcessFilePath2Sync(ProcessID: number) {
     const data = native.getProcessFilePathSync(ref.int(ProcessID));
-    return data || null;
+    return get_sy_ProcessFilePathSync(data, ref.int(ProcessID));;
 }
 
 
@@ -7408,16 +7497,28 @@ export function getProcessNameNt2(ProcessID: number): Promise<null | string> {
 
 
 /**
- * 获取进程名称 (快照法)
+ * 获取进程名称 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns 
  */
 export function getProcessName2(ProcessID: number): Promise<null | string> {
     return new Promise(async (resolve, reject) => {
+
+        //句柄法
         let FilePath = await getProcessFilePath2(ProcessID)?.catch(reject);
-        if (FilePath) {
-            resolve(FilePath.split(/[\\\/]+/).pop() || null);
-        }
+        if (FilePath) return resolve(FilePath.split(/[\\\/]+/).pop() || null);
+
+        // 快照法
+        FilePath = await getProcessNameSnp2(ProcessID)?.catch(reject);
+        if (FilePath) return resolve(FilePath || null);
+
+        //内核法
+        FilePath = await getProcessNameNt2(ProcessID)?.catch(reject);
+        if (FilePath) return resolve(FilePath || null);
+
+        // nt可能需要获取两次
+        FilePath = await getProcessNameNt2(ProcessID)?.catch(reject);
+        if (FilePath) return resolve(FilePath || null);
 
         return resolve(null);
     });
@@ -7426,15 +7527,26 @@ export function getProcessName2(ProcessID: number): Promise<null | string> {
 
 
 /**
- * 获取进程名称 (快照法)
+ * 获取进程名称 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns 
  */
-export function getProcessName2Sync(ProcessID: number) {
+export function getProcessName2Sync(ProcessID: number): null | string {
     let FilePath = getProcessFilePath2Sync(ProcessID);
-    if (FilePath) {
-        return (FilePath.split(/[\\\/]+/).pop() || null);
-    }
+    if (FilePath) return (FilePath.split(/[\\\/]+/).pop() || null);
+
+    // 快照法
+    FilePath = getProcessNameSnp2Sync(ProcessID);
+    if (FilePath) return FilePath;
+
+    //内核法
+    FilePath = getProcessNameNt2Sync(ProcessID);
+    if (FilePath) return FilePath;
+
+    // nt可能需要获取两次
+    FilePath = getProcessNameNt2Sync(ProcessID);
+    if (FilePath) return FilePath;
+
     return null;
 }
 

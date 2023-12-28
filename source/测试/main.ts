@@ -90,23 +90,24 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
     y = Math.abs(ref.int(y));
     right = Math.abs(ref.int(right)) || 1;
     bottom = Math.abs(ref.int(bottom)) || 1;
-    
-    if(ms>30*1000||ms<30){
+
+    if (ms > 30 * 1000 - 1 || ms < 30 - 1) {
         throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).")
     }
-    
-    native.setLimitMouseRange(ms,x,y,right,bottom);
-    
 
-    const res =  {
+    native.setLimitMouseRange(ms, x, y, right, bottom);
+
+
+    const res = {
         ms, x, y, right, bottom,
-        closed:(()=>{
-            setTimeout(()=>{
+        closed: (() => {
+            setTimeout(() => {
                 // 这一步看着很多余实际上确实多余
                 // !请注意此地方不能取消
                 /*请注意此地方不能取消 不然node提前结束将会导致无法解锁 避免进程提前退出导致无法结束 */
+
                 res.closed = native.hasLimitMouseRangeWorker();
-                },ms+80);
+            }, ms + 80);
             return false;
         })() as boolean,
         /**
@@ -153,8 +154,8 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
     // console.timeEnd("hmc.getProcessCommand()->");
 
     const setLimitMouse = setLimitMouseRange(5000,1,1,1,500);
-   
-    hmc.Auto.mouseHook.on("mouse",console.log);
+
+    hmc.Auto.mouseHook.on("mouse",()=>{});
     hmc.Auto.mouseHook.start();
 
     // 模拟意外退出

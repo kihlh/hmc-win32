@@ -2559,7 +2559,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2982,6 +2982,7 @@ declare class Iohook_Mouse {
      * 结束
      */
     close(): void;
+    stop(): void;
     emit(eventName: "start" | "close"): boolean;
     emit(eventName: "move", x: number, y: number, MousePoint: MousePoint, data: HMC.MouseMoveEventData): boolean;
     emit(eventName: "button", event: HMC.MouseKeyName, MousePoint: MousePoint): boolean;
@@ -3183,6 +3184,7 @@ export declare function setLimitMouseRange(ms: number, x: number, y: number, rig
      * @returns
      */
     close(): boolean;
+    stop(): boolean;
     /**
      * 是否正在执行中
      * @returns

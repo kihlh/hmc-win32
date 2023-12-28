@@ -1,31 +1,9 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setLimitMouseRange = exports.getProcessCommand2Sync = exports.getProcessCommand2 = exports.getProcessCwd2Sync = exports.getProcessCwd2 = void 0;
 const log4js = require("log4js");
-const __1 = __importStar(require("../../"));
+const __1 = require("../../");
+const { Sleep } = require("hmc-win32");
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 process.exitCode = 666;
@@ -103,7 +81,7 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
     y = Math.abs(__1.ref.int(y));
     right = Math.abs(__1.ref.int(right)) || 1;
     bottom = Math.abs(__1.ref.int(bottom)) || 1;
-    if (ms > 30 * 1000 || ms < 30) {
+    if (ms > 30 * 1000 - 1 || ms < 30 - 1) {
         throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).");
     }
     native.setLimitMouseRange(ms, x, y, right, bottom);
@@ -150,8 +128,15 @@ exports.setLimitMouseRange = setLimitMouseRange;
     // console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
     // console.timeEnd("hmc.getProcessCommand()->");
     const setLimitMouse = setLimitMouseRange(5000, 1, 1, 1, 500);
-    __1.default.Auto.mouseHook.on("mouse", console.log);
-    __1.default.Auto.mouseHook.start();
+    await Sleep(2000);
+    setLimitMouse.close();
+    setLimitMouse.close();
+    setLimitMouse.close();
+    for (let index = 0; index < 100; index++) {
+        setLimitMouse.close();
+    }
+    // hmc.Auto.mouseHook.on("mouse",()=>{});
+    // hmc.Auto.mouseHook.start();
     // 模拟意外退出
-    process.exit(555);
+    // process.exit(555);
 })();

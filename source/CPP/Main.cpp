@@ -3673,6 +3673,17 @@ static void hmc_gc_func()
     
 }
 
+
+napi_value fn_SendMessage(napi_env env, napi_callback_info info)
+{
+    hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
+
+  auto res =  ::SendMessageW(input.getHwnd(0), (UINT)input.getInt(1), (WPARAM)input.getInt64(2), (LPARAM)input.getInt64(3));
+
+  return hmc_napi_create_value::Number(env, res);
+
+}
+
 static napi_value Init(napi_env env, napi_value exports)
 {
     // napi_value exportsMessage;
@@ -3907,6 +3918,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("setLimitMouseRange", setLimitMouseRange),
         // 2023-12-23 add support
         DECLARE_NAPI_METHODRM("stopLimitMouseRangeWorker", stopLimitMouseRangeWorker),
+        DECLARE_NAPI_METHODRM("sendMessage", fn_SendMessage),
 
     };
     _________HMC___________ = false;
