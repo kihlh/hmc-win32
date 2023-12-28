@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setLimitMouseRange = exports.getProcessCommand2Sync = exports.getProcessCommand2 = exports.getProcessCwd2Sync = exports.getProcessCwd2 = void 0;
 const log4js = require("log4js");
 const __1 = require("../../");
-const { Sleep } = require("hmc-win32");
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 process.exitCode = 666;
+console.time("load hmc dll");
 const native = require(process.argv.at(-1) || "");
+console.timeEnd("load hmc dll");
 /**
  * 获取指定进程的工作目录
  * @time 5.449ms
@@ -128,15 +129,8 @@ exports.setLimitMouseRange = setLimitMouseRange;
     // console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
     // console.timeEnd("hmc.getProcessCommand()->");
     const setLimitMouse = setLimitMouseRange(5000, 1, 1, 1, 500);
-    await Sleep(2000);
-    setLimitMouse.close();
-    setLimitMouse.close();
-    setLimitMouse.close();
-    for (let index = 0; index < 100; index++) {
-        setLimitMouse.close();
-    }
     // hmc.Auto.mouseHook.on("mouse",()=>{});
     // hmc.Auto.mouseHook.start();
     // 模拟意外退出
-    // process.exit(555);
+    process.exit(555);
 })();

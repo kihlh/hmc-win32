@@ -3659,9 +3659,11 @@ static void hmc_gc_func()
 {
 
     // 防止鼠标被锁定
-    if (!hmc_mouse::_is_un_Mouse_Lock_worker)
+    if (hmc_mouse::__LimitMouseRange_worker)
     {
-        hmc_mouse::stopLimitMouseRange_worker();
+         hmc_mouse::stopLimitMouseRange_worker();
+        
+        //hmc_mouse::__LimitMouseRange_worker.release();
     }
 
     // 释放鼠标监听的线程
@@ -3816,7 +3818,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getSubProcessID", getSubProcessID),                     //=>4-3ADD
         DECLARE_NAPI_METHODRM("enumAllProcessPolling", enumAllProcessPolling),         //=>4-3ADD
         DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
-        DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
+        // DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
         DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
         DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
         DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD

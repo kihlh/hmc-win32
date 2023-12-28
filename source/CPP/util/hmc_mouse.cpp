@@ -96,13 +96,20 @@ bool hmc_mouse::stopLimitMouseRange_worker()
 		return true;
 	}
 
-	for (size_t i = 0; i < 5; i++)
-	{
-		if (PostThreadMessage(threadId, WM_QUIT, NULL, NULL))
+	if (PostThreadMessage(threadId, WM_QUIT, NULL, NULL))
 	{
 		__LimitMouseRange_worker.release();
 		return stop_cursor;
 	}
+	else {
+
+		if (__LimitMouseRange_worker) {
+			if (__LimitMouseRange_worker->joinable()) {
+				__LimitMouseRange_worker->detach();
+			}
+
+		}
+		__LimitMouseRange_worker.release();
 	}
 	
 		return false;

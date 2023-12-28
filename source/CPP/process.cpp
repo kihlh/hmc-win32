@@ -979,60 +979,60 @@ napi_value getSubProcessID(napi_env env, napi_callback_info info)
     return resultsSubProcessIDList;
 };
 
-napi_value getProcessParentProcessID(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    hmc_is_argv_type(args, 0, 1, napi_number, NULL);
-    int64_t ProcessID;
-    status = napi_get_value_int64(env, args[0], &ProcessID);
-    assert(status == napi_ok);
+// napi_value getProcessParentProcessID(napi_env env, napi_callback_info info)
+// {
+//     napi_status status;
+//     size_t argc = 1;
+//     napi_value args[1];
+//     status = $napi_get_cb_info(argc, args);
+//     assert(status == napi_ok);
+//     hmc_is_argv_type(args, 0, 1, napi_number, NULL);
+//     int64_t ProcessID;
+//     status = napi_get_value_int64(env, args[0], &ProcessID);
+//     assert(status == napi_ok);
 
-    DWORD CurrentProcessId = 0;
+//     DWORD CurrentProcessId = 0;
 
-    EnableShutDownPriv();
-    PROCESSENTRY32 pe32;
-    pe32.dwSize = sizeof(PROCESSENTRY32);
+//     EnableShutDownPriv();
+//     PROCESSENTRY32 pe32;
+//     pe32.dwSize = sizeof(PROCESSENTRY32);
 
-    // 获取进程快照
-    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hSnap == INVALID_HANDLE_VALUE)
-    {
-        return NULL;
-    }
+//     // 获取进程快照
+//     HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//     if (hSnap == INVALID_HANDLE_VALUE)
+//     {
+//         return NULL;
+//     }
 
-    // 枚举第一个进程
-    if (Process32First(hSnap, &pe32))
-    {
-        do
-        {
-            // 打开进程句柄
-            HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
-            if (hProcess)
-            {
-                if (pe32.th32ProcessID == ProcessID)
-                {
-                    CurrentProcessId = pe32.th32ParentProcessID;
-                    CloseHandle(hProcess);
-                    break;
-                }
-                CloseHandle(hProcess);
-            }
-        } while (Process32Next(hSnap, &pe32));
-    }
+//     // 枚举第一个进程
+//     if (Process32First(hSnap, &pe32))
+//     {
+//         do
+//         {
+//             // 打开进程句柄
+//             HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
+//             if (hProcess)
+//             {
+//                 if (pe32.th32ProcessID == ProcessID)
+//                 {
+//                     CurrentProcessId = pe32.th32ParentProcessID;
+//                     CloseHandle(hProcess);
+//                     break;
+//                 }
+//                 CloseHandle(hProcess);
+//             }
+//         } while (Process32Next(hSnap, &pe32));
+//     }
 
-    CloseHandle(hSnap);
-    if (CurrentProcessId == 0)
-    {
-        napi_value result;
-        napi_get_null(env, &result);
-        return result;
-    }
-    return _create_int64_Number(env, CurrentProcessId);
-};
+//     CloseHandle(hSnap);
+//     if (CurrentProcessId == 0)
+//     {
+//         napi_value result;
+//         napi_get_null(env, &result);
+//         return result;
+//     }
+//     return _create_int64_Number(env, CurrentProcessId);
+// };
 
 napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info)
 {

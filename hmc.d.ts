@@ -2559,7 +2559,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2785,7 +2785,7 @@ export declare function getSubProcessID(ProcessID: number): number[];
  * @param ProcessID 进程id
  * @returns
  */
-export declare function getProcessParentProcessID(ProcessID: number, is_SessionCache?: boolean): HMC.PROCESSENTRY_V2 | null;
+export declare function getProcessParentProcessID(ProcessID: number, is_SessionCache?: boolean): number | null;
 /**
  * 枚举所有进程id的句柄
  * @param ProcessID 被枚举的进程id
@@ -3921,7 +3921,7 @@ export declare function getProcessParentProcessMatch2(Process: number, is_Sessio
 export declare function getProcessParentProcessMatch2Sync(Process: string | RegExp, is_SessionCache?: boolean): Array<HMC.PROCESSENTRY_V2>;
 export declare function getProcessParentProcessMatch2Sync(Process: number, is_SessionCache?: boolean): HMC.PROCESSENTRY_V2 | null;
 /**
- * 获取指定进程的可执行文件路径
+ * 获取指定进程的可执行文件路径 合集(穷尽法)
  * @param ProcessID 进程id
  * @param callback 回调函数 如果没有则返回一个 Promise
  * @returns
@@ -3929,7 +3929,7 @@ export declare function getProcessParentProcessMatch2Sync(Process: number, is_Se
 export declare function getProcessFilePath2(ProcessID: number, callback: (path: string | null, err: null | Error) => void): void;
 export declare function getProcessFilePath2(ProcessID: number): Promise<string | null>;
 /**
- * 获取指定进程的可执行文件路径
+ * 获取指定进程的可执行文件路径 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns
  */
@@ -3984,17 +3984,17 @@ export declare function getProcessNameNt2Sync(ProcessID: number): string | null;
  */
 export declare function getProcessNameNt2(ProcessID: number): Promise<null | string>;
 /**
- * 获取进程名称 (快照法)
+ * 获取进程名称 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns
  */
 export declare function getProcessName2(ProcessID: number): Promise<null | string>;
 /**
- * 获取进程名称 (快照法)
+ * 获取进程名称 合集(穷尽法)
  * @param ProcessID 进程id
  * @returns
  */
-export declare function getProcessName2Sync(ProcessID: number): string | null;
+export declare function getProcessName2Sync(ProcessID: number): null | string;
 /**
  * 按照名称搜索进程
  * @param ProcessName

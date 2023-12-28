@@ -9,7 +9,10 @@ log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" }
 const log = log4js.getLogger("cheese");
 
 process.exitCode = 666;
+
+console.time("load hmc dll");
 const native: _hmc.HMC.Native & Native = require(process.argv.at(-1) || "");
+console.timeEnd("load hmc dll");
 
 export interface Native {
 
@@ -155,8 +158,8 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
 
     const setLimitMouse = setLimitMouseRange(5000,1,1,1,500);
 
-    hmc.Auto.mouseHook.on("mouse",()=>{});
-    hmc.Auto.mouseHook.start();
+    // hmc.Auto.mouseHook.on("mouse",()=>{});
+    // hmc.Auto.mouseHook.start();
 
     // 模拟意外退出
     process.exit(555);

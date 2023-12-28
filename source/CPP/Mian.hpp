@@ -241,7 +241,7 @@ napi_value clearEnumProcessHandle(napi_env env, napi_callback_info info);
 napi_value getSubProcessID(napi_env env, napi_callback_info info);
 napi_value enumAllProcess(napi_env env, napi_callback_info info);
 napi_value enumAllProcessPolling(napi_env env, napi_callback_info info);
-napi_value getProcessParentProcessID(napi_env env, napi_callback_info info);
+// napi_value getProcessParentProcessID(napi_env env, napi_callback_info info);
 napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info);
 
 // screen.cpp
