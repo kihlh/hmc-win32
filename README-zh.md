@@ -2,7 +2,7 @@
 
 ![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
-![img](source\src\zh_cn.png)
+![img](source/src/zh_cn.png)
 
 ## 帮助
 

@@ -2,7 +2,7 @@
 
 ![System Environment](https://cos.kiic.top/assets/used/202204112301972.svg)      ![System Environment](https://cos.kiic.top/assets/used/202204112301969.svg)      ![System Environment](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![System Environment](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
-![img](source\src\us_en.png)
+![img](source/src/us_en.png)
 
 ## Help
 
