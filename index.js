@@ -868,7 +868,7 @@ var get_native = (binPath) => {
       clearEnumAllProcessList: fnVoid,
       // getProcessParentProcessID: fnVoid,
       // enumAllProcess: fnNum,
-      _SET_HMC_DEBUG: fnBool,
+      // _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
       // isStartHookMouse: fnBool,
       clearEnumProcessHandle: fnVoid,
@@ -2857,7 +2857,14 @@ function hasPortUDP(port, callBack) {
   }
 }
 function formatVolumePath(VolumePath) {
-  return native.formatVolumePath(ref.string(VolumePath));
+  if (VolumePath && (VolumePath == null ? void 0 : VolumePath.match(/^\\/))) {
+    for (let Volume of hmc.getVolumeList()) {
+      if (VolumePath.indexOf(Volume.device) == 0) {
+        return VolumePath.replace(Volume.device, Volume.path).replace(/[\\/]+/, "\\");
+      }
+    }
+  } else
+    return path;
 }
 function getVolumeList() {
   return native.getVolumeList();
@@ -4302,7 +4309,7 @@ function getAllProcessListSnp2(callback) {
   let result;
   if (typeof data == "number") {
     result = new PromiseSession(data).to_Promise((data2) => {
-      return JSON.parse(data2[0]).map((result2) => {
+      return !data2 ? [] : JSON.parse(data2[0]).map((result2) => {
         result2.pid = result2.UniqueProcessId;
         result2.name = result2.ImageName;
         return result2;
@@ -4310,7 +4317,7 @@ function getAllProcessListSnp2(callback) {
     });
   } else {
     result = data.then((data2) => {
-      return JSON.parse(data2).map((result2) => {
+      return !data2 ? [] : JSON.parse(data2).map((result2) => {
         result2.pid = result2.th32ProcessID;
         result2.name = result2.szExeFile;
         result2.ppid = result2.th32ParentProcessID;
@@ -4652,7 +4659,7 @@ function getProcessName2(ProcessID) {
     let FilePath = await ((_a = getProcessFilePath2(ProcessID)) == null ? void 0 : _a.catch(reject));
     if (FilePath)
       return resolve(FilePath.split(/[\\\/]+/).pop() || null);
-    FilePath = await ((_b = getProcessNameSnp2(ProcessID)) == null ? void 0 : _b.catch(reject));
+    FilePath = await ((_b = getProcessNameSnp2(ProcessID, false)) == null ? void 0 : _b.catch(reject));
     if (FilePath)
       return resolve(FilePath || null);
     FilePath = await ((_c = getProcessNameNt2(ProcessID)) == null ? void 0 : _c.catch(reject));
@@ -4668,7 +4675,7 @@ function getProcessName2Sync(ProcessID) {
   let FilePath = getProcessFilePath2Sync(ProcessID);
   if (FilePath)
     return FilePath.split(/[\\\/]+/).pop() || null;
-  FilePath = getProcessNameSnp2Sync(ProcessID);
+  FilePath = getProcessNameSnp2Sync(ProcessID, false);
   if (FilePath)
     return FilePath;
   FilePath = getProcessNameNt2Sync(ProcessID);

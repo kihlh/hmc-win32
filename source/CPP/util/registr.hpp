@@ -46,7 +46,7 @@ using namespace std;
 
 // 关闭注册表键
 #define _defined_auto_free_HKey(subHKey)            \
-    shared_ptr<void> close_key(nullptr, [&](void *) \
+    shared_ptr<void> ##subHKey##close_key(nullptr, [&](void *) \
                                {\
         if (subHKey != nullptr) {\
             ::RegCloseKey(subHKey);\
@@ -152,7 +152,7 @@ namespace hmc_registr
         {
             char achKey[MAX_KEY_LENGTH];    // 子键名称的缓冲区
             DWORD cbName = 0;               // 名称字符串的大小
-            char achClass[MAX_PATH] = "";   // 类名缓冲区
+            // char achClass[MAX_PATH] = "";   // 类名缓冲区
             DWORD cchClassName = MAX_PATH;  // 类字符串的大小
             DWORD cSubKeys = 0;             // 子键数
             DWORD cbMaxSubKey = 0;          // 最长子键大小
@@ -172,7 +172,7 @@ namespace hmc_registr
 
             retCode = RegQueryInfoKeyA(
                 hKey,                  // key句柄
-                achClass,              // 类名缓冲区
+                NULL,              // 类名缓冲区
                 &cchClassName,         // 类字符串的大小
                 NULL,                  // 无
                 &cSubKeys,             // 子键数

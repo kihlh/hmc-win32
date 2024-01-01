@@ -1,6 +1,5 @@
 
 #include "./hmc_string_util.hpp"
-#include <iostream>
 
 /**
  * @brief 仅拼接文本
@@ -114,7 +113,7 @@ inline wstring hmc_string_util::utf8_to_utf16(const string input)
         return wstring();
     }
     int iSizeInChars = MultiByteToWideChar(CP_UTF8, 0, pszText, -1, NULL, 0);
-    wchar_t* pWideChar = new (nothrow) wchar_t[iSizeInChars];
+    wchar_t* pWideChar = new (std::nothrow) wchar_t[iSizeInChars];
     if (pWideChar == NULL)
     {
         return wstring();
@@ -138,7 +137,7 @@ inline string hmc_string_util::utf16_to_utf8(const wstring input)
         return string();
     }
     int iSizeInBytes = WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, NULL, 0, NULL, NULL);
-    char* pUTF8 = new (nothrow) char[iSizeInBytes];
+    char* pUTF8 = new (std::nothrow) char[iSizeInBytes];
     if (pUTF8 == NULL)
     {
         return string();
@@ -162,7 +161,7 @@ inline string hmc_string_util::utf16_to_ansi(const wstring input)
         return string();
     }
     int iSizeInBytes = WideCharToMultiByte(CP_ACP, 0, pwszText, -1, NULL, 0, NULL, NULL);
-    char* pMultiByte = new (nothrow) char[iSizeInBytes];
+    char* pMultiByte = new (std::nothrow) char[iSizeInBytes];
     if (pMultiByte == NULL)
     {
         return string();
@@ -187,7 +186,7 @@ inline wstring hmc_string_util::ansi_to_utf16(const string input)
         return wstring();
     }
     int iSizeInChars = MultiByteToWideChar(CP_ACP, 0, pszText, -1, NULL, 0);
-    wchar_t* pWideChar = new (nothrow) wchar_t[iSizeInChars];
+    wchar_t* pWideChar = new (std::nothrow) wchar_t[iSizeInChars];
     if (pWideChar == NULL)
     {
         return wstring();

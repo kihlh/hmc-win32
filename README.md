@@ -2,6 +2,8 @@
 
 ![System Environment](https://cos.kiic.top/assets/used/202204112301972.svg)      ![System Environment](https://cos.kiic.top/assets/used/202204112301969.svg)      ![System Environment](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![System Environment](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
+![img](source\src\us_en.png)
+
 ## Help
 
 #### 你正在查看 English 版本的介绍，您可以点击此 [中文](README-zh.md) 查看此 readme 的语言的中文版本
@@ -12,13 +14,13 @@ We provide programming language documentation for understanding API usage, but p
 
 #### Relevant Links:
 
-##### Help:   [Programming Help](https://kihlh.gitbook.io/hmc_en/)          NPM:    [hmc-win32](https://www.npmjs.com/package/hmc-win32)    [hmc-autoit](https://www.npmjs.com/package/hmc-autoit)      Source:  [C++ Source Code](https://github.com/kihlh/hmc-win32/tree/master/source)    [AutoitX](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt)      [Refactoring Version](https://github.com/kihlh/hmc-win32/tree/master/source/h2c-win32)   
+##### Help:   [【Programming Help】](https://kihlh.gitbook.io/hmc_en/)          NPM:    [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)    [【hmc-autoit】](https://www.npmjs.com/package/hmc-autoit)      Source:  [【C++ Source Code】](https://github.com/kihlh/hmc-win32/tree/master/source)    [【AutoitX】](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt)      [【Refactoring Version】](https://github.com/kihlh/hmc-win32/tree/master/source/h2c-win32)   
 
 
 
 ### Subset
 
-#### autoit: hmc-autoit     [npm](https://www.npmjs.com/package/hmc-autoit)       [source code](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt) 
+#### autoit: hmc-autoit     [【npm】](https://www.npmjs.com/package/hmc-autoit)       [【source code】](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt) 
 
 **hmc-autoit is a subset of HMC that includes a series of functions for invoking AutoItX API. It shares the advantages of HMC and does not require recompilation or the use of ffi magic.**
 
@@ -500,3 +502,4 @@ All HMC APIs are implemented using winapi+nodeapi, so there is no need to recomp
 
 
 
+   

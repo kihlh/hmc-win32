@@ -134,7 +134,7 @@ namespace hmc_napi_get_value
      * @param buffer
      */
     template <typename T>
-    extern void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer);
+    extern void buffer_vector(napi_env env, napi_value nodeValue, vector<T>& buffer);
     /**
      * @brief 获取为布尔值
      *
@@ -278,21 +278,21 @@ namespace hmc_napi_get_value
      * @param nodeValue
      * @return const wchar_t* c标准接口的  const char *
      */
-    extern const wchar_t *buffer_utf16_clpStrW(napi_env env, napi_value nodeValue);
+    extern const wchar_t* buffer_utf16_clpStrW(napi_env env, napi_value nodeValue);
     /**
      * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
      * @param env
      * @param nodeValue
      * @return const char* c标准接口的  const char *
      */
-    extern const char *buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue);
+    extern const char* buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue);
     /**
      * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
      * @param env
      * @param nodeValue
      * @return const char* c标准接口的  const char *
      */
-    extern const char *buffer_ansi_clpStrA(napi_env env, napi_value nodeValue);
+    extern const char* buffer_ansi_clpStrA(napi_env env, napi_value nodeValue);
     /**
      * @brief 获取一个对象并将其转换为 POINT
      *
@@ -445,7 +445,7 @@ namespace hmc_napi_type
      * @return false
      */
     template <typename... Args>
-    extern bool diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args);
+    extern bool diff(napi_valuetype valuetype, const napi_valuetype& first, const Args &...args);
     /**
      * @brief 判断值与多种类型是否一致
      *
@@ -457,7 +457,7 @@ namespace hmc_napi_type
      * @return int
      */
     template <typename... Args>
-    extern bool diff(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args);
+    extern bool diff(napi_env env, napi_value nodeValue, const napi_valuetype& first, const Args &...args);
 
     /**
      * @brief 判断值与类型是否一致
@@ -672,8 +672,8 @@ namespace hmc_napi_create_value
     napi_value StringA(napi_env env, string value);
     // 返回一个 string utf16 string
     napi_value String(napi_env env, wstring value);
-    napi_value String(napi_env env, wchar_t *value);
-    napi_value String(napi_env env, char *value);
+    napi_value String(napi_env env, wchar_t* value);
+    napi_value String(napi_env env, char* value);
     napi_value String(napi_env env);
 
     /**
@@ -727,8 +727,8 @@ namespace hmc_napi_create_value
      * @param size
      * @return napi_value
      */
-    napi_value Buffer(napi_env env, vector<unsigned char> &buffer);
-    napi_value Buffer(napi_env env, void *data, size_t size);
+    napi_value Buffer(napi_env env, vector<unsigned char>& buffer);
+    napi_value Buffer(napi_env env, void* data, size_t size);
 
     /**
      * @brief 返回一个 null
@@ -1435,7 +1435,7 @@ namespace hmc_PromiseSession
      * @param func
      * @return size_t
      */
-    extern size_t open(std::function<void(vector<any> *data_list)> func);
+    extern size_t open(std::function<void(vector<any>* data_list)> func);
     /**
      * @brief 创建一个新的任务id 并为其开辟容器 但不为其创建 变化管理线程
      *
@@ -1458,7 +1458,7 @@ namespace hmc_PromiseSession
     extern size_t open(std::function<void()> func);
 
     template <class _Fn, class... _Args>
-    extern size_t open2(_Fn &&_Fx, _Args &&..._Ax);
+    extern size_t open2(_Fn&& _Fx, _Args &&..._Ax);
 
     extern size_t max_id();
     extern vector<int> allTasks();

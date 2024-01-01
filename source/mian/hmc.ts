@@ -80,7 +80,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             clearEnumAllProcessList: fnVoid,
             // getProcessParentProcessID: fnVoid,
             // enumAllProcess: fnNum,
-            _SET_HMC_DEBUG: fnBool,
+            // _SET_HMC_DEBUG: fnBool,
             isStartKeyboardHook: fnBool,
             // isStartHookMouse: fnBool,
             clearEnumProcessHandle: fnVoid,
@@ -968,7 +968,7 @@ export module HMC {
     }
 
     export type Native = {
-        _SET_HMC_DEBUG(): boolean;
+        // _SET_HMC_DEBUG(): boolean;
         /**版本号 */
         version: string;
         /**功能介绍 */
@@ -4690,12 +4690,20 @@ export function hasPortUDP(port: number, callBack?: (hasPort: boolean) => unknow
         return prom;
     }
 }
+
 /**
  * 格式化 驱动器路径 ('\Device\HarddiskVolume2' => "D:\")
  */
 export function formatVolumePath(VolumePath: string) {
-    return native.formatVolumePath(ref.string(VolumePath))
+    if(VolumePath&&VolumePath?.match(/^\\/)){
+        for (let Volume of hmc.getVolumeList()) {
+            if(VolumePath.indexOf(Volume.device)==0){
+                return VolumePath.replace(Volume.device,Volume.path).replace(/[\\/]+/,"\\");
+            }
+        }
+    }else return path;
 }
+
 /**
  * 获取当前文件系统的驱动器名称及路径
  * @returns 
@@ -6931,7 +6939,7 @@ export function getAllProcessListSnp2(callback?: unknown) {
 
     if (typeof data == "number") {
         result = (new PromiseSession(data)).to_Promise((data) => {
-            return (JSON.parse(data[0]) as any[]).map(result => {
+            return !data ? [] :  (JSON.parse(data[0]) as any[]).map(result => {
                 result.pid = result.UniqueProcessId;
                 result.name = result.ImageName;
                 return result;
@@ -6939,7 +6947,7 @@ export function getAllProcessListSnp2(callback?: unknown) {
         });
     } else {
         result = data.then((data) => {
-            return (JSON.parse(data) as any[]).map(result => {
+            return !data?[]:  (JSON.parse(data) as any[]).map(result => {
                 result.pid = result.th32ProcessID;
                 result.name = result.szExeFile;
                 result.ppid = result.th32ParentProcessID;
@@ -7509,7 +7517,7 @@ export function getProcessName2(ProcessID: number): Promise<null | string> {
         if (FilePath) return resolve(FilePath.split(/[\\\/]+/).pop() || null);
 
         // 快照法
-        FilePath = await getProcessNameSnp2(ProcessID)?.catch(reject);
+        FilePath = await getProcessNameSnp2(ProcessID,false)?.catch(reject);
         if (FilePath) return resolve(FilePath || null);
 
         //内核法
@@ -7536,7 +7544,7 @@ export function getProcessName2Sync(ProcessID: number): null | string {
     if (FilePath) return (FilePath.split(/[\\\/]+/).pop() || null);
 
     // 快照法
-    FilePath = getProcessNameSnp2Sync(ProcessID);
+    FilePath = getProcessNameSnp2Sync(ProcessID,false);
     if (FilePath) return FilePath;
 
     //内核法

@@ -1,4 +1,6 @@
 /// <reference types="node" />
+/// <reference types="node" />
+import path = require("path");
 import { VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
 /**注册表根目录 */
 declare const Hkey: {
@@ -463,7 +465,6 @@ export declare module HMC {
         PrivatePageCount: number;
     }
     export type Native = {
-        _SET_HMC_DEBUG(): boolean;
         /**版本号 */
         version: string;
         /**功能介绍 */
@@ -2559,7 +2560,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -2732,7 +2733,7 @@ export declare function hasPortUDP(port: number, callBack: (hasPort: boolean) =>
 /**
  * 格式化 驱动器路径 ('\Device\HarddiskVolume2' => "D:\")
  */
-export declare function formatVolumePath(VolumePath: string): string;
+export declare function formatVolumePath(VolumePath: string): string | path.PlatformPath | undefined;
 /**
  * 获取当前文件系统的驱动器名称及路径
  * @returns

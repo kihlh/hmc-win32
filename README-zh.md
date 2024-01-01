@@ -2,6 +2,8 @@
 
 ![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
+![img](source\src\zh_cn.png)
+
 ## 帮助
 
 #### **You are currently viewing the Chinese version of the introduction. You can click [here](about:blank) to view the English version of this README.**
@@ -10,13 +12,13 @@
 
 #### 相关的链接 ：
 
-##### Help：   [编程帮助](https://kihlh.gitbook.io/hmc/)          NPM：    [hmc-win32](https://www.npmjs.com/package/hmc-win32)    [hmc-autoit](https://www.npmjs.com/package/hmc-autoit)      Source： [c++源代码](https://github.com/kihlh/hmc-win32/tree/master/source)    [AutoitX](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt)      [重构版](https://github.com/kihlh/hmc-win32/tree/master/source/h2c-win32)   
+##### Help：   [【编程帮助】](https://kihlh.gitbook.io/hmc/)          NPM：    [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)    [【hmc-autoit】](https://www.npmjs.com/package/hmc-autoit)      Source： [【c++源代码】](https://github.com/kihlh/hmc-win32/tree/master/source)    [【AutoitX】](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt)      [【重构版】](https://github.com/kihlh/hmc-win32/tree/master/source/h2c-win32)   
 
 
 
 ### 子集 (Subset)
 
-#### autoit：hmc-autoit     [npm](https://www.npmjs.com/package/hmc-autoit)       [源代码](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt) 
+#### autoit：hmc-autoit     [【npm】](https://www.npmjs.com/package/hmc-autoit)       [【源代码】](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt) 
 
 **hmc-autoit 是hmc的子集 他包含了一些列调用 autoitX api的函数，并且和hmc的优点一样，不需要再次编译和ffi魔法**
 
@@ -35,9 +37,9 @@
 
 ## 为您总结了几种功能的分类
 
-- ##### [窗口操作](#Window Operation)：调整  /  枚举  /  禁用   /  查询  /  变化
+- ##### [窗口操作](#Window Operation) ：调整  /  枚举  /  禁用   /  查询  /  变化
 
-- **[进程控制](#Process Control)：kill  /  信息  /  句柄  /  窗口 / 变化**
+- **[进程控制](#Process Control) ：kill  /  信息  /  句柄  /  窗口 / 变化**
 
 - **[网    络](#Network (net))    ：端口  /  网卡  /  局域网  /  IP**
 

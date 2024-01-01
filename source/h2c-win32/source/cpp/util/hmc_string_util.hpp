@@ -83,9 +83,9 @@ namespace hmc_string_util
 
     /**
      * @brief 获取路径的文件名
-     * 
-     * @param path 
-     * @return std::wstring 
+     *
+     * @param path
+     * @return std::wstring
      */
     extern std::wstring getPathBaseName(const std::wstring& path);
 
@@ -98,26 +98,26 @@ namespace hmc_string_util
     extern std::string getPathBaseName(const std::string& path);
     /**
      * @brief 判断这个vec是否可以被 hmc string 工具转换到json
-     * 
-     * @param input 
-     * @return true 
-     * @return false 
+     *
+     * @param input
+     * @return true
+     * @return false
      */
     extern bool is_vec_json(any input);
-        /**
-     * @brief 判断这个map是否是整数型
-     * 
-     * @param input 
-     * @return true 
-     * @return false 
-     */
+    /**
+ * @brief 判断这个map是否是整数型
+ *
+ * @param input
+ * @return true
+ * @return false
+ */
     extern bool is_int(any input);
     /**
      * @brief 判断这个map是否可以被 hmc string 工具转换到json
-     * 
-     * @param input 
-     * @return true 
-     * @return false 
+     *
+     * @param input
+     * @return true
+     * @return false
      */
     extern bool is_map_json(any input);
     // ----------------------------------------------------------------
@@ -181,12 +181,12 @@ namespace hmc_string_util
     extern bool is_longlong_str(const string Value);
 
     // 拼接文本
-    extern wstring join(vector<wstring> &item_list);
-    extern wstring join(vector<wstring> &item_list, wstring splitter);
-    extern void join(vector<wstring> &item_list, wstring splitter, wstring outputPtr);
-    extern string join(vector<string> &item_list);
-    extern string join(vector<string> &item_list, string splitter);
-    extern void join(vector<string> &item_list, string splitter, string outputPtr);
+    extern wstring join(vector<wstring>& item_list);
+    extern wstring join(vector<wstring>& item_list, wstring splitter);
+    extern void join(vector<wstring>& item_list, wstring splitter, wstring outputPtr);
+    extern string join(vector<string>& item_list);
+    extern string join(vector<string>& item_list, string splitter);
+    extern void join(vector<string>& item_list, string splitter, string outputPtr);
     /**
      * @brief 尝试将any转换到string
      *
@@ -195,7 +195,7 @@ namespace hmc_string_util
      * @return true
      * @return false
      */
-    extern bool any_to_string(any input, string &output);
+    extern bool any_to_string(any input, string& output);
     /**
      * @brief 尝试将any转换到string
      *
@@ -204,7 +204,7 @@ namespace hmc_string_util
      * @return true
      * @return false
      */
-    extern bool any_to_string(any input, wstring &output);
+    extern bool any_to_string(any input, wstring& output);
     /**
      * @brief 仅拼接文本
      *
@@ -215,7 +215,7 @@ namespace hmc_string_util
      * @return string
      */
     template <class... Arguments>
-    extern string string_join(const string &input, const string &firstInput, vector<Arguments...> data_list);
+    extern string string_join(const string& input, const string& firstInput, vector<Arguments...> data_list);
     /**
      * @brief 仅拼接文本
      *
@@ -226,21 +226,21 @@ namespace hmc_string_util
      * @return wstring
      */
     template <class... Arguments>
-    extern wstring string_join(const wstring &input, const wstring &firstInput, vector<Arguments...> data_list);
+    extern wstring string_join(const wstring& input, const wstring& firstInput, vector<Arguments...> data_list);
 
     // 分割文本
-    extern vector<wstring> split(wstring &sourcePtr, wchar_t splitter);
-    extern void split(wstring &sourcePtr, wchar_t splitter, vector<wstring> &item_list);
-    extern vector<string> split(string &sourcePtr, char splitter);
-    extern void split(string &sourcePtr, char splitter, vector<string> &item_list);
+    extern vector<wstring> split(wstring& sourcePtr, wchar_t splitter);
+    extern void split(wstring& sourcePtr, wchar_t splitter, vector<wstring>& item_list);
+    extern vector<string> split(string& sourcePtr, char splitter);
+    extern void split(string& sourcePtr, char splitter, vector<string>& item_list);
 
     // 转义json文本
-    extern wstring escapeJsonString(const wstring &input,bool is_to_value = false);
-    extern string escapeJsonString(const string &input, bool is_to_value = false);
+    extern wstring escapeJsonString(const wstring& input, bool is_to_value = false);
+    extern string escapeJsonString(const string& input, bool is_to_value = false);
 
     // 替换单次
-    extern void replace(wstring &sourcePtr, const wstring from, const wstring to);
-    extern void replace(string &sourcePtr, string from, string to);
+    extern void replace(wstring& sourcePtr, const wstring from, const wstring to);
+    extern void replace(string& sourcePtr, string from, string to);
 
     /**
      * @brief 替换指定内容 在第N次出现的时候(仅本次)
@@ -250,42 +250,42 @@ namespace hmc_string_util
      * @param bubble_index
      * @param to
      */
-    extern void replace(string &sourcePtr, string from, size_t bubble_index, string to);
+    extern void replace(string& sourcePtr, string from, size_t bubble_index, string to);
 
     // 替换全部
-    extern void replaceAll(wstring &sourcePtr, const wstring from, const wstring to);
-    extern void replaceAll(string &sourcePtr, string from, string to);
+    extern void replaceAll(wstring& sourcePtr, const wstring from, const wstring to);
+    extern void replaceAll(string& sourcePtr, string from, string to);
 
     // 移除尾部 为xx 的指定文本
-    extern string trimLast(const string &input, const string &match);
+    extern string trimLast(const string& input, const string& match);
     // 移除开头和尾部 为xx 的指定文本
-    extern string trim(const string &input, const string &match);
+    extern string trim(const string& input, const string& match);
     // 移除开头为xx 的指定文本
-    extern string trimFirst(const string &input, const string &match);
+    extern string trimFirst(const string& input, const string& match);
     // 移除尾部 为xx 的指定文本
-    extern wstring trim(const wstring &input, const wstring &match);
+    extern wstring trim(const wstring& input, const wstring& match);
     // 移除开头和尾部 为xx 的指定文本
-    extern wstring trimLast(const wstring &input, const wstring &match);
+    extern wstring trimLast(const wstring& input, const wstring& match);
     // 移除开头为xx 的指定文本
-    extern wstring trimFirst(const wstring &input, const wstring &match);
+    extern wstring trimFirst(const wstring& input, const wstring& match);
 
     // 移除尾部 为xx 的指定文本
-    extern string trimLastAll(const string &input, const string &match);
+    extern string trimLastAll(const string& input, const string& match);
     // 移除开头和尾部 为xx 的指定文本
-    extern string trimAll(const string &input, const string &match);
+    extern string trimAll(const string& input, const string& match);
     // 移除开头为xx 的指定文本
-    extern string trimFirstAll(const string &input, const string &match);
+    extern string trimFirstAll(const string& input, const string& match);
     // 移除尾部 为xx 的指定文本
-    extern wstring trimAll(const wstring &input, const wstring &match);
+    extern wstring trimAll(const wstring& input, const wstring& match);
     // 移除开头和尾部 为xx 的指定文本
-    extern wstring trimLastAll(const wstring &input, const wstring &match);
+    extern wstring trimLastAll(const wstring& input, const wstring& match);
     // 移除开头为xx 的指定文本
-    extern wstring trimFirstAll(const wstring &input, const wstring &match);
+    extern wstring trimFirstAll(const wstring& input, const wstring& match);
 
     // 反特殊字符序列化
-    extern void unEscapeJsonString(string &sourcePtr);
+    extern void unEscapeJsonString(string& sourcePtr);
     // 反特殊字符序列化
-    extern void unEscapeJsonString(wstring &sourcePtr);
+    extern void unEscapeJsonString(wstring& sourcePtr);
 
     // c数组转json
 
@@ -303,7 +303,7 @@ namespace hmc_string_util
      * @param data_list
      */
     template <class PtrT, class T>
-    extern void vec_to_array_json(PtrT &stringPtr, const std::vector<T> &data_list);
+    extern void vec_to_array_json(PtrT& stringPtr, const std::vector<T>& data_list);
     /**
      * @brief 一个空的json 数组文本
      *
@@ -358,7 +358,7 @@ namespace hmc_string_util
      * @return string
      */
     template <class T, class V>
-    extern string to_json_value(T &value);
+    extern string to_json_value(T& value);
 
     /**
      * @brief map 容器转为 json object
@@ -441,7 +441,7 @@ namespace hmc_string_util
      * @param psize
      * @return LPWSTR
      */
-    extern LPCSTR string_to_lpstr(string input, size_t &psize);
+    extern LPCSTR string_to_lpstr(string input, size_t& psize);
 
     /**
      * @brief 从指针获取文本到string容器
@@ -509,8 +509,8 @@ namespace hmc_string_util
     extern std::wstring removeNullCharactersAll(std::wstring str);
 
     extern std::wstring unicodeStringToWString(UNICODE_STRING unicodeString);
-    
-    extern std::wstring push_json_value(wstring key,any value, bool is_append = false,bool esp_type = true );
+
+    extern std::wstring push_json_value(wstring key, any value, bool is_append = false, bool esp_type = true);
 };
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_STRING_UTIL_HPP

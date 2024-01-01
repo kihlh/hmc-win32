@@ -2621,604 +2621,6 @@ string GetVariable(string const &name)
 #endif
 }
 
-namespace create_value
-{
-    // 创建一个布尔型
-    napi_value Boolean(napi_env env, bool value = false)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_get_boolean(env, value, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    // 创建一个布尔型
-    napi_value Boolean(napi_env env, int value = 0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_get_boolean(env, (bool)value, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-
-    // 返回一个 string
-    napi_value String(napi_env env, string value)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_string_utf8(env, _A2U8_(value.c_str()).c_str(), NAPI_AUTO_LENGTH, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    napi_value String(napi_env env, wstring value)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_string_utf8(env, _W2U8_(value.c_str()).c_str(), NAPI_AUTO_LENGTH, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    napi_value String(napi_env env, wchar_t *value)
-    {
-        return String(env, wstring(value));
-    }
-    napi_value String(napi_env env, char *value)
-    {
-        return String(env, string(value));
-    }
-    napi_value String(napi_env env)
-    {
-        return String(env, "");
-    }
-
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param number
-     * @return napi_value
-     */
-    napi_value Number(napi_env env, int number = 0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_int32(env, number, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param number
-     * @return napi_value
-     */
-    napi_value Number(napi_env env, int64_t number = 0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_int64(env, number, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param number
-     * @return napi_value
-     */
-    napi_value Number(napi_env env, double number = 0.0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_double(env, number, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param number
-     * @return napi_value
-     */
-    napi_value Number(napi_env env, HWND number)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_int64(env, (long long)number, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    napi_value Number(napi_env env, unsigned long number)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_int64(env, (long)number, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param bigint
-     * @return napi_value
-     */
-    napi_value Bigint(napi_env env, long bigint = 0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_bigint_int64(env, bigint, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    /**
-     * @brief 返回一个 number到js
-     *
-     * @param bigint
-     * @return napi_value
-     */
-    napi_value Bigint(napi_env env, long long bigint = 0)
-    {
-        napi_status status;
-        napi_value result;
-        status = napi_create_bigint_int64(env, bigint, &result);
-        assert(status == napi_ok);
-        return result;
-    }
-    /**
-     * @brief 返回一个 Buffer到js(返回的是空值 napi 不支持)
-     *
-     * @param env
-     * @param data
-     * @param size
-     * @return napi_value
-     */
-    napi_value Buffer(napi_env env, void **data, size_t size)
-    {
-        napi_status status;
-        napi_value Results;
-        status = napi_create_buffer(env, size, data, &Results);
-        assert(status == napi_ok);
-        return Results;
-    }
-    /**
-     * @brief 返回一个 null
-     *
-     * @param env
-     * @param data
-     * @param size
-     * @return napi_value
-     */
-    napi_value Null(napi_env env)
-    {
-        napi_status status;
-        napi_value Results;
-        status = napi_get_null(env, &Results);
-        assert(status == napi_ok);
-        return Results;
-    }
-    /**
-     * @brief RECT (位置信息转为Object)
-     *
-     * @param env
-     * @param rect
-     * @return napi_value
-     */
-    napi_value Rect(napi_env env, RECT rect)
-    {
-        napi_value ResultforObject;
-        napi_status status;
-        status = napi_create_object(env, &ResultforObject);
-        assert(status == napi_ok);
-
-        status = napi_set_property(env, ResultforObject, create_value::String(env, "bottom"), create_value::Number(env, rect.bottom));
-        assert(status == napi_ok);
-
-        status = napi_set_property(env, ResultforObject, create_value::String(env, "left"), create_value::Number(env, rect.left));
-        assert(status == napi_ok);
-
-        status = napi_set_property(env, ResultforObject, create_value::String(env, "right"), create_value::Number(env, rect.right));
-        assert(status == napi_ok);
-
-        status = napi_set_property(env, ResultforObject, create_value::String(env, "top"), create_value::Number(env, rect.top));
-        assert(status == napi_ok);
-
-        return ResultforObject;
-    }
-    /**
-     * @brief 返回一个 undefined
-     *
-     * @param env
-     * @param data
-     * @param size
-     * @return napi_value
-     */
-    napi_value Undefined(napi_env env)
-    {
-        napi_status status;
-        napi_value Results;
-        status = napi_get_undefined(env, &Results);
-        assert(status == napi_ok);
-        return Results;
-    }
-    /**
-     * @brief 自识别类型
-     *
-     * @param env
-     * @param anyValue
-     * @return napi_value
-     */
-    napi_value New(napi_env env, any anyValue)
-    {
-        napi_status status;
-        napi_value ResultForAny;
-        if (anyValue.has_value())
-        {
-            // 整形
-            if (anyValue.type() == typeid(DWORD))
-            {
-                ResultForAny = Number(env, any_cast<DWORD>(anyValue));
-            }
-            else if (anyValue.type() == typeid(int))
-            {
-                ResultForAny = Number(env, any_cast<int>(anyValue));
-            }
-            else if (anyValue.type() == typeid(long))
-            {
-                ResultForAny = Number(env, any_cast<long>(anyValue));
-            }
-            else if (anyValue.type() == typeid(long long))
-            {
-                ResultForAny = Number(env, any_cast<long long>(anyValue));
-            }
-            else if (anyValue.type() == typeid(HWND))
-            {
-                ResultForAny = Number(env, any_cast<HWND>(anyValue));
-            }
-            else if (anyValue.type() == typeid(int64_t))
-            {
-                ResultForAny = Number(env, any_cast<int64_t>(anyValue));
-            }
-            else if (anyValue.type() == typeid(short))
-            {
-                ResultForAny = Number(env, any_cast<short>(anyValue));
-            }
-            else if (anyValue.type() == typeid(unsigned long long) || anyValue.type() == typeid(unsigned long))
-            {
-                ResultForAny = Number(env, (unsigned long)any_cast<unsigned long long>(anyValue));
-            }
-            // 浮点
-            else if (anyValue.type() == typeid(float))
-            {
-                ResultForAny = Number(env, (double)any_cast<float>(anyValue));
-            }
-            else if (anyValue.type() == typeid(double))
-            {
-                ResultForAny = Number(env, any_cast<double>(anyValue));
-            }
-            else if (anyValue.type() == typeid(long double))
-            {
-                ResultForAny = Number(env, (double)any_cast<long double>(anyValue));
-            }
-            // 文本型
-            else if (anyValue.type() == typeid(string))
-            {
-                ResultForAny = String(env, any_cast<string>(anyValue));
-            }
-            else if (anyValue.type() == typeid(wstring))
-            {
-                ResultForAny = String(env, any_cast<wstring>(anyValue));
-            }
-            else if (anyValue.type() == typeid(char *))
-            {
-                ResultForAny = String(env, any_cast<char *>(anyValue));
-            }
-            else if (anyValue.type() == typeid(CHAR *))
-            {
-                ResultForAny = String(env, any_cast<CHAR *>(anyValue));
-            }
-            else if (anyValue.type() == typeid(WCHAR *))
-            {
-                ResultForAny = String(env, any_cast<WCHAR *>(anyValue));
-            }
-            // bool
-            else if (anyValue.type() == typeid(bool))
-            {
-                ResultForAny = Boolean(env, any_cast<bool>(anyValue));
-            }
-            else if (anyValue.type() == typeid(BOOL))
-            {
-                ResultForAny = Boolean(env, any_cast<BOOL>(anyValue));
-            }
-
-            else
-            {
-                ResultForAny = Undefined(env);
-            }
-        }
-
-        return ResultForAny;
-    }
-    napi_value New(napi_env env)
-    {
-        return Undefined(env);
-    }
-    namespace Array
-    {
-        /**
-         * @brief 支持多种类型的数组
-         *
-         * @param env
-         * @param wstringVector
-         * @return napi_value
-         */
-        napi_value New(napi_env env, vector<napi_value> wstringVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < wstringVector.size(); index++)
-            {
-                napi_value push_item_data = wstringVector[index];
-                status = napi_set_element(env, ResultforArray, index, push_item_data);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        napi_value New(napi_env env, vector<any> wstringVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < wstringVector.size(); index++)
-            {
-                any push_item_data = wstringVector[index];
-                napi_set_element(env, ResultforArray, index, create_value::New(env, push_item_data));
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        /**
-         * @brief 创建一个全是文本的数组
-         *
-         * @param env
-         * @param stringVector
-         * @return napi_value
-         */
-        napi_value String(napi_env env, vector<string> stringVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < stringVector.size(); index++)
-            {
-                napi_value push_item;
-                string push_item_data = stringVector[index];
-                status = napi_create_string_utf8(env, push_item_data.c_str(), NAPI_AUTO_LENGTH, &push_item);
-                assert(status == napi_ok);
-                status = napi_set_element(env, ResultforArray, index, push_item);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        napi_value String(napi_env env, vector<wstring> wstringVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < wstringVector.size(); index++)
-            {
-                napi_value push_item;
-                wstring push_item_data = wstringVector[index];
-                status = napi_create_string_utf8(env, _W2U8_(push_item_data.c_str()).c_str(), NAPI_AUTO_LENGTH, &push_item);
-                assert(status == napi_ok);
-                status = napi_set_element(env, ResultforArray, index, push_item);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        /**
-         * @brief 创建一个全是数字的数组
-         *
-         * @param env
-         * @param intVector
-         * @return napi_value
-         */
-        napi_value Number(napi_env env, vector<int> intVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < intVector.size(); index++)
-            {
-                napi_value push_item;
-                int push_item_data = intVector[index];
-                status = napi_create_int64(env, push_item_data, &push_item);
-                assert(status == napi_ok);
-                status = napi_set_element(env, ResultforArray, index, push_item);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        /**
-         * @brief 创建一个全是数字的数组
-         *
-         * @param env
-         * @param intVector
-         * @return napi_value
-         */
-        napi_value Bigint(napi_env env, vector<int> intVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < intVector.size(); index++)
-            {
-                napi_value push_item;
-                int push_item_data = intVector[index];
-                status = napi_create_int64(env, push_item_data, &push_item);
-                assert(status == napi_ok);
-                status = napi_set_element(env, ResultforArray, index, push_item);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-        /**
-         * @brief 创建一个全是数字的数组
-         *
-         * @param env
-         * @param intVector
-         * @return napi_value
-         */
-        napi_value Boolean(napi_env env, vector<bool> boolVector)
-        {
-            napi_status status;
-            napi_value ResultforArray;
-            status = napi_create_array(env, &ResultforArray);
-            assert(status == napi_ok);
-            for (unsigned index = 0; index < boolVector.size(); index++)
-            {
-                napi_value push_item;
-                bool push_item_data = boolVector[index];
-                status = napi_get_boolean(env, push_item_data, &push_item);
-                assert(status == napi_ok);
-                status = napi_set_element(env, ResultforArray, index, push_item);
-                assert(status == napi_ok);
-            }
-            return ResultforArray;
-        }
-    }
-    namespace Object
-    {
-        /**
-         * @brief 创建一个全是文本的 键值对对象
-         *
-         * @param env
-         * @param mapObject
-         * @return napi_value
-         */
-        napi_value Object(napi_env env, map<string, string> mapObject)
-        {
-            napi_status status;
-            napi_value ResultforObject;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-            map<string, string>::iterator it = mapObject.begin();
-
-            while (it != mapObject.end())
-            {
-                status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::String(env, it->second));
-                assert(status == napi_ok);
-                it++;
-            }
-
-            return ResultforObject;
-        }
-        /**
-         * @brief 创建一个全是int的 键值对对象
-         *
-         * @param env
-         * @param mapObject
-         * @return napi_value
-         */
-        napi_value Object(napi_env env, map<string, int> mapObject)
-        {
-            napi_status status;
-            napi_value ResultforObject;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-            map<string, int>::iterator it = mapObject.begin();
-
-            while (it != mapObject.end())
-            {
-                status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::Number(env, it->second));
-                assert(status == napi_ok);
-                it++;
-            }
-
-            return ResultforObject;
-        }
-        /**
-         * @brief 创建一个全是napi_value的 键值对对象
-         *
-         * @param env
-         * @param mapObject
-         * @return napi_value
-         */
-        napi_value Object(napi_env env, map<string, napi_value> mapObject)
-        {
-            napi_status status;
-            napi_value ResultforObject;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-            map<string, napi_value>::iterator it = mapObject.begin();
-
-            while (it != mapObject.end())
-            {
-                status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), it->second);
-                assert(status == napi_ok);
-                it++;
-            }
-
-            return ResultforObject;
-        }
-        /**
-         * @brief 创建一个任意js支持的类型
-         *
-         * @param env
-         * @param mapObject
-         * @return napi_value
-         */
-        napi_value Object(napi_env env, map<string, any> mapObject)
-        {
-            napi_status status;
-            napi_value ResultforObject;
-            status = napi_create_object(env, &ResultforObject);
-            assert(status == napi_ok);
-            map<string, any>::iterator it = mapObject.begin();
-
-            while (it != mapObject.end())
-            {
-                status = napi_set_property(env, ResultforObject, create_value::String(env, it->first), create_value::New(env, it->second));
-                assert(status == napi_ok);
-                it++;
-            }
-
-            return ResultforObject;
-        }
-        napi_value New(napi_env env, map<string, any> mapObject)
-        {
-
-            return Object(env, mapObject);
-        }
-        napi_value New(napi_env env, map<string, string> mapObject)
-        {
-
-            return Object::Object(env, mapObject);
-        }
-        napi_value New(napi_env env, map<string, int> mapObject)
-        {
-
-            return Object(env, mapObject);
-        }
-        napi_value New(napi_env env, map<string, napi_value> mapObject)
-        {
-
-            return Object(env, mapObject);
-        }
-        napi_value New(napi_env env)
-        {
-            return Object(env, map<string, int>{});
-        }
-    }
-};
-
 map<string, string> getVariableAll()
 {
     map<string, string> envStrMap;
@@ -3262,7 +2664,7 @@ map<string, string> getVariableAll()
 
 static napi_value getAllEnv(napi_env env, napi_callback_info info)
 {
-    return create_value::Object::Object(env, getVariableAll());
+    return hmc_napi_create_value::Object::Object(env, getVariableAll());
 }
 static napi_value napi_getenv(napi_env env, napi_callback_info info)
 {
@@ -3274,7 +2676,7 @@ static napi_value napi_getenv(napi_env env, napi_callback_info info)
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
 
     string envkey = call_String_NAPI_WINAPI_A(env, args[0]);
-    return create_value::String(env, GetVariable(envkey));
+    return hmc_napi_create_value::String(env, GetVariable(envkey));
 }
 
 // 搜索窗口句柄
@@ -3283,7 +2685,7 @@ napi_value fn_findWindow(napi_env env, napi_callback_info info)
     napi_status status;
     size_t argc = 2;
     napi_value args[2];
-    napi_value Results = create_value::Null(env);
+    napi_value Results = hmc_napi_create_value::Null(env);
 
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
@@ -3297,7 +2699,7 @@ napi_value fn_findWindow(napi_env env, napi_callback_info info)
         {
             return Results;
         }
-        return create_value::Number(env, window_Handle);
+        return hmc_napi_create_value::Number(env, window_Handle);
     }
 
     case 2:
@@ -3316,7 +2718,7 @@ napi_value fn_findWindow(napi_env env, napi_callback_info info)
             {
                 return Results;
             }
-            return create_value::Number(env, window_Handle);
+            return hmc_napi_create_value::Number(env, window_Handle);
         }
         //  fn_findWindow("class",null)
         else if (hmc_napi_type::isNull(env, args[1]))
@@ -3326,7 +2728,7 @@ napi_value fn_findWindow(napi_env env, napi_callback_info info)
             {
                 return Results;
             }
-            return create_value::Number(env, window_Handle);
+            return hmc_napi_create_value::Number(env, window_Handle);
         }
         // fn_findWindow("class","title")
         else
@@ -3337,12 +2739,12 @@ napi_value fn_findWindow(napi_env env, napi_callback_info info)
             {
                 return Results;
             }
-            return create_value::Number(env, window_Handle);
+            return hmc_napi_create_value::Number(env, window_Handle);
         }
     }
     }
 
-    return create_value::Null(env);
+    return hmc_napi_create_value::Null(env);
 }
 
 // 获取子窗口句柄
@@ -3351,7 +2753,7 @@ napi_value fn_findWindowEx(napi_env env, napi_callback_info info)
     napi_status status;
     size_t argc = 4;
     napi_value args[4];
-    napi_value Results = create_value::Null(env);
+    napi_value Results = hmc_napi_create_value::Null(env);
 
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
@@ -3373,10 +2775,10 @@ napi_value fn_findWindowEx(napi_env env, napi_callback_info info)
             return Results;
         }
 
-        return create_value::Number(env, window_Handle);
+        return hmc_napi_create_value::Number(env, window_Handle);
     }
 
-    return create_value::Null(env);
+    return hmc_napi_create_value::Null(env);
 }
 
 #define HMC_CHECK_CATCH catch (char *err){};
@@ -3563,7 +2965,7 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
     napi_status status;
     size_t argc = 4;
     napi_value args[4];
-    napi_value Results = create_value::Array::Number(env, vector<int>());
+    napi_value Results = hmc_napi_create_value::Array::Number(env, vector<int>());
 
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
@@ -3639,7 +3041,7 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
     for (size_t index = 0; index < hwnd_list.size(); index++)
     {
         int hwnd = hwnd_list[index];
-        napi_value number = create_value::Number(env, hwnd);
+        napi_value number = hmc_napi_create_value::Number(env, hwnd);
         napi_set_element(env, Results, index, number);
     }
     return Results;
@@ -3661,9 +3063,7 @@ static void hmc_gc_func()
     // 防止鼠标被锁定
     if (hmc_mouse::__LimitMouseRange_worker)
     {
-         hmc_mouse::stopLimitMouseRange_worker();
-        
-        //hmc_mouse::__LimitMouseRange_worker.release();
+        hmc_mouse::stopLimitMouseRange_worker();
     }
 
     // 释放鼠标监听的线程
@@ -3672,188 +3072,176 @@ static void hmc_gc_func()
         hmc_mouse::StopHookMouse();
     }
 
-    
-}
 
+}
 
 napi_value fn_SendMessage(napi_env env, napi_callback_info info)
 {
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
-  auto res =  ::SendMessageW(input.getHwnd(0), (UINT)input.getInt(1), (WPARAM)input.getInt64(2), (LPARAM)input.getInt64(3));
+    auto res = ::SendMessageW(input.getHwnd(0), (UINT)input.getInt(1), (WPARAM)input.getInt64(2), (LPARAM)input.getInt64(3));
 
-  return hmc_napi_create_value::Number(env, res);
+    return hmc_napi_create_value::Number(env, res);
+}
+
+void Init_MAIN_DATA() {
+    // 空间预开劈
+    hmc_PromiseSession::____$hmcPromise_PromiseTaskList.reserve(150);
+    hmc_PromiseSession::____$hmcPromise_promise_task_id_send_index_list.reserve(150);
 
 }
 
 static napi_value Init(napi_env env, napi_value exports)
 {
-    // napi_value exportsMessage;
-    // napi_create_object(env, &exportsMessage);
-
+    //std::thread(Init_MAIN_DATA).detach();
     napi_property_descriptor BIND_NAPI_METHOD[] = {
         ADD_NAPI_METHOD_Str_VALUE("version", "0.0.0"),
-        ADD_NAPI_METHOD_Str_VALUE("desc", "HMC Connection System api"),
+        ADD_NAPI_METHOD_Str_VALUE("desc", "Easier Access to System APIs"),
         ADD_NAPI_METHOD_Str_VALUE("platform", "win32"),
-        DECLARE_NAPI_METHOD("getSystemIdleTime", getSystemIdleTime),
-        DECLARE_NAPI_METHOD("sleep", sleep),
-        DECLARE_NAPI_METHOD("isAdmin", isAdmin),
-        DECLARE_NAPI_METHOD("openApp", openApp),
-        DECLARE_NAPI_METHOD("openExternal", openExternal), //=>2-1ADD
-        DECLARE_NAPI_METHOD("openURL", openURL),           //=>2-1ADD
-        DECLARE_NAPI_METHOD("openPath", openPath),         //=>2-1ADD
-        DECLARE_NAPI_METHOD("powerControl", powerControl),
-        DECLARE_NAPI_METHOD("getForegroundWindow", getForegroundWindow),
-        DECLARE_NAPI_METHOD("showMonitors", showMonitors),
-        DECLARE_NAPI_METHOD("shutMonitors", shutMonitors),
-        DECLARE_NAPI_METHOD("getSystemMenu", getSystemMenu),
-        DECLARE_NAPI_METHOD("messageBox", messageBox),
-        DECLARE_NAPI_METHOD("alert", alert),               //=>2-1ADD
-        DECLARE_NAPI_METHOD("confirm", confirm),           //=>2-1ADD
-        DECLARE_NAPI_METHOD("MessageError", MessageError), //=>2-1ADD
-        DECLARE_NAPI_METHOD("MessageStop", MessageStop),   //=>2-1ADD
-        DECLARE_NAPI_METHOD("lookHandleSetTitle", lookHandleSetTitle),
-        DECLARE_NAPI_METHOD("lookHandleCloseWindow", lookHandleCloseWindow),
-        DECLARE_NAPI_METHOD("isHandleWindowVisible", isHandleWindowVisible),
-        DECLARE_NAPI_METHOD("lookHandleShowWindow", lookHandleShowWindow),
-        DECLARE_NAPI_METHOD("lookHandleGetTitle", lookHandleGetTitle),
-        DECLARE_NAPI_METHOD("getProcessHandle", getProcessHandle),
-        DECLARE_NAPI_METHOD("isSystemX64", isSystemX64),
-        DECLARE_NAPI_METHOD("getTrayList", getTrayList),
-        DECLARE_NAPI_METHOD("setHandleTransparent", setHandleTransparent),
-        DECLARE_NAPI_METHOD("getHandleProcessID", getHandleProcessID),
-        DECLARE_NAPI_METHOD("getForegroundWindowProcessID", getForegroundWindowProcessID),
-        DECLARE_NAPI_METHOD("getMetrics", getMetrics),
-        DECLARE_NAPI_METHOD("getPointWindowProcessId", getPointWindowProcessId),
-        DECLARE_NAPI_METHOD("getPointWindowName", getPointWindowName),
-        DECLARE_NAPI_METHOD("getPointWindow", getPointWindow),
-        DECLARE_NAPI_METHOD("getDeviceCaps", getDeviceCaps),
-        DECLARE_NAPI_METHOD("getWindowRect", getWindowRect),
-        DECLARE_NAPI_METHOD("setWindowMode", setWindowMode),
-        DECLARE_NAPI_METHOD("closedHandle", closedHandle),
-        DECLARE_NAPI_METHOD("setWindowTop", setWindowTop),
-        DECLARE_NAPI_METHOD("hasWindowTop", hasWindowTop),
-        DECLARE_NAPI_METHOD("windowJitter", windowJitter), //=>3-1UP to Asynchronous
-        DECLARE_NAPI_METHOD("isHandle", isHandle),
-        DECLARE_NAPI_METHOD("getPointWindowMain", getPointWindowMain),
-        DECLARE_NAPI_METHOD("getMainWindow", getMainWindow),
-        DECLARE_NAPI_METHOD("isEnabled", isEnabled),
-        DECLARE_NAPI_METHOD("setWindowEnabled", setWindowEnabled),
-        DECLARE_NAPI_METHODRM("setWindowFocus", setForegroundWindow),
-        DECLARE_NAPI_METHODRM("setForegroundWindow", setForegroundWindow),
-        DECLARE_NAPI_METHOD("updateWindow", updateWindow),
-        DECLARE_NAPI_METHOD("SetWindowInTaskbarVisible", SetWindowInTaskbarVisible),
-        DECLARE_NAPI_METHOD("SetBlockInput", SetBlockInput),
-        DECLARE_NAPI_METHOD("system", CallSystem),
-        DECLARE_NAPI_METHOD("SetSystemHOOK", SetSystemHOOK),
-        DECLARE_NAPI_METHOD("systemStartTime", systemStartTime),
-        DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),
-        DECLARE_NAPI_METHODRM("hasRegistrKey", hasRegistrKey),
-        DECLARE_NAPI_METHODRM("setRegistrKey", setRegistrKey),
-        DECLARE_NAPI_METHODRM("createPathRegistr", createPathRegistr),
-        DECLARE_NAPI_METHODRM("enumRegistrKey", enumRegistrKey),
-        DECLARE_NAPI_METHODRM("getRegistrBuffValue", getRegistrBuffValue),
-        DECLARE_NAPI_METHODRM("removeStringRegKeyWalk", removeStringRegKeyWalk), //=>2-9ADD
-        DECLARE_NAPI_METHODRM("removeStringRegKey", removeStringRegKey),         //=>2-9ADD
-        DECLARE_NAPI_METHODRM("removeStringRegValue", removeStringRegValue),     //=>2-9ADD
-        DECLARE_NAPI_METHODRM("setRegistrDword", setRegistrDword),               //=>2-10ADD
-        DECLARE_NAPI_METHODRM("setRegistrQword", setRegistrQword),               //=>2-10ADD
-        DECLARE_NAPI_METHODRM("getRegistrDword", getRegistrDword),               //=>2-10ADD
-        DECLARE_NAPI_METHODRM("getRegistrQword", getRegistrQword),               //=>2-10ADD
+        DECLARE_NAPI_METHOD("getSystemIdleTime", getSystemIdleTime),                       //=>2019
+        DECLARE_NAPI_METHOD("sleep", sleep),                                               //=>2019
+        DECLARE_NAPI_METHOD("isAdmin", isAdmin),                                           //=>2019
+        DECLARE_NAPI_METHOD("openApp", openApp),                                           //=>2019
+        DECLARE_NAPI_METHOD("openExternal", openExternal),                                 //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("openURL", openURL),                                           //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("openPath", openPath),                                         //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("powerControl", powerControl),                                 //=>2019
+        DECLARE_NAPI_METHOD("getForegroundWindow", getForegroundWindow),                   //=>2019
+        DECLARE_NAPI_METHOD("showMonitors", showMonitors),                                 //=>2019
+        DECLARE_NAPI_METHOD("shutMonitors", shutMonitors),                                 //=>2019
+        DECLARE_NAPI_METHOD("getSystemMenu", getSystemMenu),                               //=>2019
+        DECLARE_NAPI_METHOD("messageBox", messageBox),                                     //=>2019
+        DECLARE_NAPI_METHOD("alert", alert),                                               //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("confirm", confirm),                                           //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("MessageError", MessageError),                                 //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("MessageStop", MessageStop),                                   //=>2019-2-1ADD
+        DECLARE_NAPI_METHOD("lookHandleSetTitle", lookHandleSetTitle),                     // 2019?
+        DECLARE_NAPI_METHOD("lookHandleCloseWindow", lookHandleCloseWindow),               // 2019?
+        DECLARE_NAPI_METHOD("isHandleWindowVisible", isHandleWindowVisible),               // 2019?
+        DECLARE_NAPI_METHOD("lookHandleShowWindow", lookHandleShowWindow),                 // 2019?
+        DECLARE_NAPI_METHOD("lookHandleGetTitle", lookHandleGetTitle),                     // 2019?
+        DECLARE_NAPI_METHOD("getProcessHandle", getProcessHandle),                         // 2019?
+        DECLARE_NAPI_METHOD("isSystemX64", isSystemX64),                                   // 2019?
+        DECLARE_NAPI_METHOD("getTrayList", getTrayList),                                   // 2019?
+        DECLARE_NAPI_METHOD("setHandleTransparent", setHandleTransparent),                 // 2019?
+        DECLARE_NAPI_METHOD("getHandleProcessID", getHandleProcessID),                     // 2019?
+        DECLARE_NAPI_METHOD("getForegroundWindowProcessID", getForegroundWindowProcessID), // 2019?
+        DECLARE_NAPI_METHOD("getMetrics", getMetrics),                                     // 2019?
+        DECLARE_NAPI_METHOD("getPointWindowProcessId", getPointWindowProcessId),           // 2019?
+        DECLARE_NAPI_METHOD("getPointWindowName", getPointWindowName),                     // 2019?
+        DECLARE_NAPI_METHOD("getPointWindow", getPointWindow),                             // 2019?
+        DECLARE_NAPI_METHOD("getDeviceCaps", getDeviceCaps),                               // 2019?
+        DECLARE_NAPI_METHOD("getWindowRect", getWindowRect),                               // 2019?
+        DECLARE_NAPI_METHOD("setWindowMode", setWindowMode),                               // 2019?
+        DECLARE_NAPI_METHOD("closedHandle", closedHandle),                                 // 2019?
+        DECLARE_NAPI_METHOD("setWindowTop", setWindowTop),                                 // 2019?
+        DECLARE_NAPI_METHOD("hasWindowTop", hasWindowTop),                                 // 2019?
+        DECLARE_NAPI_METHOD("windowJitter", windowJitter),                                 //=>3-1UP to Asynchronous
+        DECLARE_NAPI_METHOD("isHandle", isHandle),                                         // 2019?
+        DECLARE_NAPI_METHOD("getPointWindowMain", getPointWindowMain),                     // 2019?
+        DECLARE_NAPI_METHOD("getMainWindow", getMainWindow),                               // 2019?
+        DECLARE_NAPI_METHOD("isEnabled", isEnabled),                                       // 2019?
+        DECLARE_NAPI_METHOD("setWindowEnabled", setWindowEnabled),                         // 2019?
+        DECLARE_NAPI_METHODRM("setWindowFocus", setForegroundWindow),                      // 2019?
+        DECLARE_NAPI_METHODRM("setForegroundWindow", setForegroundWindow),                 // 2019?
+        DECLARE_NAPI_METHOD("updateWindow", updateWindow),                                 // 2019?
+        DECLARE_NAPI_METHOD("SetWindowInTaskbarVisible", SetWindowInTaskbarVisible),       // 2019?
+        DECLARE_NAPI_METHOD("SetBlockInput", SetBlockInput),                               // 2019?
+        DECLARE_NAPI_METHOD("system", CallSystem),                                         // 2019?
+        DECLARE_NAPI_METHOD("SetSystemHOOK", SetSystemHOOK),                               // 2019?
+        DECLARE_NAPI_METHOD("systemStartTime", systemStartTime),                           // 2019?
+        DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),                         // 2019?
+        DECLARE_NAPI_METHODRM("hasRegistrKey", hasRegistrKey),                             // 2019?
+        DECLARE_NAPI_METHODRM("setRegistrKey", setRegistrKey),                             // 2019?
+        DECLARE_NAPI_METHODRM("createPathRegistr", createPathRegistr),                     // 2019?
+        DECLARE_NAPI_METHODRM("enumRegistrKey", enumRegistrKey),                           // 2019?
+        DECLARE_NAPI_METHODRM("getRegistrBuffValue", getRegistrBuffValue),                 // 2019?
+        DECLARE_NAPI_METHODRM("removeStringRegKeyWalk", removeStringRegKeyWalk),           //=>2022-2-9ADD
+        DECLARE_NAPI_METHODRM("removeStringRegKey", removeStringRegKey),                   //=>2022-2-9ADD
+        DECLARE_NAPI_METHODRM("removeStringRegValue", removeStringRegValue),               //=>2022-2-9ADD
+        DECLARE_NAPI_METHODRM("setRegistrDword", setRegistrDword),                         //=>2022-2-10ADD
+        DECLARE_NAPI_METHODRM("setRegistrQword", setRegistrQword),                         //=>2022-2-10ADD
+        DECLARE_NAPI_METHODRM("getRegistrDword", getRegistrDword),                         //=>2022-2-10ADD
+        DECLARE_NAPI_METHODRM("getRegistrQword", getRegistrQword),                         //=>2022-2-10ADD
         DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
-        DECLARE_NAPI_METHODRM("createSymlink", createSymlink),       //=>2-9ADD
-        DECLARE_NAPI_METHODRM("createHardLink", createHardLink),     //=>2-9ADD
-        DECLARE_NAPI_METHODRM("createDirSymlink", createDirSymlink), //=>2-9ADD
+        DECLARE_NAPI_METHODRM("createSymlink", createSymlink),       //=>2022-2-9ADD
+        DECLARE_NAPI_METHODRM("createHardLink", createHardLink),     //=>2022-2-9ADD
+        DECLARE_NAPI_METHODRM("createDirSymlink", createDirSymlink), //=>2022-2-9ADD
         DECLARE_NAPI_METHODRM("getClipboardText", getClipboardText),
         DECLARE_NAPI_METHODRM("setClipboardText", setClipboardText),
         DECLARE_NAPI_METHODRM("clearClipboard", clearClipboard),
-        DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2-11ADD
-        DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2022-2-11ADD
+        DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2022-2-11ADD
         DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
-        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2-11ADD
-        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2-11ADD
-        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2-11ADD
-        DECLARE_NAPI_METHOD("_SET_HMC_DEBUG", _SET_HMC_DEBUG),                           //=>2-11ADD
-        DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2-12ADD
-        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2-12ADD
-        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2-12ADD
-        DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),               //=>2-12ADD
-        DECLARE_NAPI_METHODRM("getCurrentMonitorRect", getCurrentMonitorRect),           //=>2-12ADD
-        DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),                     //=>2-12ADD
-        DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2-12ADD
-        DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2-12ADD
-        // DECLARE_NAPI_METHOD("getAllWindows", getAllWindows),                          //=>2-13REMOVE
-        {"getAllWindows", 0, getAllWindowsNot, 0, 0, 0, napi_writable, 0}, //=>2-13ADD
+        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2022-2-11ADD
+        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2022-2-11ADD
+        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2022-2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),               //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getCurrentMonitorRect", getCurrentMonitorRect),           //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),                     //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getAllWindows", getAllWindowsNot),                        //=>2022-2-13ADD
         DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
         // auto.cpp
-        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),               //=>3-1UP
-        DECLARE_NAPI_METHODRM("rightClick", rightClick),                   //=>3-1UP
-        DECLARE_NAPI_METHODRM("leftClick", leftClick),                     //=>3-1UP
-        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),   //=>3-1UP
-        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),           //=>3-1UP
-        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),               //=>3-1UP
-        DECLARE_NAPI_METHODRM("mouse", mouse),                             //=>3-1UP
-        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook), //=>3-1ADD
-        // DECLARE_NAPI_METHODRM("installHookMouse", installHookMouse),             //=>12-22 del
-        // DECLARE_NAPI_METHODRM("unHookMouse", unHookMouse),                       //=>12-22 del
-        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>3-1ADD
-        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>3-1ADD
-        // DECLARE_NAPI_METHODRM("getMouseNextSession", getMouseNextSession),       //=>12-22 del
-        // DECLARE_NAPI_METHODRM("isStartHookMouse", isStartHookMouse),             //=>12-22 del
-        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook), //=>3-1ADD
+        DECLARE_NAPI_METHODRM("setCursorPos", setCursorPos),                     //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("rightClick", rightClick),                         //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("leftClick", leftClick),                           //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("getMouseMovePoints", getMouseMovePoints),         //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("hasKeyActivate", hasKeyActivate),                 //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("getBasicKeys", getBasicKeys),                     //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("mouse", mouse),                                   //=>2022-3-1UP
+        DECLARE_NAPI_METHODRM("installKeyboardHook", installKeyboardHook),       //=>2022-3-1ADD
+        DECLARE_NAPI_METHODRM("unKeyboardHook", unKeyboardHook),                 //=>2022-3-1ADD
+        DECLARE_NAPI_METHODRM("getKeyboardNextSession", getKeyboardNextSession), //=>2022-3-1ADD
+        DECLARE_NAPI_METHODRM("isStartKeyboardHook", isStartKeyboardHook),       //=>2022-3-1ADD
         // windows.cpp
-        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle), //=>3-6UP
+        DECLARE_NAPI_METHODRM("getAllWindowsHandle", getAllWindowsHandle), //=>2022-3-6UP
         // process.cpp
-        DECLARE_NAPI_METHODRM("killProcess", killProcess),                             //=>4-1UP
-        DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),                 //=>4-1ADD
-        DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),                 //=>4-1ADD
-        DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling),   //=>4-2ADD
-        DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                         //=>4-1ADD
-        DECLARE_NAPI_METHODRM("formatVolumePath", formatVolumePath),                   //=>4-1ADD
-        DECLARE_NAPI_METHODRM("getProcessThreadList", getProcessThreadList),           //=>4-3ADD
-        DECLARE_NAPI_METHODRM("clearEnumProcessHandle", clearEnumProcessHandle),       //=>4-3ADD
-        DECLARE_NAPI_METHODRM("getSubProcessID", getSubProcessID),                     //=>4-3ADD
-        DECLARE_NAPI_METHODRM("enumAllProcessPolling", enumAllProcessPolling),         //=>4-3ADD
-        DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                       //=>4-3ADD
-        // DECLARE_NAPI_METHODRM("getProcessParentProcessID", getProcessParentProcessID), //=>4-3ADD
-        DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),     //=>4-3ADD
-        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),       //=>5-12ADD
-        DECLARE_NAPI_METHOD("popen", Popen),                                           //=>5-12ADD
-        DECLARE_NAPI_METHOD("_popen", __Popen),                                        //=>5-12ADD
-        DECLARE_NAPI_METHODRM("sendKeyT2C", sendKeyT2C),                               //=>5-26ADD
-        DECLARE_NAPI_METHODRM("sendKeyboard", sendKeyboard),                           //=>5-26ADD
-        DECLARE_NAPI_METHODRM("sendKeyT2CSync", sendKeyT2CSync),                       //=>5-26ADD
-        DECLARE_NAPI_METHODRM("sendBasicKeys", sendBasicKeys),                         //=>5-26ADD
-        DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),                   //=>5-27ADD
-        // DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),                //=>5-27ADD(NAPI 发送不出去 buff 以后再研究)
-        DECLARE_NAPI_METHODRM("getColor", getColor),     //=>5-27ADD
-        DECLARE_NAPI_METHOD("createMutex", createMutex), //=>6-21ADD
-        DECLARE_NAPI_METHOD("hasMutex", hasMutex),       //=>6-21ADD
-        DECLARE_NAPI_METHOD("putenv", putenv),           //=>6-21ADD
-        DECLARE_NAPI_METHOD("getenv", napi_getenv),      //=>6-21ADD
-        DECLARE_NAPI_METHOD("getAllEnv", getAllEnv),     //=>6-21ADD
-        // DECLARE_NAPI_METHOD("getUDPPortProcessID", getUDPPortProcessID), //=>6-21ADD
-        // DECLARE_NAPI_METHOD("getTCPPortProcessID", getTCPPortProcessID), //=>6-21ADD
-        DECLARE_NAPI_METHOD("findWindow", fn_findWindow),     //=>11-18ADD
-        DECLARE_NAPI_METHOD("findWindowEx", fn_findWindowEx), //=>11-18ADD
-
+        DECLARE_NAPI_METHODRM("killProcess", killProcess),                           //=>2022-4-1UP
+        DECLARE_NAPI_METHODRM("getModulePathList", getModulePathList),               //=>2022-4-1ADD
+        DECLARE_NAPI_METHODRM("enumProcessHandle", enumProcessHandle),               //=>2022-4-1ADD
+        DECLARE_NAPI_METHODRM("enumProcessHandlePolling", enumProcessHandlePolling), //=>2022-4-2ADD
+        DECLARE_NAPI_METHODRM("getVolumeList", getVolumeList),                       //=>2022-4-1ADD
+        DECLARE_NAPI_METHODRM("formatVolumePath", formatVolumePath),                 //=>2022-4-1ADD
+        DECLARE_NAPI_METHODRM("getProcessThreadList", getProcessThreadList),         //=>2022-4-3ADD
+        DECLARE_NAPI_METHODRM("clearEnumProcessHandle", clearEnumProcessHandle),     //=>2022-4-3ADD
+        DECLARE_NAPI_METHODRM("getSubProcessID", getSubProcessID),                   //=>2022-4-3ADD
+        DECLARE_NAPI_METHODRM("enumAllProcessPolling", enumAllProcessPolling),       //=>2022-4-3ADD
+        DECLARE_NAPI_METHODRM("enumAllProcess", enumAllProcess),                     //=>2022-4-3ADD
+        DECLARE_NAPI_METHODRM("clearEnumAllProcessList", clearEnumAllProcessList),   //=>2022-4-3ADD
+        DECLARE_NAPI_METHOD("setWindowIconForExtract", setWindowIconForExtract),     //=>2022-5-12ADD
+        DECLARE_NAPI_METHOD("popen", Popen),                                         //=>2022-5-12ADD
+        DECLARE_NAPI_METHOD("_popen", __Popen),                                      //=>2022-5-12ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2C", sendKeyT2C),                             //=>2022-5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyboard", sendKeyboard),                         //=>2022-5-26ADD
+        DECLARE_NAPI_METHODRM("sendKeyT2CSync", sendKeyT2CSync),                     //=>2022-5-26ADD
+        DECLARE_NAPI_METHODRM("sendBasicKeys", sendBasicKeys),                       //=>2022-5-26ADD
+        DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),                 //=>2022-5-27ADD
+        DECLARE_NAPI_METHODRM("getColor", getColor),                                 //=>2022-5-27ADD
+        DECLARE_NAPI_METHOD("createMutex", createMutex),                             //=>2022-6-21ADD
+        DECLARE_NAPI_METHOD("hasMutex", hasMutex),                                   //=>2022-6-21ADD
+        DECLARE_NAPI_METHOD("putenv", putenv),                                       //=>2022-6-21ADD
+        DECLARE_NAPI_METHOD("getenv", napi_getenv),                                  //=>2022-6-21ADD
+        DECLARE_NAPI_METHOD("getAllEnv", getAllEnv),                                 //=>2022-6-21ADD
+        DECLARE_NAPI_METHOD("findWindow", fn_findWindow),                            //=>2022-11-18ADD
+        DECLARE_NAPI_METHOD("findWindowEx", fn_findWindowEx),                        //=>2022-11-18ADD
         // 2023-11-27 add support
         DECLARE_NAPI_METHODRM("getVariableAll", fn_getVariableAll),
         // 2023-11-27 add support
         DECLARE_NAPI_METHODRM("getVariableAnalysis", fn_getEnvKeyAnalysis),
-        // 2023-11-27 add support
-        // DECLARE_NAPI_METHODRM("updateThis", fn_updateThis),
         // 2023-11-27 add support
         DECLARE_NAPI_METHODRM("getSystemKeyList", fn_getSystemKeyList),
         // 2023-11-27 add support
         DECLARE_NAPI_METHODRM("getUserKeyList", fn_getUserKeyList),
         // 2023-11-27 add support
         DECLARE_NAPI_METHODRM("getRealGlobalVariable", fn_getRealGlobalVariable),
-        // 2023-11-27 add support
-        // DECLARE_NAPI_METHODRM("setCwd", fn_setCwd),
         // 2023-11-28 add support
         DECLARE_NAPI_METHODRM("putUserVariable", fn_putUserVariable),
         // 2023-11-28 add support
@@ -3920,13 +3308,16 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("setLimitMouseRange", setLimitMouseRange),
         // 2023-12-23 add support
         DECLARE_NAPI_METHODRM("stopLimitMouseRangeWorker", stopLimitMouseRangeWorker),
+        // 2023-12-28 add support
         DECLARE_NAPI_METHODRM("sendMessage", fn_SendMessage),
 
     };
     _________HMC___________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
+      
 
+    // 2.0 api 异步同步双支持版本
     exports_process_all_v2_fun(/*
 
     fn_getAllProcessList::exports(env, exports, "getAllProcessList");
