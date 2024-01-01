@@ -2,7 +2,7 @@
 
 ![系统环境](https://cos.kiic.top/assets/used/202204112301972.svg)      ![系统环境](https://cos.kiic.top/assets/used/202204112301969.svg)      ![系统环境](https://img.shields.io/badge/Node6.14.2+-Node-97c40f.svg?longCache=true)       ![系统环境](https://img.shields.io/badge/Node8.0+-electron-97c40f.svg?longCache=true)    
 
-**You are currently viewing the Chinese version of the introduction. You can click [【README】](README.md) to view the English version of this README.**
+**You are currently viewing the Chinese version of the introduction. You can click [【README】](README-en.md) to view the English version of this README.**
 
 ![img](source/src/zh_cn.png)
 
