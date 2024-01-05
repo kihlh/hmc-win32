@@ -105,9 +105,6 @@
     <ClCompile Include="..\clip.cpp">
       <Filter>..</Filter>
     </ClCompile>
-    <ClCompile Include="..\registr.cpp">
-      <Filter>..</Filter>
-    </ClCompile>
     <ClCompile Include="..\auto.cpp">
       <Filter>..</Filter>
     </ClCompile>
@@ -140,6 +137,15 @@
     </ClCompile>
     <ClCompile Include="..\shell_v2.cpp">
       <Filter>..</Filter>
+    </ClCompile>
+    <ClCompile Include="..\registr_v2.cpp">
+      <Filter>..</Filter>
+    </ClCompile>
+    <ClCompile Include="..\util\hmc_registr_util.cpp">
+      <Filter>..\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\util\byte.cpp">
+      <Filter>..\util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

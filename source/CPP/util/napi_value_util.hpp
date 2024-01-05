@@ -28,40 +28,46 @@ using namespace std;
 
 // 导出一个 static 函数
 #define EXPORT_NAPI_STATIC_FN(func)              \
-    {                                            \
-        #func, 0, func, 0, 0, 0, napi_default, 0 \
-    }
+	{                                            \
+		#func, 0, func, 0, 0, 0, napi_default, 0 \
+	}
 // 导出一个 static 函数
 #define EXPORT_NAPI_STATIC_PAIR(name, func)     \
-    {                                           \
-        name, 0, func, 0, 0, 0, napi_default, 0 \
-    }
+	{                                           \
+		name, 0, func, 0, 0, 0, napi_default, 0 \
+	}
 
 // 导出一个 其他文件的 函数
 #define EXPORT_NAPI_REMOTE_FN(func)                                \
-    {                                                              \
-        #func, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
-    }
+	{                                                              \
+		#func, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
+	}
 
 // 导出一个 其他文件的 函数 并设置名称
 #define EXPORT_NAPI_REMOTE_FNPAIR(name, func)                     \
-    {                                                             \
-        name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
-    }
+	{                                                             \
+		name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
+	}
+#define as_Number(data)hmc_napi_create_value::Number(env,(int64_t)data)
+#define as_String(data)hmc_napi_create_value::String(env,data)
+#define as_Boolean(data)hmc_napi_create_value::Boolean(env,data)
+#define as_Null()hmc_napi_create_value::Null(env)
+#define as_Bigint(data)hmc_napi_create_value::Bigint(env,(long long)data)
+#define as_Numberf(data)hmc_napi_create_value::Number(env,(double)data)
 
 // 导出一个 其他文件的 函数 并设置名称
-#define ___EXPORT_NAPI_REMOTE_FN____PROMISE_SESSION                                                    \
-                                                EXPORT_NAPI_REMOTE_FNPAIR("_PromiseSession_get",_PromiseSession_getAll),     \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_isClosed),       \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_stop),           \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_max_id),         \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_data_size),      \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_set_sleep_time), \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_await),          \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_ongoingTasks),   \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_completeTasks),  \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_get_sleep_time), \
-                                                EXPORT_NAPI_REMOTE_FN(_PromiseSession_allTasks)
+#define ___EXPORT_NAPI_REMOTE_FN____PROMISE_SESSION                           \
+	EXPORT_NAPI_REMOTE_FNPAIR("_PromiseSession_get", _PromiseSession_getAll), \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_isClosed),                      \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_stop),                          \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_max_id),                        \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_data_size),                     \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_set_sleep_time),                \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_await),                         \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_ongoingTasks),                  \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_completeTasks),                 \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_get_sleep_time),                \
+		EXPORT_NAPI_REMOTE_FN(_PromiseSession_allTasks)
 
 typedef enum
 {
@@ -134,7 +140,7 @@ namespace hmc_napi_get_value
 	 * @param buffer
 	 */
 	template <typename T>
-	extern void buffer_vector(napi_env env, napi_value nodeValue, vector<T>& buffer);
+	extern void buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer);
 	/**
 	 * @brief 获取为布尔值
 	 *
@@ -278,21 +284,21 @@ namespace hmc_napi_get_value
 	 * @param nodeValue
 	 * @return const wchar_t* c标准接口的  const char *
 	 */
-	extern const wchar_t* buffer_utf16_clpStrW(napi_env env, napi_value nodeValue);
+	extern const wchar_t *buffer_utf16_clpStrW(napi_env env, napi_value nodeValue);
 	/**
 	 * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
 	 * @param env
 	 * @param nodeValue
 	 * @return const char* c标准接口的  const char *
 	 */
-	extern const char* buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue);
+	extern const char *buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue);
 	/**
 	 * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
 	 * @param env
 	 * @param nodeValue
 	 * @return const char* c标准接口的  const char *
 	 */
-	extern const char* buffer_ansi_clpStrA(napi_env env, napi_value nodeValue);
+	extern const char *buffer_ansi_clpStrA(napi_env env, napi_value nodeValue);
 	/**
 	 * @brief 获取一个对象并将其转换为 POINT
 	 *
@@ -389,6 +395,13 @@ namespace hmc_napi_get_value
 	 * @return RECT
 	 */
 	extern RECT rect(napi_env env, napi_value objectValue);
+	/**
+	 * @brief 获取为时间戳
+	 * 
+	 * @param env 
+	 * @param objectValue 
+	 */
+	extern double date(napi_env env, napi_value objectValue);
 }
 
 namespace hmc_napi_type
@@ -445,7 +458,7 @@ namespace hmc_napi_type
 	 * @return false
 	 */
 	template <typename... Args>
-	extern bool diff(napi_valuetype valuetype, const napi_valuetype& first, const Args &...args);
+	extern bool diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args);
 	/**
 	 * @brief 判断值与多种类型是否一致
 	 *
@@ -457,7 +470,7 @@ namespace hmc_napi_type
 	 * @return int
 	 */
 	template <typename... Args>
-	extern bool diff(napi_env env, napi_value nodeValue, const napi_valuetype& first, const Args &...args);
+	extern bool diff(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args);
 
 	/**
 	 * @brief 判断值与类型是否一致
@@ -660,6 +673,55 @@ namespace hmc_napi_type
 namespace hmc_napi_create_value
 {
 
+	/**
+	 * @brief 创建一个错误
+	 * 
+	 * @param env 上下文
+	 * @param error 错误信息
+	 * @param fn_name 函数名
+	 * @return napi_value 
+	 */
+	napi_value Error(napi_env env, string error, string fn_name = "", string ErrorCode = "HMC_NAPI_ERROR");
+	/**
+	 * @brief 立即报错 并返回null 给node
+	 * 
+	 * @param env 上下文
+	 * @param error 错误信息
+	 * @param fn_name 函数名
+	 * @return napi_value 
+	 */
+	napi_value Error(napi_env env, wstring error, wstring fn_name = L"", wstring ErrorCode = L"HMC_NAPI_ERROR");
+	/**
+	 * @brief 立即报错 并返回null 给node 只能是utf8文本
+	 * 
+	 * @param env 上下文
+	 * @param immediately 是否立即报错
+	 * @param error 错误信息
+	 * @param fn_name 函数名
+	 * @return napi_value 
+	 */
+	napi_value ErrorBreak(napi_env env,  string error, string fn_name = "", string ErrorCode = "HMC_NAPI_ERROR");
+	/**
+	 * @brief 立即报错 并返回null 给node 只能是A文本
+	 * 
+	 * @param env 上下文
+	 * @param immediately 是否立即报错
+	 * @param error 错误信息
+	 * @param fn_name 函数名
+	 * @return napi_value 
+	 */
+	napi_value ErrorBreakA(napi_env env,  string error, string fn_name = "", string ErrorCode = "HMC_NAPI_ERROR");
+	/**
+	 * @brief 立即报错 并返回null 给node 只能是utf16文本
+	 * 
+	 * @param env 上下文
+	 * @param immediately 是否立即报错
+	 * @param error 错误信息
+	 * @param fn_name 函数名
+	 * @return napi_value 
+	 */
+	napi_value ErrorBreak(napi_env env,wstring error, wstring fn_name = L"", wstring ErrorCode = L"HMC_NAPI_ERROR");
+
 	// 创建一个布尔型
 	napi_value Boolean(napi_env env, bool value = false);
 	// 创建一个布尔型
@@ -672,8 +734,8 @@ namespace hmc_napi_create_value
 	napi_value StringA(napi_env env, string value);
 	// 返回一个 string utf16 string
 	napi_value String(napi_env env, wstring value);
-	napi_value String(napi_env env, wchar_t* value);
-	napi_value String(napi_env env, char* value);
+	napi_value String(napi_env env, wchar_t *value);
+	napi_value String(napi_env env, char *value);
 	napi_value String(napi_env env);
 
 	/**
@@ -727,8 +789,8 @@ namespace hmc_napi_create_value
 	 * @param size
 	 * @return napi_value
 	 */
-	napi_value Buffer(napi_env env, vector<unsigned char>& buffer);
-	napi_value Buffer(napi_env env, void* data, size_t size);
+	napi_value Buffer(napi_env env, vector<unsigned char> &buffer);
+	napi_value Buffer(napi_env env, void *data, size_t size);
 
 	/**
 	 * @brief 返回一个 null
@@ -859,6 +921,12 @@ namespace hmc_napi_create_value
 		 * @return napi_value
 		 */
 		napi_value Object(napi_env env, map<string, any> mapObject);
+		napi_value Object(napi_env env);
+		bool putValue(napi_env env, napi_value Object,wstring key,napi_value value);
+		bool putValue(napi_env env, napi_value Object,string key,napi_value value);
+		bool putValue(napi_env env, napi_value Object,string key,string value);
+		bool putValue(napi_env env, napi_value Object,wstring key,wstring value);
+		
 	}
 
 }
@@ -1435,7 +1503,7 @@ namespace hmc_PromiseSession
 	 * @param func
 	 * @return size_t
 	 */
-	extern size_t open(std::function<void(vector<any>* data_list)> func);
+	extern size_t open(std::function<void(vector<any> *data_list)> func);
 	/**
 	 * @brief 创建一个新的任务id 并为其开辟容器 但不为其创建 变化管理线程
 	 *
@@ -1458,7 +1526,7 @@ namespace hmc_PromiseSession
 	extern size_t open(std::function<void()> func);
 
 	template <class _Fn, class... _Args>
-	extern size_t open2(_Fn&& _Fx, _Args &&..._Ax);
+	extern size_t open2(_Fn &&_Fx, _Args &&..._Ax);
 
 	extern size_t max_id();
 	extern vector<int> allTasks();
@@ -1479,9 +1547,6 @@ extern napi_value _PromiseSession_ongoingTasks(napi_env env, napi_callback_info 
 extern napi_value _PromiseSession_allTasks(napi_env env, napi_callback_info info);
 extern napi_value _PromiseSession_completeTasks(napi_env env, napi_callback_info info);
 extern napi_value _PromiseSession_get_sleep_time(napi_env env, napi_callback_info info);
-
-
-
 
 /*
  使用宏魔法开辟一个 Promise 函数
@@ -1504,422 +1569,426 @@ napi_value fu_New_Promise_class::format_to_js_value(napi_env env, std::any resul
 }
 
 */
-#define NEW_PROMISE_FUNCTION_DEFAULT_FUN \
-    std::any resultSend = std::any();\
-    std::vector<any> arguments_list = {};\
-    napi_value format_to_js_value(napi_env env, std::any result_any_data);\
-    std::any PromiseWorkFunc(std::vector<std::any> arguments_list);\
-    class PromiseFunction\
-    {\
-    private:\
-        static constexpr std::atomic<napi_async_work> work = NULL;\
-        static constexpr std::atomic<napi_deferred> deferred = NULL;\
-    public:\
-        static void exports(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startWork,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-        static void exportsSync(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startSync,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-    protected:\
-        static void asyncWorkFun(napi_env env, void *data)\
-        {\
-            resultSend = PromiseWorkFunc(arguments_list);\
-        }\
-        static void completeWork(napi_env env, napi_status status, void *data)\
-        {\
-            napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));\
-            napi_delete_async_work(env, work);\
-            deferred._Storage._Value = NULL;\
-            work._Storage._Value = NULL;\
-            resultSend.reset();\
-            resultSend = std::any();\
-            arguments_list.clear();\
-            arguments_list.resize(0);\
-        }\
-        static napi_value startWork(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");\
-            if (work != NULL)\
-            {\
-                work_message.append("error < Promise workspace has not been released. > ");\
-                napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());\
-                return result;\
-            }\
-            work_message.append("Node-API Deferred Promise from Async Work Item");\
-            napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name);\
-            napi_async_work addon_napi_async_work = NULL;\
-            napi_deferred addon_deferred = NULL;\
-            if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            auto input = hmc_NodeArgsValue(env, info).get_values();\
-            for (size_t i = 0; i < input.size(); i++)\
-            {\
-                arguments_list.push_back(input.at(i));\
-            }\
-            if (napi_create_async_work(env,\
-                                       NULL,\
-                                       work_name,\
-                                       asyncWorkFun,\
-                                       completeWork, NULL, &addon_napi_async_work) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation work async failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            napi_queue_async_work(env, addon_napi_async_work);\
-            work._Storage._Value = addon_napi_async_work;\
-            deferred._Storage._Value = addon_deferred;\
-            return promise;\
-        }\
-        static napi_value startSync(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::any resultSend = std::any();\
-            auto input = hmc_NodeArgsValue(env, info).get_values();\
-			std::vector<any> arguments_list$SP = {};\
-            for (size_t i = 0; i < input.size(); i++)\
-            {\
-                arguments_list$SP.push_back(input.at(i));\
-            }\
-                   startWorkSession(resultSendSessionID,arguments_list$SP); \
-            try\
-            {\
-                std::any data = PromiseWorkFunc(arguments_list);\
-                return format_to_js_value(env, data);\
-            }\
-            catch (const std::exception &err)\
-            {\
-                napi_throw_error(env, "catch (const std::exception&)", err.what());\
-                return result;\
-            }\
-            catch (...)\
-            {\
-                napi_throw_error(env, "catch (...)", "");\
-                return result;\
-            }\
-            return result;\
-        }\
-    };\
-    void exports(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exports(env, exports, name.c_str());\
-    }\
-    void exportsSync(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exportsSync(env, exports, name.c_str());\
-    }
+#define NEW_PROMISE_FUNCTION_DEFAULT_FUN                                                           \
+	std::any resultSend = std::any();                                                              \
+	std::vector<any> arguments_list = {};                                                          \
+	napi_value format_to_js_value(napi_env env, std::any result_any_data);                         \
+	std::any PromiseWorkFunc(std::vector<std::any> arguments_list);                                \
+	class PromiseFunction                                                                          \
+	{                                                                                              \
+	private:                                                                                       \
+		static constexpr std::atomic<napi_async_work> work = NULL;                                 \
+		static constexpr std::atomic<napi_deferred> deferred = NULL;                               \
+                                                                                                   \
+	public:                                                                                        \
+		static void exports(napi_env env, napi_value exports, std::string name)                    \
+		{                                                                                          \
+			napi_value exported_function;                                                          \
+			napi_create_function(env,                                                              \
+								 name.c_str(),                                                     \
+								 name.length(),                                                    \
+								 startWork,                                                        \
+								 NULL,                                                             \
+								 &exported_function);                                              \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                       \
+		}                                                                                          \
+		static void exportsSync(napi_env env, napi_value exports, std::string name)                \
+		{                                                                                          \
+			napi_value exported_function;                                                          \
+			napi_create_function(env,                                                              \
+								 name.c_str(),                                                     \
+								 name.length(),                                                    \
+								 startSync,                                                        \
+								 NULL,                                                             \
+								 &exported_function);                                              \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                       \
+		}                                                                                          \
+                                                                                                   \
+	protected:                                                                                     \
+		static void asyncWorkFun(napi_env env, void *data)                                         \
+		{                                                                                          \
+			resultSend = PromiseWorkFunc(arguments_list);                                          \
+		}                                                                                          \
+		static void completeWork(napi_env env, napi_status status, void *data)                     \
+		{                                                                                          \
+			napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));             \
+			napi_delete_async_work(env, work);                                                     \
+			deferred._Storage._Value = NULL;                                                       \
+			work._Storage._Value = NULL;                                                           \
+			resultSend.reset();                                                                    \
+			resultSend = std::any();                                                               \
+			arguments_list.clear();                                                                \
+			arguments_list.resize(0);                                                              \
+		}                                                                                          \
+		static napi_value startWork(napi_env env, napi_callback_info info)                         \
+		{                                                                                          \
+			napi_value result, work_name, promise;                                                 \
+			napi_get_null(env, &result);                                                           \
+			std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");    \
+			if (work != NULL)                                                                      \
+			{                                                                                      \
+				work_message.append("error < Promise workspace has not been released. > ");        \
+				napi_throw_error(env, "TASK_CONFLICT", work_message.c_str());                      \
+				return result;                                                                     \
+			}                                                                                      \
+			work_message.append("Node-API Deferred Promise from Async Work Item");                 \
+			napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name); \
+			napi_async_work addon_napi_async_work = NULL;                                          \
+			napi_deferred addon_deferred = NULL;                                                   \
+			if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)                    \
+			{                                                                                      \
+				work_message.append("error < Promise Creation failed. > ");                        \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                    \
+				return result;                                                                     \
+			};                                                                                     \
+			auto input = hmc_NodeArgsValue(env, info).get_values();                                \
+			for (size_t i = 0; i < input.size(); i++)                                              \
+			{                                                                                      \
+				arguments_list.push_back(input.at(i));                                             \
+			}                                                                                      \
+			if (napi_create_async_work(env,                                                        \
+									   NULL,                                                       \
+									   work_name,                                                  \
+									   asyncWorkFun,                                               \
+									   completeWork, NULL, &addon_napi_async_work) != napi_ok)     \
+			{                                                                                      \
+				work_message.append("error < Promise Creation work async failed. > ");             \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                    \
+				return result;                                                                     \
+			};                                                                                     \
+			napi_queue_async_work(env, addon_napi_async_work);                                     \
+			work._Storage._Value = addon_napi_async_work;                                          \
+			deferred._Storage._Value = addon_deferred;                                             \
+			return promise;                                                                        \
+		}                                                                                          \
+		static napi_value startSync(napi_env env, napi_callback_info info)                         \
+		{                                                                                          \
+			napi_value result, work_name, promise;                                                 \
+			napi_get_null(env, &result);                                                           \
+			std::any resultSend = std::any();                                                      \
+			auto input = hmc_NodeArgsValue(env, info).get_values();                                \
+			std::vector<any> arguments_list$SP = {};                                               \
+			for (size_t i = 0; i < input.size(); i++)                                              \
+			{                                                                                      \
+				arguments_list$SP.push_back(input.at(i));                                          \
+			}                                                                                      \
+			startWorkSession(resultSendSessionID, arguments_list$SP);                              \
+			try                                                                                    \
+			{                                                                                      \
+				std::any data = PromiseWorkFunc(arguments_list);                                   \
+				return format_to_js_value(env, data);                                              \
+			}                                                                                      \
+			catch (const std::exception &err)                                                      \
+			{                                                                                      \
+				napi_throw_error(env, "catch (const std::exception&)", err.what());                \
+				return result;                                                                     \
+			}                                                                                      \
+			catch (...)                                                                            \
+			{                                                                                      \
+				napi_throw_error(env, "catch (...)", "");                                          \
+				return result;                                                                     \
+			}                                                                                      \
+			return result;                                                                         \
+		}                                                                                          \
+	};                                                                                             \
+	void exports(napi_env env, napi_value exports, std::string name)                               \
+	{                                                                                              \
+		(new PromiseFunction)->exports(env, exports, name.c_str());                                \
+	}                                                                                              \
+	void exportsSync(napi_env env, napi_value exports, std::string name)                           \
+	{                                                                                              \
+		(new PromiseFunction)->exportsSync(env, exports, name.c_str());                            \
+	}
 
-
-
-
-#define NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP \
-    std::any resultSend = std::any();\
-    std::vector<any> arguments_list = {};\
-    napi_value format_to_js_value(napi_env env, std::any result_any_data);\
-    std::any PromiseWorkFunc(std::vector<std::any> arguments_list);\
-     void startWorkSession(size_t resultSendSessionID,std::vector<any> arguments_list$SP ) {\
-	thread([resultSendSessionID,arguments_list$SP]()\
-    {\
+#define NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP                                                        \
+	std::any resultSend = std::any();                                                              \
+	std::vector<any> arguments_list = {};                                                          \
+	napi_value format_to_js_value(napi_env env, std::any result_any_data);                         \
+	std::any PromiseWorkFunc(std::vector<std::any> arguments_list);                                \
+	void startWorkSession(size_t resultSendSessionID, std::vector<any> arguments_list$SP)          \
+	{                                                                                              \
+		thread([resultSendSessionID, arguments_list$SP]()                                          \
+			   {\
         auto data = PromiseWorkFunc(arguments_list$SP);\
         hmc_PromiseSession::send(resultSendSessionID, data);\
-        hmc_PromiseSession::end(resultSendSessionID);\
-    }).detach();}\
-    class PromiseFunction\
-    {\
-    private:\
-        static constexpr std::atomic<napi_async_work> work = NULL;\
-        static constexpr std::atomic<napi_deferred> deferred = NULL;\
-    public:\
-        static void exports(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startWork,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-        static void exportsSync(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startSync,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-    protected:\
-        static void asyncWorkFun(napi_env env, void *data)\
-        {\
-            resultSend = PromiseWorkFunc(arguments_list);\
-        }\
-        static void completeWork(napi_env env, napi_status status, void *data)\
-        {\
-            napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));\
-            napi_delete_async_work(env, work);\
-            deferred._Storage._Value = NULL;\
-            work._Storage._Value = NULL;\
-            resultSend.reset();\
-            resultSend = std::any();\
-            arguments_list.clear();\
-            arguments_list.resize(0);\
-        }\
-        static napi_value startWork(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");\
-            if (work != NULL)\
-            {\
-                size_t resultSendSessionID = hmc_PromiseSession::open();\
-            auto input = hmc_NodeArgsValue(env, info).get_values();\
-			std::vector<any> arguments_list$SP = {};\
-            for (size_t i = 0; i < input.size(); i++)\
-            {\
-                arguments_list$SP.push_back(input.at(i));\
-            }\
-                   startWorkSession(resultSendSessionID,arguments_list$SP); \
-                return hmc_napi_create_value::Number(env,(int64_t)resultSendSessionID);\
-            }\
-            work_message.append("Node-API Deferred Promise from Async Work Item");\
-            napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name);\
-            napi_async_work addon_napi_async_work = NULL;\
-            napi_deferred addon_deferred = NULL;\
-            if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            auto input = hmc_NodeArgsValue(env, info).get_values();\
-            for (size_t i = 0; i < input.size(); i++)\
-            {\
-                arguments_list.push_back(input.at(i));\
-            }\
-            if (napi_create_async_work(env,\
-                                       NULL,\
-                                       work_name,\
-                                       asyncWorkFun,\
-                                       completeWork, NULL, &addon_napi_async_work) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation work async failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            napi_queue_async_work(env, addon_napi_async_work);\
-            work._Storage._Value = addon_napi_async_work;\
-            deferred._Storage._Value = addon_deferred;\
-            return promise;\
-        }\
-        static napi_value startSync(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::any resultSend = std::any();\
-            std::vector<std::any> arguments_list = {};\
-            auto input = hmc_NodeArgsValue(env, info).get_values();\
-            for (size_t i = 0; i < input.size(); i++)\
-            {\
-                arguments_list.push_back(input.at(i));\
-            }\
-            try\
-            {\
-                std::any data = PromiseWorkFunc(arguments_list);\
-                return format_to_js_value(env, data);\
-            }\
-            catch (const std::exception &err)\
-            {\
-                napi_throw_error(env, "catch (const std::exception&)", err.what());\
-                return result;\
-            }\
-            catch (...)\
-            {\
-                napi_throw_error(env, "catch (...)", "");\
-                return result;\
-            }\
-            return result;\
-        }\
-    };\
-    void exports(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exports(env, exports, name.c_str());\
-    }\
-    void exportsSync(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exportsSync(env, exports, name.c_str());\
-    }
+        hmc_PromiseSession::end(resultSendSessionID); })                                                                                \
+			.detach();                                                                             \
+	}                                                                                              \
+	class PromiseFunction                                                                          \
+	{                                                                                              \
+	private:                                                                                       \
+		static constexpr std::atomic<napi_async_work> work = NULL;                                 \
+		static constexpr std::atomic<napi_deferred> deferred = NULL;                               \
+                                                                                                   \
+	public:                                                                                        \
+		static void exports(napi_env env, napi_value exports, std::string name)                    \
+		{                                                                                          \
+			napi_value exported_function;                                                          \
+			napi_create_function(env,                                                              \
+								 name.c_str(),                                                     \
+								 name.length(),                                                    \
+								 startWork,                                                        \
+								 NULL,                                                             \
+								 &exported_function);                                              \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                       \
+		}                                                                                          \
+		static void exportsSync(napi_env env, napi_value exports, std::string name)                \
+		{                                                                                          \
+			napi_value exported_function;                                                          \
+			napi_create_function(env,                                                              \
+								 name.c_str(),                                                     \
+								 name.length(),                                                    \
+								 startSync,                                                        \
+								 NULL,                                                             \
+								 &exported_function);                                              \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                       \
+		}                                                                                          \
+                                                                                                   \
+	protected:                                                                                     \
+		static void asyncWorkFun(napi_env env, void *data)                                         \
+		{                                                                                          \
+			resultSend = PromiseWorkFunc(arguments_list);                                          \
+		}                                                                                          \
+		static void completeWork(napi_env env, napi_status status, void *data)                     \
+		{                                                                                          \
+			napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));             \
+			napi_delete_async_work(env, work);                                                     \
+			deferred._Storage._Value = NULL;                                                       \
+			work._Storage._Value = NULL;                                                           \
+			resultSend.reset();                                                                    \
+			resultSend = std::any();                                                               \
+			arguments_list.clear();                                                                \
+			arguments_list.resize(0);                                                              \
+		}                                                                                          \
+		static napi_value startWork(napi_env env, napi_callback_info info)                         \
+		{                                                                                          \
+			napi_value result, work_name, promise;                                                 \
+			napi_get_null(env, &result);                                                           \
+			std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");    \
+			if (work != NULL)                                                                      \
+			{                                                                                      \
+				size_t resultSendSessionID = hmc_PromiseSession::open();                           \
+				auto input = hmc_NodeArgsValue(env, info).get_values();                            \
+				std::vector<any> arguments_list$SP = {};                                           \
+				for (size_t i = 0; i < input.size(); i++)                                          \
+				{                                                                                  \
+					arguments_list$SP.push_back(input.at(i));                                      \
+				}                                                                                  \
+				startWorkSession(resultSendSessionID, arguments_list$SP);                          \
+				return hmc_napi_create_value::Number(env, (int64_t)resultSendSessionID);           \
+			}                                                                                      \
+			work_message.append("Node-API Deferred Promise from Async Work Item");                 \
+			napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name); \
+			napi_async_work addon_napi_async_work = NULL;                                          \
+			napi_deferred addon_deferred = NULL;                                                   \
+			if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)                    \
+			{                                                                                      \
+				work_message.append("error < Promise Creation failed. > ");                        \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                    \
+				return result;                                                                     \
+			};                                                                                     \
+			auto input = hmc_NodeArgsValue(env, info).get_values();                                \
+			for (size_t i = 0; i < input.size(); i++)                                              \
+			{                                                                                      \
+				arguments_list.push_back(input.at(i));                                             \
+			}                                                                                      \
+			if (napi_create_async_work(env,                                                        \
+									   NULL,                                                       \
+									   work_name,                                                  \
+									   asyncWorkFun,                                               \
+									   completeWork, NULL, &addon_napi_async_work) != napi_ok)     \
+			{                                                                                      \
+				work_message.append("error < Promise Creation work async failed. > ");             \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                    \
+				return result;                                                                     \
+			};                                                                                     \
+			napi_queue_async_work(env, addon_napi_async_work);                                     \
+			work._Storage._Value = addon_napi_async_work;                                          \
+			deferred._Storage._Value = addon_deferred;                                             \
+			return promise;                                                                        \
+		}                                                                                          \
+		static napi_value startSync(napi_env env, napi_callback_info info)                         \
+		{                                                                                          \
+			napi_value result, work_name, promise;                                                 \
+			napi_get_null(env, &result);                                                           \
+			std::any resultSend = std::any();                                                      \
+			std::vector<std::any> arguments_list = {};                                             \
+			auto input = hmc_NodeArgsValue(env, info).get_values();                                \
+			for (size_t i = 0; i < input.size(); i++)                                              \
+			{                                                                                      \
+				arguments_list.push_back(input.at(i));                                             \
+			}                                                                                      \
+			try                                                                                    \
+			{                                                                                      \
+				std::any data = PromiseWorkFunc(arguments_list);                                   \
+				return format_to_js_value(env, data);                                              \
+			}                                                                                      \
+			catch (const std::exception &err)                                                      \
+			{                                                                                      \
+				napi_throw_error(env, "catch (const std::exception&)", err.what());                \
+				return result;                                                                     \
+			}                                                                                      \
+			catch (...)                                                                            \
+			{                                                                                      \
+				napi_throw_error(env, "catch (...)", "");                                          \
+				return result;                                                                     \
+			}                                                                                      \
+			return result;                                                                         \
+		}                                                                                          \
+	};                                                                                             \
+	void exports(napi_env env, napi_value exports, std::string name)                               \
+	{                                                                                              \
+		(new PromiseFunction)->exports(env, exports, name.c_str());                                \
+	}                                                                                              \
+	void exportsSync(napi_env env, napi_value exports, std::string name)                           \
+	{                                                                                              \
+		(new PromiseFunction)->exportsSync(env, exports, name.c_str());                            \
+	}
 
-
-
-
-#define NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG \
-     std::any resultSend = std::any();\
-     std::vector<any> arguments_list = {};\
-    napi_value format_to_js_value(napi_env env, std::any result_any_data);\
-    void format_arguments_value(napi_env env, napi_callback_info info,std::vector<any> &ArgumentsList,hmc_NodeArgsValue args_value);\
-    std::any PromiseWorkFunc(std::vector<std::any> arguments_list);\
-     void startWorkSession(size_t resultSendSessionID,std::vector<any> arguments_list$SP) {\
-	thread([resultSendSessionID,arguments_list$SP]()\
-    {\
+#define NEW_PROMISE_FUNCTION_DEFAULT_FUN$SP$ARG                                                                                        \
+	std::any resultSend = std::any();                                                                                                  \
+	std::vector<any> arguments_list = {};                                                                                              \
+	napi_value format_to_js_value(napi_env env, std::any result_any_data);                                                             \
+	void format_arguments_value(napi_env env, napi_callback_info info, std::vector<any> &ArgumentsList, hmc_NodeArgsValue args_value); \
+	std::any PromiseWorkFunc(std::vector<std::any> arguments_list);                                                                    \
+	void startWorkSession(size_t resultSendSessionID, std::vector<any> arguments_list$SP)                                              \
+	{                                                                                                                                  \
+		thread([resultSendSessionID, arguments_list$SP]()                                                                              \
+			   {\
         auto data = PromiseWorkFunc(arguments_list$SP);\
         hmc_PromiseSession::send(resultSendSessionID, data);\
-        hmc_PromiseSession::end(resultSendSessionID);\
-    }).detach();}\
-    class PromiseFunction\
-    {\
-    private:\
-        static constexpr std::atomic<napi_async_work> work = NULL;\
-        static constexpr std::atomic<napi_deferred> deferred = NULL;\
-    public:\
-        static void exports(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startWork,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-        static void exportsSync(napi_env env, napi_value exports, std::string name)\
-        {\
-            napi_value exported_function;\
-            napi_create_function(env,\
-                                 name.c_str(),\
-                                 name.length(),\
-                                 startSync,\
-                                 NULL,\
-                                 &exported_function);\
-            napi_set_named_property(env, exports, name.c_str(), exported_function);\
-            napi_wrap(env, exports, NULL, NULL, NULL, NULL);\
-        }\
-    protected:\
-        static void asyncWorkFun(napi_env env, void *data)\
-        {\
-            resultSend = PromiseWorkFunc(arguments_list);\
-        }\
-        static void completeWork(napi_env env, napi_status status, void *data)\
-        {\
-            napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));\
-            napi_delete_async_work(env, work);\
-            deferred._Storage._Value = NULL;\
-            work._Storage._Value = NULL;\
-            resultSend.reset();\
-            resultSend = std::any();\
-            arguments_list.clear();\
-            arguments_list.resize(0);\
-        }\
-        static napi_value startWork(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");\
-            if (work != NULL)\
-            {\
-                size_t resultSendSessionID = hmc_PromiseSession::open();\
-auto input = hmc_NodeArgsValue(env, info).get_values(); \
-std::vector<any> arguments_list$SP = {}; \
-for (size_t i = 0; i < input.size(); i++)\
-{\
-arguments_list$SP.push_back(input.at(i)); \
-}\
-startWorkSession(resultSendSessionID, arguments_list$SP); \
-                   startWorkSession(resultSendSessionID,arguments_list$SP); \
-                return hmc_napi_create_value::Number(env,(int64_t)resultSendSessionID);\
-            }\
-            work_message.append("Node-API Deferred Promise from Async Work Item");\
-            napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name);\
-            napi_async_work addon_napi_async_work = NULL;\
-            napi_deferred addon_deferred = NULL;\
-            if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            auto input = hmc_NodeArgsValue(env, info);\
-            format_arguments_value(env, info,arguments_list,input);\
-            if (napi_create_async_work(env,\
-                                       NULL,\
-                                       work_name,\
-                                       asyncWorkFun,\
-                                       completeWork, NULL, &addon_napi_async_work) != napi_ok)\
-            {\
-                work_message.append("error < Promise Creation work async failed. > ");\
-                napi_throw_error(env, "Creation_failed", work_message.c_str());\
-                return result;\
-            };\
-            napi_queue_async_work(env, addon_napi_async_work);\
-            work._Storage._Value = addon_napi_async_work;\
-            deferred._Storage._Value = addon_deferred;\
-            return promise;\
-        }\
-        static napi_value startSync(napi_env env, napi_callback_info info)\
-        {\
-            napi_value result, work_name, promise;\
-            napi_get_null(env, &result);\
-            std::any resultSend = std::any();\
-            std::vector<std::any> arguments_list = {};\
-            auto input = hmc_NodeArgsValue(env, info);\
-            format_arguments_value(env, info,arguments_list,input);\
-            try\
-            {\
-                std::any data = PromiseWorkFunc(arguments_list);\
-                return format_to_js_value(env, data);\
-            }\
-            catch (const std::exception &err)\
-            {\
-                napi_throw_error(env, "catch (const std::exception&)", err.what());\
-                return result;\
-            }\
-            catch (...)\
-            {\
-                napi_throw_error(env, "catch (...)", "");\
-                return result;\
-            }\
-            return result;\
-        }\
-    };\
-    void exports(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exports(env, exports, name.c_str());\
-    }\
-    void exportsSync(napi_env env, napi_value exports, std::string name)\
-    {\
-        (new PromiseFunction)->exportsSync(env, exports, name.c_str());\
-    }
+        hmc_PromiseSession::end(resultSendSessionID); })                                                                                                                    \
+			.detach();                                                                                                                 \
+	}                                                                                                                                  \
+	class PromiseFunction                                                                                                              \
+	{                                                                                                                                  \
+	private:                                                                                                                           \
+		static constexpr std::atomic<napi_async_work> work = NULL;                                                                     \
+		static constexpr std::atomic<napi_deferred> deferred = NULL;                                                                   \
+                                                                                                                                       \
+	public:                                                                                                                            \
+		static void exports(napi_env env, napi_value exports, std::string name)                                                        \
+		{                                                                                                                              \
+			napi_value exported_function;                                                                                              \
+			napi_create_function(env,                                                                                                  \
+								 name.c_str(),                                                                                         \
+								 name.length(),                                                                                        \
+								 startWork,                                                                                            \
+								 NULL,                                                                                                 \
+								 &exported_function);                                                                                  \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                                                    \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                                                           \
+		}                                                                                                                              \
+		static void exportsSync(napi_env env, napi_value exports, std::string name)                                                    \
+		{                                                                                                                              \
+			napi_value exported_function;                                                                                              \
+			napi_create_function(env,                                                                                                  \
+								 name.c_str(),                                                                                         \
+								 name.length(),                                                                                        \
+								 startSync,                                                                                            \
+								 NULL,                                                                                                 \
+								 &exported_function);                                                                                  \
+			napi_set_named_property(env, exports, name.c_str(), exported_function);                                                    \
+			napi_wrap(env, exports, NULL, NULL, NULL, NULL);                                                                           \
+		}                                                                                                                              \
+                                                                                                                                       \
+	protected:                                                                                                                         \
+		static void asyncWorkFun(napi_env env, void *data)                                                                             \
+		{                                                                                                                              \
+			resultSend = PromiseWorkFunc(arguments_list);                                                                              \
+		}                                                                                                                              \
+		static void completeWork(napi_env env, napi_status status, void *data)                                                         \
+		{                                                                                                                              \
+			napi_resolve_deferred(env, deferred, format_to_js_value(env, resultSend));                                                 \
+			napi_delete_async_work(env, work);                                                                                         \
+			deferred._Storage._Value = NULL;                                                                                           \
+			work._Storage._Value = NULL;                                                                                               \
+			resultSend.reset();                                                                                                        \
+			resultSend = std::any();                                                                                                   \
+			arguments_list.clear();                                                                                                    \
+			arguments_list.resize(0);                                                                                                  \
+		}                                                                                                                              \
+		static napi_value startWork(napi_env env, napi_callback_info info)                                                             \
+		{                                                                                                                              \
+			napi_value result, work_name, promise;                                                                                     \
+			napi_get_null(env, &result);                                                                                               \
+			std::string work_message = std::string(__FUNCTION__).append("  work_message ->  ");                                        \
+			if (work != NULL)                                                                                                          \
+			{                                                                                                                          \
+				size_t resultSendSessionID = hmc_PromiseSession::open();                                                               \
+				auto input = hmc_NodeArgsValue(env, info).get_values();                                                                \
+				std::vector<any> arguments_list$SP = {};                                                                               \
+				for (size_t i = 0; i < input.size(); i++)                                                                              \
+				{                                                                                                                      \
+					arguments_list$SP.push_back(input.at(i));                                                                          \
+				}                                                                                                                      \
+				startWorkSession(resultSendSessionID, arguments_list$SP);                                                              \
+				startWorkSession(resultSendSessionID, arguments_list$SP);                                                              \
+				return hmc_napi_create_value::Number(env, (int64_t)resultSendSessionID);                                               \
+			}                                                                                                                          \
+			work_message.append("Node-API Deferred Promise from Async Work Item");                                                     \
+			napi_create_string_utf8(env, work_message.c_str(), work_message.length(), &work_name);                                     \
+			napi_async_work addon_napi_async_work = NULL;                                                                              \
+			napi_deferred addon_deferred = NULL;                                                                                       \
+			if (napi_create_promise(env, &addon_deferred, &promise) != napi_ok)                                                        \
+			{                                                                                                                          \
+				work_message.append("error < Promise Creation failed. > ");                                                            \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                                                        \
+				return result;                                                                                                         \
+			};                                                                                                                         \
+			auto input = hmc_NodeArgsValue(env, info);                                                                                 \
+			format_arguments_value(env, info, arguments_list, input);                                                                  \
+			if (napi_create_async_work(env,                                                                                            \
+									   NULL,                                                                                           \
+									   work_name,                                                                                      \
+									   asyncWorkFun,                                                                                   \
+									   completeWork, NULL, &addon_napi_async_work) != napi_ok)                                         \
+			{                                                                                                                          \
+				work_message.append("error < Promise Creation work async failed. > ");                                                 \
+				napi_throw_error(env, "Creation_failed", work_message.c_str());                                                        \
+				return result;                                                                                                         \
+			};                                                                                                                         \
+			napi_queue_async_work(env, addon_napi_async_work);                                                                         \
+			work._Storage._Value = addon_napi_async_work;                                                                              \
+			deferred._Storage._Value = addon_deferred;                                                                                 \
+			return promise;                                                                                                            \
+		}                                                                                                                              \
+		static napi_value startSync(napi_env env, napi_callback_info info)                                                             \
+		{                                                                                                                              \
+			napi_value result, work_name, promise;                                                                                     \
+			napi_get_null(env, &result);                                                                                               \
+			std::any resultSend = std::any();                                                                                          \
+			std::vector<std::any> arguments_list = {};                                                                                 \
+			auto input = hmc_NodeArgsValue(env, info);                                                                                 \
+			format_arguments_value(env, info, arguments_list, input);                                                                  \
+			try                                                                                                                        \
+			{                                                                                                                          \
+				std::any data = PromiseWorkFunc(arguments_list);                                                                       \
+				return format_to_js_value(env, data);                                                                                  \
+			}                                                                                                                          \
+			catch (const std::exception &err)                                                                                          \
+			{                                                                                                                          \
+				napi_throw_error(env, "catch (const std::exception&)", err.what());                                                    \
+				return result;                                                                                                         \
+			}                                                                                                                          \
+			catch (...)                                                                                                                \
+			{                                                                                                                          \
+				napi_throw_error(env, "catch (...)", "");                                                                              \
+				return result;                                                                                                         \
+			}                                                                                                                          \
+			return result;                                                                                                             \
+		}                                                                                                                              \
+	};                                                                                                                                 \
+	void exports(napi_env env, napi_value exports, std::string name)                                                                   \
+	{                                                                                                                                  \
+		(new PromiseFunction)->exports(env, exports, name.c_str());                                                                    \
+	}                                                                                                                                  \
+	void exportsSync(napi_env env, napi_value exports, std::string name)                                                               \
+	{                                                                                                                                  \
+		(new PromiseFunction)->exportsSync(env, exports, name.c_str());                                                                \
+	}
 #endif // MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP

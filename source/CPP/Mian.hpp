@@ -1,3 +1,9 @@
+#pragma once
+
+// 防止重复导入
+#ifndef MODE_INTERNAL_INCLUDE_HMC_MAIN_HPP
+#define MODE_INTERNAL_INCLUDE_HMC_MAIN_HPP
+
 #include <windows.h>
 #include <assert.h>
 // 开启实验性功能 比如异步(多线程)
@@ -149,39 +155,9 @@ napi_value getClipboardText(napi_env env, napi_callback_info info);
 napi_value getClipboardFilePaths(napi_env env);
 napi_value setClipboardFilePaths(napi_env env, napi_callback_info info);
 napi_value clearClipboard(napi_env env, napi_callback_info info);
-napi_value getClipboardSequenceNumber(napi_env env, napi_callback_info info);
+napi_value getClipboardInfo(napi_env env, napi_callback_info info);
 napi_value getClipboardHTML(napi_env env, napi_callback_info info);
 // napi_value setClipboardHTML(napi_env env, napi_callback_info info);
-
-// registr.cpp
-
-napi_value getStringRegKey(napi_env env, napi_callback_info info);
-
-napi_value removeStringRegKey(napi_env env, napi_callback_info info);
-
-napi_value removeStringRegValue(napi_env env, napi_callback_info info);
-
-napi_value removeStringRegKeyWalk(napi_env env, napi_callback_info info);
-
-napi_value hasRegistrKey(napi_env env, napi_callback_info info);
-
-napi_value setRegistrKey(napi_env env, napi_callback_info info);
-
-napi_value createPathRegistr(napi_env env, napi_callback_info info);
-
-napi_value enumRegistrKey(napi_env env, napi_callback_info info);
-
-napi_value getRegistrValueSize(napi_env env, napi_callback_info info);
-
-napi_value getRegistrBuffValue(napi_env env, napi_callback_info info);
-
-napi_value getRegistrDword(napi_env env, napi_callback_info info);
-
-napi_value setRegistrDword(napi_env env, napi_callback_info info);
-
-napi_value getRegistrQword(napi_env env, napi_callback_info info);
-
-napi_value setRegistrQword(napi_env env, napi_callback_info info);
 
 // usb.cpp
 napi_value getHidUsbIdList(napi_env env, napi_callback_info info);
@@ -285,3 +261,4 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match = false);
 void exports_process_all_v2_fun(napi_env env, napi_value exports);
 
 
+#endif // MODE_INTERNAL_INCLUDE_HMC_MAIN_HPP

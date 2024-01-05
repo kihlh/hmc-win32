@@ -262,8 +262,11 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\registr_v2.cpp" />
     <ClCompile Include="..\shell_v2.cpp" />
+    <ClCompile Include="..\util\byte.cpp" />
     <ClCompile Include="..\util\hmc_mouse.cpp" />
+    <ClCompile Include="..\util\hmc_registr_util.cpp" />
     <ClCompile Include="..\util\napi_value_util.cpp">
       <ObjectFileName>$(IntDir)\util\napi_value_util.obj</ObjectFileName>
     </ClCompile>
@@ -281,9 +284,6 @@
     </ClCompile>
     <ClCompile Include="..\clip.cpp">
       <ObjectFileName>$(IntDir)\clip.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\registr.cpp">
-      <ObjectFileName>$(IntDir)\registr.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\auto.cpp">
       <ObjectFileName>$(IntDir)\auto.obj</ObjectFileName>

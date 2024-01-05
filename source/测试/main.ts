@@ -4,7 +4,7 @@ import jsonfm = require("jsonfm");
 import shake = require("hmc-shake");
 import log4js = require("log4js");
 
-import hmc, { ref, PromiseSP } from "../../";
+import hmc, { ref, PromiseSP, HMC } from "../../";
 log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" } }, categories: { default: { appenders: ["cheese"], level: "error" } } });
 const log = log4js.getLogger("cheese");
 
@@ -15,125 +15,122 @@ const native: _hmc.HMC.Native & Native = require(process.argv.at(-1) || "");
 console.timeEnd("load hmc dll");
 
 export interface Native {
-
-}
-
-
-/**
- * 获取指定进程的工作目录
- * @time 5.449ms
- * @description 由于跨进程权限问题 不保证获取得到
- * !此功能需要读取进程内存
- * @module 异步async
- * @param pid 
- */
-export function getProcessCwd2(pid: number): Promise<string | null> {
-    return PromiseSP(native.getProcessCwd(ref.int(pid)), (data) => {
-        if (typeof data === 'string') return data;
-        return data?.[0] ? String(data?.[0]) : null;
-    });
-}
-
-/**
- * 获取指定进程的工作目录
- * @time 0.435ms
- * @description 由于跨进程权限问题 不保证获取得到
- * !此功能需要读取进程内存
- * @module 同步Sync
- * @param pid 
- */
-export function getProcessCwd2Sync(pid: number): string | null {
-    return native.getProcessCwdSync(ref.int(pid));
+    /**
+     * 设置注册表值 （提供了初级和低级操作）
+     * @param Hive 根目录
+     * @param folderPath 目录路径
+     * @param keyName 值键
+     * @param data 数据体
+     * - null 设置空值
+     * - string 约 2^31 - 1 个字符 (2GB) 但是不建议存储过大数据 会出问题
+     * - number DWORD 标准范围约为 0(0x0) 到 4294967295(0xffffffff) (即 2^32 - 1)
+     * - bigint QWORD 标准范围约为  0n(0x0) 到 18446744073709551615n (0xffffffffffffffff)（即 2^64 - 1）
+     * - boolean 布尔 以DWORD状态存储 范围 0-1
+     * - Buffer 二进制  1024KB 以内
+     * - Date 时间戳 以浮点二进制存储
+     * @param type 类型
+     * - true 文本时将转义到转义类型
+     * - HMC.REG_TYPE 强制转义 仅限二进制类型
+     */
+    setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: null | number | bigint | boolean | Buffer | Date | string, type: undefined | boolean | HMC.REG_TYPE): boolean;
 }
 
 /**
- * 获取指定进程得出命令行 
- * @time 1.095ms
- * @description 由于跨进程权限问题 不保证获取得到
- * ?此功能在win8及以下系统 需要读取进程内存
- * @module 异步async
- * @param pid 进程id
+ * 设置注册表值 
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * @param is_expand 是否让其可以被自动转义 例如 %temp%/123 -> c:.../temp/123
  */
-export function getProcessCommand2(pid: number): Promise<string> {
-    return PromiseSP(native.getProcessCommand(ref.int(pid)), (data) => {
-        if (typeof data === 'string') return data;
-
-        return String(data?.[0] || "");
-    });
-}
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: string, is_expand?: boolean): boolean;
+/**
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * @param to_type 转义类型 详见 HMC.REG_TYPE https://learn.microsoft.com/zh-cn/windows/win32/sysinfo/registry-value-types
+ */
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: Buffer, to_type?: HMC.REG_TYPE): boolean;
 
 /**
- * 获取指定进程得出命令行
- * @time 0.386ms
- * @description 由于跨进程权限问题 不保证获取得到
- * ?此功能在win8及以下系统 需要读取进程内存
- * @module 同步Sync
- * @param pid 
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
  */
-export function getProcessCommand2Sync(pid: number): string | null {
-    return native.getProcessCommandSync(ref.int(pid));
-}
-
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null): boolean;
 
 /**
- * 限制鼠标光标可移动范围 (异步)
- * @description 可以调用 stop 提前结束 
- * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms 
- * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
- * @param ms 本次限制的时间
- * @param x 限制左边初始化点的位置
- * @param y 限制顶部初始化点的位置
- * @param right 允许的范围(左边到右边部)
- * @param bottom 允许光标移动的范围(顶到底部)
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * - number DWORD 标准范围约为 0(0x0) 到 4294967295(0xffffffff) (即 2^32 - 1)
+ * - bigint QWORD 标准范围约为  0n(0x0) 到 18446744073709551615n (0xffffffffffffffff)（即 2^64 - 1）
+ * - boolean 布尔 以DWORD状态存储 范围 0-1
+ * - Buffer 二进制  1024KB 以内
+ * - Date 时间戳 以浮点二进制存储
  */
-export function setLimitMouseRange(ms: number, x: number, y: number, right: number = 1, bottom: number = 1) {
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: number | bigint | boolean | Date ): boolean;
 
-    ms = Math.abs(ref.int(ms));
-    x = Math.abs(ref.int(x));
-    y = Math.abs(ref.int(y));
-    right = Math.abs(ref.int(right)) || 1;
-    bottom = Math.abs(ref.int(bottom)) || 1;
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: unknown, data: unknown = null, type: unknown = undefined): boolean {
+    const hive_value = ref.string(Hive || "HKEY_CURRENT_USER") as HMC.HKEY;
+    // 虽然不符合规范 都是根目录下是允许写数据的
+    const folder_path = ref.string(folderPath || "").replace(/[\\\/]+/g, "\\");
+    const key_name = ref.string(keyName || "");
+    let data_output: string | number | bigint | boolean | Buffer | Date | null = data as Buffer;
+    let types: HMC.REG_TYPE | undefined | boolean = undefined;
+    let is_type_valid: boolean = false;
 
-    if (ms > 30 * 1000 - 1 || ms < 30 - 1) {
-        throw new Error("The range is only allowed from 31 milliseconds to 30 seconds (31ms-30000).")
-    }
+    // !这里有个判断文件夹的逻辑 因为设置值不会创建目录
 
-    native.setLimitMouseRange(ms, x, y, right, bottom);
-
-
-    const res = {
-        ms, x, y, right, bottom,
-        closed: (() => {
-            setTimeout(() => {
-                // 这一步看着很多余实际上确实多余
-                // !请注意此地方不能取消
-                /*请注意此地方不能取消 不然node提前结束将会导致无法解锁 避免进程提前退出导致无法结束 */
-
-                res.closed = native.hasLimitMouseRangeWorker();
-            }, ms + 80);
-            return false;
-        })() as boolean,
-        /**
-         * 停止本次
-         * @returns 
-         */
-        close() {
-            return native.stopLimitMouseRangeWorker();
-        },
-
-        /**
-         * 是否正在执行中
-         * @returns 
-         */
-        has() {
-            return !native.hasLimitMouseRangeWorker();
+    // 处理转义
+    if (Buffer.isBuffer(data_output)) {
+        if (typeof type == "number") {
+            types = type as HMC.REG_TYPE;
+        }
+    } else
+        if (typeof data_output == "string") {
+            if (typeof type == "boolean" || type == 2) {
+                types = type ? true : false;
+            }
         }
 
+    // 判断值有效
+    if (
+        typeof data_output == "boolean" ||
+        typeof data_output == "string" ||
+        typeof data_output == "number" ||
+        typeof data_output == "bigint" ||
+        data_output instanceof Date ||
+        data_output === null ||
+        Buffer.isBuffer(data_output)
+    ) {
+        is_type_valid = true;
+    } else return is_type_valid;
+
+    // 提前强转 虽然c++也会强转
+    if (typeof data_output == "boolean") {
+        data_output = data_output ? 1 : 0;
     }
 
-    return res;
-}
+    // 万恶的NAN
+    if (typeof data_output == "number" && isNaN(data_output)) {
+        data_output = null;
+    }
 
+    // 超过0xffffffff 强转 QDWOD
+    if (typeof data_output == "number" && data_output > 0xffffffff) {
+        data_output = 0xffffffff;
+    }
+
+    // 处理 负数 浮点 的逻辑
+
+    return native.setRegistrValue(hive_value, folder_path, key_name, data_output, types);
+}
 
 (async function main() {
 
@@ -156,17 +153,58 @@ export function setLimitMouseRange(ms: number, x: number, y: number, right: numb
     // console.log("hmc.getProcessCommand()->", getProcessCommand2Sync(process.pid));
     // console.timeEnd("hmc.getProcessCommand()->");
 
-    const setLimitMouse = setLimitMouseRange(5000,1,1,1,500);
+    // const setLimitMouse = setLimitMouseRange(5000,1,1,1,500);
 
     // hmc.Auto.mouseHook.on("mouse",()=>{});
     // hmc.Auto.mouseHook.start();
 
-    // 模拟意外退出
-    process.exit(555);
+    // 预设置对比
 
-})();
+    // let _int64: bigint = native.getRegistrQword("HKEY_CURRENT_USER", "hmc_temp", "_int64");
+    // console.log("_int64-> %d", _int64, _int64 == BigInt(151162666161616));
+
+    // let _int32 = native.getRegistrDword("HKEY_CURRENT_USER", "hmc_temp", "_int32");
+    // console.log("_int32-> %d", _int32, _int32 == 789894594);
+
+    // let _WIDE_CHAR = native.getStringRegKey("HKEY_CURRENT_USER", "hmc_temp", "_WIDE_CHAR");
+    // console.log("_WIDE_CHAR-> ", _WIDE_CHAR, _WIDE_CHAR == "宽字符中文  emoji🗺️6");
+
+    // let int32_buff = native.getRegistrBuffValue("HKEY_CURRENT_USER", "hmc_temp", "int32");
+    // console.log("int32_buff-> ", int32_buff);
+
+    
+    // let temp:any = [
+    //     [native.setRegistrDword("HKEY_CURRENT_USER","hmc_temp","TEMP1",626641614),
+    //     native.getRegistrDword("HKEY_CURRENT_USER","hmc_temp","TEMP1")==626641614],
+    //     [native.setRegistrQword("HKEY_CURRENT_USER","hmc_temp","TEMP2",BigInt("6262235346436457641614")),
+    //     native.getRegistrQword("HKEY_CURRENT_USER","hmc_temp","TEMP2")==BigInt("6262235346436457641614")],
+
+    //     [native.setRegistrKey("HKEY_CURRENT_USER","hmc_temp","TEMP3","⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄"),
+    //     native.getStringRegKey("HKEY_CURRENT_USER","hmc_temp","TEMP3")=="⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄"],
+
+    //     [native.setRegistrKey("HKEY_CURRENT_USER","hmc_temp","TEMP4","⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄"),
+    //     native.getStringRegKey("HKEY_CURRENT_USER","hmc_temp","TEMP4")=="⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄"],
+
+    //     // [native.setRegistrKey("HKEY_CURRENT_USER","hmc_temp","TEMP4",Buffer.from("⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄","utf-8")),
+    //     // native.getStringRegKey("HKEY_CURRENT_USER","hmc_temp","TEMP4")=="⚠️你正在尝试获取值，如果值长得像值 值又正巧等于值那么他就会是个正确的值⚠️⚠️⚠️⚠️⚠️⚠️⚠️12345567890🔄"],
+    //     native.createRegistrFolder("HKEY_CURRENT_USER\\hmc_temp"),
+    //     native.getRegistrFolderStat("HKEY_CURRENT_USER","hmc_temp"),
+    //     native.getRegistrValueStat("HKEY_CURRENT_USER","hmc_temp")
+    // ];
+    // Buffer.from( +(new Date()),"binary")
+    //  console.log(temp);
 
 
+
+})().catch(console.error);
+
+
+
+
+// 调试中阻止进程退出
+if (require("node:inspector")?.url()) {
+    setInterval(function () { }, 500000);
+}
 
 
 

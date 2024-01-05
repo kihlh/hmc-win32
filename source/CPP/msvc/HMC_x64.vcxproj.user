@@ -4,7 +4,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
-    <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--inspect F:\source\module\hmc-win32\source\测试\main.js  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
     <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

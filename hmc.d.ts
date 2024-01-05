@@ -160,6 +160,33 @@ export declare module HMC {
         "time": number | null;
         "dwExtraInfo": number | null;
     };
+    export enum REG_TYPE {
+        REG_NONE = 0,
+        REG_SZ = 1,
+        REG_EXPAND_SZ = 2,
+        REG_BINARY = 3,
+        REG_DWORD = 4,
+        REG_DWORD_LITTLE_ENDIAN = 4,
+        REG_DWORD_BIG_ENDIAN = 5,
+        REG_LINK = 6,
+        REG_MULTI_SZ = 7,
+        REG_RESOURCE_LIST = 8,
+        REG_FULL_RESOURCE_DESCRIPTOR = 9,
+        REG_RESOURCE_REQUIREMENTS_LIST = 10,
+        REG_QWORD = 11,
+        REG_QWORD_LITTLE_ENDIAN = 11
+    }
+    export type EnumRegistrFolderItem = RegistrFolderInfo & {
+        key: string[];
+        Folder: string[];
+    };
+    export type RegistrFolderInfo = {
+        size: number;
+        exists: boolean;
+        folderSize: number;
+        keySize: number;
+        time: number | null;
+    };
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
      */
@@ -728,101 +755,9 @@ export declare module HMC {
         /**获取所有HidUsb设备（仅限HID设备）**/
         getHidUsbList(): HID_USB_INFO[];
         /**
-         * 判断键值是否存在
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        hasRegistrKey(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 获取内容(文本)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        getStringRegKey(HKEY: HMC.HKEY, Path: string, Key: string): string;
-        /**
-        * 获取内容(64位数字)
-        * @param HKEY 根目录
-        * @param Path 路径
-        * @param Key 键值 (默认值 直接用： "" )
+        * 向剪贴板写入文件路径
+        * @param FilePaths 路径列表
         */
-        getRegistrQword(HKEY: HMC.HKEY, Path: string, Key: string): bigint;
-        /**
-        * 获取内容(32位数字)
-        * @param HKEY 根目录
-        * @param Path 路径
-        * @param Key 键值 (默认值 直接用： "" )
-        */
-        getRegistrDword(HKEY: HMC.HKEY, Path: string, Key: string): number;
-        /**
-         * 设置键值对(32位数字)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrDword(HKEY: HMC.HKEY, Path: string, Key: string, Dword: number): boolean;
-        /**
-         * 设置键值对(64位数字)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrQword(HKEY: HMC.HKEY, Path: string, Key: string, Qword: bigint): boolean;
-        /**
-         * 删除空目录键值
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        removeStringRegKey(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 设置键值对
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrKey(HKEY: HMC.HKEY, Path: string, Key: string, Data: string): boolean;
-        /**
-         * 创建新的路径
-         * @param HKEY 根目录
-         * @param Path 路径
-         */
-        createPathRegistr(HKEY: HMC.HKEY, Path: string): boolean;
-        /**
-         * 枚举键值
-         * @param HKEY 根目录
-         * @param Path 路径
-         */
-        enumRegistrKey(HKEY: HMC.HKEY, Path: string): string[];
-        /**
-         * 获取内容(二进制 Buffer)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         */
-        getRegistrBuffValue(HKEY: HMC.HKEY, Path: string, Key: string): Buffer | void;
-        /**
-         * 删除值
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (不允许空值)
-         */
-        removeStringRegValue(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 删除该目录下的所有内容（树遍历）
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值(不允许空值)
-         */
-        removeStringRegKeyWalk(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 向剪贴板写入文件路径
-         * @param FilePaths 路径列表
-         */
         setClipboardFilePaths(FilePaths: string[]): void;
         /**
          * 获取剪贴板中的文件路径
@@ -1778,7 +1713,7 @@ export declare function setRegistrDword(HKEY: HMC.HKEY, Path: string, key: strin
  * @time 0.06787109375 ms
  * @returns
  */
-export declare function getRegistrQword(HKEY: HMC.HKEY, Path: string, key: string): bigint;
+export declare function getRegistrQword(HKEY: HMC.HKEY, Path: string, key: string): any;
 /**
  * 获取内容(64位数字)
  * @param HKEY 根路径
@@ -1787,7 +1722,7 @@ export declare function getRegistrQword(HKEY: HMC.HKEY, Path: string, key: strin
  * @time 0.06787109375 ms
  * @returns
  */
-export declare function getRegistrDword(HKEY: HMC.HKEY, Path: string, key: string): number;
+export declare function getRegistrDword(HKEY: HMC.HKEY, Path: string, key: string): any;
 /**
  * 获取内容(二进制 Buffer)
  * @param HKEY 根路径
@@ -1796,7 +1731,7 @@ export declare function getRegistrDword(HKEY: HMC.HKEY, Path: string, key: strin
  * @time 0.06787109375 ms
  * @returns
  */
-export declare function getRegistrBuffValue(HKEY: HMC.HKEY, Path: string, key: string): void | Buffer;
+export declare function getRegistrBuffValue(HKEY: HMC.HKEY, Path: string, key: string): any;
 /**
  * 枚举键值
  * @param HKEY 根路径
@@ -1829,7 +1764,7 @@ export declare function isRegistrTreeKey(HKEY: HMC.HKEY, Path: string, key?: str
  * @time 0.108ms
  * @returns
  */
-export declare function getStringRegKey(HKEY: HMC.HKEY, Path: string, key?: string): string;
+export declare function getStringRegKey(HKEY: HMC.HKEY, Path: string, key?: string): any;
 /**
  * 打开一个注册表路径并返回一些实用方法
  * @param HKEY 根路径
@@ -1846,12 +1781,12 @@ export declare function openRegKey(HKEY: HMC.HKEY, Path: string, key?: string): 
      * 设置一个值
      * @param data 数据
      */
-    set(data: string): boolean;
+    set(data: string): any;
     /**
      * 获取内容
      * @returns
      */
-    get(): string;
+    get(): any;
     /**
      * 获取该内容并将其视为二进制缓冲区
      * @returns 二进制缓冲区
@@ -1892,7 +1827,7 @@ export declare function getNumberRegKey(HKEY: HMC.HKEY, Path: string, key?: stri
  * @time 0.076904296875 ms
  * @returns
  */
-export declare function removeStringRegKey(HKEY: HMC.HKEY, Path: string, key?: string): boolean;
+export declare function removeStringRegKey(HKEY: HMC.HKEY, Path: string, key?: string): any;
 /**
  * 删除该目录下的所有内容（树遍历）
  * @param HKEY 根路径
@@ -1900,7 +1835,7 @@ export declare function removeStringRegKey(HKEY: HMC.HKEY, Path: string, key?: s
  * @param key 键
  * @returns
  */
-export declare function removeStringRegKeyWalk(HKEY: HMC.HKEY, Path: string, key?: string): boolean;
+export declare function removeStringRegKeyWalk(HKEY: HMC.HKEY, Path: string, key?: string): any;
 /**
 * 删除该目录下的所有内容（树遍历）
 * @param HKEY 根路径
@@ -1908,7 +1843,7 @@ export declare function removeStringRegKeyWalk(HKEY: HMC.HKEY, Path: string, key
 * @param key 键
 * @returns
 */
-export declare function removeStringTree(HKEY: HMC.HKEY, Path: string, key: string): boolean;
+export declare function removeStringTree(HKEY: HMC.HKEY, Path: string, key: string): any;
 /**
  * 删除该键值
  * @param HKEY 根路径
@@ -1916,7 +1851,7 @@ export declare function removeStringTree(HKEY: HMC.HKEY, Path: string, key: stri
  * @param key 键
  * @returns
  */
-export declare function removeStringRegValue(HKEY: HMC.HKEY, Path: string, key?: string): boolean;
+export declare function removeStringRegValue(HKEY: HMC.HKEY, Path: string, key?: string): any;
 /**
  * 设置键值对
  * @param HKEY 根路径
@@ -1926,7 +1861,7 @@ export declare function removeStringRegValue(HKEY: HMC.HKEY, Path: string, key?:
  * @time 2.02392578125 ms
  * @returns
  */
-export declare function setRegistrKey(HKEY: HMC.HKEY, Path: string, key: string, Value: string): boolean;
+export declare function setRegistrKey(HKEY: HMC.HKEY, Path: string, key: string, Value: string): any;
 /**
  * 创建新的路径
  * @param HKEY 根路径
@@ -1934,7 +1869,7 @@ export declare function setRegistrKey(HKEY: HMC.HKEY, Path: string, key: string,
  * @time 2.02392578125 ms
  * @returns
  */
-export declare function createPathRegistr(HKEY: HMC.HKEY, Path: string): boolean;
+export declare function createPathRegistr(HKEY: HMC.HKEY, Path: string): any;
 /**
   * 同 C++/C 的system
   * @returns 程序退出代码
@@ -3355,7 +3290,7 @@ export declare const registr: {
      * @time 0.108ms
      * @returns
      */
-    get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 设置键值对
      * @param HKEY 根路径
@@ -3365,7 +3300,7 @@ export declare const registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
     /**
      * 删除数据
      * @param HKEY 根路径
@@ -3374,7 +3309,7 @@ export declare const registr: {
      * @time 0.076904296875 ms
      * @returns
      */
-    remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 枚举键值
      * @param HKEY 根路径
@@ -3399,7 +3334,7 @@ export declare const registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 打开一个注册表路径并返回一些实用方法
      * @param HKEY 根路径
@@ -3416,12 +3351,12 @@ export declare const registr: {
          * 设置一个值
          * @param data 数据
          */
-        set(data: string): boolean;
+        set(data: string): any;
         /**
          * 获取内容
          * @returns
          */
-        get(): string;
+        get(): any;
         /**
          * 获取该内容并将其视为二进制缓冲区
          * @returns 二进制缓冲区
@@ -3479,7 +3414,7 @@ export declare const registr: {
      * @time 0.076904296875 ms
      * @returns
      */
-    readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 设置键值对
      * @param HKEY 根路径
@@ -3489,7 +3424,7 @@ export declare const registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
     /**
      * 获取内容(文本)
      * @param HKEY 根路径
@@ -3498,7 +3433,7 @@ export declare const registr: {
      * @time 0.108ms
      * @returns
      */
-    readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 获取内容(数字)
      * @param HKEY 根路径
@@ -3515,7 +3450,7 @@ export declare const registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 获取内容(二进制 Buffer)
      * @param HKEY 根路径
@@ -3524,7 +3459,7 @@ export declare const registr: {
      * @time 0.06787109375 ms
      * @returns
      */
-    getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+    getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 打开一个注册表路径并返回一些实用方法
      * @param HKEY 根路径
@@ -4062,7 +3997,7 @@ export declare const Registr: {
      * @time 0.108ms
      * @returns
      */
-    get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 设置键值对
      * @param HKEY 根路径
@@ -4072,7 +4007,7 @@ export declare const Registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
     /**
      * 删除数据
      * @param HKEY 根路径
@@ -4081,7 +4016,7 @@ export declare const Registr: {
      * @time 0.076904296875 ms
      * @returns
      */
-    remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 枚举键值
      * @param HKEY 根路径
@@ -4106,7 +4041,7 @@ export declare const Registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 打开一个注册表路径并返回一些实用方法
      * @param HKEY 根路径
@@ -4123,12 +4058,12 @@ export declare const Registr: {
          * 设置一个值
          * @param data 数据
          */
-        set(data: string): boolean;
+        set(data: string): any;
         /**
          * 获取内容
          * @returns
          */
-        get(): string;
+        get(): any;
         /**
          * 获取该内容并将其视为二进制缓冲区
          * @returns 二进制缓冲区
@@ -4186,7 +4121,7 @@ export declare const Registr: {
      * @time 0.076904296875 ms
      * @returns
      */
-    readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 设置键值对
      * @param HKEY 根路径
@@ -4196,7 +4131,7 @@ export declare const Registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+    readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
     /**
      * 获取内容(文本)
      * @param HKEY 根路径
@@ -4205,7 +4140,7 @@ export declare const Registr: {
      * @time 0.108ms
      * @returns
      */
-    readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+    readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 获取内容(数字)
      * @param HKEY 根路径
@@ -4222,7 +4157,7 @@ export declare const Registr: {
      * @time 2.02392578125 ms
      * @returns
      */
-    readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+    readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 获取内容(二进制 Buffer)
      * @param HKEY 根路径
@@ -4231,7 +4166,7 @@ export declare const Registr: {
      * @time 0.06787109375 ms
      * @returns
      */
-    getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+    getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
     /**
      * 打开一个注册表路径并返回一些实用方法
      * @param HKEY 根路径
@@ -4381,7 +4316,7 @@ export declare const hmc: {
          * @time 0.108ms
          * @returns
          */
-        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -4391,7 +4326,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
         /**
          * 删除数据
          * @param HKEY 根路径
@@ -4400,7 +4335,7 @@ export declare const hmc: {
          * @time 0.076904296875 ms
          * @returns
          */
-        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 枚举键值
          * @param HKEY 根路径
@@ -4425,7 +4360,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径
@@ -4442,12 +4377,12 @@ export declare const hmc: {
              * 设置一个值
              * @param data 数据
              */
-            set(data: string): boolean;
+            set(data: string): any;
             /**
              * 获取内容
              * @returns
              */
-            get(): string;
+            get(): any;
             /**
              * 获取该内容并将其视为二进制缓冲区
              * @returns 二进制缓冲区
@@ -4505,7 +4440,7 @@ export declare const hmc: {
          * @time 0.076904296875 ms
          * @returns
          */
-        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -4515,7 +4450,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
         /**
          * 获取内容(文本)
          * @param HKEY 根路径
@@ -4524,7 +4459,7 @@ export declare const hmc: {
          * @time 0.108ms
          * @returns
          */
-        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 获取内容(数字)
          * @param HKEY 根路径
@@ -4541,7 +4476,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 获取内容(二进制 Buffer)
          * @param HKEY 根路径
@@ -4550,7 +4485,7 @@ export declare const hmc: {
          * @time 0.06787109375 ms
          * @returns
          */
-        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径
@@ -4927,7 +4862,7 @@ export declare const hmc: {
          * @time 0.108ms
          * @returns
          */
-        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -4937,7 +4872,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
         /**
          * 删除数据
          * @param HKEY 根路径
@@ -4946,7 +4881,7 @@ export declare const hmc: {
          * @time 0.076904296875 ms
          * @returns
          */
-        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 枚举键值
          * @param HKEY 根路径
@@ -4971,7 +4906,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径
@@ -4988,12 +4923,12 @@ export declare const hmc: {
              * 设置一个值
              * @param data 数据
              */
-            set(data: string): boolean;
+            set(data: string): any;
             /**
              * 获取内容
              * @returns
              */
-            get(): string;
+            get(): any;
             /**
              * 获取该内容并将其视为二进制缓冲区
              * @returns 二进制缓冲区
@@ -5051,7 +4986,7 @@ export declare const hmc: {
          * @time 0.076904296875 ms
          * @returns
          */
-        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -5061,7 +4996,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => any;
         /**
          * 获取内容(文本)
          * @param HKEY 根路径
@@ -5070,7 +5005,7 @@ export declare const hmc: {
          * @time 0.108ms
          * @returns
          */
-        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 获取内容(数字)
          * @param HKEY 根路径
@@ -5087,7 +5022,7 @@ export declare const hmc: {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 获取内容(二进制 Buffer)
          * @param HKEY 根路径
@@ -5096,7 +5031,7 @@ export declare const hmc: {
          * @time 0.06787109375 ms
          * @returns
          */
-        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => any;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径

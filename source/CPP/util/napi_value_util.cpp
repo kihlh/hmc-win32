@@ -120,32 +120,6 @@ js_valuetype hmc_napi_type::getType(napi_env env, napi_value value_input)
     {
         return (js_valuetype)value_type;
     }
-    case napi_object:
-    {
-        if (
-            isObjectkeyExists(env, value_input, "x") &&
-            isObjectkeyExists(env, value_input, "y") &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "x")) &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "x")))
-        {
-            return js_point;
-        }
-
-        if (
-            isObjectkeyExists(env, value_input, "bottom") &&
-            isObjectkeyExists(env, value_input, "right") &&
-            isObjectkeyExists(env, value_input, "top") &&
-            isObjectkeyExists(env, value_input, "left") &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "bottom")) &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "right")) &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "top")) &&
-            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "left")))
-        {
-            return js_rect;
-        }
-
-        return js_object;
-    }
     case napi_function:
     {
         napi_is_promise(env, value_input, &is_type_temp);
@@ -185,6 +159,33 @@ js_valuetype hmc_napi_type::getType(napi_env env, napi_value value_input)
     if (is_type_temp)
     {
         return js_promise;
+    }
+
+    if (is_type_temp == napi_object)
+    {
+        if (
+            isObjectkeyExists(env, value_input, "x") &&
+            isObjectkeyExists(env, value_input, "y") &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "x")) &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "x")))
+        {
+            return js_point;
+        }
+
+        if (
+            isObjectkeyExists(env, value_input, "bottom") &&
+            isObjectkeyExists(env, value_input, "right") &&
+            isObjectkeyExists(env, value_input, "top") &&
+            isObjectkeyExists(env, value_input, "left") &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "bottom")) &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "right")) &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "top")) &&
+            isNumber(env, hmc_napi_get_value::get_object_value(env, value_input, "left")))
+        {
+            return js_rect;
+        }
+
+        return js_object;
     }
 
     return result;
@@ -261,13 +262,13 @@ bool hmc_napi_type::diff(napi_env env, napi_value jsValue, napi_value jsValue2)
  * @return false
  */
 template <typename... Args>
-bool hmc_napi_type::diff(napi_valuetype valuetype, const napi_valuetype& first, const Args &...args)
+bool hmc_napi_type::diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
 {
     napi_valuetype value_type;
     napi_typeof(env, nodeValue, &value_type);
     int result = false;
 
-    napi_valuetype temp[] = { first, args... };
+    napi_valuetype temp[] = {first, args...};
     size_t length = sizeof(temp) / sizeof(temp[0]);
 
     for (size_t i = 0; i < length; i++)
@@ -280,13 +281,13 @@ bool hmc_napi_type::diff(napi_valuetype valuetype, const napi_valuetype& first, 
 }
 
 template <typename... Args>
-bool hmc_napi_type::diff(napi_env env, napi_value nodeValue, const napi_valuetype& first, const Args &...args)
+bool hmc_napi_type::diff(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args)
 {
     napi_valuetype value_type;
     napi_typeof(env, nodeValue, &value_type);
     bool result = false;
 
-    napi_valuetype temp[] = { first, args... };
+    napi_valuetype temp[] = {first, args...};
     size_t length = sizeof(temp) / sizeof(temp[0]);
 
     for (size_t i = 0; i < length; i++)
@@ -319,13 +320,13 @@ bool hmc_napi_type::argsSize(napi_env env, size_t argLength, int minLength, int 
     else
     {
         napi_throw_error(env, "EINVAL",
-            string()
-            .append("The current number of parameters passed is lower than required. The input is [")
-            .append(to_string(argLength))
-            .append("], and the ideal number of parameters should be [")
-            .append(to_string(minLength))
-            .append("].\n")
-            .c_str());
+                         string()
+                             .append("The current number of parameters passed is lower than required. The input is [")
+                             .append(to_string(argLength))
+                             .append("], and the ideal number of parameters should be [")
+                             .append(to_string(minLength))
+                             .append("].\n")
+                             .c_str());
         return false;
     }
 }
@@ -349,13 +350,13 @@ bool hmc_napi_type::argsSize(napi_env env, size_t argLength, int minLength)
     else
     {
         napi_throw_error(env, "EINVAL",
-            string()
-            .append("The current number of parameters passed is lower than required. The input is [")
-            .append(to_string(argLength))
-            .append("], and the ideal number of parameters should be [")
-            .append(to_string(minLength))
-            .append("].\n")
-            .c_str());
+                         string()
+                             .append("The current number of parameters passed is lower than required. The input is [")
+                             .append(to_string(argLength))
+                             .append("], and the ideal number of parameters should be [")
+                             .append(to_string(minLength))
+                             .append("].\n")
+                             .c_str());
         return false;
     }
 }
@@ -748,13 +749,13 @@ long long hmc_napi_get_value::bigint_longlong(napi_env env, napi_value nodeValue
  */
 
 template <typename T>
-void hmc_napi_get_value::buffer_vector(napi_env env, napi_value nodeValue, vector<T>& buffer)
+void hmc_napi_get_value::buffer_vector(napi_env env, napi_value nodeValue, vector<T> &buffer)
 {
 
     napi_status status;
-    T* dataPtr;
+    T *dataPtr;
     size_t len;
-    status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void**>(&dataPtr), &len);
+    status = napi_get_buffer_info(env, nodeValue, reinterpret_cast<void **>(&dataPtr), &len);
     if (status != napi_ok)
         return;
     // buffer.resize(len);
@@ -853,8 +854,8 @@ wstring hmc_napi_get_value::string_utf16(napi_env env, napi_value nodeValue, wst
         napi_coerce_to_string(env, nodeValue, &tmp);
         napi_get_value_string_utf16(env, tmp, NULL, 0, &str_len);
         str_len += 1;
-        wchar_t* str = new wchar_t[str_len];
-        napi_get_value_string_utf16(env, tmp, (char16_t*)str, str_len, NULL);
+        wchar_t *str = new wchar_t[str_len];
+        napi_get_value_string_utf16(env, tmp, (char16_t *)str, str_len, NULL);
 
         for (size_t i = 0; i < str_len; i++)
         {
@@ -1241,12 +1242,12 @@ string hmc_napi_get_value::buffer_utf8_strU8(napi_env env, napi_value nodeValue)
  * @param nodeValue
  * @return const wchar_t* c标准接口的  const char *
  */
-const wchar_t* hmc_napi_get_value::buffer_utf16_clpStrW(napi_env env, napi_value nodeValue)
+const wchar_t *hmc_napi_get_value::buffer_utf16_clpStrW(napi_env env, napi_value nodeValue)
 {
     vector<wchar_t> buffer;
     buffer_vector<wchar_t>(env, nodeValue, buffer);
     std::wstring wideString(buffer.begin(), buffer.end()); // 将 std::vector<wchar_t> 转换为 std::wstring
-    wchar_t* utf16Ptr = new wchar_t[wideString.size() + 1];
+    wchar_t *utf16Ptr = new wchar_t[wideString.size() + 1];
 
     for (size_t i = 0; i < wideString.size(); i++)
     {
@@ -1259,6 +1260,24 @@ const wchar_t* hmc_napi_get_value::buffer_utf16_clpStrW(napi_env env, napi_value
 
     return utf16Ptr;
 }
+/**
+ * @brief 获取为时间戳
+ *
+ * @param env
+ * @param objectValue
+ */
+double hmc_napi_get_value::date(napi_env env, napi_value nodeValue)
+{
+    double result = 0.0;
+
+    if (hmc_napi_type::isDate(env, nodeValue))
+    {
+        napi_get_date_value(env, nodeValue, &result);
+        return result;
+    }
+
+    return result;
+}
 
 /**
  * @brief 缓冲区转为c标准接口的文本 Buffer.from('文本', 'utf16le')
@@ -1266,13 +1285,13 @@ const wchar_t* hmc_napi_get_value::buffer_utf16_clpStrW(napi_env env, napi_value
  * @param nodeValue
  * @return const char* c标准接口的  const char *
  */
-const char* hmc_napi_get_value::buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue)
+const char *hmc_napi_get_value::buffer_utf8_clpStrU8(napi_env env, napi_value nodeValue)
 {
     vector<unsigned char> buffer;
     buffer_vector<unsigned char>(env, nodeValue, buffer);
     std::string utf8String(buffer.begin(), buffer.end());
 
-    char* utf8Ptr = new char[utf8String.size() + 1];
+    char *utf8Ptr = new char[utf8String.size() + 1];
 
     for (size_t i = 0; i < utf8String.size(); i++)
     {
@@ -1292,13 +1311,13 @@ const char* hmc_napi_get_value::buffer_utf8_clpStrU8(napi_env env, napi_value no
  * @param nodeValue
  * @return const char* c标准接口的  const char *
  */
-const char* hmc_napi_get_value::buffer_ansi_clpStrA(napi_env env, napi_value nodeValue)
+const char *hmc_napi_get_value::buffer_ansi_clpStrA(napi_env env, napi_value nodeValue)
 {
     vector<unsigned char> buffer;
     buffer_vector<unsigned char>(env, nodeValue, buffer);
     std::string ansiString(buffer.begin(), buffer.end());
 
-    char* ansiPtr = new char[ansiString.size() + 1];
+    char *ansiPtr = new char[ansiString.size() + 1];
 
     for (size_t i = 0; i < ansiString.size(); i++)
     {
@@ -1492,7 +1511,7 @@ napi_value hmc_napi_create_value::StringA(napi_env env, string value)
     napi_status status;
     napi_value result;
     wstring result2w = hmc_string_util::ansi_to_utf16(value);
-    status = napi_create_string_utf16(env, (const char16_t*)result2w.c_str(), NAPI_AUTO_LENGTH, &result);
+    status = napi_create_string_utf16(env, (const char16_t *)result2w.c_str(), NAPI_AUTO_LENGTH, &result);
     assert(status == napi_ok);
     return result;
 }
@@ -1502,16 +1521,16 @@ napi_value hmc_napi_create_value::String(napi_env env, wstring value)
 {
     napi_status status;
     napi_value result;
-    status = napi_create_string_utf16(env, (const char16_t*)value.c_str(), NAPI_AUTO_LENGTH, &result);
+    status = napi_create_string_utf16(env, (const char16_t *)value.c_str(), NAPI_AUTO_LENGTH, &result);
     assert(status == napi_ok);
     return result;
 }
 
-napi_value hmc_napi_create_value::String(napi_env env, wchar_t* value)
+napi_value hmc_napi_create_value::String(napi_env env, wchar_t *value)
 {
     return String(env, wstring(value));
 }
-napi_value hmc_napi_create_value::String(napi_env env, char* value)
+napi_value hmc_napi_create_value::String(napi_env env, char *value)
 {
     return String(env, string(value));
 }
@@ -1615,14 +1634,16 @@ napi_value hmc_napi_create_value::Bigint(napi_env env, long long bigint)
  * @param size
  * @return napi_value
  */
-napi_value hmc_napi_create_value::Buffer(napi_env env, vector<unsigned char>& buffer)
+napi_value hmc_napi_create_value::Buffer(napi_env env, vector<unsigned char> &buffer)
 {
     napi_status status;
     napi_value Results;
     try
     {
+        if (buffer.size() < 1)
+            return NULL;
 
-        void* yourPointer = malloc(buffer.size());
+        void *yourPointer = malloc(buffer.size());
 
         // 很迷惑的函数 这个只能创建空白内存而不是buff
         // status = napi_create_arraybuffer(env, buffer.size(), &yourPointer, &Results);
@@ -1633,13 +1654,13 @@ napi_value hmc_napi_create_value::Buffer(napi_env env, vector<unsigned char>& bu
         assert(status == napi_ok);
         // free(yourPointer);
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
     }
 
     return Results;
 }
-napi_value hmc_napi_create_value::Buffer(napi_env env, void* data, size_t size)
+napi_value hmc_napi_create_value::Buffer(napi_env env, void *data, size_t size)
 {
     napi_status status;
     napi_value Results;
@@ -1648,9 +1669,9 @@ napi_value hmc_napi_create_value::Buffer(napi_env env, void* data, size_t size)
         status = napi_create_external_buffer(env, size, data, NULL, NULL, &Results);
         assert(status == napi_ok);
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
-        void* yourPointer = malloc(0);
+        void *yourPointer = malloc(0);
         status = napi_create_buffer(env, 0, &yourPointer, &Results);
         assert(status == napi_ok);
     }
@@ -1802,17 +1823,17 @@ napi_value hmc_napi_create_value::New(napi_env env, any anyValue)
         {
             ResultForAny = String(env, any_cast<wstring>(anyValue));
         }
-        else if (anyValue.type() == typeid(char*))
+        else if (anyValue.type() == typeid(char *))
         {
-            ResultForAny = String(env, any_cast<char*>(anyValue));
+            ResultForAny = String(env, any_cast<char *>(anyValue));
         }
-        else if (anyValue.type() == typeid(CHAR*))
+        else if (anyValue.type() == typeid(CHAR *))
         {
-            ResultForAny = String(env, any_cast<CHAR*>(anyValue));
+            ResultForAny = String(env, any_cast<CHAR *>(anyValue));
         }
-        else if (anyValue.type() == typeid(WCHAR*))
+        else if (anyValue.type() == typeid(WCHAR *))
         {
-            ResultForAny = String(env, any_cast<WCHAR*>(anyValue));
+            ResultForAny = String(env, any_cast<WCHAR *>(anyValue));
         }
         // bool
         else if (anyValue.type() == typeid(bool))
@@ -2142,7 +2163,7 @@ hmc_NodeArgsValue::hmc_NodeArgsValue(napi_env envs, napi_callback_info info)
         args.reserve(argc);
         args.resize(argc);
 
-        if ((status = napi_get_cb_info(envs, info, &argc, reinterpret_cast<napi_value*>(&args[0]), NULL, NULL)) != napi_ok)
+        if ((status = napi_get_cb_info(envs, info, &argc, reinterpret_cast<napi_value *>(&args[0]), NULL, NULL)) != napi_ok)
         {
             string error_msg = "";
             error_msg.append("napi_get_cb_info fn < ");
@@ -2535,7 +2556,7 @@ bool hmc_NodeArgsValue::eq(vector<std::tuple<size_t, napi_valuetype>> eq_type, b
 
     for (size_t i = 0; i < eq_type.size(); i++)
     {
-        new_eq_type.push_back({ std::get<0>(eq_type[i]), (js_valuetype)std::get<1>(eq_type[i]) });
+        new_eq_type.push_back({std::get<0>(eq_type[i]), (js_valuetype)std::get<1>(eq_type[i])});
     }
 
     return eq(new_eq_type, throw_error);
@@ -2663,11 +2684,13 @@ bool hmc_NodeArgsValue::eq(size_t index, vector<napi_valuetype> type_list, bool 
     return eq(index, new_eq_type, throw_error);
 }
 
-js_value hmc_NodeArgsValue::get_value(size_t index) {
+js_value hmc_NodeArgsValue::get_value(size_t index)
+{
     return js_value(this->env, this->at(index));
 }
 
-vector<js_value> hmc_NodeArgsValue::get_values() {
+vector<js_value> hmc_NodeArgsValue::get_values()
+{
     vector<js_value> result;
     for (size_t i = 0; i < this->size(); i++)
     {
@@ -2869,8 +2892,8 @@ vector<any> hmc_PromiseSession::getAll(size_t PromiseID, size_t max_size)
     vector<any> result;
     ____$hmcPromise_rwMutex.lock_shared();
 
-    std::shared_ptr<void> _shared_close_lpsz_(nullptr, [&](void*)
-        { ____$hmcPromise_rwMutex.unlock_shared(); });
+    std::shared_ptr<void> _shared_close_lpsz_(nullptr, [&](void *)
+                                              { ____$hmcPromise_rwMutex.unlock_shared(); });
 
     auto temp_list = ____$hmcPromise_PromiseTaskList[PromiseID];
 
@@ -2908,12 +2931,12 @@ vector<any> hmc_PromiseSession::getAll(size_t PromiseID, size_t max_size)
  * @param func
  * @return size_t
  */
-size_t hmc_PromiseSession::open(std::function<void(vector<any>* data_list)> func)
+size_t hmc_PromiseSession::open(std::function<void(vector<any> *data_list)> func)
 {
     size_t PromiseID = ___get_open_id();
 
     std::thread data = thread([func, PromiseID]()
-        {
+                              {
             vector<any> data_list;
 
             // 创建一个新的线程用来跑func的代码
@@ -3013,7 +3036,7 @@ size_t hmc_PromiseSession::open(std::function<any()> func)
     size_t PromiseID = ___get_open_id();
 
     std::thread data = thread([func, PromiseID]()
-        { end(PromiseID, func()); });
+                              { end(PromiseID, func()); });
     data.detach();
 
     return PromiseID;
@@ -3053,7 +3076,7 @@ napi_value hmc_PromiseSession::getAll(napi_env env, size_t PromiseID, size_t siz
         }
 
         // 能被格式化为wstring
-        if (temp.type() == typeid(vector<wstring>) || temp.type() == typeid(wstring) || temp.type() == typeid(wchar_t) || temp.type() == typeid(wchar_t*))
+        if (temp.type() == typeid(vector<wstring>) || temp.type() == typeid(wstring) || temp.type() == typeid(wchar_t) || temp.type() == typeid(wchar_t *))
         {
             wstring temp_to_string = L"";
             hmc_string_util::any_to_string(temp, temp_to_string);
@@ -3097,18 +3120,18 @@ size_t hmc_PromiseSession::open(std::function<void()> func)
 {
     size_t PromiseID = ___get_open_id();
     std::thread data = thread([func, PromiseID]()
-        { func(); end(PromiseID, any()); });
+                              { func(); end(PromiseID, any()); });
     data.detach();
 
     return PromiseID;
 }
 
 template <class _Fn, class... _Args>
-size_t hmc_PromiseSession::open2(_Fn&& _Fx, _Args &&..._Ax)
+size_t hmc_PromiseSession::open2(_Fn &&_Fx, _Args &&..._Ax)
 {
     size_t PromiseID = ___get_open_id();
     std::thread data = thread([_Fx, _Ax = std::forward_as_tuple(std::forward<_Args>(_Ax)...), PromiseID]()
-    {
+                              {
         std::apply(_Fx, _Ax); // 将_Ax的值作为参数传递给_Fx
         end(PromiseID, any()); });
     data.detach();
@@ -3179,7 +3202,7 @@ napi_value _PromiseSession_getAll(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3191,7 +3214,7 @@ napi_value _PromiseSession_stop(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3204,7 +3227,7 @@ napi_value _PromiseSession_isClosed(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3222,7 +3245,7 @@ napi_value _PromiseSession_data_size(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3234,7 +3257,7 @@ napi_value _PromiseSession_await(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3264,7 +3287,7 @@ napi_value _PromiseSession_set_sleep_time(napi_env env, napi_callback_info info)
     hmc_NodeArgsValue input = hmc_NodeArgsValue(env, info);
 
     // 参数预设 如果不符合则返回void
-    if (!input.eq(0, { js_number }, true))
+    if (!input.eq(0, {js_number}, true))
     {
         return NULL;
     }
@@ -3594,4 +3617,94 @@ js_value::~js_value()
 {
     this->data.reset();
     this->data = any();
+}
+
+napi_value hmc_napi_create_value::Error(napi_env env, string error, string fn_name, string ErrorCode)
+{
+    napi_value result;
+    string msg_data = fn_name + "\n";
+    msg_data.append(error);
+    napi_create_error(
+        env,
+        hmc_napi_create_value::String(env, ErrorCode),
+        hmc_napi_create_value::String(env, msg_data),
+        &result);
+    return result;
+}
+
+napi_value hmc_napi_create_value::Error(napi_env env, wstring error, wstring fn_name, wstring ErrorCode)
+{
+
+    napi_value result;
+    wstring msg_data = fn_name + L"\n";
+    msg_data.append(error);
+    napi_create_error(
+        env,
+        hmc_napi_create_value::String(env, ErrorCode),
+        hmc_napi_create_value::String(env, msg_data),
+        &result);
+    return result;
+}
+
+napi_value hmc_napi_create_value::ErrorBreak(napi_env env, string error, string fn_name, string ErrorCode)
+{
+    string msg_data = fn_name + "\n";
+    msg_data.append(error);
+    napi_throw_error(env, ErrorCode.c_str(), msg_data.c_str());
+    return hmc_napi_create_value::Null(env);
+}
+
+napi_value hmc_napi_create_value::ErrorBreakA(napi_env env, string error, string fn_name, string ErrorCode)
+{
+    string msg_data = fn_name + "\n";
+    msg_data.append(error);
+    napi_throw_error(
+        env,
+        hmc_string_util::ansi_to_utf8(ErrorCode).c_str(),
+        hmc_string_util::ansi_to_utf8(msg_data).c_str());
+    return hmc_napi_create_value::Null(env);
+}
+
+napi_value hmc_napi_create_value::ErrorBreak(napi_env env, wstring error, wstring fn_name, wstring ErrorCode)
+{
+    wstring msg_data = fn_name + L"\n";
+    msg_data.append(error);
+    napi_throw_error(
+        env,
+        hmc_string_util::utf16_to_utf8(ErrorCode).c_str(),
+        hmc_string_util::utf16_to_utf8(ErrorCode).c_str());
+    return hmc_napi_create_value::Null(env);
+}
+
+napi_value hmc_napi_create_value::Object::Object(napi_env env)
+{
+    napi_value Results;
+    napi_create_object(env, &Results);
+    return Results;
+}
+
+bool hmc_napi_create_value::Object::putValue(napi_env env, napi_value Object, wstring key, napi_value value)
+{
+    napi_value key_temp = hmc_napi_create_value::String(env, key);
+    return napi_set_property(env, Object, key_temp, value) == napi_ok;
+}
+
+bool hmc_napi_create_value::Object::putValue(napi_env env, napi_value Object, string key, napi_value value)
+{
+    napi_value key_temp = hmc_napi_create_value::String(env, key);
+    return napi_set_property(env, Object, key_temp, value) == napi_ok;
+}
+
+bool hmc_napi_create_value::Object::putValue(napi_env env, napi_value Object, string key, string value)
+{
+    napi_value key_temp = hmc_napi_create_value::String(env, key);
+    napi_value value_temp = hmc_napi_create_value::String(env, value);
+    return napi_set_property(env, Object, key_temp, value_temp) == napi_ok;
+}
+
+bool hmc_napi_create_value::Object::putValue(napi_env env, napi_value Object, wstring key, wstring value)
+{
+    napi_value key_temp = hmc_napi_create_value::String(env, key);
+    napi_value value_temp = hmc_napi_create_value::String(env, value);
+    return napi_set_property(env, Object, key_temp, value_temp) == napi_ok;
 }

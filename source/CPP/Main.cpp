@@ -4,6 +4,7 @@
 #include "./util/napi_value_util.hpp"
 #include "./shell_v2.h"
 #include "./util/hmc_mouse.h"
+#include "./registr_v2.hpp"
 
 bool _________HMC___________;
 
@@ -3150,19 +3151,6 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("system", CallSystem),                                         // 2019?
         DECLARE_NAPI_METHOD("SetSystemHOOK", SetSystemHOOK),                               // 2019?
         DECLARE_NAPI_METHOD("systemStartTime", systemStartTime),                           // 2019?
-        DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),                         // 2019?
-        DECLARE_NAPI_METHODRM("hasRegistrKey", hasRegistrKey),                             // 2019?
-        DECLARE_NAPI_METHODRM("setRegistrKey", setRegistrKey),                             // 2019?
-        DECLARE_NAPI_METHODRM("createPathRegistr", createPathRegistr),                     // 2019?
-        DECLARE_NAPI_METHODRM("enumRegistrKey", enumRegistrKey),                           // 2019?
-        DECLARE_NAPI_METHODRM("getRegistrBuffValue", getRegistrBuffValue),                 // 2019?
-        DECLARE_NAPI_METHODRM("removeStringRegKeyWalk", removeStringRegKeyWalk),           //=>2022-2-9ADD
-        DECLARE_NAPI_METHODRM("removeStringRegKey", removeStringRegKey),                   //=>2022-2-9ADD
-        DECLARE_NAPI_METHODRM("removeStringRegValue", removeStringRegValue),               //=>2022-2-9ADD
-        DECLARE_NAPI_METHODRM("setRegistrDword", setRegistrDword),                         //=>2022-2-10ADD
-        DECLARE_NAPI_METHODRM("setRegistrQword", setRegistrQword),                         //=>2022-2-10ADD
-        DECLARE_NAPI_METHODRM("getRegistrDword", getRegistrDword),                         //=>2022-2-10ADD
-        DECLARE_NAPI_METHODRM("getRegistrQword", getRegistrQword),                         //=>2022-2-10ADD
         DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
         DECLARE_NAPI_METHODRM("createSymlink", createSymlink),       //=>2022-2-9ADD
@@ -3177,7 +3165,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2022-2-11ADD
         DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2022-2-11ADD
         DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2022-2-11ADD
-        DECLARE_NAPI_METHODRM("getClipboardSequenceNumber", getClipboardSequenceNumber), //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getClipboardInfo", getClipboardInfo),                     //=>2022-2-12ADD
         DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2022-2-12ADD
         DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2022-2-12ADD
         DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),               //=>2022-2-12ADD
@@ -3280,6 +3268,32 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("installHookMouse2", installHookMouse2),
         // 2023-12-22 add support
         DECLARE_NAPI_METHODRM("getLastInputTime", getLastInputTime),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("removeRegistrFolder", removeRegistrFolder),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("removeRegistrValue", removeRegistrValue),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("hasRegistrValue", hasRegistrValue),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("createRegistrFolder", createRegistrFolder),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrFolderStat", getRegistrFolderStat),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrValueStat", getRegistrValueStat),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrBuffValue", getRegistrBuffValue),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrDword", getRegistrDword),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("setRegistrDword", setRegistrDword),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("setRegistrValue", setRegistrValue),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrQword", getRegistrQword),
+        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("setRegistrQword", setRegistrQword),
         // 2023-12-11 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_get", _PromiseSession_getAll),
         // 2023-12-1 add support

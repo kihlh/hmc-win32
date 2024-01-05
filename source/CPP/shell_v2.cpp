@@ -135,12 +135,15 @@ vector<GetTaryIconList::TaryIcon> GetTaryIconList::EnumCommctrlList(HWND hWnd)
     LPVOID Pointer_Icon_Buttons = ::VirtualAllocEx(hProcess, 0, 4096, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
-                                              {
-                if (hProcess != NULL) {
-                    ::CloseHandle(hProcess);
-                }
-                VirtualFreeEx(hProcess, Pointer_Icon_Buttons, 0, MEM_RELEASE); });
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
+        {
+            if (Pointer_Icon_Buttons != NULL) {
+                VirtualFreeEx(hProcess, Pointer_Icon_Buttons, 0, MEM_RELEASE);
+            }
+            if (hProcess != NULL) {
+                ::CloseHandle(hProcess);
+            }
+        });
 
     if (Pointer_Icon_Buttons == NULL)
         return result;

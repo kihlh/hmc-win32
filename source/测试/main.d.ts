@@ -1,67 +1,60 @@
+/// <reference types="node" />
+import { HMC } from "../../";
 export interface Native {
+    /**
+     * 设置注册表值 （提供了初级和低级操作）
+     * @param Hive 根目录
+     * @param folderPath 目录路径
+     * @param keyName 值键
+     * @param data 数据体
+     * - null 设置空值
+     * - string 约 2^31 - 1 个字符 (2GB) 但是不建议存储过大数据 会出问题
+     * - number DWORD 标准范围约为 0(0x0) 到 4294967295(0xffffffff) (即 2^32 - 1)
+     * - bigint QWORD 标准范围约为  0n(0x0) 到 18446744073709551615n (0xffffffffffffffff)（即 2^64 - 1）
+     * - boolean 布尔 以DWORD状态存储 范围 0-1
+     * - Buffer 二进制  1024KB 以内
+     * - Date 时间戳 以浮点二进制存储
+     * @param type 类型
+     * - true 文本时将转义到转义类型
+     * - HMC.REG_TYPE 强制转义 仅限二进制类型
+     */
+    setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: null | number | bigint | boolean | Buffer | Date | string, type: undefined | boolean | HMC.REG_TYPE): boolean;
 }
 /**
- * 获取指定进程的工作目录
- * @time 5.449ms
- * @description 由于跨进程权限问题 不保证获取得到
- * !此功能需要读取进程内存
- * @module 异步async
- * @param pid
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * @param is_expand 是否让其可以被自动转义 例如 %temp%/123 -> c:.../temp/123
  */
-export declare function getProcessCwd2(pid: number): Promise<string | null>;
+export declare function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: string, is_expand?: boolean): boolean;
 /**
- * 获取指定进程的工作目录
- * @time 0.435ms
- * @description 由于跨进程权限问题 不保证获取得到
- * !此功能需要读取进程内存
- * @module 同步Sync
- * @param pid
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * @param to_type 转义类型 详见 HMC.REG_TYPE https://learn.microsoft.com/zh-cn/windows/win32/sysinfo/registry-value-types
  */
-export declare function getProcessCwd2Sync(pid: number): string | null;
+export declare function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: Buffer, to_type?: HMC.REG_TYPE): boolean;
 /**
- * 获取指定进程得出命令行
- * @time 1.095ms
- * @description 由于跨进程权限问题 不保证获取得到
- * ?此功能在win8及以下系统 需要读取进程内存
- * @module 异步async
- * @param pid 进程id
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
  */
-export declare function getProcessCommand2(pid: number): Promise<string>;
+export declare function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null): boolean;
 /**
- * 获取指定进程得出命令行
- * @time 0.386ms
- * @description 由于跨进程权限问题 不保证获取得到
- * ?此功能在win8及以下系统 需要读取进程内存
- * @module 同步Sync
- * @param pid
+ * 设置注册表值
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ * @param data 数据体
+ * - number DWORD 标准范围约为 0(0x0) 到 4294967295(0xffffffff) (即 2^32 - 1)
+ * - bigint QWORD 标准范围约为  0n(0x0) 到 18446744073709551615n (0xffffffffffffffff)（即 2^64 - 1）
+ * - boolean 布尔 以DWORD状态存储 范围 0-1
+ * - Buffer 二进制  1024KB 以内
+ * - Date 时间戳 以浮点二进制存储
  */
-export declare function getProcessCommand2Sync(pid: number): string | null;
-/**
- * 限制鼠标光标可移动范围 (异步)
- * @description 可以调用 stop 提前结束
- * ?最高不允许超过30000ms (30秒) 最低不允许低于31ms
- * ?范围为正方形 如果没有设置right与bottom的值则将限制为1x1的正方形 (不可动)
- * @param ms 本次限制的时间
- * @param x 限制左边初始化点的位置
- * @param y 限制顶部初始化点的位置
- * @param right 允许的范围(左边到右边部)
- * @param bottom 允许光标移动的范围(顶到底部)
- */
-export declare function setLimitMouseRange(ms: number, x: number, y: number, right?: number, bottom?: number): {
-    ms: number;
-    x: number;
-    y: number;
-    right: number;
-    bottom: number;
-    closed: boolean;
-    /**
-     * 停止本次
-     * @returns
-     */
-    close(): boolean;
-    /**
-     * 是否正在执行中
-     * @returns
-     */
-    has(): boolean;
-};
+export declare function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: number | bigint | boolean | Date): boolean;

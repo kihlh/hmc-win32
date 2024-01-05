@@ -10,6 +10,10 @@
 
 我们提供了多份编程语言帮助文档 可供了解api的调用，但是他可能更新时间不及时，因为api非常多，需要编写文档是个不小的工程，hmc使用的是 TypeScript 编写的 并且他预带了一份类型声明 可以让您在主流的 ide编辑器 中显示类型 以及用法
 
+代码参考性 **: 由于hmc多年碎片化时间编写，结构非常复杂，为了功能能够正常运行也能重构代码结构,当前HMC正在局部重构代替全部重构，所以代码解构会比较混乱 需要获取单个参考请查看我的个人代码片段，有大部分功能的核心代码提取版本**
+
+
+
 #### 相关的链接 ：
 
 ##### Help：   [【编程帮助】](https://kihlh.gitbook.io/hmc/)          NPM：    [【hmc-win32】](https://www.npmjs.com/package/hmc-win32)    [【hmc-autoit】](https://www.npmjs.com/package/hmc-autoit)      Source： [【c++源代码】](https://github.com/kihlh/hmc-win32/tree/master/source)    [【AutoitX】](https://github.com/kihlh/hmc-win32/tree/master/source/hmc-autoIt)      [【重构版】](https://github.com/kihlh/hmc-win32/tree/master/source/h2c-win32)   
@@ -37,29 +41,29 @@
 
 ## 为您总结了几种功能的分类
 
-- ##### [窗口操作](#Window Operation) ：调整  /  枚举  /  禁用   /  查询  /  变化
+- ##### [窗口操作](#窗口操作) ：调整  /  枚举  /  禁用   /  查询  /  变化
 
-- **[进程控制](#Process Control) ：kill  /  信息  /  句柄  /  窗口 / 变化**
+- **[进程控制](#进程控制) ：kill  /  信息  /  句柄  /  窗口 / 变化**
 
-- **[网    络](#Network (net))    ：端口  /  网卡  /  局域网  /  IP**
+- **[网    络](#网络 (net))    ：端口  /  网卡  /  局域网  /  IP**
 
-- **[文件系统](#File Links/Shortcuts) ：软链接  /  硬链接  /  USB**
+- **[文件系统](#系统操作) ：软链接  /  硬链接  /  USB**
 
-- ##### [环境变量](#Environment Variables) ：用户变量  /  系统变量  /  同步  /  转义
+- ##### [环境变量](#变量环境（Environment）) ：用户变量  /  系统变量  /  同步  /  转义
 
-- **[剪 贴 板](#System Operations)   ：文件列表  /  读写  /  文本  /  变化** 
+- **[剪 贴 板](#系统操作)   ：文件列表  /  读写  /  文本  /  变化** 
 
-- **[自 动 化](#Keyboard Mouse USB):   ：键盘  /  鼠标  /   执行  /  读取  /  autoit3**
+- **[自 动 化](#键盘鼠标USB):   ：键盘  /  鼠标  /   执行  /  读取  /  autoit3**
 
-- **[注 册 表](#Registry Editing)   ：读 / 写** 
+- **[注 册 表](#系统操作)   ：读 / 写** 
 
-- ##### [电源控制](#Power Control) : 关机  /  重启   /  注销  /   显示器  /  启动时间 
+- ##### [电源控制](#电源控制) : 关机  /  重启   /  注销  /   显示器  /  启动时间 
 
-- **[Shell](#System Operations)       ：回收站  / Message  / 快捷方式 / 执行软件 / 选取文件 / 保存文件**
+- **[Shell](#系统操作)      ：回收站  / Message  / 快捷方式 / 执行软件 / 选取文件 / 保存文件**
 
-- **[互斥体](#System Operations)    ： 创建 / 销毁  （防止进程重复启动）**
+- **[互斥体](#系统操作)    ： 创建 / 销毁  （防止进程重复启动）**
 
-- **[托 盘](#Status Bar)**       ：创建 / 枚举 / 销毁
+- **[托 盘](#状态栏)**       ：创建 / 枚举 / 销毁
 
 
 

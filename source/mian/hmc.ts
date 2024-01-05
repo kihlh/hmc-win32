@@ -103,7 +103,6 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             confirm: fnBool,
             createDirSymlink: fnBool,
             createHardLink: fnBool,
-            createPathRegistr: fnBool,
             createSymlink: fnBool,
             desc: "HMC Connection System api",
             enumRegistrKey: fnStrList,
@@ -140,20 +139,6 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             getPointWindowName: fnStr,
             getPointWindowProcessId: fnNum,
             getProcessHandle: fnNull,
-            // getProcessList: fnAnyArr,
-            // getProcessName: fnNull,
-            // getProcessidFilePath: fnNull,
-            getRegistrBuffValue: fnVoid,
-            getRegistrDword: fnNum,
-            getRegistrQword: () => {
-                console.error(HMCNotPlatform);
-                return BigInt(0)
-            },
-            getShortcutLink: () => {
-                console.error(HMCNotPlatform);
-                return { "args": "", "cwd": '', "desc": "", "hotkey": 0, "icon": "", "iconIndex": 0, "showCmd": 0, "path": "" }
-            },
-            getStringRegKey: fnStr,
             getSystemIdleTime: fnNum,
             getSystemMenu: fnBool,
             getTrayList: fnAnyArr,
@@ -164,7 +149,6 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             },
             hasKeyActivate: fnBool,
             hasProcess: fnBool,
-            hasRegistrKey: fnBool,
             hasWindowTop: fnBool,
             isAdmin: fnBool,
             isEnabled: fnBool,
@@ -187,17 +171,11 @@ const get_native: () => HMC.Native = (binPath?: string) => {
             openURL: fnBool,
             platform: "win32",
             powerControl: fnVoid,
-            removeStringRegKey: fnBool,
-            removeStringRegKeyWalk: fnBool,
-            removeStringRegValue: fnBool,
             rightClick: fnBool,
             setClipboardFilePaths: fnBool,
             setClipboardText: fnBool,
             setCursorPos: fnBool,
             setHandleTransparent: fnBool,
-            setRegistrDword: fnBool,
-            setRegistrKey: fnBool,
-            setRegistrQword: fnBool,
             setShortcutLink: fnBool,
             setWindowEnabled: fnBool,
             setWindowFocus: fnBool,
@@ -543,6 +521,36 @@ export module HMC {
         // 预留数据
         "dwExtraInfo": number | null
     }
+    
+    export enum REG_TYPE {
+        REG_NONE = 0,      // 没有类型
+		REG_SZ = 1,        // 结尾的文本
+		REG_EXPAND_SZ = 2, // 可扩展文本
+		REG_BINARY = 3,                   // 二进制
+		REG_DWORD = 4,                    // 32-bit number
+		REG_DWORD_LITTLE_ENDIAN = 4,      // 32-bit number (same as REG_DWORD)
+		REG_DWORD_BIG_ENDIAN = 5,         // 32-bit number
+		REG_LINK = 6,                     // Symbolic Link (unicode)
+		REG_MULTI_SZ = 7,                 // Multiple Unicode strings
+		REG_RESOURCE_LIST = 8,            // Resource list in the resource map
+		REG_FULL_RESOURCE_DESCRIPTOR = 9, // Resource list in the hardware description
+		REG_RESOURCE_REQUIREMENTS_LIST = 10,
+		REG_QWORD = 11,               // 64-bit number
+		REG_QWORD_LITTLE_ENDIAN = 11, // 64-bit number (same as REG_QWORD)
+    }
+
+    export type EnumRegistrFolderItem = RegistrFolderInfo & {
+        key:string[]; // 值键
+		Folder:string[]; // 目录键
+    };
+
+    export type RegistrFolderInfo = {
+		size:number;   // 值键 / 目录键 数量
+        exists:boolean;      // 此键是否存在
+		folderSize:number; // 此目录键总数量
+		keySize:number;    // 此目录键总数量
+		time:number|null;   // 时间戳(最后写入时间)
+    };
 
     /**
      * （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
@@ -1232,99 +1240,7 @@ export module HMC {
         SetSystemHOOK(HOOK: boolean): boolean;
         /**获取所有HidUsb设备（仅限HID设备）**/
         getHidUsbList(): HID_USB_INFO[];
-        /**
-         * 判断键值是否存在
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        hasRegistrKey(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 获取内容(文本)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        getStringRegKey(HKEY: HMC.HKEY, Path: string, Key: string): string;
-        /**
-        * 获取内容(64位数字)
-        * @param HKEY 根目录
-        * @param Path 路径
-        * @param Key 键值 (默认值 直接用： "" )
-        */
-        getRegistrQword(HKEY: HMC.HKEY, Path: string, Key: string): bigint;
-        /**
-        * 获取内容(32位数字)
-        * @param HKEY 根目录
-        * @param Path 路径
-        * @param Key 键值 (默认值 直接用： "" )
-        */
-        getRegistrDword(HKEY: HMC.HKEY, Path: string, Key: string): number;
-        /**
-         * 设置键值对(32位数字)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrDword(HKEY: HMC.HKEY, Path: string, Key: string, Dword: number): boolean;
-        /**
-         * 设置键值对(64位数字)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrQword(HKEY: HMC.HKEY, Path: string, Key: string, Qword: bigint): boolean;
-        /**
-         * 删除空目录键值
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (默认值 直接用： "" )
-         */
-        removeStringRegKey(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 设置键值对
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         * @param Data 数据 (默认值 直接用： "" )
-         */
-        setRegistrKey(HKEY: HMC.HKEY, Path: string, Key: string, Data: string): boolean;
-        /**
-         * 创建新的路径
-         * @param HKEY 根目录
-         * @param Path 路径
-         */
-        createPathRegistr(HKEY: HMC.HKEY, Path: string): boolean;
-        /**
-         * 枚举键值
-         * @param HKEY 根目录
-         * @param Path 路径
-         */
-        enumRegistrKey(HKEY: HMC.HKEY, Path: string): string[];
-        /**
-         * 获取内容(二进制 Buffer)
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值
-         */
-        getRegistrBuffValue(HKEY: HMC.HKEY, Path: string, Key: string): Buffer | void;
-        /**
-         * 删除值
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值 (不允许空值)
-         */
-        removeStringRegValue(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
-         * 删除该目录下的所有内容（树遍历）
-         * @param HKEY 根目录
-         * @param Path 路径
-         * @param Key 键值(不允许空值)
-         */
-        removeStringRegKeyWalk(HKEY: HMC.HKEY, Path: string, Key: string): boolean;
-        /**
+         /**
          * 向剪贴板写入文件路径
          * @param FilePaths 路径列表
          */
@@ -2759,6 +2675,7 @@ export function getStringRegKey(HKEY: HMC.HKEY, Path: string, key?: string) {
             .join("\\"),
         ref.string(key)
     );
+    
 }
 
 /**

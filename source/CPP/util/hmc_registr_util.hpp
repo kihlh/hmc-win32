@@ -646,7 +646,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, DWORD type, std::vector<BYTE> value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, DWORD type, const std::vector<BYTE>& value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -657,7 +657,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::string FolderPath, std::string KeyName, DWORD type, std::vector<BYTE> value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::string FolderPath, std::string KeyName, DWORD type, const std::vector<BYTE>& value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -668,7 +668,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring KeyName, DWORD type, std::vector<BYTE> value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring KeyName, DWORD type, const std::vector<BYTE>& value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -679,7 +679,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::string KeyName, DWORD type, std::vector<BYTE> value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::string KeyName, DWORD type, const std::vector<BYTE>& value);
 
 	/**
 	 * @brief 获取值 低级的二进制值
@@ -778,8 +778,8 @@ namespace hmc_registr_util
 		// 0x00000001 REG_SZ 字符串 or 0x00000002 REG_EXPAND_SZ 未展开引用的字符串 例如“%PATH%”
 		bool set(std::string input, bool expand = false);
 
-		bool set(REG_TYPE type, std::vector<BYTE> value);
-		bool set(DWORD type, std::vector<BYTE> value);
+		bool set(REG_TYPE type, const std::vector<BYTE>& value);
+		bool set(DWORD type, const std::vector<BYTE>& value);
 	};
 
 	class getRegistrValue : public  RegistrValueUtil
@@ -792,8 +792,8 @@ namespace hmc_registr_util
 		getRegistrValue(HKEY hKey, std::string subKey, std::string Name);
 
 		std::vector<BYTE> getBuff();
-		int getInt32();
-		long long getInt64();
+		int32_t getInt32();
+		int64_t getInt64();
 		HWND getHwnd();
 		std::wstring getStringW(bool expand = false);
 		std::string getStringA(bool expand = false);
