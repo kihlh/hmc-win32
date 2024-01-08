@@ -28,11 +28,12 @@ export interface Native {
      * - boolean 布尔 以DWORD状态存储 范围 0-1
      * - Buffer 二进制  1024KB 以内
      * - Date 时间戳 以浮点二进制存储
+     * - string[] 文本数组 REG_MULTI_SZ格式 允许存储空文本但是不建议 (因为非标准) 但是数组末尾的元素是空文本会被清空
      * @param type 类型
      * - true 文本时将转义到转义类型
      * - HMC.REG_TYPE 强制转义 仅限二进制类型
      */
-    setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: null | number | bigint | boolean | Buffer | Date | string, type: undefined | boolean | HMC.REG_TYPE): boolean;
+    setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null, data: null | number | bigint | boolean | Buffer | Date | string | string[], type: undefined | boolean | HMC.REG_TYPE): boolean;
 }
 
 /**
@@ -63,6 +64,16 @@ export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: str
 export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string | null): boolean;
 
 /**
+ * 设置注册表值 文本数组
+ * - REG_MULTI_SZ格式 
+ * ? 允许存储空文本但是不建议 (因为非标准) 但是数组末尾的元素是空文本会被清空
+ * @param Hive 根目录
+ * @param folderPath 目录路径
+ * @param keyName 值键
+ */
+export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: string ,data:string[]): boolean;
+
+/**
  * 设置注册表值
  * @param Hive 根目录
  * @param folderPath 目录路径
@@ -81,7 +92,7 @@ export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: unk
     // 虽然不符合规范 都是根目录下是允许写数据的
     const folder_path = ref.string(folderPath || "").replace(/[\\\/]+/g, "\\");
     const key_name = ref.string(keyName || "");
-    let data_output: string | number | bigint | boolean | Buffer | Date | null = data as Buffer;
+    let data_output: string | number | bigint | boolean | Buffer | Date | null | string[] = data as Buffer;
     let types: HMC.REG_TYPE | undefined | boolean = undefined;
     let is_type_valid: boolean = false;
 
@@ -107,6 +118,7 @@ export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: unk
         typeof data_output == "bigint" ||
         data_output instanceof Date ||
         data_output === null ||
+        Array.isArray(data_output)||
         Buffer.isBuffer(data_output)
     ) {
         is_type_valid = true;
@@ -122,9 +134,13 @@ export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: unk
         data_output = null;
     }
 
-    // 超过0xffffffff 强转 QDWOD
+    // 超过0xffffffff 强制到0xffffffff
     if (typeof data_output == "number" && data_output > 0xffffffff) {
         data_output = 0xffffffff;
+    }
+
+    if(data_output&&!Buffer.isBuffer(data_output) &&Array.isArray(data_output)){
+        data_output = ref.stringArray(data_output);
     }
 
     // 处理 负数 浮点 的逻辑
@@ -193,7 +209,6 @@ export function setRegistrValue(Hive: HMC.HKEY, folderPath: string, keyName: unk
     // ];
     // Buffer.from( +(new Date()),"binary")
     //  console.log(temp);
-
 
 
 })().catch(console.error);

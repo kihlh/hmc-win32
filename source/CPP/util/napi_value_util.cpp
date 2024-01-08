@@ -161,7 +161,7 @@ js_valuetype hmc_napi_type::getType(napi_env env, napi_value value_input)
         return js_promise;
     }
 
-    if (is_type_temp == napi_object)
+    if (value_type == napi_object)
     {
         if (
             isObjectkeyExists(env, value_input, "x") &&
@@ -1495,45 +1495,58 @@ napi_value hmc_napi_create_value::Boolean(napi_env env, int value)
     return result;
 }
 
-// 返回一个 string utf8 string
-napi_value hmc_napi_create_value::String(napi_env env, string value)
+/**
+ * @brief 返回一个 string utf8 string
+ * 
+ * @param env 上下文
+ * @param value 内容
+ * @param re_size （以字节为单位）默认为 NAPI_AUTO_LENGTH
+ * @return napi_value 
+ */
+napi_value hmc_napi_create_value::String(napi_env env, string value, size_t re_size )
 {
     napi_status status;
     napi_value result;
-    status = napi_create_string_utf8(env, value.c_str(), NAPI_AUTO_LENGTH, &result);
+    status = napi_create_string_utf8(env, value.c_str(), re_size, &result);
     assert(status == napi_ok);
     return result;
 }
 
-// 返回一个 string utf8 string
-napi_value hmc_napi_create_value::StringA(napi_env env, string value)
+/**
+ * @brief 返回一个 string ansi string
+ * 
+ * @param env 上下文
+ * @param value 内容
+ * @param re_size （以字节为单位）默认为 NAPI_AUTO_LENGTH
+ * @return napi_value 
+ */
+napi_value hmc_napi_create_value::StringA(napi_env env, string value, size_t re_size )
 {
     napi_status status;
     napi_value result;
     wstring result2w = hmc_string_util::ansi_to_utf16(value);
-    status = napi_create_string_utf16(env, (const char16_t *)result2w.c_str(), NAPI_AUTO_LENGTH, &result);
+    status = napi_create_string_utf16(env, (const char16_t *)result2w.c_str(), re_size, &result);
     assert(status == napi_ok);
     return result;
 }
 
-// 返回一个 string utf16 string
-napi_value hmc_napi_create_value::String(napi_env env, wstring value)
+/**
+ * @brief 返回一个 string utf16 string
+ * 
+ * @param env 上下文
+ * @param value 内容
+ * @param re_size （以字节为单位）默认为 NAPI_AUTO_LENGTH
+ * @return napi_value 
+ */
+napi_value hmc_napi_create_value::String(napi_env env, wstring value, size_t re_size )
 {
     napi_status status;
     napi_value result;
-    status = napi_create_string_utf16(env, (const char16_t *)value.c_str(), NAPI_AUTO_LENGTH, &result);
+    status = napi_create_string_utf16(env, (const char16_t *)value.c_str(), re_size, &result);
     assert(status == napi_ok);
     return result;
 }
 
-napi_value hmc_napi_create_value::String(napi_env env, wchar_t *value)
-{
-    return String(env, wstring(value));
-}
-napi_value hmc_napi_create_value::String(napi_env env, char *value)
-{
-    return String(env, string(value));
-}
 napi_value hmc_napi_create_value::String(napi_env env)
 {
     return String(env, "");

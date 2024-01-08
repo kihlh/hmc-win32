@@ -234,6 +234,8 @@ __export(hmc_exports, {
   getAllWindowsHandle: () => getAllWindowsHandle,
   getBasicKeys: () => getBasicKeys,
   getClipboardFilePaths: () => getClipboardFilePaths,
+  getClipboardHTML: () => getClipboardHTML,
+  getClipboardInfo: () => getClipboardInfo,
   getClipboardSequenceNumber: () => getClipboardSequenceNumber,
   getClipboardText: () => getClipboardText,
   getColor: () => getColor,
@@ -286,7 +288,10 @@ __export(hmc_exports, {
   getRealGlobalVariableList: () => getRealGlobalVariableList,
   getRegistrBuffValue: () => getRegistrBuffValue,
   getRegistrDword: () => getRegistrDword,
+  getRegistrFolderStat: () => getRegistrFolderStat,
   getRegistrQword: () => getRegistrQword,
+  getRegistrValue: () => getRegistrValue,
+  getRegistrValueStat: () => getRegistrValueStat,
   getShortcutLink: () => getShortcutLink,
   getStringRegKey: () => getStringRegKey,
   getSubProcessID: () => getSubProcessID,
@@ -355,7 +360,6 @@ __export(hmc_exports, {
   openApp: () => openApp,
   openExternal: () => openExternal,
   openPath: () => openPath,
-  openRegKey: () => openRegKey,
   openURL: () => openURL,
   platform: () => platform,
   popen: () => popen,
@@ -386,6 +390,7 @@ __export(hmc_exports, {
   setRegistrDword: () => setRegistrDword,
   setRegistrKey: () => setRegistrKey,
   setRegistrQword: () => setRegistrQword,
+  setRegistrValue: () => setRegistrValue,
   setShortcutLink: () => setShortcutLink,
   setShowWindow: () => setShowWindow,
   setSystemVariable: () => setSystemVariable,
@@ -838,6 +843,13 @@ var get_native = (binPath) => {
       return "[]";
     }
     return {
+      getRegistrBuffValue: fnNull,
+      getRegistrValueStat: fnNull,
+      removeRegistrValue: fnBool,
+      removeRegistrFolder: fnBool,
+      createRegistrFolder: fnBool,
+      getRegistrFolderStat: fnNull,
+      setRegistrValue: fnBool,
       getProcessStartTime: fnNull,
       __debug_AllocConsole: fnVoid,
       hasKeyExists: fnBool,
@@ -850,6 +862,7 @@ var get_native = (binPath) => {
       getUserVariable: fnStr,
       getVariableAnalysis: fnStr,
       putSystemVariable: fnBool,
+      getClipboardHTML: fnNull,
       putUserVariable: fnBool,
       getVariableAll(...args) {
         return {};
@@ -858,6 +871,9 @@ var get_native = (binPath) => {
         return {};
       },
       getUserKeyList: fnAnyArr,
+      getClipboardInfo: () => {
+        return { format: [], formatCount: 0, hwnd: 0, id: 0 };
+      },
       getSystemKeyList: fnAnyArr,
       findAllWindow: fnAnyArr,
       _popen: fnStr,
@@ -866,20 +882,17 @@ var get_native = (binPath) => {
       getSubProcessID: fnAnyArr,
       enumAllProcessPolling: fnVoid,
       clearEnumAllProcessList: fnVoid,
-      // getProcessParentProcessID: fnVoid,
-      // enumAllProcess: fnNum,
-      // _SET_HMC_DEBUG: fnBool,
       isStartKeyboardHook: fnBool,
-      // isStartHookMouse: fnBool,
       clearEnumProcessHandle: fnVoid,
       getProcessThreadList: fnAnyArr,
-      // getMouseNextSession: fnAnyArr,
       getKeyboardNextSession: fnAnyArr,
       unKeyboardHook: fnVoid,
-      // unHookMouse: fnVoid,
       installKeyboardHook: fnVoid,
-      // installHookMouse: fnVoid,
       MessageError: fnVoid,
+      getRegistrValue: fnNull,
+      getShortcutLink: () => {
+        return { cwd: "", icon: "", iconIndex: 0, desc: "", args: "", showCmd: 0, hotkey: 0, path: "" };
+      },
       MessageStop: fnBool,
       SetBlockInput: fnBool,
       SetSystemHOOK: fnBool,
@@ -891,10 +904,8 @@ var get_native = (binPath) => {
       confirm: fnBool,
       createDirSymlink: fnBool,
       createHardLink: fnBool,
-      createPathRegistr: fnBool,
       createSymlink: fnBool,
       desc: "HMC Connection System api",
-      enumRegistrKey: fnStrList,
       getAllWindows: fnAnyArr,
       getAllWindowsHandle: fnAnyArr,
       getBasicKeys: () => {
@@ -906,7 +917,7 @@ var get_native = (binPath) => {
           "win": false
         };
       },
-      getClipboardFilePaths: fnStrList,
+      getClipboardFilePaths: fnArrStr,
       getClipboardText: fnStr,
       // getDetailsProcessList: fnAnyArr,
       getDeviceCaps: () => {
@@ -931,20 +942,6 @@ var get_native = (binPath) => {
       getPointWindowName: fnStr,
       getPointWindowProcessId: fnNum,
       getProcessHandle: fnNull,
-      // getProcessList: fnAnyArr,
-      // getProcessName: fnNull,
-      // getProcessidFilePath: fnNull,
-      getRegistrBuffValue: fnVoid,
-      getRegistrDword: fnNum,
-      getRegistrQword: () => {
-        console.error(HMCNotPlatform);
-        return BigInt(0);
-      },
-      getShortcutLink: () => {
-        console.error(HMCNotPlatform);
-        return { "args": "", "cwd": "", "desc": "", "hotkey": 0, "icon": "", "iconIndex": 0, "showCmd": 0, "path": "" };
-      },
-      getStringRegKey: fnStr,
       getSystemIdleTime: fnNum,
       getSystemMenu: fnBool,
       getTrayList: fnAnyArr,
@@ -955,7 +952,6 @@ var get_native = (binPath) => {
       },
       hasKeyActivate: fnBool,
       hasProcess: fnBool,
-      hasRegistrKey: fnBool,
       hasWindowTop: fnBool,
       isAdmin: fnBool,
       isEnabled: fnBool,
@@ -978,17 +974,11 @@ var get_native = (binPath) => {
       openURL: fnBool,
       platform: "win32",
       powerControl: fnVoid,
-      removeStringRegKey: fnBool,
-      removeStringRegKeyWalk: fnBool,
-      removeStringRegValue: fnBool,
       rightClick: fnBool,
       setClipboardFilePaths: fnBool,
       setClipboardText: fnBool,
       setCursorPos: fnBool,
       setHandleTransparent: fnBool,
-      setRegistrDword: fnBool,
-      setRegistrKey: fnBool,
-      setRegistrQword: fnBool,
       setShortcutLink: fnBool,
       setWindowEnabled: fnBool,
       setWindowFocus: fnBool,
@@ -1321,6 +1311,23 @@ var HWND = class extends Number {
 };
 var HMC;
 ((HMC2) => {
+  let REG_TYPE;
+  ((REG_TYPE2) => {
+    REG_TYPE2[REG_TYPE2["REG_NONE"] = 0] = "REG_NONE";
+    REG_TYPE2[REG_TYPE2["REG_SZ"] = 1] = "REG_SZ";
+    REG_TYPE2[REG_TYPE2["REG_EXPAND_SZ"] = 2] = "REG_EXPAND_SZ";
+    REG_TYPE2[REG_TYPE2["REG_BINARY"] = 3] = "REG_BINARY";
+    REG_TYPE2[REG_TYPE2["REG_DWORD"] = 4] = "REG_DWORD";
+    REG_TYPE2[REG_TYPE2["REG_DWORD_LITTLE_ENDIAN"] = 4] = "REG_DWORD_LITTLE_ENDIAN";
+    REG_TYPE2[REG_TYPE2["REG_DWORD_BIG_ENDIAN"] = 5] = "REG_DWORD_BIG_ENDIAN";
+    REG_TYPE2[REG_TYPE2["REG_LINK"] = 6] = "REG_LINK";
+    REG_TYPE2[REG_TYPE2["REG_MULTI_SZ"] = 7] = "REG_MULTI_SZ";
+    REG_TYPE2[REG_TYPE2["REG_RESOURCE_LIST"] = 8] = "REG_RESOURCE_LIST";
+    REG_TYPE2[REG_TYPE2["REG_FULL_RESOURCE_DESCRIPTOR"] = 9] = "REG_FULL_RESOURCE_DESCRIPTOR";
+    REG_TYPE2[REG_TYPE2["REG_RESOURCE_REQUIREMENTS_LIST"] = 10] = "REG_RESOURCE_REQUIREMENTS_LIST";
+    REG_TYPE2[REG_TYPE2["REG_QWORD"] = 11] = "REG_QWORD";
+    REG_TYPE2[REG_TYPE2["REG_QWORD_LITTLE_ENDIAN"] = 11] = "REG_QWORD_LITTLE_ENDIAN";
+  })(REG_TYPE = HMC2.REG_TYPE || (HMC2.REG_TYPE = {}));
   ;
   let MouseKey;
   ((MouseKey2) => {
@@ -1698,11 +1705,11 @@ function hasRegistrKey(HKEY, Path, key) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "hasRegistrKey");
-  return native.hasRegistrKey(
+  return native.getRegistrValueStat(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
     ref.string(key)
-  );
+  ) ? true : false;
 }
 function setRegistrQword(HKEY, Path, key, Qword) {
   if (!key)
@@ -1710,33 +1717,45 @@ function setRegistrQword(HKEY, Path, key, Qword) {
   has_reg_args(HKEY, Path, "hasRegistrKey");
   if (!Qword)
     Qword = BigInt(0);
-  return native.setRegistrQword(HKEY, ref.string(Path), ref.string(key), BigInt(Qword));
+  return native.setRegistrValue(HKEY, ref.string(Path), ref.string(key), BigInt(Qword), void 0);
 }
 function setRegistrDword(HKEY, Path, key, Dword) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "hasRegistrKey");
-  return native.setRegistrDword(HKEY, ref.string(Path), ref.string(key), ref.int(Dword));
+  return native.setRegistrValue(HKEY, ref.string(Path), ref.string(key), ref.int(Dword), void 0);
 }
 function getRegistrQword(HKEY, Path, key) {
+  var _a;
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "getRegistrQword");
-  return native.getRegistrQword(
+  const data = (_a = native.getRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
-    ref.string(key)
-  );
+    ref.string(key || "")
+  )) == null ? void 0 : _a.data;
+  if (typeof data == "number")
+    return BigInt(ref.int(data));
+  if (typeof data == "bigint")
+    return data;
+  return 0;
 }
 function getRegistrDword(HKEY, Path, key) {
+  var _a;
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "getRegistrDword");
-  return native.getRegistrDword(
+  const data = (_a = native.getRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
-    ref.string(key)
-  );
+    ref.string(key || "")
+  )) == null ? void 0 : _a.data;
+  if (typeof data == "number")
+    return ref.int(data);
+  if (typeof data == "bigint")
+    return ref.int(data);
+  return 0;
 }
 function getRegistrBuffValue(HKEY, Path, key) {
   if (!key)
@@ -1749,14 +1768,16 @@ function getRegistrBuffValue(HKEY, Path, key) {
   );
 }
 function enumRegistrKey(HKEY, Path) {
-  has_reg_args(HKEY, Path, "createPathRegistr");
+  has_reg_args(HKEY, Path, "enumRegistrKey");
   let enumKeyList = /* @__PURE__ */ new Set();
-  let NatenumKey = native.enumRegistrKey(
+  let NatenumKey = JSON.parse(native.getRegistrFolderStat(
     HKEY,
-    ref.string(Path).split(/[\\\/]+/g).join("\\")
-  );
-  for (let index = 0; index < NatenumKey.length; index++) {
-    const key = NatenumKey[index];
+    ref.string(Path).split(/[\\\/]+/g).join("\\"),
+    true
+  ) || "{}");
+  const key_list = [...NatenumKey.folder || [], ...NatenumKey.key || []];
+  for (let index = 0; index < key_list.length; index++) {
+    const key = key_list[index];
     enumKeyList.add(key);
   }
   return [...enumKeyList];
@@ -1783,83 +1804,60 @@ function getStringRegKey(HKEY, Path, key) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "getStringRegKey");
-  return native.getStringRegKey(
+  const data = native.getRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
     ref.string(key)
   );
+  return Buffer.isBuffer(data == null ? void 0 : data.data) || typeof (data == null ? void 0 : data.data) == "number" || typeof (data == null ? void 0 : data.data) == "string" ? String(data == null ? void 0 : data.data) : "";
 }
-function openRegKey(HKEY, Path, key) {
-  if (!key)
-    key = "";
-  has_reg_args(HKEY, Path, "openRegKey");
-  return {
-    /**
-     * 获取全路径
-     */
-    get path() {
-      return HKEY.concat("\\", Path, "\\", key || "");
-    },
-    /**
-     * 设置一个值
-     * @param data 数据
-     */
-    set(data) {
-      return native.setRegistrKey(HKEY, Path, key || "", data);
-    },
-    /**
-     * 获取内容
-     * @returns
-     */
-    get() {
-      return native.getStringRegKey(HKEY, Path, key || "");
-    },
-    /**
-     * 获取该内容并将其视为二进制缓冲区
-     * @returns 二进制缓冲区
-     */
-    getBuff() {
-      return native.getRegistrBuffValue(HKEY, Path, key || "") || Buffer.alloc(0);
-    },
-    /**
-     * 获取该内容并将其视为数字
-     * @returns 数字
-     */
-    getNumber() {
-      return Number(native.getStringRegKey(HKEY, Path, key || ""));
-    },
-    /**
-     * 枚举当前路径下的键
-     * @returns 键 数组
-     */
-    keys() {
-      return enumRegistrKey(HKEY, Path);
-    },
-    /**
-     * 将当前目录转为对象
-     */
-    list() {
-      return listRegistrPath(HKEY, Path);
-    }
-  };
+function getClipboardHTML() {
+  var _a;
+  const data = native.getClipboardHTML();
+  if (data) {
+    const html_item = {
+      Version: Number(((_a = data.data.match(/Version:([\.0-9]+)/)) == null ? void 0 : _a[0]) || 0),
+      data: data.data,
+      EndFragment: data.EndFragment,
+      EndHTML: data.EndHTML,
+      is_valid: data.is_valid,
+      SourceURL: data.SourceURL,
+      StartFragment: data.StartFragment,
+      StartHTML: data.StartHTML,
+      get document() {
+        if (!this.data && !this.StartHTML)
+          return null;
+        return this.data.substring(this.StartHTML, this.EndHTML) || null;
+      },
+      get body() {
+        if (!this.data && !this.StartFragment)
+          return null;
+        return this.data.substring(this.StartFragment, this.EndFragment) || null;
+      }
+    };
+    return html_item;
+  }
+  return data;
 }
 function getNumberRegKey(HKEY, Path, key) {
+  var _a;
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "getNumberRegKey");
-  return ref.int(
-    native.getStringRegKey(
-      HKEY,
-      ref.string(Path).split(/[\\\/]+/g).join("\\"),
-      ref.string(key)
-    )
-  );
+  const data = (_a = native.getRegistrValue(
+    HKEY,
+    ref.string(Path).split(/[\\\/]+/g).join("\\"),
+    ref.string(key || "")
+  )) == null ? void 0 : _a.data;
+  if (typeof data == "number" || typeof data == "bigint")
+    return Number(data);
+  return ref.int(0);
 }
 function removeStringRegKey(HKEY, Path, key) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "removeStringRegKey");
-  return native.removeStringRegKey(
+  return native.removeRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
     ref.string(key)
@@ -1874,10 +1872,11 @@ function removeStringRegKeyWalk(HKEY, Path, key) {
     Path = paths.join("\\");
   }
   has_reg_args(HKEY, Path, "removeStringRegKeyWalk");
-  return native.removeStringRegKeyWalk(
+  return native.removeRegistrFolder(
     HKEY,
     ref.string(Path).split(/[\\\/]+/g).join("\\"),
-    ref.string(key)
+    ref.string(key),
+    true
   );
 }
 function removeStringTree(HKEY, Path, key) {
@@ -1887,7 +1886,7 @@ function removeStringRegValue(HKEY, Path, key) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "removeStringRegValue");
-  return native.removeStringRegValue(
+  return native.removeRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]/g).join("\\"),
     ref.string(key)
@@ -1897,16 +1896,17 @@ function setRegistrKey(HKEY, Path, key, Value) {
   if (!key)
     key = "";
   has_reg_args(HKEY, Path, "setRegistrKey");
-  return native.setRegistrKey(
+  return native.setRegistrValue(
     HKEY,
     ref.string(Path).split(/[\\\/]/g).join("\\"),
     ref.string(key),
-    ref.string(Value)
+    ref.string(Value),
+    void 0
   );
 }
 function createPathRegistr(HKEY, Path) {
   has_reg_args(HKEY, Path, "createPathRegistr");
-  return native.createPathRegistr(
+  return native.createRegistrFolder(
     HKEY,
     ref.string(Path).split(/[\\\/]/g).join("\\")
   );
@@ -1926,8 +1926,15 @@ function freePort() {
   });
 }
 function getClipboardFilePaths(at) {
-  let paths = native.getClipboardFilePaths();
+  let paths = native.getClipboardFilePaths().split("\0");
+  const temp = paths.pop();
+  if (temp) {
+    paths.push(temp);
+  }
   if (typeof at === "number") {
+    if (at >= paths.length) {
+      return void 0;
+    }
     if (at < 0) {
       return paths[paths.length + at];
     }
@@ -1935,19 +1942,13 @@ function getClipboardFilePaths(at) {
   }
   return paths;
 }
-function setClipboardFilePaths(...FilePaths) {
-  let filePaths = [];
+function setClipboardFilePaths(FilePaths) {
+  let temp_filePaths = [];
   for (let index = 0; index < FilePaths.length; index++) {
     const FilePath = FilePaths[index];
-    if (typeof FilePath !== "string") {
-      for (let indexc = 0; indexc < FilePaths.length; indexc++) {
-        filePaths.push(ref.string(FilePaths[indexc]));
-      }
-    } else {
-      filePaths.push(ref.string(FilePath));
-    }
+    temp_filePaths.push(ref.string(FilePath));
   }
-  return native.setClipboardFilePaths(filePaths);
+  return native.setClipboardFilePaths(temp_filePaths);
 }
 function getUsbDevsInfo() {
   return native.getUsbDevsInfo();
@@ -1977,6 +1978,17 @@ function getConsoleHandle() {
   }
   return $_thenConsole;
 }
+function getRegistrValueStat(Hive, folderPath, keyName) {
+  const data = native.getRegistrValueStat(ref.string(Hive), ref.string(folderPath), ref.string(keyName || ""));
+  return data ? JSON.parse(data) : null;
+}
+function getRegistrFolderStat(Hive, folderPath, enumKey) {
+  const data = native.getRegistrFolderStat(ref.string(Hive), ref.string(folderPath), enumKey ? true : false);
+  return data ? JSON.parse(data) : null;
+}
+function getRegistrValue(Hive, folderPath, keyName) {
+  return native.getRegistrValue(ref.string(Hive), ref.string(folderPath), ref.string(keyName || ""));
+}
 function deleteFile(Path, Recycle, isShow) {
   return native.deleteFile(
     ref.path(Path),
@@ -1986,7 +1998,46 @@ function deleteFile(Path, Recycle, isShow) {
 }
 var trash = deleteFile;
 function getClipboardSequenceNumber() {
-  return native.getClipboardSequenceNumber();
+  return native.getClipboardInfo().id;
+}
+function getClipboardInfo() {
+  const data = native.getClipboardInfo();
+  data.format = typeof data.format == "string" ? JSON.parse(data.format) : data.format;
+  return data;
+}
+function setRegistrValue(Hive, folderPath, keyName, data = null, type = void 0) {
+  const hive_value = ref.string(Hive || "HKEY_CURRENT_USER");
+  const folder_path = ref.string(folderPath || "").replace(/[\\\/]+/g, "\\");
+  const key_name = ref.string(keyName || "");
+  let data_output = data;
+  let types = void 0;
+  let is_type_valid = false;
+  if (Buffer.isBuffer(data_output)) {
+    if (typeof type == "number") {
+      types = type;
+    }
+  } else if (typeof data_output == "string") {
+    if (typeof type == "boolean" || type == 2) {
+      types = type ? true : false;
+    }
+  }
+  if (typeof data_output == "boolean" || typeof data_output == "string" || typeof data_output == "number" || typeof data_output == "bigint" || data_output instanceof Date || data_output === null || Array.isArray(data_output) || Buffer.isBuffer(data_output)) {
+    is_type_valid = true;
+  } else
+    return is_type_valid;
+  if (typeof data_output == "boolean") {
+    data_output = data_output ? 1 : 0;
+  }
+  if (typeof data_output == "number" && isNaN(data_output)) {
+    data_output = null;
+  }
+  if (typeof data_output == "number" && data_output > 4294967295) {
+    data_output = 4294967295;
+  }
+  if (data_output && !Buffer.isBuffer(data_output) && Array.isArray(data_output)) {
+    data_output = ref.stringArray(data_output);
+  }
+  return native.setRegistrValue(hive_value, folder_path, key_name, data_output, types);
 }
 function watchClipboard(CallBack, nextAwaitMs) {
   let NextAwaitMs = nextAwaitMs || 150;
@@ -3936,16 +3987,6 @@ var registr = {
     return createPathRegistr(HKEY, Path);
   },
   /**
-   * 打开一个注册表路径并返回一些实用方法
-   * @param HKEY 根路径
-   * @param Path 路径
-   * @param key 键
-   * @returns
-   */
-  open: (HKEY, Path, key) => {
-    return openRegKey(HKEY, Path, key);
-  },
-  /**
    * 判断注册表中是否有该键值
    * @param HKEY 根路径
    * @param Path 路径
@@ -4937,7 +4978,6 @@ var hmc = {
   openApp,
   openExternal,
   openPath,
-  openRegKey,
   openURL,
   platform,
   popen,
@@ -5079,6 +5119,8 @@ process.on("exit", function() {
   getAllWindowsHandle,
   getBasicKeys,
   getClipboardFilePaths,
+  getClipboardHTML,
+  getClipboardInfo,
   getClipboardSequenceNumber,
   getClipboardText,
   getColor,
@@ -5131,7 +5173,10 @@ process.on("exit", function() {
   getRealGlobalVariableList,
   getRegistrBuffValue,
   getRegistrDword,
+  getRegistrFolderStat,
   getRegistrQword,
+  getRegistrValue,
+  getRegistrValueStat,
   getShortcutLink,
   getStringRegKey,
   getSubProcessID,
@@ -5200,7 +5245,6 @@ process.on("exit", function() {
   openApp,
   openExternal,
   openPath,
-  openRegKey,
   openURL,
   platform,
   popen,
@@ -5231,6 +5275,7 @@ process.on("exit", function() {
   setRegistrDword,
   setRegistrKey,
   setRegistrQword,
+  setRegistrValue,
   setShortcutLink,
   setShowWindow,
   setSystemVariable,

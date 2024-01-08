@@ -8,7 +8,7 @@
 #include <map>
 #include <vector>
 #include <type_traits>
-//#include <ShlObj.h>
+// #include <ShlObj.h>
 #include <memory>
 #include <array>
 
@@ -19,8 +19,8 @@
 
 // 关闭注册表键
 #define _hmc_auto_free_HKey(subHKey)                                \
-    std::shared_ptr<void>##subHKey##_close_key(nullptr, [&](void *) \
-                                               {\
+	std::shared_ptr<void>##subHKey##_close_key(nullptr, [&](void *) \
+											   {\
         if (subHKey != nullptr) {\
             ::RegCloseKey(subHKey);\
             subHKey = nullptr;\
@@ -46,91 +46,90 @@ namespace hmc_registr_util
 
 	enum REG_TYPE
 	{
-		_REG_NONE = 0,      // 没有类型
-		_REG_SZ = 1,        // 以 nul 为结尾的文本
+		_REG_NONE = 0,		// 没有类型
+		_REG_SZ = 1,		// 以 nul 为结尾的文本
 		_REG_EXPAND_SZ = 2, // 以 nul 为结尾的可扩展文本
 
-		_REG_BINARY = 3,                   // 二进制
-		_REG_DWORD = 4,                    // 32-bit number
-		_REG_DWORD_LITTLE_ENDIAN = 4,      // 32-bit number (same as REG_DWORD)
-		_REG_DWORD_BIG_ENDIAN = 5,         // 32-bit number
-		_REG_LINK = 6,                     // Symbolic Link (unicode)
-		_REG_MULTI_SZ = 7,                 // Multiple Unicode strings
-		_REG_RESOURCE_LIST = 8,            // Resource list in the resource map
+		_REG_BINARY = 3,				   // 二进制
+		_REG_DWORD = 4,					   // 32-bit number
+		_REG_DWORD_LITTLE_ENDIAN = 4,	   // 32-bit number (same as REG_DWORD)
+		_REG_DWORD_BIG_ENDIAN = 5,		   // 32-bit number
+		_REG_LINK = 6,					   // Symbolic Link (unicode)
+		_REG_MULTI_SZ = 7,				   // Multiple Unicode strings
+		_REG_RESOURCE_LIST = 8,			   // Resource list in the resource map
 		_REG_FULL_RESOURCE_DESCRIPTOR = 9, // Resource list in the hardware description
 		_REG_RESOURCE_REQUIREMENTS_LIST = 10,
-		_REG_QWORD = 11,               // 64-bit number
+		_REG_QWORD = 11,			   // 64-bit number
 		_REG_QWORD_LITTLE_ENDIAN = 11, // 64-bit number (same as REG_QWORD)
 	};
 
 	// 类型处理方法
 	struct chType
 	{
-		DWORD type;                // 类型
+		DWORD type;				   // 类型
 		std::string type_nameA();  // 获取类型的名称
 		std::wstring type_nameW(); // 获取类型的名称
 
-		bool type_name(std::string& output);  // 获取类型的名称
-		bool type_name(std::wstring& output); // 获取类型的名称
-		bool isInt64();  // 符合int64特征 排除4比特(DWORD)  但是包含了bin 8比特 
-		bool isString(); // 符合string类型 不会判断二进制
-		bool isNumber(); // 判断是否符合 int32 或者 int64
-		bool isInt32();  //判断是否是int32 4比特  排除8比特(QWORD)  但是包含了bin 4比特 
-		bool isBuffer(); // 判断是否是二进制类型
-		bool diffType(DWORD type2); // 对比两个类型
+		bool type_name(std::string &output);  // 获取类型的名称
+		bool type_name(std::wstring &output); // 获取类型的名称
+		bool isInt64();						  // 符合int64特征 排除4比特(DWORD)  但是包含了bin 8比特
+		bool isString();					  // 符合string类型 不会判断二进制
+		bool isNumber();					  // 判断是否符合 int32 或者 int64
+		bool isInt32();						  // 判断是否是int32 4比特  排除8比特(QWORD)  但是包含了bin 4比特
+		bool isBuffer();					  // 判断是否是二进制类型
+		bool diffType(DWORD type2);			  // 对比两个类型
 	};
 
 	// 低级数据存储体
 	struct chValue : public chType
 	{
-		DWORD size;              // 值的大小
+		DWORD size;				 // 值的大小
 		std::vector<BYTE> value; // 数据
-		bool exists;             // 此键是否存在
-		//std::string getStringA(); //取值为string ([请注意]不会判断内容安全性)
-		//std::wstring getStringW(); // 取值为utf16 ([请注意]不会判断内容安全性)
-		std::uint16_t getInt16();//取值为int 16
-		std::uint32_t getInt32();//取值为int
-		std::uint64_t getInt64();//取值为 int64
-
+		bool exists;			 // 此键是否存在
+		// std::string getStringA(); //取值为string ([请注意]不会判断内容安全性)
+		// std::wstring getStringW(); // 取值为utf16 ([请注意]不会判断内容安全性)
+		std::uint16_t getInt16(); // 取值为int 16
+		std::uint32_t getInt32(); // 取值为int
+		std::uint64_t getInt64(); // 取值为 int64
 	};
 
 	// 获取目录信息
 	struct chFolderInfo
 	{
-		DWORD size;       // 此所有键总数量
-		bool exists;      // 此键是否存在
+		DWORD size;		  // 此所有键总数量
+		bool exists;	  // 此键是否存在
 		DWORD folderSize; // 此目录键总数量
-		DWORD keySize;    // 此目录键总数量
-		long long time;   // 时间戳
+		DWORD keySize;	  // 此目录键总数量
+		long long time;	  // 时间戳
 	};
 
 	// 枚举数据体 如果key是目录请勿调用type 因为他被作为目录键数量存储了
 	struct chValueItme : public chType
 	{
-		DWORD size;              // 值的大小
-		HKEY root;               // 根路径
-		bool isFolder;           // 是否是文件夹
-		long long time;          // 时间戳
+		DWORD size;				 // 值的大小
+		HKEY root;				 // 根路径
+		bool isFolder;			 // 是否是文件夹
+		long long time;			 // 时间戳
 		std::vector<BYTE> value; // 数据
-		bool is_value;           // 是否加入了数据
+		bool is_value;			 // 是否加入了数据
 
 		// 区分出实际的内容
 
 		chFolderInfo getFolderInfo(); // 转换成文件夹信息数据体
-		chValue getValueInfo();       // 转换成值信息数据体
+		chValue getValueInfo();		  // 转换成值信息数据体
 	};
 
 	// 遍历树结构的信息 ansi字符
 	struct chValueItmeA : public chValueItme
 	{
-		std::string vkey;       // 值的名称
+		std::string vkey;		// 值的名称
 		std::string FolderPath; // 路径文件夹
 	};
 
 	// 遍历树结构的信息 wide字符
 	struct chValueItmeW : public chValueItme
 	{
-		std::wstring vkey;       // 值的名称
+		std::wstring vkey;		 // 值的名称
 		std::wstring FolderPath; // 路径文件夹
 	};
 
@@ -176,7 +175,7 @@ namespace hmc_registr_util
 	 * @param QueryFolderList 目录key列表
 	 * @param QueryKeyList 值key列表
 	 */
-	extern size_t getRegistrKeys(HKEY hKey, std::string path, std::vector<std::string>& QueryFolderList, std::vector<std::string>& QueryKeyList);
+	extern size_t getRegistrKeys(HKEY hKey, std::string path, std::vector<std::string> &QueryFolderList, std::vector<std::string> &QueryKeyList);
 
 	/**
 	 * @brief 枚举注册表的同级key
@@ -203,7 +202,7 @@ namespace hmc_registr_util
 	 * @param QueryFolderList 目录key列表
 	 * @param QueryKeyList 值key列表
 	 */
-	extern size_t getRegistrKeys(HKEY hKey, std::wstring path, std::vector<std::wstring>& QueryFolderList, std::vector<std::wstring>& QueryKeyList);
+	extern size_t getRegistrKeys(HKEY hKey, std::wstring path, std::vector<std::wstring> &QueryFolderList, std::vector<std::wstring> &QueryKeyList);
 
 	/**
 	 * @brief 枚举注册表的同级key
@@ -212,7 +211,7 @@ namespace hmc_registr_util
 	 * @param QueryFolderList 目录key列表
 	 * @param QueryKeyList 值key列表
 	 */
-	extern size_t getRegistrKeys(HKEY hKey, std::vector<std::wstring>& QueryFolderList, std::vector<std::wstring>& QueryKeyList);
+	extern size_t getRegistrKeys(HKEY hKey, std::vector<std::wstring> &QueryFolderList, std::vector<std::wstring> &QueryKeyList);
 
 	/**
 	 * @brief 枚举注册表的同级key
@@ -221,7 +220,7 @@ namespace hmc_registr_util
 	 * @param QueryFolderList 目录key列表
 	 * @param QueryKeyList 值key列表
 	 */
-	extern size_t getRegistrKeys(HKEY hKey, std::vector<std::string>& QueryFolderList, std::vector<std::string>& QueryKeyList);
+	extern size_t getRegistrKeys(HKEY hKey, std::vector<std::string> &QueryFolderList, std::vector<std::string> &QueryKeyList);
 
 	/**
 	 * @brief 判断此值是否存在
@@ -389,7 +388,7 @@ namespace hmc_registr_util
 	 * @param hkey
 	 * @return HKEY
 	 */
-	extern bool getHive(HKEY hkey, std::string& ptr_hkey);
+	extern bool getHive(HKEY hkey, std::string &ptr_hkey);
 
 	/**
 	 * @brief 反HKEY解析 因为要和napi兼容
@@ -397,7 +396,7 @@ namespace hmc_registr_util
 	 * @param hkey
 	 * @return HKEY
 	 */
-	extern bool getHive(HKEY hkey, std::wstring& ptr_hkey);
+	extern bool getHive(HKEY hkey, std::wstring &ptr_hkey);
 
 	/**
 	 * @brief 反HKEY解析 因为要和napi兼容
@@ -646,7 +645,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, DWORD type, const std::vector<BYTE>& value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, DWORD type, const std::vector<BYTE> &value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -657,7 +656,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::string FolderPath, std::string KeyName, DWORD type, const std::vector<BYTE>& value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::string FolderPath, std::string KeyName, DWORD type, const std::vector<BYTE> &value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -668,7 +667,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring KeyName, DWORD type, const std::vector<BYTE>& value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::wstring KeyName, DWORD type, const std::vector<BYTE> &value);
 
 	/**
 	 * @brief 设置值 低级的二进制值
@@ -679,7 +678,7 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
-	extern bool SetRegistrSourceValue(HKEY hKey, std::string KeyName, DWORD type, const std::vector<BYTE>& value);
+	extern bool SetRegistrSourceValue(HKEY hKey, std::string KeyName, DWORD type, const std::vector<BYTE> &value);
 
 	/**
 	 * @brief 获取值 低级的二进制值
@@ -720,6 +719,74 @@ namespace hmc_registr_util
 	 * @return chFolderInfo
 	 */
 	extern chFolderInfo getRegistrFolderInfo(HKEY hKey, std::wstring FolderPath);
+	// 获取文本数组REG_MULTI_SZ
+	extern std::vector<std::wstring> GetRegistrMulti(HKEY hKey, std::wstring FolderPath, std::wstring KeyName);
+	// 获取文本数组REG_MULTI_SZ
+	extern std::vector<std::string> GetRegistrMulti(HKEY hKey, std::string FolderPath, std::string KeyName);
+	/**
+	 * @brief 获取文本
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param expand 是否转义
+	 * @return std::wstring
+	 */
+	extern std::wstring GetRegistrString(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, bool expand);
+	/**
+	 * @brief 获取文本
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param expand 是否转义
+	 * @return std::string
+	 */
+	extern std::string GetRegistrString(HKEY hKey, std::string FolderPath, std::string KeyName, bool expand);
+	// 获取 REG_DWORD
+	extern std::uint32_t GetRegistrInt32(HKEY hKey, std::wstring FolderPath, std::wstring KeyName);
+	// 获取 REG_DWORD
+	extern std::uint32_t GetRegistrInt32(HKEY hKey, std::string FolderPath, std::string KeyName);
+	// 获取 REG_QWORD
+	extern std::uint64_t GetRegistrInt64(HKEY hKey, std::wstring FolderPath, std::wstring KeyName);
+	// 获取 REG_QWORD
+	extern std::uint64_t GetRegistrInt64(HKEY hKey, std::string FolderPath, std::string KeyName);
+	/**
+	 * @brief 设置文本值
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param Input 内容
+	 * @param expand 是否转义
+	 * @return true
+	 * @return false
+	 */
+	extern bool SetRegistrString(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::wstring &Input, bool expand = false);
+	/**
+	 * @brief 设置文本值
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param Input 内容
+	 * @param expand 是否转义
+	 * @return true
+	 * @return false
+	 */
+	extern bool SetRegistrString(HKEY hKey, std::string FolderPath, std::string KeyName, const std::string &Input, bool expand = false);
+	// 设置文本数组REG_MULTI_SZ
+	extern bool SetRegistrMulti(HKEY hKey, std::string FolderPath, std::string KeyName, const std::vector<std::string> &Input);
+	// 设置文本数组REG_MULTI_SZ
+	extern bool SetRegistrMulti(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::vector<std::wstring> &Input);
+	// 设置数字值 REG_DWORD
+	extern bool SetRegistrInt32(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::uint32_t &Input);
+	// 设置数字值 REG_DWORD
+	extern bool SetRegistrInt32(HKEY hKey, std::string FolderPath, std::string KeyName, const std::uint32_t &Input);
+	// 设置数字值 REG_QWORD
+	extern bool SetRegistrInt64(HKEY hKey, std::string FolderPath, std::string KeyName, const std::uint64_t &Input);
+	// 设置数字值 REG_QWORD
+	extern bool SetRegistrInt64(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::uint64_t &Input);
 
 	// 仅处理值打开
 	class RegistrValueUtil
@@ -727,8 +794,8 @@ namespace hmc_registr_util
 	protected:
 		~RegistrValueUtil();
 
-		//RegistrValueUtil(HKEY hKey, std::wstring subKey, std::wstring Name);
-		//RegistrValueUtil(HKEY hKey, std::string subKey, std::string Name);
+		// RegistrValueUtil(HKEY hKey, std::wstring subKey, std::wstring Name);
+		// RegistrValueUtil(HKEY hKey, std::string subKey, std::string Name);
 
 		HKEY open_hkey = nullptr;
 
@@ -738,7 +805,7 @@ namespace hmc_registr_util
 		std::string NameA;
 		bool is_wide = false;
 		bool _is_ready = false;
-        bool _is_dir = false;
+		bool _is_dir = false;
 		HKEY root_hKey = nullptr;
 
 		std::string utf16_to_ansi(const std::wstring input);
@@ -746,7 +813,6 @@ namespace hmc_registr_util
 
 		bool is_ready();
 	};
-
 
 	class setRegistrValue : public RegistrValueUtil
 	{
@@ -761,9 +827,7 @@ namespace hmc_registr_util
 			bool _is_ready = false;
 			HKEY root_hKey = nullptr;*/
 
-
 	public:
-
 		setRegistrValue(HKEY hKey, std::wstring subKey, std::wstring Name);
 		setRegistrValue(HKEY hKey, std::string subKey, std::string Name);
 
@@ -777,17 +841,19 @@ namespace hmc_registr_util
 		bool set(std::wstring input, bool expand = false);
 		// 0x00000001 REG_SZ 字符串 or 0x00000002 REG_EXPAND_SZ 未展开引用的字符串 例如“%PATH%”
 		bool set(std::string input, bool expand = false);
-
-		bool set(REG_TYPE type, const std::vector<BYTE>& value);
-		bool set(DWORD type, const std::vector<BYTE>& value);
+		// 7 REG_MULTI_SZ 文本数组
+		bool set(/*REG_MULTI_SZ*/const std::vector<std::wstring> &input);
+		// 7 REG_MULTI_SZ 文本数组
+		bool set(/*REG_MULTI_SZ*/const std::vector<std::string> &input);
+		
+		bool set(REG_TYPE type, const std::vector<BYTE> &value);
+		bool set(DWORD type, const std::vector<BYTE> &value);
 	};
 
-	class getRegistrValue : public  RegistrValueUtil
+	class getRegistrValue : public RegistrValueUtil
 	{
 	private:
-
 	public:
-
 		getRegistrValue(HKEY hKey, std::wstring subKey, std::wstring Name);
 		getRegistrValue(HKEY hKey, std::string subKey, std::string Name);
 
@@ -795,6 +861,8 @@ namespace hmc_registr_util
 		int32_t getInt32();
 		int64_t getInt64();
 		HWND getHwnd();
+		std::vector<std::wstring> getMultiW();
+		std::vector<std::string> getMultiA();
 		std::wstring getStringW(bool expand = false);
 		std::string getStringA(bool expand = false);
 		bool isValue();
@@ -804,7 +872,25 @@ namespace hmc_registr_util
 		bool isType(DWORD type);
 		DWORD getType();
 	};
+	
+	class OpenKeyToken
+	{
+	public:
+		OpenKeyToken(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, bool CreateNotKey = false);
+		OpenKeyToken(HKEY hKey, std::string FolderPath, std::string KeyName, bool CreateNotKey = false);
+		~OpenKeyToken();
+		HKEY token = nullptr;
+		LSTATUS status = ERROR_SUCCESS;
+		// if
+		operator bool() const;
+		// &
+		operator HKEY() const;
+		// !
+		bool operator!() const;
 
+	private:
+	};
+	
 }
 
 #endif // HMC_IMPORT_HMC_REGISTR_UTIL_H

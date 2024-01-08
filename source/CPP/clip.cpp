@@ -104,7 +104,7 @@ void clip_util::GetClipboardHtml::lib_rp_setw_10(std::string &sourcePtr, std::st
     std::string result;
 
     char temp[11];
-    sprintf_s(temp, 11, "%010u", len);
+    sprintf_s(temp, 11, "%010u", (std::uint8_t)len);
 
     result.append(temp);
 
@@ -184,7 +184,6 @@ bool clip_util::SetClipboardHtml(const std::string &html, const std::string Sour
         std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
                                                       {
                 if (handle != NULL) {
-                    ::GlobalUnlock(handle);
                     ::GlobalFree(handle);
                     ::CloseClipboard();
                 } });
@@ -201,6 +200,8 @@ bool clip_util::SetClipboardHtml(const std::string &html, const std::string Sour
         const UINT _CF_HTML = RegisterClipboardFormatA("HTML Format");
 
         ::SetClipboardData(_CF_HTML, handle);
+
+        ::GlobalUnlock(handle);
 
         return true;
     }
@@ -229,27 +230,34 @@ bool clip_util::SetClipboardText(std::wstring text)
     {
 
         HANDLE handle = ::GlobalAlloc(GMEM_MOVEABLE, (text.size() + 1) * sizeof(wchar_t));
-
         std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
                                                       {
-                if (handle != NULL) {
-                    ::GlobalFree(handle);
-                    ::CloseClipboard();
-                } });
+            if (handle != NULL) {
+                GlobalFree(handle);
+                handle = NULL;
+            } 
+              CloseClipboard(); });
 
+        if (!::EmptyClipboard())
+        {
+            return false;
+        }
         wchar_t *wstr = (wchar_t *)::GlobalLock(handle);
 
         if (wstr != 0)
         {
             ::memcpy(wstr, text.c_str(), (text.size() + 1) * sizeof(wchar_t));
-            ::GlobalUnlock(handle);
         }
         else
         {
+            ::GlobalUnlock(handle);
             return false;
         }
 
         ::SetClipboardData(CF_UNICODETEXT, handle);
+
+        ::GlobalUnlock(handle);
+
         return true;
     }
     return false;
@@ -266,22 +274,27 @@ bool clip_util::SetClipboardText(std::string text)
 
         std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
                                                       {
-                if (handle != NULL) {
-                    ::GlobalUnlock(handle);
-                    ::GlobalFree(handle);
-                    ::CloseClipboard();
-                } });
+            if (handle != NULL) {
+                GlobalFree(handle);
+                handle = NULL;
+            } 
+              CloseClipboard(); });
+
+        if (!::EmptyClipboard())
+        {
+            return false;
+        }
 
         auto hMem_ptr = ::GlobalLock(handle);
 
         if (hMem_ptr != 0)
         {
             ::memcpy(hMem_ptr, text.c_str(), len);
-            ::OpenClipboard(0);
             ::EmptyClipboard();
         }
 
         ::SetClipboardData(CF_TEXT, handle);
+        ::GlobalUnlock(handle);
 
         return true;
     }
@@ -293,58 +306,80 @@ bool clip_util::SetClipboardPathList(const std::vector<std::wstring> &PathList)
     HANDLE handle = NULL;
     bool result = false;
 
-    // 计算缓冲区大小
-    size_t buffer_size = sizeof(DROPFILES) + sizeof(wchar_t) /* \0 */;
-    size_t length = PathList.size();
-
-    for (size_t i = 0; i < length; i++)
-    {
-        auto itPtr = &PathList[i];
-        buffer_size += (itPtr->size() + 1) * sizeof(wchar_t);
-    }
-
-    handle = ::GlobalAlloc(GMEM_MOVEABLE, buffer_size);
-    if (!handle)
-        return result;
-
-    std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
-                                                  {
-            if (handle != NULL) {
-                ::GlobalFree(handle);
-                ::CloseClipboard();
-            } });
-
-    BYTE *data_pointer = static_cast<std::uint8_t *>(::GlobalLock(handle));
-    if (!data_pointer)
-        return result;
-
-    // 制作缓冲区
-    DROPFILES *drop_files_pointer = reinterpret_cast<DROPFILES *>(data_pointer);
-    drop_files_pointer->pFiles = sizeof(DROPFILES);
-    drop_files_pointer->fWide = true;
-
-    size_t current_offset_in_bytes = sizeof(DROPFILES);
-
-    length = PathList.size();
-    for (size_t i = 0; i < length; i++)
-    {
-        auto itPtr = &PathList[i];
-        wchar_t *target_path = reinterpret_cast<wchar_t *>(data_pointer + current_offset_in_bytes);
-        size_t offset_in_chars = itPtr->size() + 1;
-        size_t offset_in_bytes = offset_in_chars * sizeof(wchar_t);
-        ::memcpy(target_path, itPtr->c_str(), offset_in_bytes);
-        current_offset_in_bytes += offset_in_bytes;
-    }
-
-    wchar_t *tail = reinterpret_cast<wchar_t *>(data_pointer + current_offset_in_bytes);
-    *tail = L'\0';
-
-    ::GlobalUnlock(handle);
-
     if (::OpenClipboard(NULL))
     {
+        std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
+                                                      {
+                 if (handle != NULL) {
+                     GlobalFree(handle);
+                     handle = NULL;
+                 }
+                 CloseClipboard(); 
+           });
 
-        ::EmptyClipboard();
+        if (!::EmptyClipboard())
+        {
+            return result;
+        }
+
+        // 计算缓冲区大小
+        size_t length = PathList.size();
+        std::wstring PathList2Str = L"";
+        size_t PathList2Str_reserve_length = PathList.size();
+
+        for (size_t i = 0; i < length; i++)
+        {
+            auto itPtr = &PathList[i];
+            PathList2Str_reserve_length += (itPtr->size() + 1) * sizeof(wchar_t);
+        }
+
+        PathList2Str.reserve(PathList2Str_reserve_length);
+
+        for (size_t i = 0; i < length; i++)
+        {
+            std::wstring path = PathList.at(i);
+
+            auto end_pos = path.size();
+
+            // 移除所有尾部 \0
+            while ((end_pos = path.find_last_not_of(L'\0')) != path.size() - 1)
+            {
+                path.erase(end_pos + 1);
+            }
+
+            if (path.empty())
+            {
+                continue;
+            }
+
+            PathList2Str.append(path);
+            PathList2Str.push_back(L'\0');
+        }
+
+        PathList2Str.push_back(L'\0');
+
+        int nSize = sizeof(DROPFILES) + PathList2Str.size() * 2;
+        handle = ::GlobalAlloc(GMEM_MOVEABLE, nSize);
+
+        if (!handle)
+        {
+            return result;
+        }
+
+        LPDROPFILES pDropFiles = (LPDROPFILES)::GlobalLock(handle);
+
+        if (!pDropFiles)
+        {
+            return result;
+        }
+
+        ((DROPFILES *)pDropFiles)->pFiles = sizeof(DROPFILES);
+        ((DROPFILES *)pDropFiles)->fWide = TRUE;
+
+        LPBYTE pData = (LPBYTE)pDropFiles + sizeof(DROPFILES);
+        memcpy(pData, (LPBYTE)PathList2Str.data(), PathList2Str.size() * sizeof(wchar_t));
+
+        ::GlobalUnlock(handle);
 
         if (::SetClipboardData(CF_HDROP, handle))
         {
@@ -360,58 +395,80 @@ bool clip_util::SetClipboardPathList(const std::vector<std::string> &PathList)
     HANDLE handle = NULL;
     bool result = false;
 
-    // 计算缓冲区大小
-    size_t buffer_size = sizeof(DROPFILES) + sizeof(char) /* \0 */;
-    size_t length = PathList.size();
-
-    for (size_t i = 0; i < length; i++)
-    {
-        auto itPtr = &PathList[i];
-        buffer_size += (itPtr->size() + 1) * sizeof(char);
-    }
-
-    handle = ::GlobalAlloc(GMEM_MOVEABLE, buffer_size);
-    if (!handle)
-        return result;
-
-    std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
-                                                  {
-            if (handle != NULL) {
-                GlobalFree(handle);
-                CloseClipboard();
-            } });
-
-    BYTE *data_pointer = static_cast<std::uint8_t *>(::GlobalLock(handle));
-    if (!data_pointer)
-        return result;
-
-    // 制作缓冲区
-    DROPFILES *drop_files_pointer = reinterpret_cast<DROPFILES *>(data_pointer);
-    drop_files_pointer->pFiles = sizeof(DROPFILES);
-    drop_files_pointer->fWide = false;
-
-    size_t current_offset_in_bytes = sizeof(DROPFILES);
-
-    length = PathList.size();
-    for (size_t i = 0; i < length; i++)
-    {
-        auto itPtr = &PathList[i];
-        char *target_path = reinterpret_cast<char *>(data_pointer + current_offset_in_bytes);
-        size_t offset_in_chars = itPtr->size() + 1;
-        size_t offset_in_bytes = offset_in_chars * sizeof(char);
-        ::memcpy(target_path, itPtr->c_str(), offset_in_bytes);
-        current_offset_in_bytes += offset_in_bytes;
-    }
-
-    char *tail = reinterpret_cast<char *>(data_pointer + current_offset_in_bytes);
-    *tail = '\0';
-
-    ::GlobalUnlock(handle);
-
     if (::OpenClipboard(NULL))
     {
+        std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void*)
+            {
+                if (handle != NULL) {
+                    GlobalFree(handle);
+                    handle = NULL;
+                }
+                CloseClipboard();
+            });
 
-        ::EmptyClipboard();
+        if (!::EmptyClipboard())
+        {
+            return result;
+        }
+
+        // 计算缓冲区大小
+        size_t length = PathList.size();
+        std::string PathList2Str = "";
+        size_t PathList2Str_reserve_length = PathList.size();
+
+        for (size_t i = 0; i < length; i++)
+        {
+            auto itPtr = &PathList[i];
+            PathList2Str_reserve_length += (itPtr->size() + 1) * sizeof(char);
+        }
+
+        PathList2Str.reserve(PathList2Str_reserve_length);
+
+        for (size_t i = 0; i < length; i++)
+        {
+            std::string path = PathList.at(i);
+
+            auto end_pos = path.size();
+
+            // 移除所有尾部 \0
+            while ((end_pos = path.find_last_not_of('\0')) != path.size() - 1)
+            {
+                path.erase(end_pos + 1);
+            }
+
+            if (path.empty())
+            {
+                continue;
+            }
+
+            PathList2Str.append(path);
+            PathList2Str.push_back('\0');
+        }
+
+        PathList2Str.push_back('\0');
+
+        int nSize = sizeof(DROPFILES) + PathList2Str.size() * sizeof(char);
+        handle = ::GlobalAlloc(GMEM_MOVEABLE, nSize);
+
+        if (!handle)
+        {
+            return result;
+        }
+
+        LPDROPFILES pDropFiles = (LPDROPFILES)::GlobalLock(handle);
+
+        if (!pDropFiles)
+        {
+            return result;
+        }
+
+        ((DROPFILES*)pDropFiles)->pFiles = sizeof(DROPFILES);
+        ((DROPFILES*)pDropFiles)->fWide = TRUE;
+
+        LPBYTE pData = (LPBYTE)pDropFiles + sizeof(DROPFILES);
+        memcpy(pData, (LPBYTE)PathList2Str.data(), PathList2Str.size() * sizeof(char));
+
+        ::GlobalUnlock(handle);
 
         if (::SetClipboardData(CF_HDROP, handle))
         {
@@ -441,27 +498,38 @@ std::wstring clip_util::GetClipboardTextW()
 {
     std::wstring result = L"";
     HANDLE handle = NULL;
+
     if (!::OpenClipboard(NULL))
+    {
+        return result;
+    }
+
+    if (!::IsClipboardFormatAvailable(CF_UNICODETEXT) && !::IsClipboardFormatAvailable(CF_TEXT))
     {
         return result;
     }
 
     std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
                                                   {
-            if (handle != NULL) {
-                ::GlobalUnlock(handle);
-                ::GlobalFree(handle);
-                ::CloseClipboard();
-            } });
+                                                      ::CloseClipboard();
+                                                      ::GlobalUnlock(handle);
+                                                      if (handle != NULL)
+                                                      {
+                                                          handle = NULL;
+                                                      } });
 
     handle = ::GetClipboardData(CF_UNICODETEXT);
-    const wchar_t *m_psz;
 
-    m_psz = static_cast<const wchar_t *>(::GlobalLock(handle));
-    if (!m_psz)
+    const wchar_t *memoryStrPtr = static_cast<const wchar_t *>(::GlobalLock(handle));
+
+    ::CloseClipboard();
+
+    if (!memoryStrPtr)
+    {
         return result;
+    }
 
-    result.append(m_psz);
+    result.append(memoryStrPtr);
 
     return result;
 }
@@ -475,22 +543,29 @@ std::string clip_util::GetClipboardTextA()
         return result;
     }
 
+    if (!::IsClipboardFormatAvailable(CF_UNICODETEXT) && !::IsClipboardFormatAvailable(CF_TEXT))
+    {
+        return result;
+    }
+
     std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
                                                   {
-            if (handle != NULL) {
-                ::GlobalUnlock(handle);
-                ::GlobalFree(handle);
-                ::CloseClipboard();
-            } });
+                                                      ::CloseClipboard();
+                                                      ::GlobalUnlock(handle);
+                                                      if (handle != NULL)
+                                                      {
+                                                          handle = NULL;
+                                                      } });
 
     handle = ::GetClipboardData(CF_TEXT);
-    const char *m_psz;
+    const char *memoryStrPtr = static_cast<const char *>(::GlobalLock(handle));
 
-    m_psz = static_cast<const char *>(::GlobalLock(handle));
-    if (!m_psz)
+    if (!memoryStrPtr)
+    {
         return result;
+    }
 
-    result.append(m_psz);
+    result.append(memoryStrPtr);
 
     return result;
 }
@@ -499,7 +574,6 @@ std::vector<UINT> clip_util::EnumClipboardFormatList()
 {
     std::vector<UINT> result = {};
 
-    UINT iFormat = 0;
     if (::OpenClipboard(NULL))
     {
         std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
@@ -508,13 +582,16 @@ std::vector<UINT> clip_util::EnumClipboardFormatList()
     else
         return result;
 
-    int index = 0;
+    size_t len = CountClipboardFormats();
+    result.reserve(len);
 
-    while (iFormat = ::EnumClipboardFormats(iFormat))
-    {
-        result.push_back(iFormat);
-        // 针对每个iFormat数据格式的操作
-        index += 1;
+    UINT num = 0;
+
+    for (size_t i = 0; i < len; i++ ) {
+       num = ::EnumClipboardFormats(num);
+       if (num != 0) {
+           result.push_back(num);
+       }
     }
 
     return result;
@@ -542,7 +619,6 @@ std::vector<std::string> clip_util::GetClipboardPathListA()
                 result.push_back(szFilePathName);
             }
         }
-        ::CloseClipboard();
     }
     return result;
 }
@@ -569,7 +645,6 @@ std::vector<std::wstring> clip_util::GetClipboardPathListW()
                 result.push_back(szFilePathName);
             }
         }
-        ::CloseClipboard();
     }
     return result;
 }
@@ -580,7 +655,7 @@ std::wstring clip_util::GetClipboardFormatNameW(UINT format)
     result.reserve(MAX_PATH);
     wchar_t lpszFormatName[MAX_PATH];
     int cchMaxCount = MAX_PATH;
-    int cchCount = ::GetClipboardFormatNameW(format, (LPTSTR)lpszFormatName, cchMaxCount);
+    int cchCount = ::GetClipboardFormatNameW(format, (LPWSTR)lpszFormatName, cchMaxCount);
     if (cchCount > 1)
     {
 
@@ -736,9 +811,7 @@ clip_util::GetClipboardHtml::GetClipboardHtml(HWND hWnd)
         return;
 
     std::shared_ptr<void> shared_close_Free_Auto_(nullptr, [&](void *)
-                                                  {
-            ::GlobalUnlock(handle);
-            ::CloseClipboard(); });
+                                                  { ::CloseClipboard(); });
 
     handle = ::GetClipboardData(CF_HTML);
 
@@ -748,7 +821,11 @@ clip_util::GetClipboardHtml::GetClipboardHtml(HWND hWnd)
     LPCSTR temp_ptr = (LPCSTR)::GlobalLock(handle);
 
     if (!temp_ptr)
+    {
+        ::GlobalUnlock(handle);
         return;
+    }
+    ::GlobalUnlock(handle);
 
     SourceData.append(temp_ptr);
     is_valid = ParsingHtml();
@@ -756,15 +833,48 @@ clip_util::GetClipboardHtml::GetClipboardHtml(HWND hWnd)
 
 napi_value getClipboardFilePaths(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::String(env, hmc_string_util::vec_to_array_json(clip_util::GetClipboardPathListW()));
+    std::vector<std::wstring> file_list = clip_util::GetClipboardPathListW();
+    wstring temp = L"";
+    const size_t file_size = file_list.size();
+
+    size_t msize = 0;
+
+    for (size_t i = 0; i < file_size; i++)
+    {
+        msize = msize + file_list.at(i).size();
+    }
+
+    temp.reserve(msize + file_size * 2);
+
+    for (size_t i = 0; i < file_size; i++)
+    {
+        temp.append(file_list.at(i));
+        temp.push_back(L'\0');
+    }
+
+    return hmc_napi_create_value::String(env, temp, temp.length());
 }
 
 napi_value setClipboardText(napi_env env, napi_callback_info info)
 {
     auto input = hmc_NodeArgsValue(env, info);
-    input.eq(0, js_string);
+    input.eq({{0, js_string}});
+    bool is_html = input.exists(1) ? input.getBool(1, false) : false;
+    bool result = false;
 
-    return hmc_napi_create_value::Boolean(env, clip_util::SetClipboardText(input.getStringWide(0, L"")));
+    if (is_html)
+    {
+        string text = input.getStringUtf8(0, "");
+        string url = input.exists(2) ? input.getStringUtf8(2, "") : "";
+        result = clip_util::SetClipboardHtml(text, url);
+    }
+    else
+    {
+        wstring text = input.getStringWide(0, L"");
+        result = clip_util::SetClipboardText(text);
+    }
+
+    return hmc_napi_create_value::Boolean(env, result);
 }
 
 napi_value getClipboardText(napi_env env, napi_callback_info info)
@@ -783,11 +893,17 @@ napi_value setClipboardFilePaths(napi_env env, napi_callback_info info)
     auto input = hmc_NodeArgsValue(env, info);
     if (input.exists(0))
     {
-
+        // 是文本而不是 array<string>
+        if (input.eq(0, js_string, false))
+        {
+            auto ArrayWstring = input.getStringWide(0, {});
+            bool res = clip_util::SetClipboardPathList({ArrayWstring});
+            return hmc_napi_create_value::Boolean(env, res);
+        }
         auto ArrayWstring = input.getArrayWstring(0, {});
         bool res = clip_util::SetClipboardPathList(ArrayWstring);
         return hmc_napi_create_value::Boolean(env, res);
-        }
+    }
 
     return hmc_napi_create_value::Boolean(env, false);
 }
@@ -799,7 +915,7 @@ napi_value getClipboardInfo(napi_env env, napi_callback_info info)
     napi_create_object(env, &Results);
 
     hmc_napi_create_value::Object::putValue(env, Results, "format", hmc_string_util::vec_to_array_json(data.format));
-    hmc_napi_create_value::Object::putValue(env, Results, "format", as_Number(data.formatCount));
+    hmc_napi_create_value::Object::putValue(env, Results, "formatCount", as_Number(data.formatCount));
     hmc_napi_create_value::Object::putValue(env, Results, "hwnd", as_Number(data.hwnd));
     hmc_napi_create_value::Object::putValue(env, Results, "id", as_Number(data.id));
 
@@ -834,15 +950,15 @@ napi_value enumClipboardFormats(napi_env env, napi_callback_info info)
 
 napi_value getClipboardHTML(napi_env env, napi_callback_info info)
 {
-    auto ClipboardHtml = clip_util::GetClipboardHtml();
-    if (ClipboardHtml.isHtml())
+    auto ClipboardHtml = clip_util::GetClipboardHtml(NULL);
+    auto HtmlItem = ClipboardHtml.getHtmlItem();
+    if (HtmlItem.is_valid)
     {
-        auto HtmlItem = ClipboardHtml.getHtmlItem();
         napi_value Results;
         napi_create_object(env, &Results);
 
         hmc_napi_create_value::Object::putValue(env, Results, "data", HtmlItem.data);
-        hmc_napi_create_value::Object::putValue(env, Results, "EndFragment", as_Number(env, HtmlItem.EndFragment));
+        hmc_napi_create_value::Object::putValue(env, Results, "EndFragment", as_Number(HtmlItem.EndFragment));
         hmc_napi_create_value::Object::putValue(env, Results, "EndHTML", as_Number(HtmlItem.EndHTML));
         hmc_napi_create_value::Object::putValue(env, Results, "is_valid", as_Boolean(HtmlItem.is_valid));
         hmc_napi_create_value::Object::putValue(env, Results, "SourceURL", HtmlItem.SourceURL);

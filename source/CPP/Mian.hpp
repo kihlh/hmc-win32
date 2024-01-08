@@ -152,7 +152,7 @@ struct HMC_PROCESSENTRY32W
 napi_value enumClipboardFormats(napi_env env, napi_callback_info info);
 napi_value setClipboardText(napi_env env, napi_callback_info info);
 napi_value getClipboardText(napi_env env, napi_callback_info info);
-napi_value getClipboardFilePaths(napi_env env);
+napi_value getClipboardFilePaths(napi_env env, napi_callback_info info);
 napi_value setClipboardFilePaths(napi_env env, napi_callback_info info);
 napi_value clearClipboard(napi_env env, napi_callback_info info);
 napi_value getClipboardInfo(napi_env env, napi_callback_info info);
@@ -171,15 +171,12 @@ wstring FormatVolumePath(wstring VolumeName);
 
 // auto.cpp
 void InstallKeyboardHook();
-void InstallHookMouse();
+
 napi_value unKeyboardHook(napi_env env, napi_callback_info info);
-// napi_value unHookMouse(napi_env env, napi_callback_info info);
-// napi_value getMouseNextSession(napi_env env, napi_callback_info info);
+
 napi_value getKeyboardNextSession(napi_env env, napi_callback_info info);
-// napi_value installHookMouse(napi_env env, napi_callback_info info);
 napi_value installKeyboardHook(napi_env env, napi_callback_info info);
 napi_value isStartKeyboardHook(napi_env env, napi_callback_info info);
-// napi_value isStartHookMouse(napi_env env, napi_callback_info info);
 napi_value hasKeyActivate(napi_env env, napi_callback_info info);
 napi_value getMouseMovePoints(napi_env env, napi_callback_info info);
 napi_value leftClick(napi_env env, napi_callback_info info);

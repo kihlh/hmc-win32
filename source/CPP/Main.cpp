@@ -870,14 +870,14 @@ static napi_value getShortcutLink(napi_env env, napi_callback_info info)
             return Results;
         }
     }
-    napi_set_property(env, Results, _create_char_string(env, "path"), _create_A2U8_string(env, tempGetPathString));
-    napi_set_property(env, Results, _create_char_string(env, "showCmd"), _create_int32_Number(env, tempGetShowCmdNum));
-    napi_set_property(env, Results, _create_char_string(env, "args"), _create_A2U8_string(env, tempGetArgumentsString));
-    napi_set_property(env, Results, _create_char_string(env, "desc"), _create_A2U8_string(env, tempGetGetDescriptionString));
-    napi_set_property(env, Results, _create_char_string(env, "icon"), _create_A2U8_string(env, tempGetGetIconLocationString));
-    napi_set_property(env, Results, _create_char_string(env, "iconIndex"), _create_int64_Number(env, piIcon));
-    napi_set_property(env, Results, _create_char_string(env, "cwd"), _create_A2U8_string(env, tempGetWorkingDirectoryString));
-    napi_set_property(env, Results, _create_char_string(env, "hotkey"), _create_int64_Number(env, (int64_t)pwHotkey));
+    napi_set_property(env, Results, as_String("path"), _create_A2U8_string(env, tempGetPathString));
+    napi_set_property(env, Results, as_String("showCmd"), _create_int32_Number(env, tempGetShowCmdNum));
+    napi_set_property(env, Results, as_String("args"), _create_A2U8_string(env, tempGetArgumentsString));
+    napi_set_property(env, Results, as_String("desc"), _create_A2U8_string(env, tempGetGetDescriptionString));
+    napi_set_property(env, Results, as_String("icon"), _create_A2U8_string(env, tempGetGetIconLocationString));
+    napi_set_property(env, Results, as_String("iconIndex"), _create_int64_Number(env, piIcon));
+    napi_set_property(env, Results, as_String("cwd"), _create_A2U8_string(env, tempGetWorkingDirectoryString));
+    napi_set_property(env, Results, as_String("hotkey"), _create_int64_Number(env, (int64_t)pwHotkey));
 
     return Results;
 }
@@ -1092,10 +1092,10 @@ napi_value getMetrics(napi_env env, napi_callback_info info)
     GetCursorPos(&point);
     int x = point.x; // 鼠标x轴
     int y = point.y; // 鼠标y轴
-    napi_set_property(env, Results, _create_char_string(env, "x"), _create_int32_Number(env, x));
-    napi_set_property(env, Results, _create_char_string(env, "y"), _create_int32_Number(env, y));
-    napi_set_property(env, Results, _create_char_string(env, "left"), _create_int32_Number(env, x));
-    napi_set_property(env, Results, _create_char_string(env, "top"), _create_int32_Number(env, y));
+    napi_set_property(env, Results, as_String("x"), _create_int32_Number(env, x));
+    napi_set_property(env, Results, as_String("y"), _create_int32_Number(env, y));
+    napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, x));
+    napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, y));
     return Results;
 }
 // 获取屏幕大小
@@ -1105,8 +1105,8 @@ napi_value getDeviceCaps(napi_env env, napi_callback_info info)
     napi_create_object(env, &Results);
     int width = GetSystemMetrics(SM_CXSCREEN);  // 鼠标x轴
     int height = GetSystemMetrics(SM_CYSCREEN); // 鼠标y轴
-    napi_set_property(env, Results, _create_char_string(env, "width"), _create_int32_Number(env, width));
-    napi_set_property(env, Results, _create_char_string(env, "height"), _create_int32_Number(env, height));
+    napi_set_property(env, Results, as_String("width"), _create_int32_Number(env, width));
+    napi_set_property(env, Results, as_String("height"), _create_int32_Number(env, height));
     return Results;
 }
 // 获取鼠标位置窗口
@@ -1131,7 +1131,7 @@ napi_value getPointWindowName(napi_env env, napi_callback_info info)
     char lpFilename[1024];
     if (hProcess == nullptr)
     {
-        return _create_A2U8_string(env, "");
+        return as_String("");
     }
     GetModuleBaseNameA(hProcess, NULL, (LPSTR)lpFilename, 1024);
     return _create_A2U8_string(env, lpFilename);
@@ -1179,14 +1179,14 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
     int64_t Process_Handle;
     status = napi_get_value_int64(env, args[0], &Process_Handle);
     napi_value DefaultValue = _create_int32_Number(env, 0);
-    napi_set_property(env, Results, _create_char_string(env, "top"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "bottom"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "left"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "right"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "y"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "x"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "width"), DefaultValue);
-    napi_set_property(env, Results, _create_char_string(env, "height"), DefaultValue);
+    napi_set_property(env, Results, as_String("top"), DefaultValue);
+    napi_set_property(env, Results, as_String("bottom"), DefaultValue);
+    napi_set_property(env, Results, as_String("left"), DefaultValue);
+    napi_set_property(env, Results, as_String("right"), DefaultValue);
+    napi_set_property(env, Results, as_String("y"), DefaultValue);
+    napi_set_property(env, Results, as_String("x"), DefaultValue);
+    napi_set_property(env, Results, as_String("width"), DefaultValue);
+    napi_set_property(env, Results, as_String("height"), DefaultValue);
 
     HWND hHWND = (HWND)Process_Handle;
     if (hHWND)
@@ -1194,14 +1194,14 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
         // 获取窗口原始大小
         RECT lpRect;
         GetWindowRect(hHWND, &lpRect);
-        napi_set_property(env, Results, _create_char_string(env, "top"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, Results, _create_char_string(env, "bottom"), _create_int32_Number(env, lpRect.bottom));
-        napi_set_property(env, Results, _create_char_string(env, "left"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, Results, _create_char_string(env, "right"), _create_int32_Number(env, lpRect.right));
-        napi_set_property(env, Results, _create_char_string(env, "y"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, Results, _create_char_string(env, "x"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, Results, _create_char_string(env, "width"), _create_int32_Number(env, lpRect.right - lpRect.left));
-        napi_set_property(env, Results, _create_char_string(env, "height"), _create_int32_Number(env, lpRect.top - lpRect.bottom));
+        napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, lpRect.top));
+        napi_set_property(env, Results, as_String("bottom"), _create_int32_Number(env, lpRect.bottom));
+        napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, lpRect.left));
+        napi_set_property(env, Results, as_String("right"), _create_int32_Number(env, lpRect.right));
+        napi_set_property(env, Results, as_String("y"), _create_int32_Number(env, lpRect.top));
+        napi_set_property(env, Results, as_String("x"), _create_int32_Number(env, lpRect.left));
+        napi_set_property(env, Results, as_String("width"), _create_int32_Number(env, lpRect.right - lpRect.left));
+        napi_set_property(env, Results, as_String("height"), _create_int32_Number(env, lpRect.top - lpRect.bottom));
     }
     return Results;
 }
@@ -1547,23 +1547,23 @@ static napi_value getAllWindows(napi_env env, napi_callback_info info)
         napi_value coordinateInformation;
         status = napi_create_object(env, &coordinateInformation);
         assert(status == napi_ok);
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "top"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "bottom"), _create_int32_Number(env, lpRect.bottom));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "left"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "right"), _create_int32_Number(env, lpRect.right));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "y"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "x"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "width"), _create_int32_Number(env, (DeviceCapsWidth - lpRect.left) - (DeviceCapsWidth - lpRect.right)));
-        napi_set_property(env, coordinateInformation, _create_char_string(env, "height"), _create_int32_Number(env, (DeviceCapsHeight - lpRect.top) - (DeviceCapsHeight - lpRect.bottom)));
+        napi_set_property(env, coordinateInformation, as_String("top"), _create_int32_Number(env, lpRect.top));
+        napi_set_property(env, coordinateInformation, as_String("bottom"), _create_int32_Number(env, lpRect.bottom));
+        napi_set_property(env, coordinateInformation, as_String("left"), _create_int32_Number(env, lpRect.left));
+        napi_set_property(env, coordinateInformation, as_String("right"), _create_int32_Number(env, lpRect.right));
+        napi_set_property(env, coordinateInformation, as_String("y"), _create_int32_Number(env, lpRect.top));
+        napi_set_property(env, coordinateInformation, as_String("x"), _create_int32_Number(env, lpRect.left));
+        napi_set_property(env, coordinateInformation, as_String("width"), _create_int32_Number(env, (DeviceCapsWidth - lpRect.left) - (DeviceCapsWidth - lpRect.right)));
+        napi_set_property(env, coordinateInformation, as_String("height"), _create_int32_Number(env, (DeviceCapsHeight - lpRect.top) - (DeviceCapsHeight - lpRect.bottom)));
         // {handle,rect:coordinateInformation,title}
         napi_value PushwindowContents;
         status = napi_create_object(env, &PushwindowContents);
         assert(status == napi_ok);
-        // napi_set_property(env, PushwindowContents, _create_char_string(env, "rect"), coordinateInformation);
-        napi_set_property(env, PushwindowContents, _create_char_string(env, "title"), _create_A2U8_string(env, windowTitle));
-        napi_set_property(env, PushwindowContents, _create_char_string(env, "handle"), _create_int64_Number(env, (int64_t)hwnd));
-        napi_set_property(env, PushwindowContents, _create_char_string(env, "style"), _create_int64_Number(env, (int64_t)dwStyle));
-        napi_set_property(env, PushwindowContents, _create_char_string(env, "className"), _create_A2U8_string(env, lpClassName));
+        // napi_set_property(env, PushwindowContents, as_String( "rect"), coordinateInformation);
+        napi_set_property(env, PushwindowContents, as_String("title"), _create_A2U8_string(env, windowTitle));
+        napi_set_property(env, PushwindowContents, as_String("handle"), _create_int64_Number(env, (int64_t)hwnd));
+        napi_set_property(env, PushwindowContents, as_String("style"), _create_int64_Number(env, (int64_t)dwStyle));
+        napi_set_property(env, PushwindowContents, as_String("className"), _create_A2U8_string(env, lpClassName));
         status = napi_set_element(env, Results, counter, PushwindowContents);
         assert(status == napi_ok);
         hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
@@ -2096,22 +2096,22 @@ static napi_value getCurrentMonitorRect(napi_env env, napi_callback_info info)
         return Results;
     };
     RECT rect = GetCurrentMonitorRect();
-    status = napi_set_property(env, Results, _create_char_string(env, "left"), _create_int32_Number(env, (int)rect.left));
+    status = napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, (int)rect.left));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, _create_char_string(env, "top"), _create_int32_Number(env, (int)rect.top));
+    status = napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, (int)rect.top));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, _create_char_string(env, "right"), _create_int32_Number(env, (int)rect.right));
+    status = napi_set_property(env, Results, as_String("right"), _create_int32_Number(env, (int)rect.right));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, _create_char_string(env, "bottom"), _create_int32_Number(env, (int)rect.bottom));
+    status = napi_set_property(env, Results, as_String("bottom"), _create_int32_Number(env, (int)rect.bottom));
     if (status != napi_ok)
     {
         return Results;
@@ -2139,22 +2139,22 @@ static napi_value getDeviceCapsAll(napi_env env, napi_callback_info info)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, _create_char_string(env, "left"), _create_int32_Number(env, (int)rect.left));
+        status = napi_set_property(env, NextRect, as_String("left"), _create_int32_Number(env, (int)rect.left));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, _create_char_string(env, "top"), _create_int32_Number(env, (int)rect.top));
+        status = napi_set_property(env, NextRect, as_String("top"), _create_int32_Number(env, (int)rect.top));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, _create_char_string(env, "right"), _create_int32_Number(env, (int)rect.right));
+        status = napi_set_property(env, NextRect, as_String("right"), _create_int32_Number(env, (int)rect.right));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, _create_char_string(env, "bottom"), _create_int32_Number(env, (int)rect.bottom));
+        status = napi_set_property(env, NextRect, as_String("bottom"), _create_int32_Number(env, (int)rect.bottom));
         if (status != napi_ok)
         {
             return Results;
@@ -3072,8 +3072,6 @@ static void hmc_gc_func()
     {
         hmc_mouse::StopHookMouse();
     }
-
-
 }
 
 napi_value fn_SendMessage(napi_env env, napi_callback_info info)
@@ -3085,16 +3083,16 @@ napi_value fn_SendMessage(napi_env env, napi_callback_info info)
     return hmc_napi_create_value::Number(env, res);
 }
 
-void Init_MAIN_DATA() {
+void Init_MAIN_DATA()
+{
     // 空间预开劈
     hmc_PromiseSession::____$hmcPromise_PromiseTaskList.reserve(150);
     hmc_PromiseSession::____$hmcPromise_promise_task_id_send_index_list.reserve(150);
-
 }
 
 static napi_value Init(napi_env env, napi_value exports)
 {
-    //std::thread(Init_MAIN_DATA).detach();
+    // std::thread(Init_MAIN_DATA).detach();
     napi_property_descriptor BIND_NAPI_METHOD[] = {
         ADD_NAPI_METHOD_Str_VALUE("version", "0.0.0"),
         ADD_NAPI_METHOD_Str_VALUE("desc", "Easier Access to System APIs"),
@@ -3161,19 +3159,20 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("clearClipboard", clearClipboard),
         DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2022-2-11ADD
         DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2022-2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardHTML",getClipboardHTML), 
         DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
-        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                           //=>2022-2-11ADD
-        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),                       //=>2022-2-11ADD
-        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                                   //=>2022-2-11ADD
-        DECLARE_NAPI_METHODRM("getClipboardInfo", getClipboardInfo),                     //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),             //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),                       //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),               //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("getCurrentMonitorRect", getCurrentMonitorRect),           //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),                     //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),             //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),                   //=>2022-2-12ADD
-        DECLARE_NAPI_METHODRM("getAllWindows", getAllWindowsNot),                        //=>2022-2-13ADD
+        DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                 //=>2022-2-11ADD
+        DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),             //=>2022-2-11ADD
+        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                         //=>2022-2-11ADD
+        DECLARE_NAPI_METHODRM("getClipboardInfo", getClipboardInfo),           //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),   //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),             //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getSystemMetricsLen", getSystemMetricsLen),     //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getCurrentMonitorRect", getCurrentMonitorRect), //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getDeviceCapsAll", getDeviceCapsAll),           //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("isMouseMonitorWindow", isMouseMonitorWindow),   //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("isInMonitorWindow", isInMonitorWindow),         //=>2022-2-12ADD
+        DECLARE_NAPI_METHODRM("getAllWindows", getAllWindowsNot),              //=>2022-2-13ADD
         DECLARE_NAPI_METHOD("getWindowStyle", getWindowStyle),
         DECLARE_NAPI_METHOD("getWindowClassName", getWindowClassName),
         DECLARE_NAPI_METHOD("setWindowTitleIcon", setWindowTitleIcon),
@@ -3268,32 +3267,18 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("installHookMouse2", installHookMouse2),
         // 2023-12-22 add support
         DECLARE_NAPI_METHODRM("getLastInputTime", getLastInputTime),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("getStringRegKey", getStringRegKey),
-        // 2024-01-05 add support
+
+        
+        // 2024-01-07 add support
         DECLARE_NAPI_METHODRM("removeRegistrFolder", removeRegistrFolder),
-        // 2024-01-05 add support
         DECLARE_NAPI_METHODRM("removeRegistrValue", removeRegistrValue),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("hasRegistrValue", hasRegistrValue),
-        // 2024-01-05 add support
         DECLARE_NAPI_METHODRM("createRegistrFolder", createRegistrFolder),
-        // 2024-01-05 add support
         DECLARE_NAPI_METHODRM("getRegistrFolderStat", getRegistrFolderStat),
-        // 2024-01-05 add support
         DECLARE_NAPI_METHODRM("getRegistrValueStat", getRegistrValueStat),
-        // 2024-01-05 add support
         DECLARE_NAPI_METHODRM("getRegistrBuffValue", getRegistrBuffValue),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("getRegistrDword", getRegistrDword),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("setRegistrDword", setRegistrDword),
-        // 2024-01-05 add support
+        DECLARE_NAPI_METHODRM("getRegistrValue", getRegistrValue),
         DECLARE_NAPI_METHODRM("setRegistrValue", setRegistrValue),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("getRegistrQword", getRegistrQword),
-        // 2024-01-05 add support
-        DECLARE_NAPI_METHODRM("setRegistrQword", setRegistrQword),
+
         // 2023-12-11 add support
         DECLARE_NAPI_METHODRM("_PromiseSession_get", _PromiseSession_getAll),
         // 2023-12-1 add support
@@ -3329,7 +3314,6 @@ static napi_value Init(napi_env env, napi_value exports)
     _________HMC___________ = false;
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
-      
 
     // 2.0 api 异步同步双支持版本
     exports_process_all_v2_fun(/*

@@ -4,46 +4,6 @@
 #include "./Mian.hpp"
 #include <format>
 
-napi_value getStringRegKey(napi_env env, napi_callback_info info)
-{
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-    bool expand = nodeArgsValueList.getBool(3, false);
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-    auto open_registr = hmc_registr_util::getRegistrValue(root_hive, Path, key);
-
-    if (open_registr.isString())
-    {
-        return hmc_napi_create_value::String(env, open_registr.getStringW(expand));
-    }
-
-    return result;
-}
-
 napi_value removeRegistrFolder(napi_env env, napi_callback_info info)
 {
     auto result = hmc_napi_create_value::Null(env);
@@ -114,41 +74,6 @@ napi_value removeRegistrValue(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value hasRegistrValue(napi_env env, napi_callback_info info)
-{
-
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-    bool is_exist = hmc_registr_util::hasRegistrValue(root_hive, Path, key);
-    result = hmc_napi_create_value::Boolean(env, is_exist);
-    return result;
-}
-
 napi_value createRegistrFolder(napi_env env, napi_callback_info info)
 {
 
@@ -187,17 +112,17 @@ napi_value getRegistrFolderStat(napi_env env, napi_callback_info info)
     auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
 
     if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {1, js_boolean}}))
+                               {1, js_string}},
+                              true))
     {
         return result;
     }
 
     auto root_key = nodeArgsValueList.getStringWide(0, L"");
     auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto is_keys = nodeArgsValueList.getBool(2, false);
+    auto is_keys = nodeArgsValueList.exists(2) && nodeArgsValueList.getBool(2, false);
 
-    if (root_key.empty() || Path.empty())
+    if (root_key.empty())
     {
 
         return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
@@ -209,13 +134,19 @@ napi_value getRegistrFolderStat(napi_env env, napi_callback_info info)
 
         return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
     }
+
     std::vector<std::wstring> QueryFolderList;
     std::vector<std::wstring> QueryKeyList;
 
-    if (is_keys)
+    auto folderInfo = hmc_registr_util::getRegistrFolderInfo(root_hive, Path);
+
+    if (is_keys && folderInfo.exists)
         hmc_registr_util::getRegistrKeys(root_hive, Path, QueryFolderList, QueryKeyList);
 
-    auto folderInfo = hmc_registr_util::getRegistrFolderInfo(root_hive, Path);
+    if (!folderInfo.exists)
+    {
+        return as_Null();
+    }
 
     // 预计算出大概需要多少内存 以减少文本处理 开辟内存的性能消耗 也能替换过程
     size_t get_reserve_size = 0;
@@ -283,6 +214,11 @@ napi_value getRegistrValueStat(napi_env env, napi_callback_info info)
     }
     auto ValueStat = hmc_registr_util::getValueStat(root_hive, Path, key);
 
+    if (!ValueStat.exists)
+    {
+        return as_Null();
+    }
+
     wstring jsonw = LR"({"exists":{exists},"size":{size},"type":"{type}"})";
     jsonw.reserve(MAX_PATH + jsonw.size());
 
@@ -311,7 +247,7 @@ napi_value getRegistrBuffValue(napi_env env, napi_callback_info info)
     auto Path = nodeArgsValueList.getStringWide(1, L"");
     auto key = nodeArgsValueList.getStringWide(2, L"");
 
-    if (root_key.empty() || Path.empty())
+    if (root_key.empty())
     {
 
         return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
@@ -331,158 +267,6 @@ napi_value getRegistrBuffValue(napi_env env, napi_callback_info info)
     return result;
 }
 
-napi_value getRegistrDword(napi_env env, napi_callback_info info)
-{
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-
-    auto open_registr = hmc_registr_util::getRegistrValue(root_hive, Path, key);
-
-    if (open_registr.isNumber())
-    {
-        return hmc_napi_create_value::Number(env, open_registr.getInt64());
-    }
-
-    return result;
-}
-
-napi_value setRegistrDword(napi_env env, napi_callback_info info)
-{
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null},
-                               {3, js_number}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-    auto Dword = nodeArgsValueList.getInt(3, 0);
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-    bool is_exist = hmc_registr_util::setRegistrValue(root_hive, Path, key).set((long)Dword);
-    result = hmc_napi_create_value::Boolean(env, is_exist);
-    return result;
-}
-
-napi_value getRegistrQword(napi_env env, napi_callback_info info)
-{
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-    auto open_registr = hmc_registr_util::getRegistrValue(root_hive, Path, key);
-
-    if (open_registr.isNumber())
-    {
-        return hmc_napi_create_value::Bigint(env, open_registr.getInt64());
-    }
-
-    return result;
-}
-
-napi_value setRegistrQword(napi_env env, napi_callback_info info)
-{
-    auto result = hmc_napi_create_value::Null(env);
-    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
-
-    if (!nodeArgsValueList.eq({{0, js_string},
-                               {1, js_string},
-                               {2, js_string},
-                               {2, js_null},
-                               {3, js_bigint}}))
-    {
-        return result;
-    }
-
-    auto root_key = nodeArgsValueList.getStringWide(0, L"");
-    auto Path = nodeArgsValueList.getStringWide(1, L"");
-    auto key = nodeArgsValueList.getStringWide(2, L"");
-    auto Dword = nodeArgsValueList.getInt64(3, 0);
-
-    if (root_key.empty() || Path.empty())
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
-    }
-    auto root_hive = hmc_registr_util::getHive(root_key);
-
-    if (root_hive == NULL)
-    {
-
-        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
-    }
-    bool is_exist = hmc_registr_util::setRegistrValue(root_hive, Path, key).set((int64_t)Dword);
-    result = hmc_napi_create_value::Boolean(env, is_exist);
-    return result;
-}
-
 napi_value setRegistrValue(napi_env env, napi_callback_info info)
 {
     auto result = hmc_napi_create_value::Boolean(env, false);
@@ -497,6 +281,7 @@ napi_value setRegistrValue(napi_env env, napi_callback_info info)
                                {3, js_string},
                                {3, js_buffer},
                                {3, js_boolean},
+                               {3,js_array},
                                {3, js_date},
                                {3, js_null},
                                {4, js_boolean},
@@ -510,13 +295,13 @@ napi_value setRegistrValue(napi_env env, napi_callback_info info)
     auto root_key = nodeArgsValueList.getStringWide(0, L"");
     auto Path = nodeArgsValueList.getStringWide(1, L"");
     auto key = nodeArgsValueList.getStringWide(2, L"");
-    int to_type =(nodeArgsValueList.exists(4) && nodeArgsValueList.eq(4, js_number)) ? nodeArgsValueList.getInt(4) :-1;
+    int to_type = (nodeArgsValueList.exists(4) && nodeArgsValueList.eq(4, js_number)) ? nodeArgsValueList.getInt(4) : -1;
 
-    if (root_key.empty() || Path.empty())
+    if (root_key.empty())
     {
-
         return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
     }
+
     auto root_hive = hmc_registr_util::getHive(root_key);
 
     if (root_hive == NULL)
@@ -585,12 +370,114 @@ napi_value setRegistrValue(napi_env env, napi_callback_info info)
         return result;
     }
 
+    // string[]
+    if (nodeArgsValueList.exists(3) && nodeArgsValueList.eq({{3, js_array}}, false))
+    {
+        auto string_ptr = nodeArgsValueList.getArrayWstring(3, {});
+       
+        bool is_exist = open_regist.set(string_ptr);
+        result = hmc_napi_create_value::Boolean(env, is_exist);
+        return result;
+    }
+    
     // not
     if (nodeArgsValueList.exists(3) && nodeArgsValueList.eq(3, js_null, false))
     {
         bool is_exist = open_regist.set();
         result = hmc_napi_create_value::Boolean(env, is_exist);
         return result;
+    }
+
+    return result;
+}
+
+napi_value getRegistrValue(napi_env env, napi_callback_info info)
+{
+
+    napi_value result = hmc_napi_create_value::Object::Object(env);
+
+    auto nodeArgsValueList = hmc_NodeArgsValue(env, info);
+
+    if (!nodeArgsValueList.eq({{0, js_string},
+                               {1, js_string},
+                               {2, js_string}},
+                              true))
+    {
+        return result;
+    }
+
+    wstring root_key = nodeArgsValueList.getStringWide(0, L"");
+    wstring Path = nodeArgsValueList.getStringWide(1, L"");
+    wstring Key = nodeArgsValueList.getStringWide(2, L"");
+
+    if (root_key.empty())
+    {
+
+        return hmc_napi_create_value::ErrorBreak(env, "empty parameter <root_key,folder_path>", __FUNCTION__, "parameter <empty> Error");
+    }
+
+    HKEY root_hive = hmc_registr_util::getHive(root_key);
+
+    if (root_hive == NULL)
+    {
+
+        return hmc_napi_create_value::ErrorBreak(env, R"((root_key!="HKEY_USERS"||root_key!="HKEY_LOCAL_MACHINE"||root_key!="HKEY_CURRENT_USER"||root_key!="HKEY_CURRENT_CONFIG"||root_key!="HKEY_CLASSES_ROOT"))", __FUNCTION__, "parameter <unknown> Error");
+    }
+
+    auto ValueStat = hmc_registr_util::getRegistrValue(root_hive, Path, Key);
+
+    if (!ValueStat.isValue())
+    {
+        return as_Null();
+    }
+    auto type = ValueStat.getType();
+    wstring typeName = hmc_registr_util::type_nameW(type);
+
+    hmc_napi_create_value::Object::putValue(env, result, L"type", as_Number(type));
+    hmc_napi_create_value::Object::putValue(env, result, L"typeName", as_String(typeName));
+    bool is_push_ok = false;
+
+    if (!is_push_ok && ValueStat.isString())
+    {
+        auto data = ValueStat.getStringW();
+
+        if( ValueStat.isType(REG_EXPAND_SZ) ) {
+            auto data2 = ValueStat.getStringW(true);
+            hmc_napi_create_value::Object::putValue(env, result, L"dataExpand", as_String(data2));
+        }
+        
+        else if( ValueStat.isType(REG_MULTI_SZ) ) {
+            auto data2 = ValueStat.getMultiW();
+            hmc_napi_create_value::Object::putValue(env, result, L"data", hmc_napi_create_value::Array::String(env, data2));
+        }
+
+        else{
+            hmc_napi_create_value::Object::putValue(env, result, L"data", as_String(data));
+        }
+        
+        is_push_ok = true;
+    }
+
+    if (!is_push_ok && ValueStat.isNumber())
+    {
+        auto data = ValueStat.getInt64();
+        if (ValueStat.isInt64())
+        {
+            hmc_napi_create_value::Object::putValue(env, result, L"data", as_Bigint(data));
+        }
+        else
+        {
+
+            hmc_napi_create_value::Object::putValue(env, result, L"data", as_Number(data));
+        }
+        is_push_ok = true;
+    }
+    if (!is_push_ok)
+    {
+        vector<unsigned char> buff = ValueStat.getBuff();
+        napi_value buffer = hmc_napi_create_value::Buffer(env, buff);
+        hmc_napi_create_value::Object::putValue(env, result, L"data", buffer);
+        is_push_ok = true;
     }
 
     return result;

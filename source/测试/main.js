@@ -37,6 +37,7 @@ function setRegistrValue(Hive, folderPath, keyName, data = null, type = undefine
         typeof data_output == "bigint" ||
         data_output instanceof Date ||
         data_output === null ||
+        Array.isArray(data_output) ||
         Buffer.isBuffer(data_output)) {
         is_type_valid = true;
     }
@@ -50,9 +51,12 @@ function setRegistrValue(Hive, folderPath, keyName, data = null, type = undefine
     if (typeof data_output == "number" && isNaN(data_output)) {
         data_output = null;
     }
-    // 超过0xffffffff 强转 QDWOD
+    // 超过0xffffffff 强制到0xffffffff
     if (typeof data_output == "number" && data_output > 0xffffffff) {
         data_output = 0xffffffff;
+    }
+    if (data_output && !Buffer.isBuffer(data_output) && Array.isArray(data_output)) {
+        data_output = __1.ref.stringArray(data_output);
     }
     // 处理 负数 浮点 的逻辑
     return native.setRegistrValue(hive_value, folder_path, key_name, data_output, types);

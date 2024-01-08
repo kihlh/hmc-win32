@@ -54,6 +54,7 @@ using namespace std;
 #define as_Null()hmc_napi_create_value::Null(env)
 #define as_Bigint(data)hmc_napi_create_value::Bigint(env,(long long)data)
 #define as_Numberf(data)hmc_napi_create_value::Number(env,(double)data)
+#define as_Buffer(data)hmc_napi_create_value::Buffer(env,data)
 
 // 导出一个 其他文件的 函数 并设置名称
 #define ___EXPORT_NAPI_REMOTE_FN____PROMISE_SESSION                           \
@@ -728,14 +729,13 @@ namespace hmc_napi_create_value
 	napi_value Boolean(napi_env env, int value = 0);
 
 	// 返回一个 string utf8 string
-	napi_value String(napi_env env, string value);
+	napi_value String(napi_env env, string value , size_t re_size = NAPI_AUTO_LENGTH);
 
 	// 返回一个 string utf8 string
-	napi_value StringA(napi_env env, string value);
+	napi_value StringA(napi_env env, string value, size_t re_size = NAPI_AUTO_LENGTH);
 	// 返回一个 string utf16 string
-	napi_value String(napi_env env, wstring value);
-	napi_value String(napi_env env, wchar_t *value);
-	napi_value String(napi_env env, char *value);
+	napi_value String(napi_env env, wstring value, size_t re_size = NAPI_AUTO_LENGTH);
+	
 	napi_value String(napi_env env);
 
 	/**

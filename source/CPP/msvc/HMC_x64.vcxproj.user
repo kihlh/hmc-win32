@@ -15,7 +15,7 @@
     <LocalDebuggerMergeEnvironment>false</LocalDebuggerMergeEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>F:\MagicPockets\HMMagicPocket.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>F:\source\module\hmc-win32\source\测试\main.js --inspect  $(ProjectDir)\$(TargetPath)</LocalDebuggerCommandArguments>
