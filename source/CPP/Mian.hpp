@@ -105,9 +105,9 @@ struct HMC_PROCESSENTRY32W
                              string("\nThe [")                                  \
                                  .append(to_string(argc))                       \
                                  .append("] parameter passed in should read [") \
-                                 .append(_NAPI_Call_Type(value_type))           \
+                                 .append(hmc_napi_type::typeName(value_type))           \
                                  .append("] This parameter should read: ")      \
-                                 .append(_NAPI_Call_Type(type))                 \
+                                 .append(hmc_napi_type::typeName(type))                 \
                                  .append("\n")                                  \
                                  .c_str());                                     \
             return Results;                                                     \
@@ -145,7 +145,7 @@ struct HMC_PROCESSENTRY32W
 // 导出一个文本内容
 #define ADD_NAPI_METHOD_Str_VALUE(name, value)                        \
     {                                                                 \
-        name, 0, 0, 0, 0, _create_String(env, value), napi_default, 0 \
+        name, 0, 0, 0, 0, as_String(value), napi_default, 0 \
     }
 
 // clip.cpp
@@ -244,6 +244,10 @@ napi_value fn_hasUseKeyExists(napi_env env, napi_callback_info info);
 napi_value fn_escapeEnvVariable(napi_env env, napi_callback_info info);
 napi_value fn_AllocConsole(napi_env env, napi_callback_info info);
 napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info);
+napi_value fn_getenv(napi_env env, napi_callback_info info);
+napi_value fn_getAllEnv(napi_env env, napi_callback_info info);
+napi_value fn_putenv(napi_env env, napi_callback_info info);
+
 
 // fn_process.cpp
 

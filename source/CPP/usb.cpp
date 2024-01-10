@@ -104,40 +104,40 @@ napi_value getHidUsbList(napi_env env, napi_callback_info info)
         // 鼠标
         if (rdiDeviceInfo.dwType == RIM_TYPEMOUSE)
         {
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "type"), _create_W2U8_string(env, L"mouse"));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "index"), _create_int64_Number(env, index));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "name"), _create_W2U8_string(env, wcDeviceName));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwId"), _create_int64_Number(env, rdiDeviceInfo.mouse.dwId));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwNumberOfButtons"), _create_int64_Number(env, rdiDeviceInfo.mouse.dwNumberOfButtons));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwSampleRate"), _create_int64_Number(env, rdiDeviceInfo.mouse.dwSampleRate));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "fHasHorizontalWheel"), _create_bool_Boolean(env, rdiDeviceInfo.mouse.fHasHorizontalWheel));
+            napi_set_property(env, NextDeviceInfo, as_String("type"), as_String(L"mouse"));
+            napi_set_property(env, NextDeviceInfo, as_String("index"), as_Number(index));
+            napi_set_property(env, NextDeviceInfo, as_String("name"), as_String( wcDeviceName));
+            napi_set_property(env, NextDeviceInfo, as_String("dwId"), as_Number(rdiDeviceInfo.mouse.dwId));
+            napi_set_property(env, NextDeviceInfo, as_String("dwNumberOfButtons"), as_Number(rdiDeviceInfo.mouse.dwNumberOfButtons));
+            napi_set_property(env, NextDeviceInfo, as_String("dwSampleRate"), as_Number(rdiDeviceInfo.mouse.dwSampleRate));
+            napi_set_property(env, NextDeviceInfo, as_String("fHasHorizontalWheel"),as_Boolean(rdiDeviceInfo.mouse.fHasHorizontalWheel));
         }
 
         // Keyboard
         else if (rdiDeviceInfo.dwType == RIM_TYPEKEYBOARD)
         {
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "type"), _create_W2U8_string(env, L"keyboard"));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "index"), _create_int64_Number(env, index));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "name"), _create_W2U8_string(env, wcDeviceName));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwKeyboardMode"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwKeyboardMode));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwNumberOfFunctionKeys"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwNumberOfFunctionKeys));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwNumberOfIndicators"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwNumberOfIndicators));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwNumberOfKeysTotal"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwNumberOfKeysTotal));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwType"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwType));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwSubType"), _create_int64_Number(env, rdiDeviceInfo.keyboard.dwSubType));
+            napi_set_property(env, NextDeviceInfo, as_String("type"), as_String(L"keyboard"));
+            napi_set_property(env, NextDeviceInfo, as_String("index"), as_Number(index));
+            napi_set_property(env, NextDeviceInfo, as_String("name"), as_String( wcDeviceName));
+            napi_set_property(env, NextDeviceInfo, as_String("dwKeyboardMode"), as_Number(rdiDeviceInfo.keyboard.dwKeyboardMode));
+            napi_set_property(env, NextDeviceInfo, as_String("dwNumberOfFunctionKeys"), as_Number(rdiDeviceInfo.keyboard.dwNumberOfFunctionKeys));
+            napi_set_property(env, NextDeviceInfo, as_String("dwNumberOfIndicators"), as_Number(rdiDeviceInfo.keyboard.dwNumberOfIndicators));
+            napi_set_property(env, NextDeviceInfo, as_String("dwNumberOfKeysTotal"), as_Number(rdiDeviceInfo.keyboard.dwNumberOfKeysTotal));
+            napi_set_property(env, NextDeviceInfo, as_String("dwType"), as_Number(rdiDeviceInfo.keyboard.dwType));
+            napi_set_property(env, NextDeviceInfo, as_String("dwSubType"), as_Number(rdiDeviceInfo.keyboard.dwSubType));
         }
 
         // Some HID
         else if (rdiDeviceInfo.dwType == RIM_TYPEHID)
         {
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "type"), _create_W2U8_string(env, L"hid"));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "index"), _create_int64_Number(env, index));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "name"), _create_W2U8_string(env, wcDeviceName));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwVendorId"), _create_int64_Number(env, rdiDeviceInfo.hid.dwVendorId));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwProductId"), _create_int64_Number(env, rdiDeviceInfo.hid.dwProductId));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "dwVersionNumber"), _create_int64_Number(env, rdiDeviceInfo.hid.dwVersionNumber));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "usUsage"), _create_int64_Number(env, rdiDeviceInfo.hid.usUsage));
-            napi_set_property(env, NextDeviceInfo, _create_char_string(env, "usUsagePage"), _create_int64_Number(env, rdiDeviceInfo.hid.usUsagePage));
+            napi_set_property(env, NextDeviceInfo, as_String("type"), as_String(L"hid"));
+            napi_set_property(env, NextDeviceInfo, as_String("index"), as_Number(index));
+            napi_set_property(env, NextDeviceInfo, as_String("name"), as_String( wcDeviceName));
+            napi_set_property(env, NextDeviceInfo, as_String("dwVendorId"), as_Number(rdiDeviceInfo.hid.dwVendorId));
+            napi_set_property(env, NextDeviceInfo, as_String("dwProductId"), as_Number(rdiDeviceInfo.hid.dwProductId));
+            napi_set_property(env, NextDeviceInfo, as_String("dwVersionNumber"), as_Number(rdiDeviceInfo.hid.dwVersionNumber));
+            napi_set_property(env, NextDeviceInfo, as_String("usUsage"), as_Number(rdiDeviceInfo.hid.usUsage));
+            napi_set_property(env, NextDeviceInfo, as_String("usUsagePage"), as_Number(rdiDeviceInfo.hid.usUsagePage));
         }
 
         status = napi_set_element(env, Results, index, NextDeviceInfo);
@@ -159,16 +159,16 @@ napi_value getUsbDevsInfo(napi_env env, napi_callback_info info)
         return nullptr;
 
     HDEVINFO hDevInfo;
-    PSP_DEVICE_INTERFACE_DETAIL_DATA_A psp_device_details;
+    PSP_DEVICE_INTERFACE_DETAIL_DATA_W psp_device_details;
     SP_DEVICE_INTERFACE_DATA sp_device_data;
     BOOL bRes = TRUE;
     int nextCount = 0;
-    hDevInfo = ::SetupDiGetClassDevs((LPGUID)&UsbClassGuid, NULL, NULL, DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+    hDevInfo = ::SetupDiGetClassDevsW((LPGUID)&UsbClassGuid, NULL, NULL, DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
     if (hDevInfo != INVALID_HANDLE_VALUE)
 
     {
 
-        psp_device_details = (PSP_DEVICE_INTERFACE_DETAIL_DATA_A)::GlobalAlloc(LMEM_ZEROINIT, 1024);
+        psp_device_details = (PSP_DEVICE_INTERFACE_DETAIL_DATA_W)::GlobalAlloc(LMEM_ZEROINIT, 1024);
         psp_device_details->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
         while (bRes)
@@ -182,16 +182,16 @@ napi_value getUsbDevsInfo(napi_env env, napi_callback_info info)
             if (bRes)
 
             {
-                bRes = ::SetupDiGetInterfaceDeviceDetailA(hDevInfo, &sp_device_data, psp_device_details, 1024, NULL, NULL);
+                bRes = ::SetupDiGetInterfaceDeviceDetailW(hDevInfo, &sp_device_data, psp_device_details, 1024, NULL, NULL);
                 if (bRes)
                 {
-                    string str_device_path = psp_device_details->DevicePath;
+                    wstring str_device_path = psp_device_details->DevicePath;
                     for (int i = 3 - 1; i >= 0; i--)
                     {
-                        str_device_path.replace(str_device_path.find("#"), 1, "\\");
+                        str_device_path.replace(str_device_path.find(L"#"), 1, L"\\");
                     }
 
-                    status = napi_set_element(env, usbDevsInfoList, nextCount, _create_String(env, str_device_path));
+                    status = napi_set_element(env, usbDevsInfoList, nextCount,as_String( str_device_path));
                     if (status != napi_ok)
                         return nullptr;
                     nextCount++;
@@ -275,15 +275,15 @@ napi_value getHidUsbIdList(napi_env env, napi_callback_info info)
             continue;
         }
 
-        string str_device_path = _W2A_(wcDeviceName);
+        wstring str_device_path =wcDeviceName;// hmc_string_util::utf16_to_utf8(wcDeviceName);
         delete[] wcDeviceName;
 
         for (int i = 3 - 1; i >= 0; i--)
         {
-            str_device_path.replace(str_device_path.find("#"), 1, "\\");
+            str_device_path.replace(str_device_path.find(L"#"), 1, L"\\");
         }
 
-        status = napi_set_element(env, Results, (int)index, _create_String(env, str_device_path));
+        status = napi_set_element(env, Results, (int)index, as_String(str_device_path));
         if (status != napi_ok)
         {
             return Results;
@@ -390,17 +390,17 @@ napi_value getVolumeList(napi_env env, napi_callback_info info)
         {
             break;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "device"), _create_W2U8_string(env, (wchar_t *)volume.device.c_str()));
+        status = napi_set_property(env, cur_item, as_String("device"), as_String(volume.device.c_str()));
         if (status != napi_ok)
         {
             return Results;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "name"), _create_W2U8_string(env, (wchar_t *)volume.name.c_str()));
+        status = napi_set_property(env, cur_item, as_String("name"), as_String(volume.name.c_str()));
         if (status != napi_ok)
         {
             return Results;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "path"), _create_W2U8_string(env, (wchar_t *)volume.path.c_str()));
+        status = napi_set_property(env, cur_item, as_String("path"), as_String(volume.path.c_str()));
         if (status != napi_ok)
         {
             return Results;
@@ -423,11 +423,11 @@ napi_value formatVolumePath(napi_env env, napi_callback_info info)
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
-    wstring Paths = call_String_NAPI_WINAPI_W(env, args[0]);
+    wstring Paths = hmc_napi_get_value::string_utf16(env, args[0]);
     wstring VolumePaths = FormatVolumePath((PWCHAR)Paths.c_str());
     if (VolumePaths.empty())
     {
         VolumePaths.append(Paths.c_str());
     }
-    return _create_W2U8_string(env, (wchar_t *)VolumePaths.c_str());
+    return as_String(VolumePaths.c_str());
 }

@@ -53,7 +53,7 @@ using namespace std;
             subHKey = nullptr;\
         } });
 
-namespace hmc_registr
+namespace hmc_registr__del
 {
     // 目录的信息
     struct chQueryDirStat

@@ -1872,6 +1872,62 @@ bool hmc_registr_util::SetRegistrString(HKEY hKey, std::string FolderPath, std::
 	return result;
 }
 
+bool hmc_registr_util::SetRegistrString(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::wstring &Input, const DWORD retype)
+{
+	bool result = false;
+	OpenKeyToken token = OpenKeyToken(hKey, FolderPath, KeyName, true);
+
+	if (!token)
+	{
+		return result;
+	}
+
+	DWORD buff_size = static_cast<DWORD>(Input.size() * sizeof(char));
+
+	if (::RegSetValueExW(token, KeyName.c_str(), NULL, retype, reinterpret_cast<const BYTE *>(Input.c_str()), buff_size) == ERROR_SUCCESS)
+	{
+
+		DWORD lpType = REG_NONE;
+		DWORD pDataSize = 0;
+
+		if (::RegQueryValueExW(token, KeyName.c_str(), nullptr, &lpType, nullptr, &pDataSize) == ERROR_SUCCESS)
+		{
+			result = lpType == retype && pDataSize != 0;
+			return result;
+		}
+	}
+
+	return result;
+}
+
+bool hmc_registr_util::SetRegistrString(HKEY hKey, std::string FolderPath, std::string KeyName, const std::string &Input, const DWORD retype)
+{
+	bool result = false;
+	OpenKeyToken token = OpenKeyToken(hKey, FolderPath, KeyName, true);
+
+	if (!token)
+	{
+		return result;
+	}
+
+	DWORD buff_size = static_cast<DWORD>(Input.size() * sizeof(char));
+
+	if (::RegSetValueExA(token, KeyName.c_str(), NULL, retype, reinterpret_cast<const BYTE *>(Input.c_str()), buff_size) == ERROR_SUCCESS)
+	{
+
+		DWORD lpType = REG_NONE;
+		DWORD pDataSize = 0;
+
+		if (::RegQueryValueExA(token, KeyName.c_str(), nullptr, &lpType, nullptr, &pDataSize) == ERROR_SUCCESS)
+		{
+			result = lpType == retype && pDataSize != 0;
+			return result;
+		}
+	}
+
+	return result;
+}
+
 bool hmc_registr_util::SetRegistrMulti(HKEY hKey, std::string FolderPath, std::string KeyName, const std::vector<std::string> &Input)
 {
 	bool result = false;
@@ -2172,9 +2228,9 @@ std::vector<std::wstring> hmc_registr_util::GetRegistrMulti(HKEY hKey, std::wstr
 			auto end_pos = lpWstrList.size();
 
 			// 移除所有尾部 \0
-			while ( (end_pos = lpWstrList.find_last_not_of(L'\0')) != lpWstrList.size() - 1)
+			while ((end_pos = lpWstrList.find_last_not_of(L'\0')) != lpWstrList.size() - 1)
 			{
-				lpWstrList.erase(end_pos+1);
+				lpWstrList.erase(end_pos + 1);
 			}
 
 			size_t len = lpWstrList.size();
@@ -2192,7 +2248,8 @@ std::vector<std::wstring> hmc_registr_util::GetRegistrMulti(HKEY hKey, std::wstr
 				temp.push_back(it);
 			}
 
-			if (!temp.empty()) {
+			if (!temp.empty())
+			{
 				list.push_back(std::wstring(temp + L""));
 				temp.clear();
 			}
@@ -2226,7 +2283,6 @@ std::vector<std::string> hmc_registr_util::GetRegistrMulti(HKEY hKey, std::strin
 		if (::RegQueryValueExA(open_hkey, KeyName.c_str(), nullptr, &lpType, reinterpret_cast<BYTE *>(&lpWstrList[0]), &pDataSize) == ERROR_SUCCESS)
 		{
 			std::string temp = "";
-		
 
 			auto end_pos = lpWstrList.size();
 
@@ -2235,7 +2291,6 @@ std::vector<std::string> hmc_registr_util::GetRegistrMulti(HKEY hKey, std::strin
 			{
 				lpWstrList.erase(end_pos + 1);
 			}
-
 
 			size_t len = lpWstrList.size();
 
@@ -2252,11 +2307,11 @@ std::vector<std::string> hmc_registr_util::GetRegistrMulti(HKEY hKey, std::strin
 				temp.push_back(it);
 			}
 
-			if (!temp.empty()) {
+			if (!temp.empty())
+			{
 				list.push_back(std::string(temp + ""));
 				temp.clear();
 			}
-
 		}
 	}
 	return list;

@@ -762,6 +762,30 @@ namespace hmc_registr_util
 	 * @return true
 	 * @return false
 	 */
+	extern bool SetRegistrString(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::wstring &Input, const DWORD retype = 0);
+	/**
+	 * @brief 设置文本值
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param Input 内容
+	 * @param expand 是否转义
+	 * @return true
+	 * @return false
+	 */
+	extern bool SetRegistrString(HKEY hKey, std::string FolderPath, std::string KeyName, const std::string &Input, const DWORD retype = 0);
+	/**
+	 * @brief 设置文本值
+	 *
+	 * @param hKey 根
+	 * @param FolderPath 目录
+	 * @param KeyName 键
+	 * @param Input 内容
+	 * @param expand 是否转义
+	 * @return true
+	 * @return false
+	 */
 	extern bool SetRegistrString(HKEY hKey, std::wstring FolderPath, std::wstring KeyName, const std::wstring &Input, bool expand = false);
 	/**
 	 * @brief 设置文本值
@@ -842,10 +866,10 @@ namespace hmc_registr_util
 		// 0x00000001 REG_SZ 字符串 or 0x00000002 REG_EXPAND_SZ 未展开引用的字符串 例如“%PATH%”
 		bool set(std::string input, bool expand = false);
 		// 7 REG_MULTI_SZ 文本数组
-		bool set(/*REG_MULTI_SZ*/const std::vector<std::wstring> &input);
+		bool set(/*REG_MULTI_SZ*/ const std::vector<std::wstring> &input);
 		// 7 REG_MULTI_SZ 文本数组
-		bool set(/*REG_MULTI_SZ*/const std::vector<std::string> &input);
-		
+		bool set(/*REG_MULTI_SZ*/ const std::vector<std::string> &input);
+
 		bool set(REG_TYPE type, const std::vector<BYTE> &value);
 		bool set(DWORD type, const std::vector<BYTE> &value);
 	};
@@ -872,7 +896,7 @@ namespace hmc_registr_util
 		bool isType(DWORD type);
 		DWORD getType();
 	};
-	
+
 	class OpenKeyToken
 	{
 	public:
@@ -890,7 +914,7 @@ namespace hmc_registr_util
 
 	private:
 	};
-	
+
 }
 
 #endif // HMC_IMPORT_HMC_REGISTR_UTIL_H

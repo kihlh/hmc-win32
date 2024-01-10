@@ -409,8 +409,8 @@ vector<HMC_PROCESSENTRY32W> GetProcessSnapshot()
 // 定义 ZwQuerySystemInformation 函数签名
 typedef NTSTATUS(NTAPI* ZwQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
 
-#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
-#define STATUS_SUCCESS 0x00000000
+//#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
+//#define STATUS_SUCCESS 0x00000000
 
 
 namespace fn_getAllProcessNtList
@@ -453,7 +453,7 @@ namespace fn_getAllProcessNtList
 		}
 
 		status = ZwQuerySystemInformation(SystemProcessInformation, buffer, bufferSize, NULL);
-		if (status != STATUS_SUCCESS) {
+		if (status != 0x00000000/*STATUS_SUCCESS*/) {
 
 			return L"[]";
 		}

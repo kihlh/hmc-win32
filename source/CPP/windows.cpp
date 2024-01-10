@@ -26,14 +26,14 @@ napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)
     {
         if (!is_WindowsHandle)
         {
-            status = napi_set_element(env, Results, counter, _create_int64_Number(env, (int64_t)hwnd));
+            status = napi_set_element(env, Results, counter, as_Number((int64_t)hwnd));
             if (status != napi_ok)
                 return Results;
             counter++;
         }
         else if (IsWindowVisible(hwnd))
         {
-            status = napi_set_element(env, Results, counter, _create_int64_Number(env, (int64_t)hwnd));
+            status = napi_set_element(env, Results, counter, as_Number((int64_t)hwnd));
             if (status != napi_ok)
                 return Results;
             counter++;
@@ -144,7 +144,7 @@ napi_value setForegroundWindow(napi_env env, napi_callback_info info)
     napi_status status;
     size_t argc = 1;
     napi_value args[1];
-    napi_value Results = _create_bool_Boolean(env, false);
+    napi_value Results = as_Boolean( false);
     status = $napi_get_cb_info(argc, args);
     assert(status == napi_ok);
     if (argc)

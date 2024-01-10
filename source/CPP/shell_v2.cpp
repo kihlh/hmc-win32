@@ -135,15 +135,14 @@ vector<GetTaryIconList::TaryIcon> GetTaryIconList::EnumCommctrlList(HWND hWnd)
     LPVOID Pointer_Icon_Buttons = ::VirtualAllocEx(hProcess, 0, 4096, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
     // gc
-    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void*)
-        {
+    std::shared_ptr<void> _shared_free_handle(nullptr, [&](void *)
+                                              {
             if (Pointer_Icon_Buttons != NULL) {
                 VirtualFreeEx(hProcess, Pointer_Icon_Buttons, 0, MEM_RELEASE);
             }
             if (hProcess != NULL) {
                 ::CloseHandle(hProcess);
-            }
-        });
+            } });
 
     if (Pointer_Icon_Buttons == NULL)
         return result;
@@ -216,4 +215,160 @@ BOOL isSystemFor64bit()
         return FALSE;
 }
 
+int API_TrashFile(std::wstring FromPath, bool bRecycle, bool isShow)
+{
+    SHFILEOPSTRUCTW FileOp = {0};
+    if (bRecycle)
+    {
+        if (isShow)
+        {
+            FileOp.fFlags |= FOF_ALLOWUNDO;
+        }
+        else
+        {
+            FileOp.fFlags |= FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
+        }
+    }
+    FileOp.pFrom = FromPath.c_str();
+    FileOp.pTo = NULL;        // 一定要是NULL
+    FileOp.wFunc = FO_DELETE; // 删除操作
+    return SHFileOperationW(&FileOp);
+}
+
+napi_value TrashFile(napi_env env, napi_callback_info info)
+{
+    napi_value Results = as_Number32(0x10000);
+    napi_status status;
+    size_t argc = 3;
+    napi_value argv[3];
+    bool isShow = false;
+    bool bRecycle = true;
+    status = $napi_get_cb_info(argc, argv);
+    if (status != napi_ok)
+    {
+        return Results;
+    };
+    hmc_is_argc_size(argc, 1, Results);
+    hmc_is_argv_type(argv, 0, 1, napi_string, Results);
+    // 检索3个参数合法性
+    switch (argc)
+    {
+    case 2:
+        hmc_is_argv_type(argv, 1, 2, napi_boolean, Results);
+        napi_get_value_bool(env, argv[1], &bRecycle);
+        break;
+    case 3:
+        hmc_is_argv_type(argv, 1, 3, napi_boolean, Results);
+        napi_get_value_bool(env, argv[1], &bRecycle);
+        napi_get_value_bool(env, argv[2], &isShow);
+        break;
+    }
+
+    wstring Paths = hmc_napi_get_value::string_wide(env, argv[0]);
+    int Info = API_TrashFile(Paths, bRecycle, isShow);
+    Results = as_Number32(Info);
+    return Results;
+}
+
+napi_value createDirSymlink(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 2;
+    napi_value args[2];
+
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    if (argc <= 2)
+    {
+        for (size_t i = 0; i < argc; i++)
+        {
+            napi_valuetype type_value;
+            napi_typeof(env, args[i], &type_value);
+            if (type_value != napi_string)
+            {
+                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(hmc_napi_type::typeName(type_value)).c_str());
+                return NULL;
+            }
+        }
+    }
+    else
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+        return NULL;
+    }
+
+    bool mk_OK = false;
+    wstring mapPath = hmc_napi_get_value::string_wide(env, args[0]);
+    wstring sourcePath = hmc_napi_get_value::string_wide(env, args[1]);
+    mk_OK = CreateSymbolicLinkW(mapPath.c_str(), sourcePath.c_str(), 0x1);
+    return as_Boolean(mk_OK);
+}
+
+napi_value createSymlink(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    size_t argc = 2;
+    napi_value args[2];
+
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    if (argc <= 2)
+    {
+        for (size_t i = 0; i < argc; i++)
+        {
+            napi_valuetype type_value;
+            napi_typeof(env, args[i], &type_value);
+            if (type_value != napi_string)
+            {
+                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(hmc_napi_type::typeName(type_value)).c_str());
+                return NULL;
+            }
+        }
+    }
+    else
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+        return NULL;
+    }
+
+    bool mk_OK = false;
+    wstring mapPath = hmc_napi_get_value::string_wide(env, args[0]);
+    wstring sourcePath = hmc_napi_get_value::string_wide(env, args[1]);
+    mk_OK = CreateSymbolicLinkW(mapPath.c_str(), sourcePath.c_str(), 0x0);
+    return as_Boolean(mk_OK);
+}
+
+napi_value createHardLink(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    //    napi_value isOK;
+    size_t argc = 2;
+    napi_value args[2];
+
+    status = $napi_get_cb_info(argc, args);
+    assert(status == napi_ok);
+    if (argc <= 2)
+    {
+        for (size_t i = 0; i < argc; i++)
+        {
+            napi_valuetype type_value;
+            napi_typeof(env, args[i], &type_value);
+            if (type_value != napi_string)
+            {
+                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(hmc_napi_type::typeName(type_value)).c_str());
+                return NULL;
+            }
+        }
+    }
+    else
+    {
+        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
+        return NULL;
+    }
+    bool mk_OK = false;
+    wstring mapPath = hmc_napi_get_value::string_utf16(env, args[0]);
+    wstring sourcePath = hmc_napi_get_value::string_utf16(env, args[1]);
+    mk_OK = CreateHardLinkW(mapPath.c_str(), sourcePath.c_str(), NULL);
+    return as_Boolean(mk_OK);
+}
 

@@ -453,6 +453,11 @@ namespace hmc_string_util
 	extern std::wstring removeNullCharactersAll(std::wstring str);
 
 	extern std::wstring unicodeStringToWString(UNICODE_STRING unicodeString);
+
+	// 删除空白字符
+	extern std::string StripSpaces(const std::string &str);
+	// 删除空白字符
+	extern std::wstring StripSpaces(const std::wstring &str);
 #if _HAS_CXX17
 	/**
 	 * @brief 判断这个vec是否可以被 hmc string 工具转换到json
@@ -515,6 +520,7 @@ namespace hmc_string_util
 	 */
 	extern std::wstring map_to_jsonW(std::any item_list);
 	extern std::wstring push_json_value(std::wstring key, std::any value, bool is_append = false, bool esp_type = true);
+
 #endif //_HAS_CXX17
 };
 

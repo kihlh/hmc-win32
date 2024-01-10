@@ -55,7 +55,7 @@ vector<string> util_getModulePathList(DWORD processID)
         DWORD dwSize = GetFinalPathNameByHandleW(*it, szFilePath, MAX_PATH, FILE_NAME_NORMALIZED);
         if (dwSize > 0 && dwSize < MAX_PATH)
         {
-            string szFilePathw2a = _W2A_(szFilePath);
+            string szFilePathw2a = hmc_string_util::utf16_to_ansi(szFilePath);
             string findStr = "\\\\?\\";
             if (szFilePathw2a.find(findStr) == 0)
             {
@@ -146,7 +146,6 @@ napi_value killProcess(napi_env env, napi_callback_info info)
     return Kill_info;
 }
 
-
 // 获取进程可执行文件位置
 napi_value getModulePathList(napi_env env, napi_callback_info info)
 {
@@ -169,7 +168,7 @@ napi_value getModulePathList(napi_env env, napi_callback_info info)
 
     for (size_t i = 0; i < ModulePathList.size(); i++)
     {
-        napi_value value = _create_String(env, ModulePathList[i]);
+        napi_value value = as_String(ModulePathList[i]);
         // push path to Array
         status = napi_set_element(env, resultsModulePathList, i, value);
         if (status != napi_ok)
@@ -236,7 +235,7 @@ struct enumHandleCout
 vector<enumHandleCout> resultsEnumHandleList = {};
 int EnumHandleQueryID = 0;
 
-//#define NT_SUCCESS(x) ((x) >= 0)
+// #define NT_SUCCESS(x) ((x) >= 0)
 #define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
 
 #define SystemHandleInformation 16
@@ -303,7 +302,6 @@ typedef enum _POOL_TYPE
     NonPagedPoolCacheAlignedMustS
 } POOL_TYPE,
     *PPOOL_TYPE;
-
 
 typedef struct _OBJECT_TYPE_INFORMATION
 {
@@ -620,7 +618,7 @@ napi_value enumProcessHandle(napi_env env, napi_callback_info info)
     EnumHandleQueryID++;
     thread(EnumHandleList, ProcessID).detach();
 
-    return _create_int32_Number(env, EnumHandleQueryID);
+    return as_Number32(EnumHandleQueryID);
 };
 
 napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info)
@@ -655,17 +653,17 @@ napi_value enumProcessHandlePolling(napi_env env, napi_callback_info info)
             break;
             return resultsModulePathList;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "name"), _create_W2U8_string(env, (wchar_t *)enumHandle.name.c_str()));
+        status = napi_set_property(env, cur_item, as_String("name"), as_String(enumHandle.name.c_str()));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "handle"), _create_int64_Number(env, enumHandle.handle));
+        status = napi_set_property(env, cur_item, as_String("handle"), as_Number(enumHandle.handle));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, cur_item, _create_char_string(env, "type"), _create_W2U8_string(env, (wchar_t *)enumHandle.type.c_str()));
+        status = napi_set_property(env, cur_item, as_String("type"), as_String(enumHandle.type.c_str()));
         if (status != napi_ok)
         {
             return resultsModulePathList;
@@ -751,37 +749,37 @@ napi_value getProcessThreadList(napi_env env, napi_callback_info info)
                     break;
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "cntUsage"), _create_int64_Number(env, te32.cntUsage));
+                status = napi_set_property(env, cur_item, as_String("cntUsage"), as_Number(te32.cntUsage));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "dwFlags"), _create_int64_Number(env, te32.dwFlags));
+                status = napi_set_property(env, cur_item, as_String("dwFlags"), as_Number(te32.dwFlags));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "dwSize"), _create_int64_Number(env, te32.dwSize));
+                status = napi_set_property(env, cur_item, as_String("dwSize"), as_Number(te32.dwSize));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "th32OwnerProcessID"), _create_int64_Number(env, te32.th32OwnerProcessID));
+                status = napi_set_property(env, cur_item, as_String("th32OwnerProcessID"), as_Number(te32.th32OwnerProcessID));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "th32ThreadID"), _create_int64_Number(env, te32.th32ThreadID));
+                status = napi_set_property(env, cur_item, as_String("th32ThreadID"), as_Number(te32.th32ThreadID));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "tpBasePri"), _create_int64_Number(env, te32.tpBasePri));
+                status = napi_set_property(env, cur_item, as_String("tpBasePri"), as_Number(te32.tpBasePri));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
                 }
-                status = napi_set_property(env, cur_item, _create_char_string(env, "tpDeltaPri"), _create_int64_Number(env, te32.tpDeltaPri));
+                status = napi_set_property(env, cur_item, as_String("tpDeltaPri"), as_Number(te32.tpDeltaPri));
                 if (status != napi_ok)
                 {
                     return resultsModulePathList;
@@ -795,7 +793,7 @@ napi_value getProcessThreadList(napi_env env, napi_callback_info info)
             }
             else
             {
-                status = napi_set_element(env, resultsModulePathList, push_data_len, _create_int64_Number(env, te32.th32ThreadID));
+                status = napi_set_element(env, resultsModulePathList, push_data_len, as_Number(te32.th32ThreadID));
                 push_data_len++;
                 if (status != napi_ok)
                 {
@@ -967,7 +965,7 @@ napi_value getSubProcessID(napi_env env, napi_callback_info info)
     util_getSubProcessList(ProcessID, SubProcessIDList);
     for (size_t i = 0; i < SubProcessIDList.size(); i++)
     {
-        status = napi_set_element(env, resultsSubProcessIDList, push_data_len, _create_int64_Number(env, SubProcessIDList[i]));
+        status = napi_set_element(env, resultsSubProcessIDList, push_data_len, as_Number(SubProcessIDList[i]));
         push_data_len++;
         if (status != napi_ok)
         {
@@ -1031,7 +1029,7 @@ napi_value getSubProcessID(napi_env env, napi_callback_info info)
 //         napi_get_null(env, &result);
 //         return result;
 //     }
-//     return _create_int64_Number(env, CurrentProcessId);
+//     return as_Number(CurrentProcessId);
 // };
 
 napi_value clearEnumAllProcessList(napi_env env, napi_callback_info info)
@@ -1045,7 +1043,7 @@ napi_value enumAllProcess(napi_env env, napi_callback_info info)
 {
     enumeratesProcessPollingId++;
     thread(start_enumAllProcess, enumeratesProcessPollingId).detach();
-    return _create_int32_Number(env, enumeratesProcessPollingId);
+    return as_Number32(enumeratesProcessPollingId);
 };
 
 napi_value enumAllProcessPolling(napi_env env, napi_callback_info info)
@@ -1080,62 +1078,62 @@ napi_value enumAllProcessPolling(napi_env env, napi_callback_info info)
             break;
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "szExeFile"), _create_W2U8_string(env, (wchar_t *)th32.szExeFile.c_str()));
+        status = napi_set_property(env, item, as_String("szExeFile"), as_String(th32.szExeFile.c_str()));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32ProcessID"), _create_int64_Number(env, th32.th32ProcessID));
+        status = napi_set_property(env, item, as_String("th32ProcessID"), as_Number(th32.th32ProcessID));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32ParentProcessID"), _create_int64_Number(env, th32.th32ParentProcessID));
+        status = napi_set_property(env, item, as_String("th32ParentProcessID"), as_Number(th32.th32ParentProcessID));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "cntThreads"), _create_int64_Number(env, th32.cntThreads));
+        status = napi_set_property(env, item, as_String("cntThreads"), as_Number(th32.cntThreads));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "cntUsage"), _create_int64_Number(env, th32.cntUsage));
+        status = napi_set_property(env, item, as_String("cntUsage"), as_Number(th32.cntUsage));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "dwFlags"), _create_int64_Number(env, th32.dwFlags));
+        status = napi_set_property(env, item, as_String("dwFlags"), as_Number(th32.dwFlags));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "dwSize"), _create_int64_Number(env, th32.dwSize));
+        status = napi_set_property(env, item, as_String("dwSize"), as_Number(th32.dwSize));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "pcPriClassBase"), _create_int64_Number(env, th32.pcPriClassBase));
+        status = napi_set_property(env, item, as_String("pcPriClassBase"), as_Number(th32.pcPriClassBase));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32DefaultHeapID"), _create_int64_Number(env, th32.th32DefaultHeapID));
+        status = napi_set_property(env, item, as_String("th32DefaultHeapID"), as_Number(th32.th32DefaultHeapID));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32ModuleID"), _create_int64_Number(env, th32.th32ModuleID));
+        status = napi_set_property(env, item, as_String("th32ModuleID"), as_Number(th32.th32ModuleID));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32ParentProcessID"), _create_int64_Number(env, th32.th32ParentProcessID));
+        status = napi_set_property(env, item, as_String("th32ParentProcessID"), as_Number(th32.th32ParentProcessID));
         if (status != napi_ok)
         {
             return resultsModulePathList;
         }
-        status = napi_set_property(env, item, _create_char_string(env, "th32ProcessID"), _create_int64_Number(env, th32.th32ProcessID));
+        status = napi_set_property(env, item, as_String("th32ProcessID"), as_Number(th32.th32ProcessID));
         if (status != napi_ok)
         {
             return resultsModulePathList;

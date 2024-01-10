@@ -13,28 +13,15 @@
 #include <process.h>
 #include <Tlhelp32.h>
 #include <ShlObj.h>
-#include "./registr.hpp"
+// #include "./registr.hpp"
 #include "./hmc_string_util.hpp"
+#include "./hmc_registr_util.hpp"
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #define MAX_KEY_LENGTH 255
 #define MALLOC(variable) HeapAlloc(GetProcessHeap(), 0, (variable))
 #define FREE(variable) HeapFree(GetProcessHeap(), 0, (variable))
-#define HMC_CHECK_CATCH catch (char *err){};
-#define HMC_CHECK_WINERR(name) \
-    if ()                      \
-    {                          \
-    };
-using namespace std;
-
-#define HMC_CHECK(code) \
-    try                 \
-    {                   \
-                        \
-        code            \
-    }                   \
-    HMC_CHECK_CATCH;
 
 // 获取指定的环境变量
 static bool GetVariable(string const &name, string &data)
@@ -220,16 +207,17 @@ namespace hmc_env
         };
         return false;
     }
- 
+
     /**
      * @brief 设置当前的工作路径
-     * 
-     * @param DirPath 
-     * @return true 
-     * @return false 
+     *
+     * @param DirPath
+     * @return true
+     * @return false
      */
-    bool setCwd(string const &DirPath){
-       return SetCurrentDirectoryA(DirPath.c_str());
+    bool setCwd(string const &DirPath)
+    {
+        return SetCurrentDirectoryA(DirPath.c_str());
     }
 
     /**
@@ -746,14 +734,11 @@ namespace hmc_env
         bool get(string key, string &pEnvStr)
         {
             bool result = false;
-            try
-            {
-                string newEnvStr = string();
-                result = getEnvVariable(key, newEnvStr);
-                pEnvStr.clear();
-                pEnvStr.append(newEnvStr);
-            }
-            HMC_CHECK_CATCH;
+
+            string newEnvStr = string();
+            result = getEnvVariable(key, newEnvStr);
+            pEnvStr.clear();
+            pEnvStr.append(newEnvStr);
 
             return result;
         }
@@ -773,42 +758,41 @@ namespace hmc_env
         bool putUse(string key, string Value, bool append = false, bool transMean = false)
         {
             bool result = false;
-            try
+
+            set<string> newValue = {};
+            string newValueKey = string();
+            string valueKey = keyUpper(key);
+            for (auto key : freezeEnvKeys)
             {
-                set<string> newValue = {};
-                string newValueKey = string();
-                string valueKey = keyUpper(key);
-                for (auto key : freezeEnvKeys)
+
+                if (valueKey == keyUpper(key))
                 {
-
-                    if (valueKey == keyUpper(key))
-                    {
-                        return result;
-                    }
+                    return result;
                 }
+            }
 
-                for (auto &&Values : hmc_registr::_lib_splitString(Value, ";"))
+            for (auto &&Values : hmc_string_util::split(Value, ';'))
+            {
+                newValue.insert(Values);
+            }
+
+            if (append)
+            {
+
+                string oidKey = hmc_registr_util::GetRegistrString(userHkey, userPath, key, false); // hmc_registr::getRegistrValue<string>(userHkey, userPath, key, REG_SZ);
+                for (auto &&Values : hmc_string_util::split(oidKey, ';'))
                 {
                     newValue.insert(Values);
                 }
-
-                if (append)
-                {
-                    string oidKey = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, REG_SZ);
-                    for (auto &&Values : hmc_registr::_lib_splitString(oidKey, ";"))
-                    {
-                        newValue.insert(Values);
-                    }
-                }
-                for (auto &&value : newValue)
-                    newValueKey.append(value).append(";");
-
-                if (!newValueKey.empty() && newValueKey.back() == ';')
-                    newValueKey.pop_back();
-
-                hmc_registr::setRegistrValue(userHkey, userPath, key, newValueKey, (transMean ? REG_EXPAND_SZ : REG_SZ));
             }
-            HMC_CHECK_CATCH;
+            for (auto &&value : newValue)
+                newValueKey.append(value).append(";");
+
+            if (!newValueKey.empty() && newValueKey.back() == ';')
+                newValueKey.pop_back();
+
+            hmc_registr_util::SetRegistrString(userHkey, userPath, key, newValueKey, transMean);
+
             return result;
         }
 
@@ -824,33 +808,30 @@ namespace hmc_env
         bool getSys(string key, string &pEnvStr, bool transMean = true)
         {
             bool result = false;
-            try
-            {
-                pEnvStr.clear();
-                string valueKey = keyUpper(key);
-                for (auto key : freezeEnvKeys)
-                {
 
-                    if (valueKey == keyUpper(key))
-                    {
-                        pEnvStr.append(getenv(key));
-                        result = true;
-                        return result;
-                    }
-                }
-                string UseData = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key);
-                if (transMean)
+            pEnvStr.clear();
+            string valueKey = keyUpper(key);
+            for (auto key : freezeEnvKeys)
+            {
+
+                if (valueKey == keyUpper(key))
                 {
-                    pEnvStr.append(escapeEnvVariable(UseData));
-                    result = pEnvStr.size() != 0;
-                }
-                else
-                {
-                    pEnvStr.append(UseData);
-                    result = pEnvStr.size() != 0;
+                    pEnvStr.append(getenv(key));
+                    result = true;
+                    return result;
                 }
             }
-            HMC_CHECK_CATCH;
+            string UseData = hmc_registr_util::GetRegistrString(systmHkey, systmPath, key, true);
+            if (transMean)
+            {
+                pEnvStr.append(escapeEnvVariable(UseData));
+                result = pEnvStr.size() != 0;
+            }
+            else
+            {
+                pEnvStr.append(UseData);
+                result = pEnvStr.size() != 0;
+            }
             return result;
         }
 
@@ -862,7 +843,7 @@ namespace hmc_env
             {
                 return pEnvStr;
             }
-            
+
             return "";
         }
 
@@ -878,33 +859,30 @@ namespace hmc_env
         bool getUse(string key, string &pEnvStr, bool transMean = true)
         {
             bool result = false;
-            try
-            {
-                pEnvStr.clear();
-                string valueKey = keyUpper(key);
-                for (auto key : freezeEnvKeys)
-                {
 
-                    if (valueKey == keyUpper(key))
-                    {
-                        pEnvStr.append(getenv(key));
-                        result = true;
-                        return result;
-                    }
-                }
-                string UseData = hmc_registr::getRegistrValue<string>(userHkey, userPath, key);
-                if (transMean)
+            pEnvStr.clear();
+            string valueKey = keyUpper(key);
+            for (auto key : freezeEnvKeys)
+            {
+
+                if (valueKey == keyUpper(key))
                 {
-                    pEnvStr.append(escapeEnvVariable(UseData));
-                    result = pEnvStr.size() != 0;
-                }
-                else
-                {
-                    pEnvStr.append(UseData);
-                    result = pEnvStr.size() != 0;
+                    pEnvStr.append(getenv(key));
+                    result = true;
+                    return result;
                 }
             }
-            HMC_CHECK_CATCH;
+            string UseData = hmc_registr_util::GetRegistrString(userHkey, userPath, key, false);
+            if (transMean)
+            {
+                pEnvStr.append(escapeEnvVariable(UseData));
+                result = pEnvStr.size() != 0;
+            }
+            else
+            {
+                pEnvStr.append(UseData);
+                result = pEnvStr.size() != 0;
+            }
             return result;
         }
 
@@ -935,43 +913,40 @@ namespace hmc_env
         bool putSys(string key, string Value, bool append = false, bool transMean = false)
         {
             bool result = false;
-            try
+
+            set<string> newValue = {};
+            string newValueKey = string();
+            string valueKey = keyUpper(key);
+            for (auto key : freezeEnvKeys)
             {
 
-                set<string> newValue = {};
-                string newValueKey = string();
-                string valueKey = keyUpper(key);
-                for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
                 {
-
-                    if (valueKey == keyUpper(key))
-                    {
-                        return result;
-                    }
+                    return result;
                 }
+            }
 
-                for (auto &&Values : hmc_registr::_lib_splitString(Value, ";"))
+            for (auto &&Values : hmc_string_util::split(Value, ';'))
+            {
+                newValue.insert(Values);
+            }
+
+            if (append)
+            {
+                string oidKey = hmc_registr_util::GetRegistrString(systmHkey, systmPath, key, false);
+                for (auto &&Values : hmc_string_util::split(oidKey, ';'))
                 {
                     newValue.insert(Values);
                 }
-
-                if (append)
-                {
-                    string oidKey = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, REG_SZ);
-                    for (auto &&Values : hmc_registr::_lib_splitString(oidKey, ";"))
-                    {
-                        newValue.insert(Values);
-                    }
-                }
-                for (auto &&value : newValue)
-                    newValueKey.append(value).append(";");
-
-                if (!newValueKey.empty() && newValueKey.back() == ';')
-                    newValueKey.pop_back();
-
-                hmc_registr::setRegistrValue(systmHkey, systmPath, key, newValueKey, (transMean ? REG_EXPAND_SZ : REG_SZ));
             }
-            HMC_CHECK_CATCH;
+            for (auto &&value : newValue)
+                newValueKey.append(value).append(";");
+
+            if (!newValueKey.empty() && newValueKey.back() == ';')
+                newValueKey.pop_back();
+
+            hmc_registr_util::SetRegistrString(systmHkey, systmPath, key, newValueKey, transMean);
+
             return result;
         }
 
@@ -985,16 +960,14 @@ namespace hmc_env
         bool removeUse(string key)
         {
             bool result = false;
-            try
-            {
-                string valueKey = keyUpper(key);
 
-                for (auto key : freezeEnvKeys)
-                    if (valueKey == keyUpper(key))
-                        return false;
-                return hmc_registr::removeRegistrValue(userHkey, userPath, key);
-            }
-            HMC_CHECK_CATCH;
+            string valueKey = keyUpper(key);
+
+            for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
+                    return false;
+            return hmc_registr_util::removeRegistrValue(userHkey, userPath, key);
+
             return result;
         }
 
@@ -1008,16 +981,14 @@ namespace hmc_env
         bool removeSys(string key)
         {
             bool result = false;
-            try
-            {
-                string valueKey = keyUpper(key);
 
-                for (auto key : freezeEnvKeys)
-                    if (valueKey == keyUpper(key))
-                        return false;
-                return hmc_registr::removeRegistrValue(systmHkey, systmPath, key);
-            }
-            HMC_CHECK_CATCH;
+            string valueKey = keyUpper(key);
+
+            for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
+                    return false;
+            return hmc_registr_util::removeRegistrValue(systmHkey, systmPath, key);
+
             return result;
         }
 
@@ -1031,16 +1002,14 @@ namespace hmc_env
         bool removeAll(string key)
         {
             bool result = false;
-            try
-            {
-                string valueKey = keyUpper(key);
 
-                for (auto key : freezeEnvKeys)
-                    if (valueKey == keyUpper(key))
-                        return false;
-                return (!hmc_registr::removeRegistrValue(systmHkey, systmPath, key) && !hmc_registr::removeRegistrValue(userHkey, userPath, key));
-            }
-            HMC_CHECK_CATCH;
+            string valueKey = keyUpper(key);
+
+            for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
+                    return false;
+            return (!hmc_registr_util::removeRegistrValue(systmHkey, systmPath, key) && !hmc_registr_util::removeRegistrValue(userHkey, userPath, key));
+
             return result;
         }
 
@@ -1052,29 +1021,26 @@ namespace hmc_env
          */
         void updateThis(bool remove = true, bool update = true)
         {
-            try
-            {
-                map<string, string> globalVariable = hmc_env::systemEnv::getGlobalVariable();
-                map<string, string> thisGlobalVariable = hmc_env::getEnvListA();
 
-                // 删除已经消失的环境表
-                if (remove)
-                    for (const auto &entry : thisGlobalVariable)
-                    {
-                        if (globalVariable.find(entry.first) == globalVariable.end())
-                        {
-                            hmc_env::removeEnv(entry.first);
-                        }
-                    }
+            map<string, string> globalVariable = hmc_env::systemEnv::getGlobalVariable();
+            map<string, string> thisGlobalVariable = hmc_env::getEnvListA();
 
-                // 更新
-                if (update)
-                    for (const auto &entry : globalVariable)
+            // 删除已经消失的环境表
+            if (remove)
+                for (const auto &entry : thisGlobalVariable)
+                {
+                    if (globalVariable.find(entry.first) == globalVariable.end())
                     {
-                        hmc_env::putenv((string)entry.first, (string)entry.second, false);
+                        hmc_env::removeEnv(entry.first);
                     }
-            }
-            HMC_CHECK_CATCH;
+                }
+
+            // 更新
+            if (update)
+                for (const auto &entry : globalVariable)
+                {
+                    hmc_env::putenv((string)entry.first, (string)entry.second, false);
+                }
         }
 
         /**
@@ -1087,16 +1053,14 @@ namespace hmc_env
         bool hasSysKeyExists(string key)
         {
             bool result = false;
-            try
-            {
-                string valueKey = keyUpper(key);
 
-                for (auto key : freezeEnvKeys)
-                    if (valueKey == keyUpper(key))
-                        return true;
-                return hmc_registr::hasRegistrKey(systmHkey, systmPath, key);
-            }
-            HMC_CHECK_CATCH;
+            string valueKey = keyUpper(key);
+
+            for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
+                    return true;
+            return hmc_registr_util::hasRegistrKey(systmHkey, systmPath, key);
+
             return result;
         }
 
@@ -1110,17 +1074,14 @@ namespace hmc_env
         bool hasUseKeyExists(string key)
         {
             bool result = false;
-            try
-            {
-                string valueKey = keyUpper(key);
 
-                for (auto key : freezeEnvKeys)
-                    if (valueKey == keyUpper(key))
-                        return true;
+            string valueKey = keyUpper(key);
 
-                return hmc_registr::hasRegistrKey(userHkey, userPath, key);
-            }
-            HMC_CHECK_CATCH;
+            for (auto key : freezeEnvKeys)
+                if (valueKey == keyUpper(key))
+                    return true;
+
+            return hmc_registr_util::hasRegistrKey(userHkey, userPath, key);
             return result;
         }
 
@@ -1150,23 +1111,19 @@ namespace hmc_env
         bool hasExpval(string key)
         {
             bool result = false;
-            try
+            hmc_registr_util::chValueStat userValueStat = hmc_registr_util::getValueStat(userHkey, userPath, key);
+            if (userValueStat.exists)
             {
-                hmc_registr::chValueStat userValueStat = hmc_registr::getValueStat(userHkey, userPath, key);
-                if (userValueStat.exists)
-                {
-                    result = userValueStat.type == REG_EXPAND_SZ;
-                    return result;
-                }
-
-                hmc_registr::chValueStat sysValueStat = hmc_registr::getValueStat(systmHkey, systmPath, key);
-                if (sysValueStat.exists)
-                {
-                    result = sysValueStat.type == REG_EXPAND_SZ;
-                    return result;
-                }
+                result = userValueStat.type == REG_EXPAND_SZ;
+                return result;
             }
-            HMC_CHECK_CATCH;
+
+            hmc_registr_util::chValueStat sysValueStat = hmc_registr_util::getValueStat(systmHkey, systmPath, key);
+            if (sysValueStat.exists)
+            {
+                result = sysValueStat.type == REG_EXPAND_SZ;
+                return result;
+            }
             return result;
         }
 
@@ -1177,13 +1134,13 @@ namespace hmc_env
         vector<string> keySysList()
         {
             vector<string> result;
-            HMC_CHECK({
+            {
                 for (auto key : freezeEnvKeys)
                     result.push_back(key);
 
-                for (auto key : hmc_registr::listKey(systmHkey, systmPath).key)
+                for (auto key : hmc_registr_util::getRegistrKeys(systmHkey, systmPath).key)
                     result.push_back(key);
-            });
+            };
             return result;
         }
 
@@ -1194,13 +1151,13 @@ namespace hmc_env
         vector<string> keyUseList()
         {
             vector<string> result;
-            HMC_CHECK({
+            {
                 for (auto key : freezeEnvKeys)
                     result.push_back(key);
 
-                for (auto key : hmc_registr::listKey(userHkey, userPath).key)
+                for (auto key : hmc_registr_util::getRegistrKeys(userHkey, userPath).key)
                     result.push_back(key);
-            });
+            };
 
             return result;
         }
@@ -1216,7 +1173,7 @@ namespace hmc_env
         bool getEnvVariable(string key, string &pVariable)
         {
             bool result = false;
-            HMC_CHECK({
+            {
                 pVariable.clear();
 
                 for (auto &&freezeEnv : freezeEnvKeys)
@@ -1236,26 +1193,26 @@ namespace hmc_env
                 string systmPath = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
                 HKEY systmHkey = HKEY_LOCAL_MACHINE;
 
-                hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(userHkey, userPath, key);
+                hmc_registr_util::chValueStat valueStat = hmc_registr_util::getValueStat(userHkey, userPath, key);
 
                 if (valueStat.exists)
                 {
 
-                    pVariable.append(hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type));
+                    pVariable.append(hmc_registr_util::GetRegistrString(userHkey, userPath, key, valueStat.type));
                     if (pVariable.size() != 0)
                         return true;
                 }
 
-                hmc_registr::chValueStat valueStat_1 = hmc_registr::getValueStat(systmHkey, systmPath, key);
+                hmc_registr_util::chValueStat valueStat_1 = hmc_registr_util::getValueStat(systmHkey, systmPath, key);
 
                 if (valueStat_1.exists)
                 {
 
-                    pVariable.append(hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat_1.type));
+                    pVariable.append(hmc_registr_util::GetRegistrString(systmHkey, systmPath, key, valueStat_1.type));
                     if (pVariable.size() != 0)
                         return true;
                 }
-            });
+            };
 
             return result;
         }
@@ -1283,39 +1240,36 @@ namespace hmc_env
         {
             string result = string();
 
-            HMC_CHECK({
-                result.append(input);
+            result.append(input);
 
-                std::string pattern = "%";
+            std::string pattern = "%";
 
-                size_t startPos = 0;
+            size_t startPos = 0;
 
-                while ((startPos = input.find(pattern, startPos)) != std::string::npos)
+            while ((startPos = input.find(pattern, startPos)) != std::string::npos)
+            {
+                size_t endPos = input.find(pattern, startPos + pattern.length());
+                if (endPos != std::string::npos)
                 {
-                    size_t endPos = input.find(pattern, startPos + pattern.length());
-                    if (endPos != std::string::npos)
+                    string subStr = input.substr(startPos, endPos - startPos + pattern.length());
+                    string subStrKey = keyUpper(input.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
+                    string value = getEnvVariable(subStrKey);
+                    if (value.size() != 0)
                     {
-                        string subStr = input.substr(startPos, endPos - startPos + pattern.length());
-                        string subStrKey = keyUpper(input.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
-                        string value = getEnvVariable(subStrKey);
-                        if (value.size() != 0)
+                        size_t startReplacePos = result.find(subStr);
+                        while (startReplacePos != std::string::npos)
                         {
-                            size_t startReplacePos = result.find(subStr);
-                            while (startReplacePos != std::string::npos)
-                            {
-                                result.replace(startReplacePos, subStr.size(), value);
-                                startReplacePos = result.find(subStr, startReplacePos + value.length());
-                            }
+                            result.replace(startReplacePos, subStr.size(), value);
+                            startReplacePos = result.find(subStr, startReplacePos + value.length());
                         }
-                        startPos = endPos + pattern.length();
                     }
-                    else
-                    {
-                        break;
-                    }
+                    startPos = endPos + pattern.length();
                 }
-            });
-
+                else
+                {
+                    break;
+                }
+            }
             return result;
         }
 
@@ -1328,7 +1282,7 @@ namespace hmc_env
         {
             vector<chFormatVariableData> AllVariableDataList;
             vector<chFormatVariableData> VariableDataList;
-            string  path_var_data = "";
+            string path_var_data = "";
             set<string> hmcDataList;
 
             // 这些值是固定的 不允许变动
@@ -1342,168 +1296,161 @@ namespace hmc_env
                 variableData.name = key;
                 AllVariableDataList.push_back(variableData);
             }
+            // 获取用户变量
 
-            HMC_CHECK({
-                // 获取用户变量
+            auto key_list = hmc_registr_util::getRegistrKeys(userHkey, userPath);
 
-                auto key_list = hmc_registr::listKey(userHkey, userPath);
+            for (auto key : key_list.key)
+            {
+                if (key.empty())
+                    continue;
+                hmc_registr_util::chValueStat valueStat = hmc_registr_util::getValueStat(userHkey, userPath, key);
 
-                for (auto key : key_list.key)
+                if (!valueStat.exists)
+                    continue;
+
+                chFormatVariableData variableData;
+                variableData.size = valueStat.size;
+                variableData.type_user = true;
+                variableData.upper = keyUpper(key);
+                variableData.name = key;
+                variableData.data = hmc_registr_util::GetRegistrString(userHkey, userPath, key, valueStat.type);
+                variableData.escape = valueStat.type == REG_EXPAND_SZ;
+                if (!variableData.data.size())
                 {
-                    if (key.empty())
-                        continue;
-                    hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(userHkey, userPath, key);
-
-                    if (!valueStat.exists)
-                        continue;
-
-                    chFormatVariableData variableData;
-                    variableData.size = valueStat.size;
-                    variableData.type_user = true;
-                    variableData.upper = keyUpper(key);
-                    variableData.name = key;
-                    variableData.data = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type);
-                    variableData.escape = valueStat.type == REG_EXPAND_SZ;
-                    if (!variableData.data.size())
-                    {
-                        variableData.data = hmc_registr::getRegistrValue<string>(userHkey, userPath, key, valueStat.type);
-                    }
-
-                    // 处理path变量
-                    if (variableData.upper != string("PATH") || AllVariable)
-                    {
-                        AllVariableDataList.push_back(variableData);
-                    }
-                    else{
-                        path_var_data.append(variableData.data);
-                    }
-                   
-                }
-                key_list.dir.clear();
-                key_list.key.clear();
-
-                // 获取系统变量
-
-                key_list = hmc_registr::listKey(systmHkey, systmPath);
-
-                for (auto key : key_list.key)
-                {
-                    if (key.empty())
-                        continue;
-                    hmc_registr::chValueStat valueStat = hmc_registr::getValueStat(systmHkey, systmPath, key);
-
-                    if (!valueStat.exists)
-                        continue;
-
-                    chFormatVariableData variableData;
-                    variableData.type_user = true;
-                    variableData.size = valueStat.size;
-                    variableData.upper = keyUpper(key);
-                    variableData.name = key;
-                    variableData.data = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat.type);
-                    if (!variableData.data.size())
-                    {
-                        variableData.data = hmc_registr::getRegistrValue<string>(systmHkey, systmPath, key, valueStat.type);
-                    }
-                    variableData.escape = valueStat.type == REG_EXPAND_SZ;
-
-                    // 处理path变量
-                    if (variableData.upper != string("PATH") || AllVariable)
-                    {
-                        AllVariableDataList.push_back(variableData);
-                    }
-                    // 是path
-                    else
-                    {
-                        if (!path_var_data.empty()){
-
-                            path_var_data.append(";");
-
-                            }
-                        path_var_data.append(variableData.data);
-                    }
+                    variableData.data = hmc_registr_util::GetRegistrString(userHkey, userPath, key, valueStat.type);
                 }
 
-          
-                key_list.dir.clear();
-                key_list.key.clear();
-            });
-            
-            // 按照结构优先级添加到返回结果
-            HMC_CHECK({
-                // 按照顺序永远是用户数据优先 所以不用刻意排序
-                for (auto &&VariableData : AllVariableDataList)
+                // 处理path变量
+                if (variableData.upper != string("PATH") || AllVariable)
                 {
-                    if (VariableData.data.size() < VariableData.size - 3)
-                    {
-                        hmc_env::getenv(VariableData.name, VariableData.data);
-                    }
+                    AllVariableDataList.push_back(variableData);
                 }
-
-                for (auto &&VariableData : AllVariableDataList)
+                else
                 {
-
-                    if (hmcDataList.find(VariableData.name) == hmcDataList.end())
-                    {
-                        hmcDataList.insert(VariableData.upper);
-                        VariableDataList.push_back(VariableData);
-                    }
+                    path_var_data.append(variableData.data);
                 }
+            }
+            key_list.Folder.clear();
+            key_list.key.clear();
+
+            // 获取系统变量
+
+            key_list = hmc_registr_util::getRegistrKeys(systmHkey, systmPath);
+
+            for (auto key : key_list.key)
+            {
+                if (key.empty())
+                    continue;
+                hmc_registr_util::chValueStat valueStat = hmc_registr_util::getValueStat(systmHkey, systmPath, key);
+
+                if (!valueStat.exists)
+                    continue;
 
                 chFormatVariableData variableData;
                 variableData.type_user = true;
-                variableData.size = path_var_data.size();
-                variableData.upper = keyUpper("PATH");
-                variableData.name = "Path";
-                variableData.data = path_var_data;
-                VariableDataList.push_back(variableData);
-
-            });
-            // 翻译变量
-            HMC_CHECK({
-                for (auto &&VariableData : (AllVariable ? AllVariableDataList : VariableDataList))
+                variableData.size = valueStat.size;
+                variableData.upper = keyUpper(key);
+                variableData.name = key;
+                variableData.data = hmc_registr_util::GetRegistrString(systmHkey, systmPath, key, valueStat.type);
+                if (!variableData.data.size())
                 {
+                    variableData.data = hmc_registr_util::GetRegistrString(systmHkey, systmPath, key, valueStat.type);
+                }
+                variableData.escape = valueStat.type == REG_EXPAND_SZ;
 
-                    // 等待解析的变量
-                    std::string pattern = "%";
-                    size_t startPos = 0;
-
-                    // 查找 %xxx%
-                    while ((startPos = VariableData.data.find(pattern, startPos)) != std::string::npos)
+                // 处理path变量
+                if (variableData.upper != string("PATH") || AllVariable)
+                {
+                    AllVariableDataList.push_back(variableData);
+                }
+                // 是path
+                else
+                {
+                    if (!path_var_data.empty())
                     {
-                        size_t endPos = VariableData.data.find(pattern, startPos + pattern.length());
-                        if (endPos != std::string::npos)
+
+                        path_var_data.append(";");
+                    }
+                    path_var_data.append(variableData.data);
+                }
+            }
+
+            key_list.Folder.clear();
+            key_list.key.clear();
+            // 按照结构优先级添加到返回结果
+
+            // 按照顺序永远是用户数据优先 所以不用刻意排序
+            for (auto &&VariableData : AllVariableDataList)
+            {
+                if (VariableData.data.size() < VariableData.size - 3)
+                {
+                    hmc_env::getenv(VariableData.name, VariableData.data);
+                }
+            }
+
+            for (auto &&VariableData : AllVariableDataList)
+            {
+
+                if (hmcDataList.find(VariableData.name) == hmcDataList.end())
+                {
+                    hmcDataList.insert(VariableData.upper);
+                    VariableDataList.push_back(VariableData);
+                }
+            }
+
+            chFormatVariableData variableData;
+            variableData.type_user = true;
+            variableData.size = path_var_data.size();
+            variableData.upper = keyUpper("PATH");
+            variableData.name = "Path";
+            variableData.data = path_var_data;
+            VariableDataList.push_back(variableData);
+
+            // 翻译变量
+
+            for (auto &&VariableData : (AllVariable ? AllVariableDataList : VariableDataList))
+            {
+
+                // 等待解析的变量
+                std::string pattern = "%";
+                size_t startPos = 0;
+
+                // 查找 %xxx%
+                while ((startPos = VariableData.data.find(pattern, startPos)) != std::string::npos)
+                {
+                    size_t endPos = VariableData.data.find(pattern, startPos + pattern.length());
+                    if (endPos != std::string::npos)
+                    {
+                        string subStr = VariableData.data.substr(startPos, endPos - startPos + pattern.length());
+                        string subStrKey = keyUpper(VariableData.data.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
+
+                        // 查找并替换
+
+                        // 查找对照表
+
+                        for (auto &&lookVariableData : VariableDataList)
                         {
-                            string subStr = VariableData.data.substr(startPos, endPos - startPos + pattern.length());
-                            string subStrKey = keyUpper(VariableData.data.substr(startPos + 1, endPos - startPos + pattern.length() - 2));
-
-                            // 查找并替换
-
-                            // 查找对照表
-
-                            for (auto &&lookVariableData : VariableDataList)
+                            if (lookVariableData.upper == subStrKey)
                             {
-                                if (lookVariableData.upper == subStrKey)
+                                size_t startsubStrPos = 0;
+                                while ((startsubStrPos = VariableData.data.find(subStr, startsubStrPos)) != string::npos)
                                 {
-                                    size_t startsubStrPos = 0;
-                                    while ((startsubStrPos = VariableData.data.find(subStr, startsubStrPos)) != string::npos)
-                                    {
-                                        VariableData.data.replace(startsubStrPos, subStr.length(), lookVariableData.data);
-                                        startsubStrPos += lookVariableData.data.length();
-                                    }
+                                    VariableData.data.replace(startsubStrPos, subStr.length(), lookVariableData.data);
+                                    startsubStrPos += lookVariableData.data.length();
                                 }
                             }
+                        }
 
-                            // 下一个
-                            startPos = endPos + pattern.length();
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        // 下一个
+                        startPos = endPos + pattern.length();
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
-            });
+            }
 
             return (AllVariable ? AllVariableDataList : VariableDataList);
         }
@@ -1515,19 +1462,15 @@ namespace hmc_env
         map<string, string> getGlobalVariable()
         {
             map<string, string> result;
-            try
+
+            vector<chFormatVariableData> globalVariableList = getGlobalVariableAll();
+            for (auto &&globalVariable : globalVariableList)
             {
-                vector<chFormatVariableData> globalVariableList = getGlobalVariableAll();
-                for (auto &&globalVariable : globalVariableList)
+                if (globalVariable.name.size() > 0 && globalVariable.data.size() > 0)
                 {
-                    if (globalVariable.name.size() > 0 && globalVariable.data.size() > 0)
-                    {
-                        result.insert(std::make_pair(globalVariable.name, globalVariable.data));
-                    }
+                    result.insert(std::make_pair(globalVariable.name, globalVariable.data));
                 }
             }
-            HMC_CHECK_CATCH;
-
             return result;
         }
 

@@ -66,7 +66,6 @@ napi_value fn_getRealGlobalVariable(napi_env env, napi_callback_info info)
     // result.append(hmc_string_util::ansi_to_utf16(map_to_jsonA));
     // return hmc_napi_create_value::String(env, result);
 
-
     map<wstring, wstring> result = {};
 
     for (auto globalVariable : hmc_env::systemEnv::getGlobalVariable())
@@ -119,10 +118,8 @@ napi_value fn_updateThis(napi_env env, napi_callback_info info)
     size_t argsLen = 2;
     napi_value args[2];
 
-   
-
     $napi_get_cb_info_v2(argsLen, args, "fn_updateThis");
-    bool arg0_remove = hmc_napi_type::isBoolean(env, args[0]) ? hmc_napi_get_value::boolean_bool(env, args[0]): true;
+    bool arg0_remove = hmc_napi_type::isBoolean(env, args[0]) ? hmc_napi_get_value::boolean_bool(env, args[0]) : true;
     bool arg1_update = hmc_napi_type::isBoolean(env, args[1]) ? hmc_napi_get_value::boolean_bool(env, args[1]) : true;
 
     hmc_env::systemEnv::updateThis(arg0_remove, arg1_update);
@@ -435,7 +432,7 @@ napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info)
         return NULL;
     }
 
-    DWORD ProcessID = (DWORD) hmc_napi_get_value::number_int64(env, args[0]);
+    DWORD ProcessID = (DWORD)hmc_napi_get_value::number_int64(env, args[0]);
 
     ULONGLONG elapsedTime = 0;
     HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, ProcessID);
@@ -467,9 +464,45 @@ napi_value fn_getProcessStartTime(napi_env env, napi_callback_info info)
         CloseHandle(hProcess);
     }
 
-    if(elapsedTime==0){
+    if (elapsedTime == 0)
+    {
         return hmc_napi_create_value::Null(env);
     }
 
-    return hmc_napi_create_value::Number(env, (long long) elapsedTime);
+    return hmc_napi_create_value::Number(env, (long long)elapsedTime);
+}
+
+napi_value fn_putenv(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value MessageBoxInfo;
+    size_t argc = 2;
+    napi_value args[2];
+    status = $napi_get_cb_info(argc, args);
+    hmc_is_argv_type(args, 0, 2, napi_string, NULL);
+
+    string lpkey = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpdata = hmc_napi_get_value::string_ansi(env, args[1]);
+
+    int b_Result = _putenv_s(lpkey.c_str(), lpdata.c_str());
+
+    return as_Boolean(b_Result == 0);
+}
+
+napi_value fn_getenv(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value MessageBoxInfo;
+    size_t argc = 1;
+    napi_value args[1];
+    status = $napi_get_cb_info(argc, args);
+    hmc_is_argv_type(args, 0, 1, napi_string, NULL);
+
+    string envkey = hmc_napi_get_value::string_ansi(env, args[0]);
+    return hmc_napi_create_value::String(env, hmc_env::getenv(envkey));
+}
+
+napi_value fn_getAllEnv(napi_env env, napi_callback_info info)
+{
+    return hmc_napi_create_value::Object::Object(env, hmc_env::getEnvListW());
 }

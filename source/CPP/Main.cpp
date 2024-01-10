@@ -57,7 +57,7 @@ void ____HMC__RUN_MESS____(napi_env env, string error_message)
         string error_message_str = string("console.error(new Error(String.raw`\n");
         error_message_str.append(error_message);
         error_message_str.append("`))");
-        napi_run_script(env, _create_String(env, error_message_str), &run_script_result);
+        napi_run_script(env, as_String(error_message_str), &run_script_result);
     }
 }
 
@@ -204,11 +204,11 @@ static napi_value openApp(napi_env env, napi_callback_info info)
         return NULL;
     }
     // 参数1 打开的可执行文件
-    string lpFile = call_String_NAPI_WINAPI_A(env, args[0]);
+    string lpFile = hmc_napi_get_value::string_ansi(env, args[0]);
     // 参数2 命令行
-    string lpParameters = call_String_NAPI_WINAPI_A(env, args[1]);
+    string lpParameters = hmc_napi_get_value::string_ansi(env, args[1]);
     // 参数3 cwd
-    string lpDirectory = call_String_NAPI_WINAPI_A(env, args[2]);
+    string lpDirectory = hmc_napi_get_value::string_ansi(env, args[2]);
     // 参数4 是否显示
     bool OPEN_Hide;
     napi_get_value_bool(env, args[3], &OPEN_Hide);
@@ -357,7 +357,7 @@ static napi_value getSystemMenu(napi_env env, napi_callback_info info)
     if (argc < 2)
     {
         napi_throw_type_error(env, NULL, "Wrong length of arguments");
-        return _create_bool_Boolean(env, FALSE);
+        return as_Boolean(FALSE);
     }
 
     napi_valuetype valuetype1;
@@ -369,7 +369,7 @@ static napi_value getSystemMenu(napi_env env, napi_callback_info info)
     if (valuetype0 != napi_number || valuetype1 != napi_boolean)
     {
         napi_throw_type_error(env, NULL, "Wrong arguments");
-        return _create_bool_Boolean(env, FALSE);
+        return as_Boolean(FALSE);
     }
 
     bool bRevert;
@@ -380,7 +380,7 @@ static napi_value getSystemMenu(napi_env env, napi_callback_info info)
     assert(status == napi_ok);
     HWND __HWND = (HWND)LookHWND;
     bool is_GetSystemMenu = GetSystemMenu(__HWND, bRevert);
-    return _create_bool_Boolean(env, is_GetSystemMenu);
+    return as_Boolean(is_GetSystemMenu);
 }
 /**
  * @brief 显示窗口
@@ -390,7 +390,7 @@ static napi_value getSystemMenu(napi_env env, napi_callback_info info)
  * @param info
  * @return napi_value
  */
-static napi_value lookHandleShowWindow(napi_env env, napi_callback_info info)
+static napi_value fn_ShowWindow(napi_env env, napi_callback_info info)
 {
     napi_value ShowWindow_info;
     size_t argc = 1;
@@ -414,7 +414,7 @@ static napi_value lookHandleShowWindow(napi_env env, napi_callback_info info)
 }
 
 // 判断该句柄的窗口是否正在使用中(不考虑参数正确性 在js中会定义类型安全)
-static napi_value isHandleWindowVisible(napi_env env, napi_callback_info info)
+static napi_value fn_WindowVisible(napi_env env, napi_callback_info info)
 {
     napi_value ShowWindow_info;
     size_t argc = 1;
@@ -435,7 +435,7 @@ static napi_value isHandleWindowVisible(napi_env env, napi_callback_info info)
     return ShowWindow_info;
 }
 // 查找并关闭该窗口(不考虑参数正确性 在js中会定义类型安全)
-static napi_value lookHandleCloseWindow(napi_env env, napi_callback_info info)
+static napi_value fn_CloseWindow(napi_env env, napi_callback_info info)
 {
     napi_value CloseWindow_info;
     size_t argc = 1;
@@ -456,7 +456,7 @@ static napi_value lookHandleCloseWindow(napi_env env, napi_callback_info info)
     return CloseWindow_info;
 }
 // 获取句柄对应的窗口的标题(不考虑参数正确性 在js中会定义类型安全)
-static napi_value lookHandleGetTitle(napi_env env, napi_callback_info info)
+static napi_value fn_GetWindowTitle(napi_env env, napi_callback_info info)
 {
     napi_status status;
     napi_value HandleTitle;
@@ -467,15 +467,14 @@ static napi_value lookHandleGetTitle(napi_env env, napi_callback_info info)
     status = napi_get_value_int64(env, args[0], &Process_Handle);
     HWND hWindow = (HWND)Process_Handle;
     LRESULT result = 0;
-    CHAR wszTitle[MAX_PATH] = {0};
-    result = GetWindowTextA(hWindow, wszTitle, MAX_PATH);
-    string To_U8;
-    To_U8.append(_A2U8_(wszTitle).c_str());
-    napi_create_string_utf8(env, To_U8.c_str(), NAPI_AUTO_LENGTH, &HandleTitle);
+    wchar_t wszTitle[MAX_PATH] = {0};
+    result = GetWindowTextW(hWindow, wszTitle, MAX_PATH);
+
+    napi_create_string_utf16(env, (const char16_t *)wszTitle, NAPI_AUTO_LENGTH, &HandleTitle);
     return HandleTitle;
 }
 // 设置句柄对应的窗口的标题(不考虑参数正确性 在js中会定义类型安全)
-static napi_value lookHandleSetTitle(napi_env env, napi_callback_info info)
+static napi_value fn_SetWindowTitle(napi_env env, napi_callback_info info)
 {
     napi_status status;
     napi_value SetTitleInfo;
@@ -485,10 +484,10 @@ static napi_value lookHandleSetTitle(napi_env env, napi_callback_info info)
     int64_t Process_Handle;
     status = napi_get_value_int64(env, args[0], &Process_Handle);
     HWND hWindow = (HWND)Process_Handle;
-    string _Title_ = call_String_NAPI_WINAPI_A(env, args[1]);
-    string To_U8_Title;
+    wstring _Title_ = hmc_napi_get_value::string_wide(env, args[1]);
+    wstring To_U8_Title;
     To_U8_Title.append(_Title_.c_str());
-    bool isWindowShow = SetWindowTextA(hWindow, (LPCSTR)_Title_.c_str());
+    bool isWindowShow = SetWindowTextW(hWindow, (LPWSTR)_Title_.c_str());
     napi_get_boolean(env, isWindowShow, &SetTitleInfo);
     return SetTitleInfo;
 }
@@ -579,9 +578,9 @@ static napi_value messageBox(napi_env env, napi_callback_info info)
             return NULL;
         }
     }
-    string lpText = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpCaption = call_String_NAPI_WINAPI_A(env, args[1]);
-    string TextUINT = call_String_NAPI_WINAPI_A(env, args[2]);
+    string lpText = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpCaption = hmc_napi_get_value::string_ansi(env, args[1]);
+    string TextUINT = hmc_napi_get_value::string_ansi(env, args[2]);
     int To_MessageBoxA = MessageBoxA(NULL, (LPCSTR)lpText.c_str(), (LPCSTR)lpCaption.c_str(), TextToUINT(TextUINT));
     napi_create_int32(env, To_MessageBoxA, &MessageBoxInfo);
     return MessageBoxInfo;
@@ -610,16 +609,16 @@ static napi_value alert(napi_env env, napi_callback_info info)
             return NULL;
         }
     }
-    string lpText = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpCaption = call_String_NAPI_WINAPI_A(env, args[1]);
+    string lpText = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpCaption = hmc_napi_get_value::string_ansi(env, args[1]);
     int To_MessageBoxA = MessageBoxA(NULL, (LPCSTR)lpText.c_str(), (LPCSTR)lpCaption.c_str(), MB_OK);
     if (To_MessageBoxA == 1 || To_MessageBoxA == 6)
     {
-        return _create_bool_Boolean(env, true);
+        return as_Boolean(true);
     }
     else
     {
-        return _create_bool_Boolean(env, false);
+        return as_Boolean(false);
     }
 }
 static napi_value confirm(napi_env env, napi_callback_info info)
@@ -645,16 +644,16 @@ static napi_value confirm(napi_env env, napi_callback_info info)
             return NULL;
         }
     }
-    string lpText = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpCaption = call_String_NAPI_WINAPI_A(env, args[1]);
+    string lpText = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpCaption = hmc_napi_get_value::string_ansi(env, args[1]);
     int To_MessageBoxA = MessageBoxA(NULL, (LPCSTR)lpText.c_str(), (LPCSTR)lpCaption.c_str(), MB_OKCANCEL);
     if (To_MessageBoxA == 1 || To_MessageBoxA == 6)
     {
-        return _create_bool_Boolean(env, true);
+        return as_Boolean(true);
     }
     else
     {
-        return _create_bool_Boolean(env, false);
+        return as_Boolean(false);
     }
 }
 static napi_value MessageStop(napi_env env, napi_callback_info info)
@@ -680,8 +679,8 @@ static napi_value MessageStop(napi_env env, napi_callback_info info)
             return NULL;
         }
     }
-    string lpText = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpCaption = call_String_NAPI_WINAPI_A(env, args[1]);
+    string lpText = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpCaption = hmc_napi_get_value::string_ansi(env, args[1]);
     int To_MessageBoxA = MessageBoxA(NULL, (LPCSTR)lpText.c_str(), (LPCSTR)lpCaption.c_str(), MB_ICONERROR);
     return NULL;
 }
@@ -709,8 +708,8 @@ static napi_value MessageError(napi_env env, napi_callback_info info)
             return NULL;
         }
     }
-    string lpText = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpCaption = call_String_NAPI_WINAPI_A(env, args[1]);
+    string lpText = hmc_napi_get_value::string_ansi(env, args[0]);
+    string lpCaption = hmc_napi_get_value::string_ansi(env, args[1]);
     int To_MessageBoxA = MessageBoxA(NULL, (LPCSTR)lpText.c_str(), (LPCSTR)lpCaption.c_str(), MB_ICONEXCLAMATION);
     return NULL;
 }
@@ -831,7 +830,7 @@ static napi_value getShortcutLink(napi_env env, napi_callback_info info)
         return NULL;
     };
     // 图标路径
-    wstring lnkPath = call_String_NAPI_WINAPI_W(env, args[0]);
+    wstring lnkPath = hmc_napi_get_value::string_utf16(env, args[0]);
     IShellLinkA *GetShellLinkContent;
     CoInitialize(0);
     char *tempGetPathString = new char[MAX_PATH];
@@ -870,14 +869,14 @@ static napi_value getShortcutLink(napi_env env, napi_callback_info info)
             return Results;
         }
     }
-    napi_set_property(env, Results, as_String("path"), _create_A2U8_string(env, tempGetPathString));
-    napi_set_property(env, Results, as_String("showCmd"), _create_int32_Number(env, tempGetShowCmdNum));
-    napi_set_property(env, Results, as_String("args"), _create_A2U8_string(env, tempGetArgumentsString));
-    napi_set_property(env, Results, as_String("desc"), _create_A2U8_string(env, tempGetGetDescriptionString));
-    napi_set_property(env, Results, as_String("icon"), _create_A2U8_string(env, tempGetGetIconLocationString));
-    napi_set_property(env, Results, as_String("iconIndex"), _create_int64_Number(env, piIcon));
-    napi_set_property(env, Results, as_String("cwd"), _create_A2U8_string(env, tempGetWorkingDirectoryString));
-    napi_set_property(env, Results, as_String("hotkey"), _create_int64_Number(env, (int64_t)pwHotkey));
+    napi_set_property(env, Results, as_String("path"), as_StringA(tempGetPathString));
+    napi_set_property(env, Results, as_String("showCmd"), as_Number32(tempGetShowCmdNum));
+    napi_set_property(env, Results, as_String("args"), as_StringA(tempGetArgumentsString));
+    napi_set_property(env, Results, as_String("desc"), as_StringA(tempGetGetDescriptionString));
+    napi_set_property(env, Results, as_String("icon"), as_StringA(tempGetGetIconLocationString));
+    napi_set_property(env, Results, as_String("iconIndex"), as_Number(piIcon));
+    napi_set_property(env, Results, as_String("cwd"), as_StringA(tempGetWorkingDirectoryString));
+    napi_set_property(env, Results, as_String("hotkey"), as_Number((int64_t)pwHotkey));
 
     return Results;
 }
@@ -927,7 +926,7 @@ static napi_value setShortcutLink(napi_env env, napi_callback_info info)
                 ErrorString.append("\nargc[")
                     .append(to_string(i))
                     .append("]:");
-                ErrorString.append(_NAPI_Call_Type(value_type));
+                ErrorString.append(hmc_napi_type::typeName(value_type));
             }
             napi_throw_error(env, "EINVAL", ErrorString.c_str());
             return nullptr;
@@ -937,33 +936,33 @@ static napi_value setShortcutLink(napi_env env, napi_callback_info info)
     switch (argc)
     {
     case 2:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
         break;
     case 3:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
-        work_dir.append(call_String_NAPI_WINAPI_A(env, argv[2]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
+        work_dir.append(hmc_napi_get_value::string_ansi(env, argv[2]).c_str());
         break;
     case 4:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
-        work_dir.append(call_String_NAPI_WINAPI_A(env, argv[2]).c_str());
-        desc.append(call_String_NAPI_WINAPI_A(env, argv[3]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
+        work_dir.append(hmc_napi_get_value::string_ansi(env, argv[2]).c_str());
+        desc.append(hmc_napi_get_value::string_ansi(env, argv[3]).c_str());
         break;
     case 5:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
-        work_dir.append(call_String_NAPI_WINAPI_A(env, argv[2]).c_str());
-        desc.append(call_String_NAPI_WINAPI_A(env, argv[3]).c_str());
-        Arguments.append(call_String_NAPI_WINAPI_A(env, argv[4]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
+        work_dir.append(hmc_napi_get_value::string_ansi(env, argv[2]).c_str());
+        desc.append(hmc_napi_get_value::string_ansi(env, argv[3]).c_str());
+        Arguments.append(hmc_napi_get_value::string_ansi(env, argv[4]).c_str());
         break;
     case 6:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
-        work_dir.append(call_String_NAPI_WINAPI_A(env, argv[2]).c_str());
-        desc.append(call_String_NAPI_WINAPI_A(env, argv[3]).c_str());
-        Arguments.append(call_String_NAPI_WINAPI_A(env, argv[4]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
+        work_dir.append(hmc_napi_get_value::string_ansi(env, argv[2]).c_str());
+        desc.append(hmc_napi_get_value::string_ansi(env, argv[3]).c_str());
+        Arguments.append(hmc_napi_get_value::string_ansi(env, argv[4]).c_str());
         napi_get_value_int32(env, argv[5], &iShowCmd);
         break;
     case 7:
@@ -971,13 +970,13 @@ static napi_value setShortcutLink(napi_env env, napi_callback_info info)
         napi_throw_type_error(env, NULL, defaultParameterSettings.c_str());
         break;
     case 8:
-        lnkPath.append(call_String_NAPI_WINAPI_A(env, argv[0]).c_str());
-        path.append(call_String_NAPI_WINAPI_A(env, argv[1]).c_str());
-        work_dir.append(call_String_NAPI_WINAPI_A(env, argv[2]).c_str());
-        desc.append(call_String_NAPI_WINAPI_A(env, argv[3]).c_str());
-        Arguments.append(call_String_NAPI_WINAPI_A(env, argv[4]).c_str());
+        lnkPath.append(hmc_napi_get_value::string_ansi(env, argv[0]).c_str());
+        path.append(hmc_napi_get_value::string_ansi(env, argv[1]).c_str());
+        work_dir.append(hmc_napi_get_value::string_ansi(env, argv[2]).c_str());
+        desc.append(hmc_napi_get_value::string_ansi(env, argv[3]).c_str());
+        Arguments.append(hmc_napi_get_value::string_ansi(env, argv[4]).c_str());
         napi_get_value_int32(env, argv[5], &iShowCmd);
-        icon.append(call_String_NAPI_WINAPI_A(env, argv[6]).c_str());
+        icon.append(hmc_napi_get_value::string_ansi(env, argv[6]).c_str());
         napi_get_value_int32(env, argv[7], &iconIndex);
         break;
     }
@@ -1044,7 +1043,7 @@ static napi_value setShortcutLink(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    hRes = pIPersistFile->Save(_A2W_(lnkPath.c_str()).c_str(), FALSE);
+    hRes = pIPersistFile->Save(hmc_string_util::ansi_to_utf16(lnkPath.c_str()).c_str(), FALSE);
     if (!SUCCEEDED(hRes))
     {
         napi_throw_error(env, "ENOEXEC", "Error => Save");
@@ -1073,14 +1072,14 @@ static napi_value getHandleProcessID(napi_env env, napi_callback_info info)
     napi_get_value_int64(env, args[0], &NumHandle);
     DWORD processId;
     GetWindowThreadProcessId((HWND)NumHandle, &processId);
-    return _create_int64_Number(env, (int64_t)processId);
+    return as_Number((int64_t)processId);
 }
 // 获取活动窗口的pid
 static napi_value getForegroundWindowProcessID(napi_env env, napi_callback_info info)
 {
     DWORD processId;
     GetWindowThreadProcessId(GetForegroundWindow(), &processId);
-    return _create_int64_Number(env, (int64_t)processId);
+    return as_Number((int64_t)processId);
 }
 
 // 获取鼠标位置
@@ -1092,10 +1091,10 @@ napi_value getMetrics(napi_env env, napi_callback_info info)
     GetCursorPos(&point);
     int x = point.x; // 鼠标x轴
     int y = point.y; // 鼠标y轴
-    napi_set_property(env, Results, as_String("x"), _create_int32_Number(env, x));
-    napi_set_property(env, Results, as_String("y"), _create_int32_Number(env, y));
-    napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, x));
-    napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, y));
+    napi_set_property(env, Results, as_String("x"), as_Number32(x));
+    napi_set_property(env, Results, as_String("y"), as_Number32(y));
+    napi_set_property(env, Results, as_String("left"), as_Number32(x));
+    napi_set_property(env, Results, as_String("top"), as_Number32(y));
     return Results;
 }
 // 获取屏幕大小
@@ -1105,8 +1104,8 @@ napi_value getDeviceCaps(napi_env env, napi_callback_info info)
     napi_create_object(env, &Results);
     int width = GetSystemMetrics(SM_CXSCREEN);  // 鼠标x轴
     int height = GetSystemMetrics(SM_CYSCREEN); // 鼠标y轴
-    napi_set_property(env, Results, as_String("width"), _create_int32_Number(env, width));
-    napi_set_property(env, Results, as_String("height"), _create_int32_Number(env, height));
+    napi_set_property(env, Results, as_String("width"), as_Number32(width));
+    napi_set_property(env, Results, as_String("height"), as_Number32(height));
     return Results;
 }
 // 获取鼠标位置窗口
@@ -1114,45 +1113,46 @@ napi_value getPointWindow(napi_env env, napi_callback_info info)
 {
     POINT curPoint;
     if (!GetCursorPos(&curPoint))
-        return _create_int64_Number(env, 0);
+        return as_Number(0);
     HWND mainWindow = WindowFromPoint(curPoint);
-    return _create_int64_Number(env, (int64_t)mainWindow);
+    return as_Number((int64_t)mainWindow);
 }
 // 获取鼠标位置窗口的名称
 napi_value getPointWindowName(napi_env env, napi_callback_info info)
 {
     POINT curPoint;
     if (!GetCursorPos(&curPoint))
-        return _create_int64_Number(env, 0);
+        return as_Number(0);
     HWND mainWindow = WindowFromPoint(curPoint);
     DWORD processId;
     GetWindowThreadProcessId(mainWindow, &processId);
     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
-    char lpFilename[1024];
+    wchar_t lpFilename[1024];
     if (hProcess == nullptr)
     {
         return as_String("");
     }
-    GetModuleBaseNameA(hProcess, NULL, (LPSTR)lpFilename, 1024);
-    return _create_A2U8_string(env, lpFilename);
+    GetModuleBaseNameW(hProcess, NULL, (LPWSTR)lpFilename, 1024);
+    return as_String(lpFilename);
 }
+
 // 获取鼠标位置窗口的pid
 napi_value getPointWindowProcessId(napi_env env, napi_callback_info info)
 {
     POINT curPoint;
     if (!GetCursorPos(&curPoint))
-        return _create_int64_Number(env, 0);
+        return as_Number(0);
     HWND mainWindow = WindowFromPoint(curPoint);
     DWORD processId;
     GetWindowThreadProcessId(mainWindow, &processId);
-    return _create_int32_Number(env, (int64_t)processId);
+    return as_Number32((int64_t)processId);
 }
 napi_value getPointWindowMain(napi_env env, napi_callback_info info)
 {
     napi_value ProcessHandle;
     POINT curPoint;
     if (!GetCursorPos(&curPoint))
-        return _create_int64_Number(env, 0);
+        return as_Number(0);
     HWND mainWindow = WindowFromPoint(curPoint);
     DWORD processId;
     GetWindowThreadProcessId(mainWindow, &processId);
@@ -1178,7 +1178,7 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
     status = $napi_get_cb_info(argc, args);
     int64_t Process_Handle;
     status = napi_get_value_int64(env, args[0], &Process_Handle);
-    napi_value DefaultValue = _create_int32_Number(env, 0);
+    napi_value DefaultValue = as_Number32(0);
     napi_set_property(env, Results, as_String("top"), DefaultValue);
     napi_set_property(env, Results, as_String("bottom"), DefaultValue);
     napi_set_property(env, Results, as_String("left"), DefaultValue);
@@ -1194,14 +1194,14 @@ static napi_value getWindowRect(napi_env env, napi_callback_info info)
         // 获取窗口原始大小
         RECT lpRect;
         GetWindowRect(hHWND, &lpRect);
-        napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, Results, as_String("bottom"), _create_int32_Number(env, lpRect.bottom));
-        napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, Results, as_String("right"), _create_int32_Number(env, lpRect.right));
-        napi_set_property(env, Results, as_String("y"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, Results, as_String("x"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, Results, as_String("width"), _create_int32_Number(env, lpRect.right - lpRect.left));
-        napi_set_property(env, Results, as_String("height"), _create_int32_Number(env, lpRect.top - lpRect.bottom));
+        napi_set_property(env, Results, as_String("top"), as_Number32(lpRect.top));
+        napi_set_property(env, Results, as_String("bottom"), as_Number32(lpRect.bottom));
+        napi_set_property(env, Results, as_String("left"), as_Number32(lpRect.left));
+        napi_set_property(env, Results, as_String("right"), as_Number32(lpRect.right));
+        napi_set_property(env, Results, as_String("y"), as_Number32(lpRect.top));
+        napi_set_property(env, Results, as_String("x"), as_Number32(lpRect.left));
+        napi_set_property(env, Results, as_String("width"), as_Number32(lpRect.right - lpRect.left));
+        napi_set_property(env, Results, as_String("height"), as_Number32(lpRect.top - lpRect.bottom));
     }
     return Results;
 }
@@ -1218,7 +1218,7 @@ static napi_value setWindowMode(napi_env env, napi_callback_info info)
         if (argc < 5)
         {
             napi_throw_type_error(env, NULL, "Wrong length of arguments =>" + argc);
-            return _create_bool_Boolean(env, FALSE);
+            return as_Boolean(FALSE);
         }
         for (size_t i = 0; i < argc; i++)
         {
@@ -1228,14 +1228,14 @@ static napi_value setWindowMode(napi_env env, napi_callback_info info)
             if (valuetype != napi_number && valuetype != napi_null)
             {
                 napi_throw_type_error(env, NULL, "Wrong Not napi_number arguments");
-                return _create_bool_Boolean(env, FALSE);
+                return as_Boolean(FALSE);
             }
         }
     }
     else
     {
         napi_throw_type_error(env, NULL, "Wrong arguments");
-        return _create_bool_Boolean(env, FALSE);
+        return as_Boolean(FALSE);
     };
     int64_t Process_HWND;
     napi_get_value_int64(env, args[0], &Process_HWND);
@@ -1264,11 +1264,11 @@ static napi_value setWindowMode(napi_env env, napi_callback_info info)
                    height < 1 ? Env_height : height,
                    // bRepaint
                    true);
-        return _create_bool_Boolean(env, TRUE);
+        return as_Boolean(TRUE);
     }
     else
     {
-        return _create_bool_Boolean(env, FALSE);
+        return as_Boolean(FALSE);
     }
 }
 
@@ -1316,13 +1316,13 @@ static napi_value setWindowTop(napi_env env, napi_callback_info info)
     HWND Handle = (HWND)NumHandle;
     RECT rect;
     if (!GetWindowRect(Handle, &rect))
-        return _create_bool_Boolean(env, FALSE);
+        return as_Boolean(FALSE);
     if (GetWindowLong(Handle, GWL_EXSTYLE) & WS_EX_TOPMOST)
     {
-        return _create_bool_Boolean(env, SetWindowPos(Handle, HWND_NOTOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW));
+        return as_Boolean(SetWindowPos(Handle, HWND_NOTOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW));
     }
     else
-        return _create_bool_Boolean(env, SetWindowPos(Handle, HWND_TOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW));
+        return as_Boolean(SetWindowPos(Handle, HWND_TOPMOST, rect.left, rect.top, abs(rect.right - rect.left), abs(rect.bottom - rect.top), SWP_SHOWWINDOW));
 }
 
 // 判断是否窗口顶设
@@ -1343,7 +1343,7 @@ static napi_value hasWindowTop(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_bool_Boolean(env, GetWindowLong(Handle, GWL_EXSTYLE) & WS_EX_TOPMOST);
+    return as_Boolean(GetWindowLong(Handle, GWL_EXSTYLE) & WS_EX_TOPMOST);
 }
 
 // 判断该句柄是否有效
@@ -1364,7 +1364,7 @@ static napi_value isHandle(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_bool_Boolean(env, GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle));
+    return as_Boolean(GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle));
 }
 // 获取子窗口的父窗口
 static napi_value getMainWindow(napi_env env, napi_callback_info info)
@@ -1384,7 +1384,7 @@ static napi_value getMainWindow(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_int64_Number(env, (int64_t)GetTopWindow(Handle));
+    return as_Number((int64_t)GetTopWindow(Handle));
 }
 // 判断该句柄是否有效
 static napi_value isEnabled(napi_env env, napi_callback_info info)
@@ -1404,7 +1404,7 @@ static napi_value isEnabled(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_bool_Boolean(env, IsWindowEnabled(Handle));
+    return as_Boolean(IsWindowEnabled(Handle));
 }
 // 设置窗口禁用
 static napi_value setWindowEnabled(napi_env env, napi_callback_info info)
@@ -1427,7 +1427,7 @@ static napi_value setWindowEnabled(napi_env env, napi_callback_info info)
     HWND Handle = (HWND)NumHandle;
     bool is_WindowEnabledCommand;
     napi_get_value_bool(env, args[0], &is_WindowEnabledCommand);
-    return _create_bool_Boolean(env, EnableWindow(Handle, is_WindowEnabledCommand));
+    return as_Boolean(EnableWindow(Handle, is_WindowEnabledCommand));
 }
 
 HWND SetWindowJitter_Handle;
@@ -1496,7 +1496,7 @@ static napi_value setWindowFocus(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_bool_Boolean(env, SetFocus(Handle));
+    return as_Boolean(SetFocus(Handle));
 }
 // 判断该句柄是否有效
 static napi_value updateWindow(napi_env env, napi_callback_info info)
@@ -1516,7 +1516,7 @@ static napi_value updateWindow(napi_env env, napi_callback_info info)
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
     HWND Handle = (HWND)NumHandle;
-    return _create_bool_Boolean(env, UpdateWindow(Handle));
+    return as_Boolean(UpdateWindow(Handle));
 }
 // 获取所有窗口
 static napi_value getAllWindows(napi_env env, napi_callback_info info)
@@ -1547,23 +1547,23 @@ static napi_value getAllWindows(napi_env env, napi_callback_info info)
         napi_value coordinateInformation;
         status = napi_create_object(env, &coordinateInformation);
         assert(status == napi_ok);
-        napi_set_property(env, coordinateInformation, as_String("top"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, coordinateInformation, as_String("bottom"), _create_int32_Number(env, lpRect.bottom));
-        napi_set_property(env, coordinateInformation, as_String("left"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, coordinateInformation, as_String("right"), _create_int32_Number(env, lpRect.right));
-        napi_set_property(env, coordinateInformation, as_String("y"), _create_int32_Number(env, lpRect.top));
-        napi_set_property(env, coordinateInformation, as_String("x"), _create_int32_Number(env, lpRect.left));
-        napi_set_property(env, coordinateInformation, as_String("width"), _create_int32_Number(env, (DeviceCapsWidth - lpRect.left) - (DeviceCapsWidth - lpRect.right)));
-        napi_set_property(env, coordinateInformation, as_String("height"), _create_int32_Number(env, (DeviceCapsHeight - lpRect.top) - (DeviceCapsHeight - lpRect.bottom)));
+        napi_set_property(env, coordinateInformation, as_String("top"), as_Number32(lpRect.top));
+        napi_set_property(env, coordinateInformation, as_String("bottom"), as_Number32(lpRect.bottom));
+        napi_set_property(env, coordinateInformation, as_String("left"), as_Number32(lpRect.left));
+        napi_set_property(env, coordinateInformation, as_String("right"), as_Number32(lpRect.right));
+        napi_set_property(env, coordinateInformation, as_String("y"), as_Number32(lpRect.top));
+        napi_set_property(env, coordinateInformation, as_String("x"), as_Number32(lpRect.left));
+        napi_set_property(env, coordinateInformation, as_String("width"), as_Number32((DeviceCapsWidth - lpRect.left) - (DeviceCapsWidth - lpRect.right)));
+        napi_set_property(env, coordinateInformation, as_String("height"), as_Number32((DeviceCapsHeight - lpRect.top) - (DeviceCapsHeight - lpRect.bottom)));
         // {handle,rect:coordinateInformation,title}
         napi_value PushwindowContents;
         status = napi_create_object(env, &PushwindowContents);
         assert(status == napi_ok);
         // napi_set_property(env, PushwindowContents, as_String( "rect"), coordinateInformation);
-        napi_set_property(env, PushwindowContents, as_String("title"), _create_A2U8_string(env, windowTitle));
-        napi_set_property(env, PushwindowContents, as_String("handle"), _create_int64_Number(env, (int64_t)hwnd));
-        napi_set_property(env, PushwindowContents, as_String("style"), _create_int64_Number(env, (int64_t)dwStyle));
-        napi_set_property(env, PushwindowContents, as_String("className"), _create_A2U8_string(env, lpClassName));
+        napi_set_property(env, PushwindowContents, as_String("title"), as_StringA(windowTitle));
+        napi_set_property(env, PushwindowContents, as_String("handle"), as_Number((int64_t)hwnd));
+        napi_set_property(env, PushwindowContents, as_String("style"), as_Number((int64_t)dwStyle));
+        napi_set_property(env, PushwindowContents, as_String("className"), as_StringA(lpClassName));
         status = napi_set_element(env, Results, counter, PushwindowContents);
         assert(status == napi_ok);
         hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
@@ -1618,9 +1618,9 @@ static napi_value SetWindowInTaskbarVisible(napi_env env, napi_callback_info inf
         else
             pTaskbarList->DeleteTab(Handle);
         pTaskbarList->Release();
-        return _create_true_Boolean(env);
+        return as_Boolean(true);
     }
-    return _create_false_Boolean(env);
+    return as_Boolean(false);
 }
 
 static napi_value SetBlockInput(napi_env env, napi_callback_info info)
@@ -1636,7 +1636,7 @@ static napi_value SetBlockInput(napi_env env, napi_callback_info info)
         napi_throw_type_error(env, NULL, "Wrong arguments size=> 0\n parameter_01:boolean");
     bool Set_Block;
     napi_get_value_bool(env, args[0], &Set_Block);
-    return _create_bool_Boolean(env, BlockInput(Set_Block));
+    return as_Boolean(BlockInput(Set_Block));
 }
 
 static napi_value CallSystem(napi_env env, napi_callback_info info)
@@ -1648,9 +1648,9 @@ static napi_value CallSystem(napi_env env, napi_callback_info info)
     size_t argc = M_Size;
     napi_value args[M_Size];
     status = $napi_get_cb_info(argc, args);
-    string Command = call_String_NAPI_WINAPI_A(env, args[0]);
+    string Command = hmc_napi_get_value::string_ansi(env, args[0]);
     int int_Results = system(Command.c_str());
-    Results = _create_int64_Number(env, int_Results);
+    Results = as_Number(int_Results);
     return Results;
 }
 
@@ -1686,7 +1686,7 @@ static napi_value SetSystemHOOK(napi_env env, napi_callback_info info)
         napi_throw_type_error(env, NULL, "Wrong arguments size=> 0\n parameter_01:boolean");
     bool Set_Block;
     napi_get_value_bool(env, args[0], &Set_Block);
-    return _create_bool_Boolean(env, lockSystemInteraction(Set_Block));
+    return as_Boolean(lockSystemInteraction(Set_Block));
 }
 
 napi_value openURL(napi_env env, napi_callback_info info)
@@ -1715,10 +1715,10 @@ napi_value openURL(napi_env env, napi_callback_info info)
         };
     }
 
-    string URL_String = call_String_NAPI_WINAPI_A(env, argv[0]);
+    string URL_String = hmc_napi_get_value::string_ansi(env, argv[0]);
     HINSTANCE hResult = ShellExecuteA(NULL, "open", URL_String.c_str(), NULL, NULL, SW_SHOWNORMAL);
     // return  _create_int64_Number(env,long(hResult));
-    return _create_bool_Boolean(env, long long(hResult) >= 31);
+    return as_Boolean(long long(hResult) >= 31);
 }
 
 napi_value openExternal(napi_env env, napi_callback_info info)
@@ -1747,13 +1747,13 @@ napi_value openExternal(napi_env env, napi_callback_info info)
         };
     }
 
-    string PATH_String = call_String_NAPI_WINAPI_A(env, argv[0]);
+    string PATH_String = hmc_napi_get_value::string_ansi(env, argv[0]);
     string ExploerCmd = string("/select, \"");
 
     HINSTANCE hResult = ShellExecuteA(NULL, "open", "explorer.exe", ExploerCmd.append(PATH_String.c_str()).append("\"").c_str(), NULL, SW_SHOWNORMAL);
     // return  _create_int64_Number(env,long(hResult));
 
-    return _create_bool_Boolean(env, long long(hResult) >= 31);
+    return as_Boolean(long long(hResult) >= 31);
 }
 
 napi_value openPath(napi_env env, napi_callback_info info)
@@ -1782,112 +1782,8 @@ napi_value openPath(napi_env env, napi_callback_info info)
         };
     }
 
-    HINSTANCE hResult = ShellExecuteA(NULL, "open", "explorer.exe", call_String_NAPI_WINAPI_A(env, argv[0]).c_str(), NULL, SW_SHOWNORMAL);
-    return _create_bool_Boolean(env, long long(hResult) >= 31);
-}
-
-//? 软链接/硬链接 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-static napi_value createDirSymlink(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    size_t argc = 2;
-    napi_value args[2];
-
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc <= 2)
-    {
-        for (size_t i = 0; i < argc; i++)
-        {
-            napi_valuetype type_value;
-            napi_typeof(env, args[i], &type_value);
-            if (type_value != napi_string)
-            {
-                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(_NAPI_Call_Type(type_value)).c_str());
-                return NULL;
-            }
-        }
-    }
-    else
-    {
-        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
-        return NULL;
-    }
-
-    bool mk_OK = false;
-    string mapPath = call_String_NAPI_WINAPI_A(env, args[0]);
-    string sourcePath = call_String_NAPI_WINAPI_A(env, args[1]);
-    mk_OK = CreateSymbolicLinkA(mapPath.c_str(), sourcePath.c_str(), 0x1);
-    return _create_bool_Boolean(env, mk_OK);
-}
-
-static napi_value createSymlink(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    size_t argc = 2;
-    napi_value args[2];
-
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc <= 2)
-    {
-        for (size_t i = 0; i < argc; i++)
-        {
-            napi_valuetype type_value;
-            napi_typeof(env, args[i], &type_value);
-            if (type_value != napi_string)
-            {
-                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(_NAPI_Call_Type(type_value)).c_str());
-                return NULL;
-            }
-        }
-    }
-    else
-    {
-        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
-        return NULL;
-    }
-
-    bool mk_OK = false;
-    string mapPath = call_String_NAPI_WINAPI_A(env, args[0]);
-    string sourcePath = call_String_NAPI_WINAPI_A(env, args[1]);
-    mk_OK = CreateSymbolicLinkA(mapPath.c_str(), sourcePath.c_str(), 0x0);
-    return _create_bool_Boolean(env, mk_OK);
-}
-
-static napi_value createHardLink(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    //    napi_value isOK;
-    size_t argc = 2;
-    napi_value args[2];
-
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc <= 2)
-    {
-        for (size_t i = 0; i < argc; i++)
-        {
-            napi_valuetype type_value;
-            napi_typeof(env, args[i], &type_value);
-            if (type_value != napi_string)
-            {
-                napi_throw_type_error(env, 0, string("The input parameter is not legal and should be string").append("\n\nvalue").append(to_string(i)).append("_type:").append(_NAPI_Call_Type(type_value)).c_str());
-                return NULL;
-            }
-        }
-    }
-    else
-    {
-        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
-        return NULL;
-    }
-    bool mk_OK = false;
-    string mapPath = call_String_NAPI_WINAPI_A(env, args[0]);
-    string sourcePath = call_String_NAPI_WINAPI_A(env, args[1]);
-    mk_OK = CreateHardLinkA(mapPath.c_str(), sourcePath.c_str(), NULL);
-    return _create_bool_Boolean(env, mk_OK);
+    HINSTANCE hResult = ShellExecuteA(NULL, "open", "explorer.exe", hmc_napi_get_value::string_ansi(env, argv[0]).c_str(), NULL, SW_SHOWNORMAL);
+    return as_Boolean(long long(hResult) >= 31);
 }
 
 vector<HWND> enumChildWindowsList;
@@ -1946,7 +1842,7 @@ static napi_value enumChildWindows(napi_env env, napi_callback_info info)
     }
     for (size_t i = 0; i < enumChildWindowsList.size(); i++)
     {
-        status = napi_set_element(env, ResultsHandleList, i, _create_int64_Number(env, (int64_t)enumChildWindowsList[i]));
+        status = napi_set_element(env, ResultsHandleList, i, as_Number((int64_t)enumChildWindowsList[i]));
         if (status != napi_ok)
         {
             enumChildWindowsList.clear();
@@ -1955,68 +1851,6 @@ static napi_value enumChildWindows(napi_env env, napi_callback_info info)
     }
     enumChildWindowsList.clear();
     return ResultsHandleList;
-}
-
-/**
- * @brief 调用系统回收站api
- *
- * @param FromPath 处理的文件名称
- * @param bRecycle 允许放回回收站
- * @param isShow 取消静默
- * @return int
- */
-static int API_DeleteFile(string FromPath, bool bRecycle, bool isShow)
-{
-    SHFILEOPSTRUCTA FileOp = {0};
-    if (bRecycle)
-    {
-        if (isShow)
-        {
-            FileOp.fFlags |= FOF_ALLOWUNDO;
-        }
-        else
-        {
-            FileOp.fFlags |= FOF_ALLOWUNDO | FOF_NOCONFIRMATION;
-        }
-    }
-    FileOp.pFrom = FromPath.c_str();
-    FileOp.pTo = NULL;        // 一定要是NULL
-    FileOp.wFunc = FO_DELETE; // 删除操作
-    return SHFileOperationA(&FileOp);
-}
-
-static napi_value deleteFile(napi_env env, napi_callback_info info)
-{
-    napi_value Results = _create_int32_Number(env, 0x10000);
-    napi_status status;
-    size_t argc = 3;
-    napi_value argv[3];
-    bool isShow = false;
-    bool bRecycle = true;
-    status = $napi_get_cb_info(argc, argv);
-    if (status != napi_ok)
-    {
-        return Results;
-    };
-    hmc_is_argc_size(argc, 1, Results);
-    hmc_is_argv_type(argv, 0, 1, napi_string, Results);
-    // 检索3个参数合法性
-    switch (argc)
-    {
-    case 2:
-        hmc_is_argv_type(argv, 1, 2, napi_boolean, Results);
-        napi_get_value_bool(env, argv[1], &bRecycle);
-        break;
-    case 3:
-        hmc_is_argv_type(argv, 1, 3, napi_boolean, Results);
-        napi_get_value_bool(env, argv[1], &bRecycle);
-        napi_get_value_bool(env, argv[2], &isShow);
-        break;
-    }
-    string Paths = call_String_NAPI_WINAPI_A(env, argv[0]);
-    int Info = API_DeleteFile(Paths, bRecycle, isShow);
-    Results = _create_int32_Number(env, Info);
-    return Results;
 }
 
 // 获取屏幕个数
@@ -2082,7 +1916,7 @@ RECT GetCurrentMonitorRect()
 static napi_value getSystemMetricsLen(napi_env env, napi_callback_info info)
 {
     napi_value Results;
-    Results = _create_int32_Number(env, GetSystemMetricsLen());
+    Results = as_Number32(GetSystemMetricsLen());
     return Results;
 }
 
@@ -2096,22 +1930,22 @@ static napi_value getCurrentMonitorRect(napi_env env, napi_callback_info info)
         return Results;
     };
     RECT rect = GetCurrentMonitorRect();
-    status = napi_set_property(env, Results, as_String("left"), _create_int32_Number(env, (int)rect.left));
+    status = napi_set_property(env, Results, as_String("left"), as_Number32((int)rect.left));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, as_String("top"), _create_int32_Number(env, (int)rect.top));
+    status = napi_set_property(env, Results, as_String("top"), as_Number32((int)rect.top));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, as_String("right"), _create_int32_Number(env, (int)rect.right));
+    status = napi_set_property(env, Results, as_String("right"), as_Number32((int)rect.right));
     if (status != napi_ok)
     {
         return Results;
     };
-    status = napi_set_property(env, Results, as_String("bottom"), _create_int32_Number(env, (int)rect.bottom));
+    status = napi_set_property(env, Results, as_String("bottom"), as_Number32((int)rect.bottom));
     if (status != napi_ok)
     {
         return Results;
@@ -2139,22 +1973,22 @@ static napi_value getDeviceCapsAll(napi_env env, napi_callback_info info)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, as_String("left"), _create_int32_Number(env, (int)rect.left));
+        status = napi_set_property(env, NextRect, as_String("left"), as_Number32((int)rect.left));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, as_String("top"), _create_int32_Number(env, (int)rect.top));
+        status = napi_set_property(env, NextRect, as_String("top"), as_Number32((int)rect.top));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, as_String("right"), _create_int32_Number(env, (int)rect.right));
+        status = napi_set_property(env, NextRect, as_String("right"), as_Number32((int)rect.right));
         if (status != napi_ok)
         {
             return Results;
         };
-        status = napi_set_property(env, NextRect, as_String("bottom"), _create_int32_Number(env, (int)rect.bottom));
+        status = napi_set_property(env, NextRect, as_String("bottom"), as_Number32((int)rect.bottom));
         if (status != napi_ok)
         {
             return Results;
@@ -2169,13 +2003,15 @@ static napi_value getDeviceCapsAll(napi_env env, napi_callback_info info)
 
     return Results;
 }
+
 bool pointInRECT(POINT pt, RECT inputRect);
+
 static napi_value isMouseMonitorWindow(napi_env env, napi_callback_info info)
 {
     napi_status status;
     size_t argc = 1;
     napi_value args[1], is_OKs;
-    is_OKs = _create_bool_Boolean(env, false);
+    is_OKs = as_Boolean(false);
     status = $napi_get_cb_info(argc, args);
     if (status != napi_ok)
         return is_OKs;
@@ -2216,7 +2052,7 @@ static napi_value isMouseMonitorWindow(napi_env env, napi_callback_info info)
             okk = true;
         }
 
-        is_OKs = _create_bool_Boolean(env, okk);
+        is_OKs = as_Boolean(okk);
     }
 
     return is_OKs;
@@ -2227,7 +2063,7 @@ static napi_value isInMonitorWindow(napi_env env, napi_callback_info info)
     napi_status status;
     size_t argc = 1;
     napi_value args[1], is_OKs;
-    is_OKs = _create_bool_Boolean(env, false);
+    is_OKs = as_Boolean(false);
     status = $napi_get_cb_info(argc, args);
     if (status != napi_ok)
         return is_OKs;
@@ -2281,7 +2117,7 @@ static napi_value isInMonitorWindow(napi_env env, napi_callback_info info)
                 okk = true;
             }
         }
-        is_OKs = _create_bool_Boolean(env, okk);
+        is_OKs = as_Boolean(okk);
     }
 
     return is_OKs;
@@ -2311,7 +2147,7 @@ string getClassName(HWND hwnd, bool &bHas)
 static napi_value getWindowClassName(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    napi_value Result = _create_String(env, "");
+    napi_value Result = as_String("");
 
     if (status != napi_ok)
         return Result;
@@ -2333,7 +2169,7 @@ static napi_value getWindowClassName(napi_env env, napi_callback_info info)
     bool is_ok = false;
     string strClassName = string("");
     strClassName.append(getClassName(Handle, is_ok));
-    Result = _create_A2U8_string(env, (char *)strClassName.c_str());
+    Result = as_StringA((char *)strClassName.c_str());
 
     return Result;
 }
@@ -2341,7 +2177,7 @@ static napi_value getWindowClassName(napi_env env, napi_callback_info info)
 static napi_value getWindowStyle(napi_env env, napi_callback_info info)
 {
     napi_status status;
-    napi_value Result = _create_int64_Number(env, 0);
+    napi_value Result = as_Number(0);
 
     if (status != napi_ok)
         return Result;
@@ -2367,7 +2203,7 @@ static napi_value getWindowStyle(napi_env env, napi_callback_info info)
 
     DWORD dwStyle = GetClassLongA(Handle, GCL_STYLE);
 
-    Result = _create_int64_Number(env, dwStyle);
+    Result = as_Number(dwStyle);
     return Result;
 }
 
@@ -2459,7 +2295,7 @@ static napi_value setWindowTitleIcon(napi_env env, napi_callback_info info)
     int64_t Handle;
     status = napi_get_value_int64(env, args[0], &Handle);
     HWND handle = (HWND)Handle;
-    string iconStr = call_String_NAPI_WINAPI_A(env, args[1]);
+    string iconStr = hmc_napi_get_value::string_ansi(env, args[1]);
 
     SetWindowTitleIcon(handle, iconStr);
     UpdateWindow(handle);
@@ -2474,7 +2310,7 @@ static napi_value setWindowIconForExtract(napi_env env, napi_callback_info info)
     int64_t Handle;
     status = napi_get_value_int64(env, args[0], &Handle);
     HWND handle = (HWND)Handle;
-    string iconStr = call_String_NAPI_WINAPI_A(env, args[1]);
+    string iconStr = hmc_napi_get_value::string_ansi(env, args[1]);
     int index;
     status = napi_get_value_int32(env, args[2], &index);
     SetWindowIconForExtract(handle, iconStr, index);
@@ -2486,10 +2322,9 @@ static napi_value setWindowIconForExtract(napi_env env, napi_callback_info info)
 static napi_value _SET_HMC_DEBUG(napi_env env, napi_callback_info info)
 {
     _________HMC___________ = !_________HMC___________;
-    return _create_bool_Boolean(env, _________HMC___________);
+    return as_Boolean(_________HMC___________);
 }
 
-// 获取剪贴板文本
 napi_value Popen(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -2497,7 +2332,7 @@ napi_value Popen(napi_env env, napi_callback_info info)
     size_t argc = 1;
     napi_value args[1];
     status = $napi_get_cb_info(argc, args);
-    string cmd = call_String_NAPI_WINAPI_A(env, args[0]);
+    string cmd = hmc_napi_get_value::string_ansi(env, args[0]);
     napi_value napi_result;
 
     char buffer[128];
@@ -2513,7 +2348,7 @@ napi_value Popen(napi_env env, napi_callback_info info)
         result += buffer;
     }
     _pclose(pipe);
-    string _A2U8_result = _A2U8_(result.c_str());
+    string _A2U8_result = hmc_string_util::ansi_to_utf8(result.c_str());
     napi_create_string_utf8(env, _A2U8_result.c_str(), NAPI_AUTO_LENGTH, &napi_result);
     return napi_result;
 }
@@ -2563,9 +2398,9 @@ napi_value createMutex(napi_env env, napi_callback_info info)
     status = $napi_get_cb_info(argc, args);
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
 
-    string MutexName = call_String_NAPI_WINAPI_A(env, args[0]);
+    string MutexName = hmc_napi_get_value::string_ansi(env, args[0]);
 
-    return _create_bool_Boolean(env, CreateMutex(MutexName));
+    return as_Boolean(CreateMutex(MutexName));
 }
 
 napi_value hasMutex(napi_env env, napi_callback_info info)
@@ -2577,107 +2412,9 @@ napi_value hasMutex(napi_env env, napi_callback_info info)
     status = $napi_get_cb_info(argc, args);
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
 
-    string MutexName = call_String_NAPI_WINAPI_A(env, args[0]);
+    string MutexName = hmc_napi_get_value::string_ansi(env, args[0]);
 
-    return _create_bool_Boolean(env, HasMutex(MutexName));
-}
-
-static napi_value putenv(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value MessageBoxInfo;
-    size_t argc = 2;
-    napi_value args[2];
-    status = $napi_get_cb_info(argc, args);
-    hmc_is_argv_type(args, 0, 2, napi_string, NULL);
-
-    string lpkey = call_String_NAPI_WINAPI_A(env, args[0]);
-    string lpdata = call_String_NAPI_WINAPI_A(env, args[1]);
-
-    int b_Result = _putenv_s(lpkey.c_str(), lpdata.c_str());
-
-    return _create_bool_Boolean(env, b_Result == 0);
-}
-
-// 获取指定的环境变量
-string GetVariable(string const &name)
-{
-#if defined(_MSC_VER)
-    size_t size;
-    getenv_s(&size, nullptr, 0, name.c_str());
-    if (size > 0)
-    {
-        vector<char> tmpvar(size);
-        errno_t result = getenv_s(&size, tmpvar.data(), size, name.c_str());
-        string variable = (result == 0 ? string(tmpvar.data()) : "");
-        return variable;
-    }
-    else
-    {
-        return "";
-    }
-#else
-    char const *variable = getenv(name.c_str());
-    return variable ? string(variable) : string("");
-#endif
-}
-
-map<string, string> getVariableAll()
-{
-    map<string, string> envStrMap;
-
-    // 注意这里A字符很乱 请勿改成A （OEM ，Unicode ，ANSI）
-    try
-    {
-        LPWSTR env = GetEnvironmentStringsW();
-
-        while (*env)
-        {
-            string strEnv = _W2A_(env);
-
-            if (strEnv.empty() && strEnv.find(L'=') == 0)
-                continue;
-
-            if (!strEnv.empty() && string(&strEnv.at(0)) != string("="))
-            {
-                size_t pos = strEnv.find('=');
-                if (pos != string::npos)
-                {
-                    string name = strEnv.substr(0, pos);
-                    string value = strEnv.substr(pos + 1);
-                    if (!name.empty())
-                    {
-                        envStrMap.insert(pair<string, string>(name, value));
-                    }
-                }
-            }
-            env += wcslen(env) + 1;
-        }
-    }
-    catch (const std::exception &e)
-    {
-        if (_________HMC___________)
-            std::cerr << e.what() << '\n';
-    }
-
-    return envStrMap;
-}
-
-static napi_value getAllEnv(napi_env env, napi_callback_info info)
-{
-    return hmc_napi_create_value::Object::Object(env, getVariableAll());
-}
-static napi_value napi_getenv(napi_env env, napi_callback_info info)
-{
-    napi_status status;
-    napi_value MessageBoxInfo;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    hmc_is_argv_type(args, 0, 1, napi_string, NULL);
-
-    string envkey = call_String_NAPI_WINAPI_A(env, args[0]);
-    return hmc_napi_create_value::String(env, GetVariable(envkey));
+    return as_Boolean(HasMutex(MutexName));
 }
 
 // 搜索窗口句柄
@@ -2783,64 +2520,6 @@ napi_value fn_findWindowEx(napi_env env, napi_callback_info info)
 }
 
 #define HMC_CHECK_CATCH catch (char *err){};
-
-/// 文本转小写
-std::string ToLower(std::string str)
-{
-    std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c)
-                   { return std::tolower(c); });
-    return str;
-}
-
-/// 文本转大写
-std::string ToUpper(std::string str)
-{
-    std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c)
-                   { return std::toupper(c); });
-    return str;
-}
-
-// 删除空白字符
-std::string StripSpaces(const std::string &str)
-{
-    const std::size_t s = str.find_first_not_of(" \t\r\n");
-
-    if (str.npos != s)
-        return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
-    else
-        return "";
-}
-
-/// 文本转小写
-std::wstring ToLower(std::wstring str)
-{
-    std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c)
-                   { return std::tolower(c); });
-    return str;
-}
-
-/// 文本转大写
-std::wstring ToUpper(std::wstring str)
-{
-    std::transform(str.begin(), str.end(), str.begin(),
-                   [](unsigned char c)
-                   { return std::toupper(c); });
-    return str;
-}
-
-// 删除空白字符
-std::wstring StripSpaces(const std::wstring &str)
-{
-    const std::size_t s = str.find_first_not_of(L" \t\r\n");
-
-    if (str.npos != s)
-        return str.substr(s, str.find_last_not_of(L" \t\r\n") - s + 1);
-    else
-        return L"";
-}
 
 /**
  * @brief 获取窗口类名
@@ -2983,8 +2662,8 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
     wstring _titleName = (hmc_napi_type::isString(env, args[1]) ? hmc_napi_get_value::string_utf16(env, args[1]) : wstring(L""));
 
     //"\0title标题\0" ->  flag_isCaseSensitive ? "TITLE标题" : "title标题"
-    wstring className = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_className) : ToUpper(hmc_string_util::removeNullCharactersAll(_className));
-    wstring titleName = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_titleName) : ToUpper(hmc_string_util::removeNullCharactersAll(_titleName));
+    wstring className = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_className) : hmc_string_util::text_to_upper(hmc_string_util::removeNullCharactersAll(_className));
+    wstring titleName = flag_isCaseSensitive ? hmc_string_util::removeNullCharactersAll(_titleName) : hmc_string_util::text_to_upper(hmc_string_util::removeNullCharactersAll(_titleName));
 
     HWND winEnumerable = GetTopWindow(0);
 
@@ -3001,7 +2680,7 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
             if (!_className.empty())
             {
                 bool the_class_ok = false;
-                the_class = (flag_isCaseSensitive ? ToUpper(getClassNameW(winEnumerable, the_class_ok)) : getClassNameW(winEnumerable, the_class_ok));
+                the_class = (flag_isCaseSensitive ? hmc_string_util::text_to_upper(getClassNameW(winEnumerable, the_class_ok)) : getClassNameW(winEnumerable, the_class_ok));
 
                 if (the_class == _className)
                 {
@@ -3017,7 +2696,7 @@ napi_value fn_findAllWindow(napi_env env, napi_callback_info info)
             if (!_titleName.empty())
             {
                 bool the_title_ok = false;
-                the_titleName = (flag_isCaseSensitive ? ToUpper(getWindowTextW(winEnumerable)) : getWindowTextW(winEnumerable));
+                the_titleName = (flag_isCaseSensitive ? hmc_string_util::text_to_upper(getWindowTextW(winEnumerable)) : getWindowTextW(winEnumerable));
                 if (the_titleName == _titleName)
                 {
 
@@ -3114,11 +2793,11 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHOD("confirm", confirm),                                           //=>2019-2-1ADD
         DECLARE_NAPI_METHOD("MessageError", MessageError),                                 //=>2019-2-1ADD
         DECLARE_NAPI_METHOD("MessageStop", MessageStop),                                   //=>2019-2-1ADD
-        DECLARE_NAPI_METHOD("lookHandleSetTitle", lookHandleSetTitle),                     // 2019?
-        DECLARE_NAPI_METHOD("lookHandleCloseWindow", lookHandleCloseWindow),               // 2019?
-        DECLARE_NAPI_METHOD("isHandleWindowVisible", isHandleWindowVisible),               // 2019?
-        DECLARE_NAPI_METHOD("lookHandleShowWindow", lookHandleShowWindow),                 // 2019?
-        DECLARE_NAPI_METHOD("lookHandleGetTitle", lookHandleGetTitle),                     // 2019?
+        DECLARE_NAPI_METHOD("fn_SetWindowTitle", fn_SetWindowTitle),                       // 2019?
+        DECLARE_NAPI_METHOD("fn_CloseWindow", fn_CloseWindow),                             // 2019?
+        DECLARE_NAPI_METHOD("fn_WindowVisible", fn_WindowVisible),                         // 2019?
+        DECLARE_NAPI_METHOD("fn_ShowWindow", fn_ShowWindow),                               // 2019?
+        DECLARE_NAPI_METHOD("fn_GetWindowTitle", fn_GetWindowTitle),                       // 2019?
         DECLARE_NAPI_METHOD("getProcessHandle", getProcessHandle),                         // 2019?
         DECLARE_NAPI_METHOD("isSystemX64", isSystemX64),                                   // 2019?
         DECLARE_NAPI_METHOD("getTrayList", getTrayList),                                   // 2019?
@@ -3159,11 +2838,11 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("clearClipboard", clearClipboard),
         DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths), //=>2022-2-11ADD
         DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths), //=>2022-2-11ADD
-        DECLARE_NAPI_METHODRM("getClipboardHTML",getClipboardHTML), 
+        DECLARE_NAPI_METHODRM("getClipboardHTML", getClipboardHTML),
         DECLARE_NAPI_METHOD("getHidUsbList", getHidUsbList),
         DECLARE_NAPI_METHOD("getUsbDevsInfo", getUsbDevsInfo),                 //=>2022-2-11ADD
         DECLARE_NAPI_METHOD("enumChildWindows", enumChildWindows),             //=>2022-2-11ADD
-        DECLARE_NAPI_METHOD("deleteFile", deleteFile),                         //=>2022-2-11ADD
+        DECLARE_NAPI_METHODRM("deleteFile", TrashFile),                        //=>2022-2-11ADD
         DECLARE_NAPI_METHODRM("getClipboardInfo", getClipboardInfo),           //=>2022-2-12ADD
         DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),   //=>2022-2-12ADD
         DECLARE_NAPI_METHODRM("getHidUsbIdList", getHidUsbIdList),             //=>2022-2-12ADD
@@ -3214,9 +2893,9 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getColor", getColor),                                 //=>2022-5-27ADD
         DECLARE_NAPI_METHOD("createMutex", createMutex),                             //=>2022-6-21ADD
         DECLARE_NAPI_METHOD("hasMutex", hasMutex),                                   //=>2022-6-21ADD
-        DECLARE_NAPI_METHOD("putenv", putenv),                                       //=>2022-6-21ADD
-        DECLARE_NAPI_METHOD("getenv", napi_getenv),                                  //=>2022-6-21ADD
-        DECLARE_NAPI_METHOD("getAllEnv", getAllEnv),                                 //=>2022-6-21ADD
+        DECLARE_NAPI_METHODRM("putenv", fn_putenv),                                  //=>2022-6-21ADD
+        DECLARE_NAPI_METHODRM("getenv", fn_getenv),                                  //=>2022-6-21ADD
+        DECLARE_NAPI_METHODRM("getAllEnv", fn_getAllEnv),                            //=>2022-6-21ADD
         DECLARE_NAPI_METHOD("findWindow", fn_findWindow),                            //=>2022-11-18ADD
         DECLARE_NAPI_METHOD("findWindowEx", fn_findWindowEx),                        //=>2022-11-18ADD
         // 2023-11-27 add support
@@ -3268,7 +2947,6 @@ static napi_value Init(napi_env env, napi_value exports)
         // 2023-12-22 add support
         DECLARE_NAPI_METHODRM("getLastInputTime", getLastInputTime),
 
-        
         // 2024-01-07 add support
         DECLARE_NAPI_METHODRM("removeRegistrFolder", removeRegistrFolder),
         DECLARE_NAPI_METHODRM("removeRegistrValue", removeRegistrValue),

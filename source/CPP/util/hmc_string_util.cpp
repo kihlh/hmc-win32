@@ -906,6 +906,26 @@ std::wstring hmc_string_util::trimFirstAll(const std::wstring &input, const std:
     return result;
 }
 
+std::wstring hmc_string_util::StripSpaces(const std::wstring &str)
+{
+    const std::size_t s = str.find_first_not_of(L" \t\r\n");
+
+    if (str.npos != s)
+        return str.substr(s, str.find_last_not_of(L" \t\r\n") - s + 1);
+    else
+        return str;
+}
+
+std::string hmc_string_util::StripSpaces(const std::string &str)
+{
+    const std::size_t s = str.find_first_not_of(" \t\r\n");
+
+    if (str.npos != s)
+        return str.substr(s, str.find_last_not_of(" \t\r\n") - s + 1);
+    else
+        return str;
+}
+
 void hmc_string_util::unEscapeJsonString(std::string &sourcePtr)
 {
     replaceAll(sourcePtr, "\\a", "\a");

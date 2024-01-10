@@ -219,7 +219,7 @@ napi_value captureBmpToFile(napi_env env, napi_callback_info info)
     hmc_is_argv_type(args, 0, 1, napi_string, NULL);
     hmc_is_argv_type(args, 1, 5, napi_number, NULL);
     int x, y, w, h;
-    string FilePathA = call_String_NAPI_WINAPI_A(env, args[0]);
+    string FilePathA = hmc_napi_get_value::string_ansi(env, args[0]);
     napi_get_value_int32(env, args[1], &x);
     napi_get_value_int32(env, args[2], &y);
     napi_get_value_int32(env, args[3], &w);
@@ -272,10 +272,10 @@ napi_value getColor(napi_env env, napi_callback_info info)
     GetColorInfo InfoColor = GetColor(x, y);
     napi_value _getColor;
     napi_create_object(env, &_getColor);
-    napi_set_property(env, _getColor, _create_char_string(env, "r"), _create_int32_Number(env, InfoColor.r));
-    napi_set_property(env, _getColor, _create_char_string(env, "g"), _create_int32_Number(env, InfoColor.g));
-    napi_set_property(env, _getColor, _create_char_string(env, "b"), _create_int32_Number(env, InfoColor.b));
-    napi_set_property(env, _getColor, _create_char_string(env, "hex"), _create_String(env, InfoColor.hex));
+    napi_set_property(env, _getColor, as_String("r"), as_Number32(InfoColor.r));
+    napi_set_property(env, _getColor, as_String("g"), as_Number32(InfoColor.g));
+    napi_set_property(env, _getColor, as_String("b"), as_Number32(InfoColor.b));
+    napi_set_property(env, _getColor, as_String("hex"), as_String(InfoColor.hex));
 
     return _getColor;
 }

@@ -138,7 +138,7 @@ napi_value getKeyboardNextSession(napi_env env, napi_callback_info info)
         keyboardInfo.append("|");
         keyboardInfo.append(to_string(keyboard[1]));
         // push
-        status = napi_set_element(env, Results, index, _create_String(env, keyboardInfo));
+        status = napi_set_element(env, Results, index, as_String( keyboardInfo));
         if (status != napi_ok)
         {
             return Results;
@@ -151,7 +151,7 @@ napi_value getKeyboardNextSession(napi_env env, napi_callback_info info)
 
 napi_value isStartKeyboardHook(napi_env env, napi_callback_info info)
 {
-    return _create_bool_Boolean(env, Keyboard_HOOK_next);
+    return as_Boolean( Keyboard_HOOK_next);
 }
 
 // 判断是否按下三大金刚
@@ -159,10 +159,10 @@ napi_value getBasicKeys(napi_env env, napi_callback_info info)
 {
     napi_value Points;
     napi_create_object(env, &Points);
-    napi_set_property(env, Points, _create_char_string(env, "shift"), _create_bool_Boolean(env, GetKeyState(VK_SHIFT) & 0x8000));
-    napi_set_property(env, Points, _create_char_string(env, "alt"), _create_bool_Boolean(env, GetKeyState(VK_MENU) & 0x8000));
-    napi_set_property(env, Points, _create_char_string(env, "ctrl"), _create_bool_Boolean(env, GetKeyState(VK_CONTROL) & 0x8000));
-    napi_set_property(env, Points, _create_char_string(env, "win"), _create_bool_Boolean(env, GetKeyState(VK_RWIN) & 0x8000 || GetKeyState(VK_LWIN) & 0x8000));
+    napi_set_property(env, Points,as_String( "shift"), as_Boolean( GetKeyState(VK_SHIFT) & 0x8000));
+    napi_set_property(env, Points,as_String( "alt"), as_Boolean( GetKeyState(VK_MENU) & 0x8000));
+    napi_set_property(env, Points,as_String( "ctrl"), as_Boolean( GetKeyState(VK_CONTROL) & 0x8000));
+    napi_set_property(env, Points,as_String( "win"), as_Boolean( GetKeyState(VK_RWIN) & 0x8000 || GetKeyState(VK_LWIN) & 0x8000));
     return Points;
 }
 
@@ -186,7 +186,7 @@ napi_value setCursorPos(napi_env env, napi_callback_info info)
     int y;
     napi_get_value_int32(env, args[1], &y);
 
-    return _create_bool_Boolean(env, SetCursorPos(x, y));
+    return as_Boolean( SetCursorPos(x, y));
 }
 
 // 右键点击
@@ -254,7 +254,7 @@ napi_value hasKeyActivate(napi_env env, napi_callback_info info)
         }
         napi_get_value_int32(env, args[0], &theCurrentKey);
     }
-    return _create_bool_Boolean(env, GetKeyState(theCurrentKey) & 0x8000);
+    return as_Boolean( GetKeyState(theCurrentKey) & 0x8000);
 }
 
 // 自定义点击事件
@@ -288,7 +288,7 @@ napi_value mouse(napi_env env, napi_callback_info info)
     }
     else if (valuetype0 == napi_string)
     {
-        string lpParameters0 = call_String_NAPI_WINAPI_A(env, args[1]);
+        string lpParameters0 = hmc_napi_get_value::string_ansi(env, args[1]);
         if (lpParameters0 == "MOUSEEVENTF_ABSOLUTE")
             Set_event = MOUSEEVENTF_ABSOLUTE;
         else if (lpParameters0 == "MOUSEEVENTF_LEFTDOWN")
@@ -438,7 +438,7 @@ napi_value sendKeyboard(napi_env env, napi_callback_info info)
     size_t argc = M_Size;
     napi_value argv[M_Size];
     status = $napi_get_cb_info(argc, argv);
-    napi_value results = _create_bool_Boolean(env, false);
+    napi_value results = as_Boolean( false);
 
     // argv ...
     int32_t keyCode;
@@ -462,7 +462,7 @@ napi_value sendKeyboard(napi_env env, napi_callback_info info)
         break;
     }
 
-    results = _create_bool_Boolean(env, util_sendKeyboardSingle(keyCode, keyDown));
+    results = as_Boolean( util_sendKeyboardSingle(keyCode, keyDown));
 
     return results;
 }
@@ -579,7 +579,7 @@ napi_value sendKeyT2CSync(napi_env env, napi_callback_info info)
         hmc_is_argc_size(argc, 1, NULL);
         break;
     case 1:
-        send_textA = call_String_NAPI_WINAPI_A(env, argv[0]);
+        send_textA = hmc_napi_get_value::string_ansi(env, argv[0]);
         hmc_is_argv_type(argv, 0, NULL, napi_string, NULL);
         break;
     }
@@ -604,7 +604,7 @@ napi_value sendKeyT2C(napi_env env, napi_callback_info info)
         hmc_is_argc_size(argc, 1, NULL);
         break;
     case 1:
-        send_textA = call_String_NAPI_WINAPI_A(env, argv[0]);
+        send_textA = hmc_napi_get_value::string_ansi(env, argv[0]);
         hmc_is_argv_type(argv, 0, NULL, napi_string, NULL);
         break;
     }
@@ -624,7 +624,7 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     hmc_is_argc_size(argc, 5, NULL);
     hmc_is_argv_type(argv, 0, 4, napi_boolean, NULL);
     hmc_is_argv_type(argv, 4, NULL, napi_number, NULL);
-    napi_value results = _create_bool_Boolean(env, false);
+    napi_value results = as_Boolean( false);
     bool ctrlKey, shiftKey, altKey, winKey;
     int keyCode;
     // sendBasicKeys(ctrlKey, shiftKey, altKey, winKey , keyCode);
@@ -823,7 +823,7 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
     }
     }
 
-    results = _create_bool_Boolean(env, true);
+    results = as_Boolean( true);
     return results;
 }
 

@@ -55,6 +55,8 @@ using namespace std;
 #define as_Bigint(data)hmc_napi_create_value::Bigint(env,(long long)data)
 #define as_Numberf(data)hmc_napi_create_value::Number(env,(double)data)
 #define as_Buffer(data)hmc_napi_create_value::Buffer(env,data)
+#define as_StringA(data)hmc_napi_create_value::StringA(env,data)
+#define as_Number32(data)hmc_napi_create_value::Number(env,(int)data)
 
 // 导出一个 其他文件的 函数 并设置名称
 #define ___EXPORT_NAPI_REMOTE_FN____PROMISE_SESSION                           \
