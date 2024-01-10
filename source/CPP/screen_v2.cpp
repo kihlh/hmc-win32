@@ -1,78 +1,25 @@
 #include "./Mian.hpp";
+#include "./screen.hpp";
 
-// 截屏的存储为文件
-#include <fstream>
-
-// 小写转换
-#include <algorithm>
+bool hmc_screen::isInside(int x1, int y1, int x2, int y2, int x, int y)
+{
+    if (x > x1 && x < x2 && y > y1 && y < y2)
+        return true;
+    return false;
+}
 
 // 截屏并且将其写入到文件系统
-void CaptureBmpToFile(string filename, int x, int y, int nScopeWidth, int nScopeHeight)
+void hmc_screen::CaptureBmpToFile(string filename, int x, int y, int nScopeWidth, int nScopeHeight)
 {
-    try
-    {
-
-        // 获取屏幕DC
-        HDC hScreenDC = CreateDC(TEXT("DISPLAY"), NULL, NULL, NULL);
-        // 获取屏幕分辨率
-        if (nScopeWidth == 0 || nScopeWidth == NULL)
-        {
-            nScopeWidth = GetDeviceCaps(hScreenDC, HORZRES);
-        }
-        if (nScopeHeight == 0 || nScopeHeight == NULL)
-        {
-            nScopeHeight = GetDeviceCaps(hScreenDC, VERTRES);
-        }
-        // 创建与屏幕DC兼容的内存DC
-        HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
-        // 创建位图对象
-        HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC, nScopeWidth, nScopeHeight);
-        // 将位图选入内存DC中
-        HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitmap);
-        // 将屏幕内容拷贝到内存DC中
-        BitBlt(hMemoryDC, 0, 0, nScopeWidth, nScopeHeight, hScreenDC, 0, 0, SRCCOPY);
-        // 将位图保存为文件
-        PBITMAPINFO pBitmapInfo = (PBITMAPINFO) new char[sizeof(BITMAPINFOHEADER)];
-        memset(pBitmapInfo, 0, sizeof(BITMAPINFOHEADER));
-        pBitmapInfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        pBitmapInfo->bmiHeader.biWidth = nScopeWidth;
-        pBitmapInfo->bmiHeader.biHeight = nScopeHeight;
-        pBitmapInfo->bmiHeader.biPlanes = 1;
-        pBitmapInfo->bmiHeader.biBitCount = 24;
-        pBitmapInfo->bmiHeader.biCompression = BI_RGB;
-        pBitmapInfo->bmiHeader.biSizeImage = nScopeWidth * nScopeHeight * 3;
-        char *pData = NULL;
-        HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, pBitmapInfo->bmiHeader.biSizeImage);
-        pData = (char *)GlobalLock(hGlobal);
-        GetDIBits(hMemoryDC, hBitmap, 0, nScopeHeight, pData, pBitmapInfo, DIB_RGB_COLORS);
-        DWORD dwBytesWritten = 0;
-        BITMAPFILEHEADER bmfHeader;
-        bmfHeader.bfType = 0x4d42;
-        bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + pBitmapInfo->bmiHeader.biSize;
-        bmfHeader.bfSize = bmfHeader.bfOffBits + pBitmapInfo->bmiHeader.biSizeImage;
-
-        HANDLE hFile = CreateFileA(filename.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-        WriteFile(hFile, &bmfHeader, sizeof(bmfHeader), &dwBytesWritten, NULL);
-        WriteFile(hFile, pBitmapInfo, sizeof(BITMAPINFOHEADER), &dwBytesWritten, NULL);
-        WriteFile(hFile, pData, pBitmapInfo->bmiHeader.biSizeImage, &dwBytesWritten, NULL);
-        CloseHandle(hFile);
-
-        GlobalUnlock(hGlobal);
-        GlobalFree(hGlobal);
-        // 释放资源
-        SelectObject(hMemoryDC, hOldBitmap);
-        DeleteObject(hBitmap);
-        DeleteDC(hMemoryDC);
-        DeleteDC(hScreenDC);
-    }
-    catch (const std::exception &e)
-    {
-        // std::cerr << e.what() << '\n';
-    }
+    vector<std::uint8_t> buffer;
+    CaptureBmpToBuff(buffer, x, y, nScopeWidth, nScopeHeight);
+    std::ofstream OutFile(filename);
+    OutFile << buffer.data();
+    OutFile.close();
 }
 
 // 截屏bmp文件 并且返回为缓冲区
-void CaptureBmpToBuff(vector<unsigned char> &buffer, int x, int y, int nScopeWidth, int nScopeHeight)
+void hmc_screen::CaptureBmpToBuff(vector<unsigned char> &buffer, int x, int y, int nScopeWidth, int nScopeHeight)
 {
     try
     {
@@ -129,23 +76,15 @@ void CaptureBmpToBuff(vector<unsigned char> &buffer, int x, int y, int nScopeWid
         DeleteDC(hMemoryDC);
         DeleteDC(hScreenDC);
     }
-    catch (const std::exception &e)
+    catch (...)
     {
     }
 }
 
-struct GetColorInfo
-{
-    int r;
-    int g;
-    int b;
-    string hex;
-};
-
 // 获取屏幕上指定位置的颜色
-GetColorInfo GetColor(int x, int y)
+hmc_screen::chGetColorInfo hmc_screen::GetColor(int x, int y)
 {
-    GetColorInfo _ColorInfo;
+    chGetColorInfo _ColorInfo;
     _ColorInfo.b = 0;
     _ColorInfo.g = 0;
     _ColorInfo.r = 0;
@@ -208,6 +147,35 @@ GetColorInfo GetColor(int x, int y)
     return _ColorInfo;
 }
 
+vector<RECT> hmc_screen::GetDeviceCapsAll()
+{
+    vector<RECT> CrectList;
+    DISPLAY_DEVICE displayDevice;
+    ZeroMemory(&displayDevice, sizeof(displayDevice));
+    displayDevice.cb = sizeof(displayDevice);
+    DEVMODE devMode;
+    ZeroMemory(&devMode, sizeof(devMode));
+    devMode.dmSize = sizeof(devMode);
+
+    for (int i = 0; EnumDisplayDevices(NULL, i, &displayDevice, 0); ++i)
+    {
+        if (EnumDisplaySettings(displayDevice.DeviceName, ENUM_CURRENT_SETTINGS, &devMode))
+        {
+            int left = devMode.dmPosition.x;
+            int top = devMode.dmPosition.y;
+            int right = devMode.dmPosition.x + devMode.dmPelsWidth;
+            int bottom = devMode.dmPosition.y + devMode.dmPelsHeight;
+            RECT rect;
+            rect.bottom = bottom;
+            rect.left = left;
+            rect.top = top;
+            rect.right = right;
+            CrectList.push_back(rect);
+        }
+    }
+    return CrectList;
+}
+
 napi_value captureBmpToFile(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -224,37 +192,9 @@ napi_value captureBmpToFile(napi_env env, napi_callback_info info)
     napi_get_value_int32(env, args[2], &y);
     napi_get_value_int32(env, args[3], &w);
     napi_get_value_int32(env, args[4], &h);
-    CaptureBmpToFile(FilePathA, x, y, w, h);
+    hmc_screen::CaptureBmpToFile(FilePathA, x, y, w, h);
     return NULL;
 }
-
-// napi_value captureBmpToBuff(napi_env env, napi_callback_info info)
-// {
-//     napi_status status;
-//     size_t argc = 4;
-//     napi_value args[4];
-//     status = $napi_get_cb_info(argc, args);
-//     assert(status == napi_ok);
-
-//     hmc_is_argv_type(args, 0, 4, napi_number, NULL);
-//     int x, y, w, h;
-//     napi_get_value_int32(env, args[0], &x);
-//     napi_get_value_int32(env, args[1], &y);
-//     napi_get_value_int32(env, args[2], &w);
-//     napi_get_value_int32(env, args[3], &h);
-
-//     vector<unsigned char> buffer;
-//     CaptureBmpToBuff(buffer, x, y, w, h);
-
-//     napi_value result;
-//     napi_value array_buffer_value;
-//     void *array_buffer_data;
-//     napi_status nstatus;
-//     napi_create_arraybuffer(env, buffer.size(), &array_buffer_data, &array_buffer_value);
-//     memcpy(array_buffer_data, buffer.data(), buffer.size());
-//     napi_create_typedarray(env, napi_uint8_array, buffer.size(), array_buffer_value, 0, &result);
-//     return array_buffer_value;
-// }
 
 napi_value getColor(napi_env env, napi_callback_info info)
 {
@@ -269,7 +209,7 @@ napi_value getColor(napi_env env, napi_callback_info info)
     napi_get_value_int32(env, args[0], &x);
     napi_get_value_int32(env, args[1], &y);
 
-    GetColorInfo InfoColor = GetColor(x, y);
+    hmc_screen::chGetColorInfo InfoColor = hmc_screen::GetColor(x, y);
     napi_value _getColor;
     napi_create_object(env, &_getColor);
     napi_set_property(env, _getColor, as_String("r"), as_Number32(InfoColor.r));

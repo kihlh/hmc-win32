@@ -114,9 +114,6 @@
     <ClCompile Include="..\process.cpp">
       <Filter>..</Filter>
     </ClCompile>
-    <ClCompile Include="..\screen.cpp">
-      <Filter>..</Filter>
-    </ClCompile>
     <ClCompile Include="..\util\hmc_string_util.cpp">
       <Filter>..\util</Filter>
     </ClCompile>
@@ -146,6 +143,9 @@
     </ClCompile>
     <ClCompile Include="..\util\byte.cpp">
       <Filter>..\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\screen_v2.cpp">
+      <Filter>..</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

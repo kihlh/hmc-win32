@@ -19,7 +19,7 @@
             "auto.cpp",
             "windows.cpp",
             "process.cpp",
-            "screen.cpp",
+            "screen_v2.cpp",
             "util/fn_process.cpp",
             "util/fn_environment.cpp",
             "util/hmc_mouse.cpp",

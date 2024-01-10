@@ -263,6 +263,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\registr_v2.cpp" />
+    <ClCompile Include="..\screen_v2.cpp" />
     <ClCompile Include="..\shell_v2.cpp" />
     <ClCompile Include="..\util\byte.cpp" />
     <ClCompile Include="..\util\hmc_mouse.cpp" />
@@ -293,9 +294,6 @@
     </ClCompile>
     <ClCompile Include="..\process.cpp">
       <ObjectFileName>$(IntDir)\process.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\screen.cpp">
-      <ObjectFileName>$(IntDir)\screen.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\util\hmc_string_util.cpp">
       <ObjectFileName>$(IntDir)\util\hmc_string_util.obj</ObjectFileName>

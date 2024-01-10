@@ -9,7 +9,7 @@
 
 namespace hmc_screen
 {
-     struct chGetColorInfo
+    struct chGetColorInfo
     {
         int r;
         int g;
@@ -33,66 +33,11 @@ namespace hmc_screen
     // 截屏并且将其写入到文件系统
     void CaptureBmpToFile(string filename, int x, int y, int nScopeWidth, int nScopeHeight)
     {
-        try
-        {
-
-            // 获取屏幕DC
-            HDC hScreenDC = CreateDC(TEXT("DISPLAY"), NULL, NULL, NULL);
-            // 获取屏幕分辨率
-            if (nScopeWidth == 0 || nScopeWidth == NULL)
-            {
-                nScopeWidth = GetDeviceCaps(hScreenDC, HORZRES);
-            }
-            if (nScopeHeight == 0 || nScopeHeight == NULL)
-            {
-                nScopeHeight = GetDeviceCaps(hScreenDC, VERTRES);
-            }
-            // 创建与屏幕DC兼容的内存DC
-            HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
-            // 创建位图对象
-            HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC, nScopeWidth, nScopeHeight);
-            // 将位图选入内存DC中
-            HBITMAP hOldBitmap = (HBITMAP)SelectObject(hMemoryDC, hBitmap);
-            // 将屏幕内容拷贝到内存DC中
-            BitBlt(hMemoryDC, 0, 0, nScopeWidth, nScopeHeight, hScreenDC, 0, 0, SRCCOPY);
-            // 将位图保存为文件
-            PBITMAPINFO pBitmapInfo = (PBITMAPINFO) new char[sizeof(BITMAPINFOHEADER)];
-            memset(pBitmapInfo, 0, sizeof(BITMAPINFOHEADER));
-            pBitmapInfo->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-            pBitmapInfo->bmiHeader.biWidth = nScopeWidth;
-            pBitmapInfo->bmiHeader.biHeight = nScopeHeight;
-            pBitmapInfo->bmiHeader.biPlanes = 1;
-            pBitmapInfo->bmiHeader.biBitCount = 24;
-            pBitmapInfo->bmiHeader.biCompression = BI_RGB;
-            pBitmapInfo->bmiHeader.biSizeImage = nScopeWidth * nScopeHeight * 3;
-            char *pData = NULL;
-            HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, pBitmapInfo->bmiHeader.biSizeImage);
-            pData = (char *)GlobalLock(hGlobal);
-            GetDIBits(hMemoryDC, hBitmap, 0, nScopeHeight, pData, pBitmapInfo, DIB_RGB_COLORS);
-            DWORD dwBytesWritten = 0;
-            BITMAPFILEHEADER bmfHeader;
-            bmfHeader.bfType = 0x4d42;
-            bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + pBitmapInfo->bmiHeader.biSize;
-            bmfHeader.bfSize = bmfHeader.bfOffBits + pBitmapInfo->bmiHeader.biSizeImage;
-
-            HANDLE hFile = CreateFileA(filename.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-            WriteFile(hFile, &bmfHeader, sizeof(bmfHeader), &dwBytesWritten, NULL);
-            WriteFile(hFile, pBitmapInfo, sizeof(BITMAPINFOHEADER), &dwBytesWritten, NULL);
-            WriteFile(hFile, pData, pBitmapInfo->bmiHeader.biSizeImage, &dwBytesWritten, NULL);
-            CloseHandle(hFile);
-
-            GlobalUnlock(hGlobal);
-            GlobalFree(hGlobal);
-            // 释放资源
-            SelectObject(hMemoryDC, hOldBitmap);
-            DeleteObject(hBitmap);
-            DeleteDC(hMemoryDC);
-            DeleteDC(hScreenDC);
-        }
-        catch (const std::exception &e)
-        {
-            // std::cerr << e.what() << '\n';
-        }
+        vector<std::uint8_t> buffer;
+        CaptureBmpToBuff(buffer, x, y, nScopeWidth, nScopeHeight);
+        std::ofstream OutFile(filename);
+        OutFile << buffer.data();
+        OutFile.close();
     }
 
     // 截屏bmp文件 并且返回为缓冲区
@@ -158,7 +103,6 @@ namespace hmc_screen
         }
     }
 
-   
     // 获取屏幕上指定位置的颜色
     chGetColorInfo GetColor(int x, int y)
     {
@@ -255,6 +199,5 @@ namespace hmc_screen
     }
 
 }
-
 
 #endif
