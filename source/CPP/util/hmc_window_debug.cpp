@@ -57,13 +57,19 @@ void console_eqok() {
 
 	//?ok
 	cout << "isChildWindow-> " << hmc_windows_util::isChildWindow(hwnd, (HWND)4066462) << endl;
+
+	//?ok
+	hmc_windows_util::setWindowInTaskbarVisible(hwnd, false);
+
 }
 
 int main()
 {
-	HWND hwnd = (HWND)724558;
+	HWND hwnd = (HWND)68280;
 
-	hmc_windows_util::setWindowIcon(hwnd, "F:\\Root\\APortable\\VSCode-win32-x64\\data\\extensions\\qcqx.cec-ide-0.3.0\\resource\\images\\CEC-IDE.ico" , 0);
+	hmc_windows_util::setWindowIcon(hwnd, L"F:\\Root\\APortable\\SetContextMenu.exe",std::nullopt, std::nullopt);
+
+	UpdateWindow(hwnd);
 
 
 }

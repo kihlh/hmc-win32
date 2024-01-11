@@ -14,6 +14,7 @@
 #include <ShlObj.h>
 #include <vector>
 #include <shared_mutex>
+#include <optional>
 
 #define HMC_VirtualAlloc(Type, leng) (Type)::VirtualAlloc((LPVOID)NULL, (DWORD)(leng), MEM_COMMIT, PAGE_READWRITE);
 #define HMC_VirtualFree(Virtua)                \
@@ -44,11 +45,36 @@
         return ::GetLastError();   \
     }
 
+#define HMC_PUSH_WSRES(WS)    \
+    if (style & WS)           \
+    {                         \
+        result.push_back(WS); \
+    }
+
+#define HMC_CASE_PUSH_WSRES(WS) \
+    case WS:                    \
+        result.append(##WS);    \
+        break;
+
+#define HMC_PUSH_WSRES_STR(WS)                                       \
+    if (style & WS)                                                  \
+    {                                                                \
+        result.push_back(hmc_windows_util::winwowLongClass2str(WS)); \
+    }
+
+#define HMC_PUSH_WSRES_STR_EX(WS)                                      \
+    if (style & WS)                                                    \
+    {                                                                  \
+        result.push_back(hmc_windows_util::winwowLongClass2strEx(WS)); \
+    }
+
+#define HMC_IS_INSIDE(x1, y1, x2, y2, x, y) ((x > x1 && x < x2 && y > y1 && y < y2) ? true : false)
+
 namespace hmc_windows_util
 {
     extern std::vector<HWND> _$_getSubWindows_temp;
     extern std::shared_mutex _$_getSubWindows_shared_mutex;
-    
+
     /**
      * @brief 获取控件文本 同进程
      *
@@ -284,15 +310,227 @@ namespace hmc_windows_util
      * @return false
      */
     extern bool isDesktopWindow(HWND hwnd);
-
     /**
      * @brief 设置窗口的图标
      *
-     * @param hWnd 句柄
-     * @param hIcon 图标 如果没有从exe提取默认
+     * @param hWnd 窗口句柄
+     * @param ExtractFilePath 可执行文件 / dll /ico 路径
+     * @param index 图标索引
+     * @param set_type 设置类型
+     * - 1 Titlebar icon: 16x16
+     * - 2 Taskbar icon:  32x32
+     * - 0/nullopt all icon
      */
-    extern void setWindowIcon(HWND hWnd, HICON hIcon = NULL, int index = 0);
-    extern void setWindowIcon(HWND hWnd, std::string iconPath, int index = 0);
+    extern void setWindowIcon(HWND hWnd, std::optional<std::wstring> ExtractFilePath, std::optional<int> index, std::optional<int> set_type);
+    /**
+     * @brief 移动窗口位置
+     *
+     * @param hwnd 窗口句柄
+     * @param x 左边到右的距离
+     * @param y 顶到底部的距离
+     * @param w 宽度
+     * @param h 高度
+     * @return true
+     * @return false
+     */
+    extern std::variant<bool, DWORD> setMoveWindow(HWND hwnd, std::optional<int> x, std::optional<int> y, std::optional<int> w, std::optional<int> h);
+    /**
+     * @brief 让这个窗口不可见(不可触) 但是他是活动状态的 （本人用来挂机小游戏）
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool setNotVisibleWindow(HWND hwnd);
+    /**
+     * @brief 判断窗口是否最大化
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool isMaximize(HWND hwnd);
+    /**
+     * @brief 判断窗口是否最小化
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool isMinimized(HWND hwnd);
+    /**
+     * @brief 判断窗口是否全屏中
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool isFullScreen(HWND hwnd);
+    /**
+     * @brief  窗口是否处于正常状态（未最大化、未最小化、未处于全屏模式）
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool isNormal(HWND hwnd);
+    /**
+     * @brief 设置窗口到屏幕中间
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern std::variant<bool, DWORD> setWindowCenter(HWND hwnd);
+    /**
+     * @brief 获取当前激活的窗口
+     *
+     * @return HWND
+     */
+    extern HWND getFocusWindow();
+    /**
+     * @brief 窗口是否获得焦点
+     *
+     * @param hwnd
+     * @return true
+     * @return false
+     */
+    extern bool isFocused(HWND hwnd);
+    /**
+     * @brief 获取窗口的类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    extern std::vector<LONG> getWinwowClassList(HWND hwnd);
+    /**
+     * @brief 获取窗口的扩展类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    extern std::vector<LONG> getWinwowClassListEx(HWND hwnd);
+
+    // 窗口扩展类(LongClass)值转文本 GWL_STYLE
+    extern std::string winwowLongClass2str(LONG classLong);
+
+    // 窗口扩展类(LongClassEx)值转文本 GWL_EXSTYLE
+    extern std::string winwowLongClass2strEx(LONG classLong);
+
+    /**
+     * @brief 获取窗口的扩展类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    extern std::vector<std::string> getWinwowClassLongNameList(HWND hwnd);
+    /**
+     * @brief 获取窗口的扩展类
+     *
+     * @param hwnd
+     * @return vector<>
+     */
+    extern std::vector<std::string> getWinwowClassLongNameListEx(HWND hwnd);
+
+    struct chWindowHwndStatus
+    {
+        // 当前句柄枚举的子集句柄
+        std::vector<HWND> sub;
+        // 父窗口 按照规范  主窗口的父级 有可能会是桌面  如果需要截断请看 root 句柄
+        HWND parent;
+        // 当前输入的句柄
+        HWND hwnd;
+        // top win 排除桌面
+        HWND root;
+        // 所有窗口(仅限可见窗口)
+        std::vector<HWND> window;
+        // 所有窗口 包含组件句柄
+        std::vector<HWND> allWindow;
+        // 下个窗口
+        HWND next;
+        // 上个窗口
+        HWND prev;
+        // 末尾窗口
+        HWND end;
+        // 进程id
+        DWORD pid;
+        // 主进程id
+        DWORD ppid;
+        // 判断窗口是否是窗口而不是组件
+        bool exists;
+    };
+
+    // ! 逻辑复杂 暂时未写
+    /**
+     * 
+     * @brief 获取窗口基础信息并且深挖他所属的进程的所有句柄
+     *
+     * @param hwnd
+     * @return chWindowStatus
+     */
+    extern chWindowHwndStatus getWindowHwndStatus(HWND hwnd);
+    /**
+     * @brief 矩形与坐标相交
+     *
+     * @param rect 矩形位置
+     * @param x 坐标 x
+     * @param y 坐标 y
+     * @return true
+     * @return false
+     */
+    extern bool isInside(RECT rect, long x, long y);
+    /**
+     * @brief 矩形与坐标相交
+     *
+     * @param x1 矩形x起点
+     * @param y1 矩形y起点
+     * @param x2 矩形x终点
+     * @param y2 矩形y终点
+     * @param x 坐标 x
+     * @param y 坐标 y
+     * @return true
+     * @return false
+     */
+    extern bool isInside(long x1, long y1, long x2, long y2, long x, long y);
+    /**
+     * @brief 矩形与坐标相交
+     *
+     * @param x1 矩形x起点
+     * @param y1 矩形y起点
+     * @param x2 矩形x终点
+     * @param y2 矩形y终点
+     * @param point 坐标
+     * @return true
+     * @return false
+     */
+    extern bool isInside(long x1, long y1, long x2, long y2, POINT point);
+    /**
+     * @brief 矩形与坐标相交
+     *
+     * @param rect 矩形位置
+     * @param point 坐标
+     * @return true
+     * @return false
+     */
+    extern bool isInside(RECT rect, POINT point);
+    /**
+     * @brief 获取所有屏幕的坐标
+     *
+     * @return std::vector<RECT>
+     */
+    extern std::variant<std::vector<RECT>, DWORD> getDeviceCapsAll();
+    /**
+     * @brief 获取句柄所在的屏幕位置
+     *
+     * @return RECT
+     */
+    extern std::variant<RECT, DWORD> getWinwowPointDeviceCaps(HWND hwnd);
+    /**
+     * @brief 获取窗口所在坐标
+     * 
+     * @return std::variant<RECT, DWORD> 
+     */
+    extern std::variant<RECT, DWORD> getWindowRect(HWND hwnd);
 }
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_WINDOWS_V2_HPP
