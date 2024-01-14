@@ -8,6 +8,8 @@
           "sources": [
             "util/napi_value_util.cpp",
             "util/hmc_string_util.cpp",
+            "util/hmc_registr_util.cpp",
+            # "util/hmc_windows_util.cpp",
             "util/byte.cpp",
             "Main.cpp",
             "shell_v2.cpp",

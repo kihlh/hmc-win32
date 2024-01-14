@@ -1,5 +1,5 @@
 #include "./Mian.hpp";
-#include "./screen.hpp";
+#include "./screen_v2.hpp";
 
 bool hmc_screen::isInside(int x1, int y1, int x2, int y2, int x, int y)
 {

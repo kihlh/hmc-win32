@@ -16,6 +16,12 @@
 #include <shared_mutex>
 #include <optional>
 
+namespace hmc_windows_util
+{
+
+    namespace hmc_define_util
+    {
+
 #define HMC_VirtualAlloc(Type, leng) (Type)::VirtualAlloc((LPVOID)NULL, (DWORD)(leng), MEM_COMMIT, PAGE_READWRITE);
 #define HMC_VirtualFree(Virtua)                \
     if (Virtua != NULL)                        \
@@ -70,8 +76,13 @@
 
 #define HMC_IS_INSIDE(x1, y1, x2, y2, x, y) ((x > x1 && x < x2 && y > y1 && y < y2) ? true : false)
 
-namespace hmc_windows_util
-{
+#define HMC_ALL_CATCH_NONE \
+    catch (...) {}
+
+#define None std::nullopt
+
+    }
+
     extern std::vector<HWND> _$_getSubWindows_temp;
     extern std::shared_mutex _$_getSubWindows_shared_mutex;
 
@@ -111,7 +122,7 @@ namespace hmc_windows_util
      * @param is_Windows 要求必须是窗口句柄
      * @return std::variant<std::vector<HWND>, DWORD>
      */
-    extern std::variant<std::vector<HWND>, DWORD> getAllWindows(bool is_Windows);
+    extern std::variant<std::vector<HWND>, DWORD> getAllWindows(bool is_Windows = true);
     /**
      * @brief 判断窗口是否有效 (不能是控件句柄)
      *
@@ -294,15 +305,6 @@ namespace hmc_windows_util
      */
     extern bool closeWindow(HWND hwnd, bool destroy = false);
     /**
-     * @brief 设置窗口图标
-     *
-     * @param hwnd
-     * @param iconStr
-     * @return true
-     * @return false
-     */
-    extern bool setWindowFileIcon(HWND hwnd, std::string iconStr, bool titleIcon = true, bool Icon = true);
-    /**
      * @brief 判断此窗口是否是桌面
      *
      * @param hwnd
@@ -311,17 +313,29 @@ namespace hmc_windows_util
      */
     extern bool isDesktopWindow(HWND hwnd);
     /**
-     * @brief 设置窗口的图标
+     * @brief 设置窗口的图标 可执行文件中的ico
      *
      * @param hWnd 窗口句柄
-     * @param ExtractFilePath 可执行文件 / dll /ico 路径
+     * @param ExtractFilePath 可执行文件 / dll 路径
      * @param index 图标索引
      * @param set_type 设置类型
      * - 1 Titlebar icon: 16x16
      * - 2 Taskbar icon:  32x32
      * - 0/nullopt all icon
      */
-    extern void setWindowIcon(HWND hWnd, std::optional<std::wstring> ExtractFilePath, std::optional<int> index, std::optional<int> set_type);
+    extern void setWindowIconByExtract(HWND hWnd, std::optional<std::wstring> ExtractFilePath = std::nullopt, std::optional<int> index = std::nullopt, std::optional<int> set_type = std::nullopt);
+    /**
+     * @brief 设置窗口的图标 可执行文件中的ico
+     *
+     * @param hWnd 窗口句柄
+     * @param ExtractFilePath ico 路径
+     * @param index 图标索引
+     * @param set_type 设置类型
+     * - 1 Titlebar icon: 16x16
+     * - 2 Taskbar icon:  32x32
+     * - 0/nullopt all icon
+     */
+    extern void setWindowIconByIco(HWND hWnd, std::optional<std::wstring> IcoFilePath = std::nullopt, std::optional<int> index = std::nullopt, std::optional<int> set_type = std::nullopt);
     /**
      * @brief 移动窗口位置
      *
@@ -333,7 +347,7 @@ namespace hmc_windows_util
      * @return true
      * @return false
      */
-    extern std::variant<bool, DWORD> setMoveWindow(HWND hwnd, std::optional<int> x, std::optional<int> y, std::optional<int> w, std::optional<int> h);
+    extern std::variant<bool, DWORD> setMoveWindow(HWND hwnd, std::optional<int> x = std::nullopt, std::optional<int> y = std::nullopt, std::optional<int> w = std::nullopt, std::optional<int> h = std::nullopt);
     /**
      * @brief 让这个窗口不可见(不可触) 但是他是活动状态的 （本人用来挂机小游戏）
      *
@@ -411,10 +425,20 @@ namespace hmc_windows_util
      */
     extern std::vector<LONG> getWinwowClassListEx(HWND hwnd);
 
-    // 窗口扩展类(LongClass)值转文本 GWL_STYLE
+    /**
+     * @brief 窗口扩展类(LongClass)值转文本 GWL_STYLE
+     *
+     * @param classLong
+     * @return std::string
+     */
     extern std::string winwowLongClass2str(LONG classLong);
 
-    // 窗口扩展类(LongClassEx)值转文本 GWL_EXSTYLE
+    /**
+     * @brief 窗口扩展类(LongClassEx)值转文本 GWL_EXSTYLE
+     *
+     * @param classLong
+     * @return std::string
+     */
     extern std::string winwowLongClass2strEx(LONG classLong);
 
     /**
@@ -436,16 +460,12 @@ namespace hmc_windows_util
     {
         // 当前句柄枚举的子集句柄
         std::vector<HWND> sub;
-        // 父窗口 按照规范  主窗口的父级 有可能会是桌面  如果需要截断请看 root 句柄
+        // 父窗口
         HWND parent;
         // 当前输入的句柄
         HWND hwnd;
         // top win 排除桌面
         HWND root;
-        // 所有窗口(仅限可见窗口)
-        std::vector<HWND> window;
-        // 所有窗口 包含组件句柄
-        std::vector<HWND> allWindow;
         // 下个窗口
         HWND next;
         // 上个窗口
@@ -454,21 +474,45 @@ namespace hmc_windows_util
         HWND end;
         // 进程id
         DWORD pid;
-        // 主进程id
-        DWORD ppid;
+        // 线程id
+        DWORD threadId;
+        // 所有者窗口
+        HWND owner;
+        // 首个子窗口
+        HWND firstChild;
+        // 首个兄弟窗口
+        HWND firstBrother;
+        // 兄弟尾窗口
+        HWND lastSibling;
         // 判断窗口是否是窗口而不是组件
         bool exists;
+        // 默认构造函数
+        chWindowHwndStatus() { 
+            parent = nullptr;
+            hwnd = nullptr;
+            root = nullptr;
+            next = nullptr;
+            prev = nullptr;
+            end = nullptr;
+            owner = nullptr;
+            firstChild = nullptr;
+            firstBrother = nullptr;
+            lastSibling = nullptr;
+            pid = 0;
+            exists = false;
+            sub = {};
+        }
     };
 
     // ! 逻辑复杂 暂时未写
     /**
-     * 
+     *
      * @brief 获取窗口基础信息并且深挖他所属的进程的所有句柄
      *
      * @param hwnd
      * @return chWindowStatus
      */
-    extern chWindowHwndStatus getWindowHwndStatus(HWND hwnd);
+    extern std::variant<chWindowHwndStatus, DWORD> getWindowHwndStatus(HWND hwnd);
     /**
      * @brief 矩形与坐标相交
      *
@@ -527,10 +571,121 @@ namespace hmc_windows_util
     extern std::variant<RECT, DWORD> getWinwowPointDeviceCaps(HWND hwnd);
     /**
      * @brief 获取窗口所在坐标
-     * 
-     * @return std::variant<RECT, DWORD> 
+     *
+     * @return std::variant<RECT, DWORD>
      */
     extern std::variant<RECT, DWORD> getWindowRect(HWND hwnd);
+    /**
+     * @brief 获取鼠标所在窗口的进程id
+     *
+     * @param hwnd
+     * @return DWORD
+     */
+    extern DWORD getPointWindowProcessId(HWND hwnd);
+    /**
+     * @brief 获取鼠标所在窗口的线程id
+     *
+     * @param hwnd
+     * @return DWORD
+     */
+    extern DWORD getPointWindowThreadId(HWND hwnd);
+    /**
+     * @brief 获取鼠标所在的屏幕的位置信息
+     *
+     * @return RECT
+     */
+    extern RECT getCurrentMonitorRect();
+    /**
+     * @brief 判断句柄的窗口是否在鼠标所在的窗口
+     *
+     * @param isVisible 是否要求必须可见(没被遮挡)
+     * @return true
+     * @return false
+     */
+    extern bool isMouseMonitorWindow(std::optional<bool> isVisible = std::nullopt);
+    /**
+     * @brief
+     * @param hWndParent 父窗口
+     * @param hWndChildAfter 下級窗口
+     * @param className 类名
+     * @param titleName 标题
+     * @return true
+     * @return false
+     */
+    extern bool findWindowEx(HWND hWndParent, HWND hWndChildAfter, std::optional<std::wstring> className = std::nullopt, std::optional<std::wstring> titleName = std::nullopt);
+    /**
+     * @brief 通过标题或类名搜索所有窗口句柄 (所有)
+     *
+     * @param className 类名
+     * @param titleName 标题
+     * @param isWindow 是否要求为窗口(忽略子组件) 默认 true
+     * @param isCaseSensitive 忽略区分大小写 默认 true
+     * @return true
+     * @return false
+     */
+    extern bool findWindowAll(std::optional<std::wstring> className, std::optional<std::wstring> titleName = std::nullopt, bool isWindow = true, bool isCaseSensitive = true);
+    /**
+     * @brief 通过标题或类名搜索所有窗口句柄
+     *
+     * @param className 类名
+     * @param titleName 标题
+     * @return HWND
+     */
+    extern HWND findWindow(std::optional<std::wstring> className = std::nullopt, std::optional<std::wstring> titleName = std::nullopt);
+    /**
+     * @brief 扩展值多到离谱的功能
+     *
+     * @param nIndex
+     * @return long long
+     */
+    extern long long getSystemMetrics(int nIndex);
+    /**
+     * @brief 标题栏的尺寸、状态和样式等信息
+     *
+     * @param hWnd
+     * @return std::variant<TITLEBARINFO, DWORD>
+     */
+    extern std::variant<TITLEBARINFO, DWORD> getTitleBarInfo(HWND hWnd);
+
+    /**
+     * @brief 设置窗口类名称
+     *
+     * @param hWnd 句柄
+     * @param className 类名称
+     * @return std::variant<bool, DWORD>
+     */
+    extern std::variant<bool, DWORD> setWindowClassName(HWND hWnd, std::optional<std::wstring> className = std::nullopt);
+
+    /**
+     * @brief 设置窗口风格扩展值
+     *
+     * @param hWnd 句柄
+     * @param nIndex 偏移量
+     * @param dwNewLong 替换值
+     * @param type 设置方式
+     * - 0 添加 默认
+     * - 1 移除
+     * - 3 替换
+     * @return std::variant<bool, DWORD>
+     */
+    extern std::variant<bool, DWORD> setWindowStyleLong(HWND hWnd, int nIndex, long dwNewLong, std::optional<DWORD> type = std::nullopt);
+
+    /**
+     * @brief 检索有关指定窗口的信息。
+     *
+     * @param hWnd
+     * @return std::variant<bool, DWORD>
+     */
+    extern std::variant<PWINDOWINFO, DWORD> getWindowInfo(HWND hWnd);
+
+    /**
+     * @brief 更改子窗口、弹出窗口或顶级窗口的大小、位置和 Z 顺序。 这些窗口根据其在屏幕上的外观进行排序。 最上面的窗口接收最高排名，是 Z 顺序中的第一个窗口。
+     *
+     * @return true
+     * @return false
+     */
+    extern bool setWindowPos(HWND hWnd, HWND hWndInsertAfter, std::optional<int> X = std::nullopt, std::optional<int> Y = std::nullopt, std::optional<int> cx = std::nullopt, std::optional<int> cy = std::nullopt, std::optional<UINT> uFlags = std::nullopt);
+
 }
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_WINDOWS_V2_HPP

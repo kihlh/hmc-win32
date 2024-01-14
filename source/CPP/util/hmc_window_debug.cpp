@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include "hmc_string_util.hpp"
 #include "hmc_windows_util.hpp"
-#include "console_wide.hpp"
+#include "./console_wide.hpp"
 
 
 using namespace std;
@@ -50,7 +50,7 @@ void console_eqok() {
 	cout << "isWindowTop-> " << hmc_windows_util::isWindowTop(hwnd) << endl;
 
 	//?ok
-	cout << "getPointWindow-> " << (long)hmc_windows_util::getPointWindow() << endl;
+	cout << "getPointWindow-> " << (long long)hmc_windows_util::getPointWindow() << endl;
 
 	//?ok
 	console_log(L"getSubWindows-> ", hmc_windows_util::getSubWindows(hwnd));
@@ -61,15 +61,42 @@ void console_eqok() {
 	//?ok
 	hmc_windows_util::setWindowInTaskbarVisible(hwnd, false);
 
+	//?ok
+	hmc_windows_util::setWindowIconByExtract(hwnd, L"F:\\Root\\APortable\\SetContextMenu.exe", None, None);
+
+	//?ok
+	hmc_windows_util::setWindowIconByExtract(hwnd, L"F:\\MagicPockets\\resources\\app\\lib\\src\\icon1.ico", None, None);
+
 }
+
 
 int main()
 {
-	HWND hwnd = (HWND)68280;
+	HWND hwnd = (HWND)199304;
+	auto temp_getWindowHwndStatus = hmc_windows_util::getWindowHwndStatus(hwnd);
 
-	hmc_windows_util::setWindowIcon(hwnd, L"F:\\Root\\APortable\\SetContextMenu.exe",std::nullopt, std::nullopt);
+	if (temp_getWindowHwndStatus.index() == 0) {
+		auto data = std::get<hmc_windows_util::chWindowHwndStatus>(temp_getWindowHwndStatus);
+		cout << " [ LOG ] "<<"data->"<< "\n" <<
+			" data.hwnd -> " << (long long)data.hwnd << "\n" <<
+			" data.parent -> " << (long long)data.parent << "\n" <<
+			" data.end -> " << (long long)data.end << "\n" <<
+			" data.root -> " << (long long)data.root << "\n" <<
+			" data.next -> " << (long long)data.next << "\n" <<
+			" data.prev -> " << (long long)data.prev << "\n" <<
+			" data.end -> " << (long long)data.end << "\n" <<
 
-	UpdateWindow(hwnd);
+			" data.owner -> " << (long long)data.owner << "\n" <<
+			" data.firstChild -> " << (long long)data.firstChild << "\n" <<
+			" data.firstBrother -> " << (long long)data.firstBrother << "\n" <<
+			" data.lastSibling -> " << (long long)data.lastSibling << "\n" <<
 
+			" data.pid -> " << (long long)data.pid << "\n" 
+			<< endl;
+	}
+	else {
+		cout << " [ERROR] temp_getWindowHwndStatus-> " << std::get<DWORD>(temp_getWindowHwndStatus) << endl;
+	}
 
+	cout << ""<< endl;
 }

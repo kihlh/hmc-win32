@@ -58,22 +58,21 @@ void InstallKeyboardHook()
         return;
     }
 
-    // 消息处理 并且每次都进行返回
-    MSG tagMSG;
-    while (Keyboard_HOOK_next)
-    {
-        // 如果消息队列中有消息
-        if (PeekMessageA(&tagMSG, NULL, NULL, NULL, PM_REMOVE))
-        {
-            // 按键消息传递给字符消息
-            TranslateMessage(&tagMSG);
 
-            // 消息分发给窗口程序处理
-            DispatchMessageA(&tagMSG);
-        }
-        else
-            Sleep(2); // 避免资源消耗
-    }
+	BOOL bRet;
+	MSG msg;
+
+	// 获取消息循环
+	while ((bRet = GetMessageW(&msg, nullptr, 0, 0)) != 0)
+	{ 
+		if (bRet == -1 || (!Keyboard_HOOK_next || keyboardHook == NULL))
+		{
+			break;
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
     // 移除系统钩子
     UnhookWindowsHookEx(keyboardHook);
     KeyboardRecordList.clear();

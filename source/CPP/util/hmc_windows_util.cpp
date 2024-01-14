@@ -6,6 +6,278 @@ namespace hmc_windows_util
     std::shared_mutex _$_getSubWindows_shared_mutex;
 }
 
+// 这里写需要预设值的函数
+namespace hmc_windows_util
+{
+    void hmc_windows_util::setWindowIconByExtract(HWND hWnd, std::optional<std::wstring> ExtractFilePath, std::optional<int> index, std::optional<int> set_type)
+    {
+        // 我用vsdebug的时候发现打开图标的过程是会导致异常的 而不是可以通过 GetLastError 查询不报错的错误
+        // 例如用户传入的是个exe 但是调用的是 ico文件方法 将会导致非winapi异常
+        try
+        {
+
+            // 没有窗口 查找当前进程的主窗口
+            if (hWnd == NULL)
+            {
+                return;
+            }
+
+            std::wstring filePath = ExtractFilePath.value_or(L"");
+
+            if (filePath.empty())
+            {
+
+                wchar_t *szFilePath = new wchar_t[MAX_PATH + 1];
+                size_t len = ::GetModuleFileNameW(NULL, szFilePath, MAX_PATH + 1);
+                if (len <= 1)
+                {
+                    return;
+                }
+            }
+
+            HINSTANCE hInst = ::LoadLibraryA("Shell32.dll");
+
+            HICON hIcon = NULL;
+
+            if (hInst)
+            {
+                HMC_LibraryFreeAuto(hInst);
+                HICON(WINAPI * ExtractIconW)
+                (HINSTANCE hInst, LPCWSTR pszExeFileName, UINT nIconIndex);
+                ExtractIconW = (HICON(WINAPI *)(HINSTANCE hInst, LPCWSTR pszExeFileName, UINT nIconIndex))GetProcAddress(hInst, "ExtractIconW");
+                hIcon = ExtractIconW(hInst, reinterpret_cast<LPCWSTR>(filePath.c_str()), index.value_or(0));
+            }
+
+            HINSTANCE hIn = ::LoadLibraryA("user32.dll");
+            if (hIn && hIcon != NULL)
+            {
+                HMC_LibraryFreeAuto(hIn);
+                LRESULT(WINAPI * SendMessageW)
+                (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+                SendMessageW = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageW");
+                if (SendMessageW)
+                {
+                    if (set_type.value_or(0) == 0)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+                        SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+
+                    // Titlebar icon: 16x16
+                    if (set_type.value_or(0) == 1)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+
+                    // Taskbar icon:  32x32
+                    if (set_type.value_or(0) == 2)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+                }
+            }
+        }
+        HMC_ALL_CATCH_NONE;
+    }
+
+    bool hmc_windows_util::closeWindow(HWND hwnd, bool destroy)
+    {
+        bool result = false;
+
+        if (hwnd == NULL)
+        {
+            return result;
+        }
+
+        HWND copy_hwnd = (HWND)(long long)hwnd;
+
+        if (!destroy)
+        {
+            result = ::CloseWindow(copy_hwnd);
+        }
+
+        else
+        {
+            result = ::DestroyWindow(copy_hwnd);
+            // 销毁不掉  执行复杂逻辑的销毁流程
+            if (copy_hwnd != NULL && ::IsWindow(copy_hwnd))
+            {
+                ::CloseHandle(hwnd);
+
+                if (copy_hwnd == NULL)
+                {
+                    return result;
+                }
+
+                // 有可能数据会丢失 重新复制一份
+                copy_hwnd = (HWND)(long long)hwnd;
+
+                result = !IsWindow(copy_hwnd);
+
+                if (!result)
+                {
+                    DWORD lpdwThreadId = NULL;
+
+                    // 销毁不掉 销毁窗口所属的线程
+                    ::GetWindowThreadProcessId(copy_hwnd, &lpdwThreadId);
+                    if (lpdwThreadId != NULL)
+                    {
+                        HANDLE threadHandle = ::OpenThread(THREAD_TERMINATE, FALSE, lpdwThreadId);
+                        if (threadHandle != NULL)
+                        {
+                            ::TerminateThread(threadHandle, 0);
+                            ::CloseHandle(threadHandle);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    void hmc_windows_util::setWindowIconByIco(HWND hWnd, std::optional<std::wstring> IcoFilePath, std::optional<int> index, std::optional<int> set_type)
+    {
+        // 我用vsdebug的时候发现打开图标的过程是会导致异常的 而不是可以通过 GetLastError 查询不报错的错误
+        // 例如用户传入的是个ico 但是调用的是 exe文件方法 将会导致非winapi异常
+        try
+        {
+            // 没有窗口 查找当前进程的主窗口
+            if (hWnd == NULL)
+            {
+                return;
+            }
+
+            if (!IcoFilePath.has_value())
+            {
+                return;
+            }
+
+            HINSTANCE hInst = ::LoadLibraryA("Shell32.dll");
+
+            HICON hWindowIcon = NULL;
+            HICON hWindowIconBig = NULL;
+
+            hWindowIcon = (HICON)LoadImageW(GetModuleHandle(NULL), IcoFilePath.value_or(L"").c_str(), IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
+            hWindowIconBig = (HICON)LoadImageW(GetModuleHandle(NULL), IcoFilePath.value_or(L"").c_str(), IMAGE_ICON, 32, 32, LR_LOADFROMFILE);
+
+            std::shared_ptr<void> Icon_Auto_Close_Library(nullptr, [&](void *)
+                                                          { 
+    if (hWindowIcon != NULL)
+        DestroyIcon(hWindowIcon);
+    if (hWindowIconBig != NULL)
+        DestroyIcon(hWindowIconBig); });
+
+            HINSTANCE hIn = ::LoadLibraryA("user32.dll");
+            if (hIn)
+            {
+                HMC_LibraryFreeAuto(hIn);
+                LRESULT(WINAPI * SendMessageW)
+                (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+                SendMessageW = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageW");
+                if (SendMessageW)
+                {
+                    if (set_type.value_or(0) == 0)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+                        SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+
+                    // Titlebar icon: 16x16
+                    if (set_type.value_or(0) == 1)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hWindowIcon);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+
+                    // Taskbar icon:  32x32
+                    if (set_type.value_or(0) == 2)
+                    {
+                        SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hWindowIconBig);
+                        ::UpdateWindow(hWnd);
+                        return;
+                    }
+                }
+            }
+        }
+        HMC_ALL_CATCH_NONE;
+    }
+
+    std::variant<std::vector<HWND>, DWORD> hmc_windows_util::getAllWindows(bool is_Windows)
+    {
+        std::vector<HWND> result = {};
+        // 获取桌面句柄
+        HWND hwnd = ::GetDesktopWindow();
+
+        HMC_EQ_RUN_LAST(hwnd);
+        int counter = 0;
+
+        hwnd = ::GetWindow(hwnd, GW_CHILD);
+        HMC_EQ_RUN_LAST(hwnd);
+
+        while (hwnd != NULL)
+        {
+            if (is_Windows && ::IsWindowVisible(hwnd))
+            {
+                result.push_back(hwnd);
+            }
+            else
+            {
+                result.push_back(hwnd);
+            }
+            hwnd = ::GetNextWindow(hwnd, GW_HWNDNEXT);
+        }
+
+        if (result.empty())
+        {
+            return ::GetLastError();
+        }
+
+        return result;
+    }
+
+    std::variant<bool, DWORD> hmc_windows_util::setMoveWindow(HWND hwnd, std::optional<int> x, std::optional<int> y, std::optional<int> w, std::optional<int> h)
+    {
+
+        if (hwnd == NULL)
+            return false;
+
+        RECT rect = {0, 0, 0, 0};
+        if ((!w.has_value() || !h.has_value()) && !::GetWindowRect(hwnd, &rect))
+        {
+            DWORD Last_Error_Code = ::GetLastError();
+            if (Last_Error_Code != 0)
+            {
+                return Last_Error_Code;
+            }
+        }
+
+        int DeviceCapsWidth = ::GetSystemMetrics(SM_CXSCREEN);
+        int DeviceCapsHeight = ::GetSystemMetrics(SM_CYSCREEN);
+
+        int Env_height = (DeviceCapsHeight - rect.top) - (DeviceCapsHeight - rect.bottom);
+        int Env_width = (DeviceCapsWidth - rect.left) - (DeviceCapsWidth - rect.right);
+
+        int to_x = (x.has_value() ? x.value() : NULL);
+        int to_y = (y.has_value() ? y.value() : NULL);
+        int to_width = w.value_or(0) < 1 ? Env_width : w.value_or(0);
+        int to_height = h.value_or(0) < 1 ? Env_height : h.value_or(0);
+
+        // 重新设置窗口大小
+        return ::MoveWindow(hwnd, to_x, to_y, to_width, to_height, true) ? true : ::GetLastError();
+    }
+
+}
+
 std::variant<std::wstring, DWORD> hmc_windows_util::getWindowTitle(HWND hwnd)
 {
     std::wstring result = std::wstring();
@@ -18,7 +290,7 @@ std::variant<std::wstring, DWORD> hmc_windows_util::getWindowTitle(HWND hwnd)
 
     wchar_t *pszMem = new wchar_t[buff_size + sizeof(wchar_t)];
 
-    size_t leng = ::GetWindowTextW(hwnd, pszMem, buff_size + sizeof(wchar_t) );
+    size_t leng = ::GetWindowTextW(hwnd, pszMem, buff_size + sizeof(wchar_t));
 
     HMC_EQ_RUN_LAST(leng);
 
@@ -74,9 +346,10 @@ std::variant<std::wstring, DWORD> hmc_windows_util::getWindowText(HWND hwnd, int
     size_t leng = ::GetWindowTextLengthW(hwndCombo);
     if (leng > 0)
     {
-        LPWSTR pszMem = HMC_VirtualAlloc(LPWSTR, leng + 1);
+        int temp_len = (int)leng + 1;
+        LPWSTR pszMem = HMC_VirtualAlloc(LPWSTR, temp_len);
         HMC_VirtualFreeAuto(pszMem);
-        leng = ::GetWindowTextW(hwndCombo, pszMem, leng + 1);
+        leng = ::GetWindowTextW(hwndCombo, pszMem, temp_len);
         HMC_EQ_RUN_LAST(leng);
 
         if (leng >= 1 && pszMem != NULL)
@@ -115,9 +388,10 @@ std::variant<std::wstring, DWORD> hmc_windows_util::getWindowText(HWND hwnd, int
         HMC_EQ_RUN_LAST(leng);
         if (leng <= 1)
         {
-            LPWSTR pszMem = HMC_VirtualAlloc(LPWSTR, leng + 1);
+            int temp_len = (int)leng + 1;
+            LPWSTR pszMem = HMC_VirtualAlloc(LPWSTR, temp_len);
             HMC_VirtualFreeAuto(pszMem);
-            leng = _GetWindowTextW(hwndCombo, pszMem, leng + 1);
+            leng = _GetWindowTextW(hwndCombo, pszMem, temp_len);
 
             HMC_EQ_RUN_LAST(leng);
 
@@ -143,39 +417,6 @@ std::variant<bool, DWORD> hmc_windows_util::setWindowTitle(HWND hwnd, std::wstri
         return ::GetLastError();
     }
     return true;
-}
-
-std::variant<std::vector<HWND>, DWORD> hmc_windows_util::getAllWindows(bool is_Windows = true)
-{
-    std::vector<HWND> result = {};
-    // 获取桌面句柄
-    HWND hwnd = ::GetDesktopWindow();
-
-    HMC_EQ_RUN_LAST(hwnd);
-    int counter = 0;
-
-    hwnd = ::GetWindow(hwnd, GW_CHILD);
-    HMC_EQ_RUN_LAST(hwnd);
-
-    while (hwnd != NULL)
-    {
-        if (is_Windows && ::IsWindowVisible(hwnd))
-        {
-            result.push_back(hwnd);
-        }
-        else
-        {
-            result.push_back(hwnd);
-        }
-        hwnd = ::GetNextWindow(hwnd, GW_HWNDNEXT);
-    }
-
-    if (result.empty())
-    {
-        return ::GetLastError();
-    }
-
-    return result;
 }
 
 bool hmc_windows_util::isWindow(HWND hwnd)
@@ -207,35 +448,23 @@ std::variant<std::wstring, DWORD> hmc_windows_util::getClassName(HWND hwnd)
 
 std::variant<std::vector<HWND>, DWORD> hmc_windows_util::getSubWindows(HWND hwnd)
 {
-    std::vector<HWND> result = {};
-    result.clear();
-    hmc_windows_util::_$_getSubWindows_shared_mutex.lock();
+    std::vector<HWND> subWindows;
 
     bool isEnum = ::EnumChildWindows(
         hwnd, [](HWND hWnd, LPARAM lParam) -> BOOL
         {
-            hmc_windows_util::_$_getSubWindows_temp.push_back(hWnd);
-            return TRUE; // 返回 TRUE 以继续枚举下一个子控件
+            auto pSubWindows = reinterpret_cast<std::vector<HWND> *>(lParam);
+            pSubWindows->push_back(hWnd);
+            return TRUE; // 继续枚举下一个子控件
         },
-        0);
+        reinterpret_cast<LPARAM>(&subWindows));
 
     if (!isEnum)
     {
-        hmc_windows_util::_$_getSubWindows_temp.clear();
-        hmc_windows_util::_$_getSubWindows_shared_mutex.unlock();
         return ::GetLastError();
     }
 
-    for (auto &&hWnd : hmc_windows_util::_$_getSubWindows_temp)
-    {
-        result.push_back(hWnd);
-    }
-
-    hmc_windows_util::_$_getSubWindows_temp.clear();
-
-    hmc_windows_util::_$_getSubWindows_shared_mutex.unlock();
-
-    return result;
+    return subWindows;
 }
 
 std::variant<HWND, DWORD> hmc_windows_util::getParentWindow(HWND hwnd)
@@ -495,81 +724,6 @@ bool hmc_windows_util::closedHandle(HWND hwnd)
     return ::CloseHandle(hwnd);
 }
 
-/**
- * @brief 关闭指定窗口
- *
- * @param hwnd
- * @return true
- * @return false
- */
-bool hmc_windows_util::closeWindow(HWND hwnd, bool destroy)
-{
-    bool result = false;
-
-    if (!destroy)
-    {
-        result = ::CloseWindow(hwnd);
-    }
-    else
-    {
-        result = ::DestroyWindow(hwnd);
-        // 销毁不掉  执行复杂逻辑的销毁流程
-        if (hwnd!=NULL&&::IsWindow(hwnd))
-        {
-            ::CloseHandle(hwnd);
-            
-            if (hwnd == NULL) {
-                return result;
-            }
-
-            result = !IsWindow(hwnd);
-            if (!result)
-            {
-                DWORD lpdwThreadId = NULL;
-
-                // 销毁不掉 销毁窗口所属的线程
-                ::GetWindowThreadProcessId(hwnd, &lpdwThreadId);
-                if (lpdwThreadId != NULL)
-                {
-                    HANDLE threadHandle = ::OpenThread(THREAD_TERMINATE, FALSE, lpdwThreadId);
-                    if (threadHandle != NULL)
-                    {
-                        ::TerminateThread(threadHandle, 0);
-                        ::CloseHandle(threadHandle);
-                    }
-                }
-            }
-        }
-    }
-
-    return result;
-}
-
-bool hmc_windows_util::setWindowFileIcon(HWND hwnd, std::string iconStr, bool titleIcon, bool Icon)
-{
-    bool result = false;
-
-    HICON hIcon;
-    hIcon = (HICON)ExtractIconA(NULL, iconStr.c_str(), 0);
-    HINSTANCE hIn = NULL;
-    hIn = ::LoadLibraryA("user32.dll");
-    if (hIn)
-    {
-        LRESULT(WINAPI * SendMessageA)
-        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-        SendMessageA = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageA");
-        if (SendMessageA)
-        {
-            if (titleIcon)
-                SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-            if (Icon)
-                SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-        }
-    }
-
-    return result;
-}
-
 bool hmc_windows_util::isDesktopWindow(HWND hwnd)
 {
 
@@ -603,76 +757,6 @@ bool hmc_windows_util::isDesktopWindow(HWND hwnd)
     }
 
     return false;
-}
-
-void hmc_windows_util::setWindowIcon(HWND hWnd, std::optional<std::wstring> ExtractFilePath = std::nullopt, std::optional<int> index = std::nullopt, std::optional<int> set_type = std::nullopt)
-{
-    // 没有窗口 查找当前进程的主窗口
-    if (hWnd == NULL)
-    {
-        return;
-    }
-
-    std::wstring filePath = ExtractFilePath.value_or(L"");
-
-    if (filePath.empty())
-    {
-
-        wchar_t *szFilePath = new wchar_t[MAX_PATH + 1];
-        size_t len = ::GetModuleFileNameW(NULL, szFilePath, MAX_PATH + 1);
-        if (len <= 1)
-        {
-            return;
-        }
-    }
-
-    HINSTANCE hInst = ::LoadLibraryA("Shell32.dll");
-
-    HICON hIcon = NULL;
-
-    if (hInst)
-    {
-        HMC_LibraryFreeAuto(hInst);
-        HICON(WINAPI * ExtractIconW)
-        (HINSTANCE hInst, LPCWSTR pszExeFileName, UINT nIconIndex);
-        ExtractIconW = (HICON(WINAPI *)(HINSTANCE hInst, LPCWSTR pszExeFileName, UINT nIconIndex))GetProcAddress(hInst, "ExtractIconW");
-        hIcon = ExtractIconW(hInst, reinterpret_cast<LPCWSTR>(filePath.c_str()), index.value_or(0));
-    }
-
-    HINSTANCE hIn = ::LoadLibraryA("user32.dll");
-    if (hIn && hIcon != NULL)
-    {
-        HMC_LibraryFreeAuto(hIn);
-        LRESULT(WINAPI * SendMessageW)
-        (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-        SendMessageW = (LRESULT(WINAPI *)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam))GetProcAddress(hIn, "SendMessageW");
-        if (SendMessageW)
-        {
-            if (set_type.value_or(0) == 0)
-            {
-                SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-                SendMessageW(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-                ::UpdateWindow(hWnd);
-                return;
-            }
-
-            // Titlebar icon: 16x16
-            if (set_type.value_or(0) == 1)
-            {
-                SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-                ::UpdateWindow(hWnd);
-                return;
-            }
-
-            // Titlebar icon: 16x16
-            if (set_type.value_or(0) == 2)
-            {
-                SendMessageW(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-                ::UpdateWindow(hWnd);
-                return;
-            }
-        }
-    }
 }
 
 std::vector<LONG> hmc_windows_util::getWinwowClassList(HWND hwnd)
@@ -1041,7 +1125,7 @@ bool hmc_windows_util::isFullScreen(HWND hwnd)
     bool result = false;
 
     // 获取窗口工作区的大小
-    RECT rect = {0,0,0,0};
+    RECT rect = {0, 0, 0, 0};
     ::GetClientRect(hwnd, &rect);
 
     // 获取屏幕分辨率
@@ -1069,37 +1153,6 @@ HWND hmc_windows_util::getFocusWindow()
 bool hmc_windows_util::isFocused(HWND hwnd)
 {
     return (long long)::GetForegroundWindow() == (long long)hwnd;
-}
-
-std::variant<bool, DWORD> hmc_windows_util::setMoveWindow(HWND hwnd, std::optional<int> x, std::optional<int> y, std::optional<int> w, std::optional<int> h)
-{
-
-    if (hwnd == NULL)
-        return false;
-
-    RECT rect = {0,0,0,0};
-    if ((!w.has_value() || !h.has_value()) && !::GetWindowRect(hwnd, &rect))
-    {
-        DWORD Last_Error_Code = ::GetLastError();
-        if (Last_Error_Code != 0)
-        {
-            return Last_Error_Code;
-        }
-    }
-
-    int DeviceCapsWidth = ::GetSystemMetrics(SM_CXSCREEN);
-    int DeviceCapsHeight = ::GetSystemMetrics(SM_CYSCREEN);
-
-    int Env_height = (DeviceCapsHeight - rect.top) - (DeviceCapsHeight - rect.bottom);
-    int Env_width = (DeviceCapsWidth - rect.left) - (DeviceCapsWidth - rect.right);
-
-    int to_x = (x.has_value() ? x.value() : NULL);
-    int to_y = (y.has_value() ? y.value() : NULL);
-    int to_width = w.value_or(0) < 1 ? Env_width : w.value_or(0);
-    int to_height = h.value_or(0) < 1 ? Env_height : h.value_or(0);
-
-    // 重新设置窗口大小
-    return ::MoveWindow(hwnd, to_x, to_y, to_width, to_height, true) ? true : ::GetLastError();
 }
 
 bool hmc_windows_util::setNotVisibleWindow(HWND hwnd)
@@ -1176,7 +1229,7 @@ std::variant<std::vector<RECT>, DWORD> hmc_windows_util::getDeviceCapsAll()
 
 std::variant<RECT, DWORD> hmc_windows_util::getWinwowPointDeviceCaps(HWND hwnd)
 {
-    RECT lpWindowRect = {0,0,0,0};
+    RECT lpWindowRect = {0, 0, 0, 0};
     if (!GetWindowRect(hwnd, &lpWindowRect))
     {
         return ::GetLastError();
@@ -1245,11 +1298,48 @@ std::variant<bool, DWORD> hmc_windows_util::setWindowCenter(HWND hwnd)
 
 std::variant<RECT, DWORD> hmc_windows_util::getWindowRect(HWND hwnd)
 {
-    RECT lpRect = {0,0,0,0};
+    RECT lpRect = {0, 0, 0, 0};
     if (GetWindowRect(hwnd, &lpRect))
     {
         return lpRect;
     }
 
     return ::GetLastError();
+}
+
+std::variant<hmc_windows_util::chWindowHwndStatus, DWORD> hmc_windows_util::getWindowHwndStatus(HWND hwnd){
+    chWindowHwndStatus status = chWindowHwndStatus();
+    status.hwnd = hwnd;
+    status.exists = ::IsWindow(hwnd);
+    if (!status.exists) {
+        return ::GetLastError();
+    }
+
+    // 获取父窗口
+    status.parent = ::GetParent(hwnd);
+
+    // 获取根窗口
+    status.root = ::GetAncestor(hwnd, GA_ROOT);
+
+    // 获取进程ID
+    DWORD threadId = ::GetWindowThreadProcessId(hwnd, &status.pid);
+    status.threadId = threadId;
+
+    auto temp  = getSubWindows(hwnd);
+    
+    if (temp.index()==0) {
+        status.sub = std::get<std::vector<HWND>>(temp);
+    }
+
+    // 获取相邻窗口
+    status.next = ::GetNextWindow(hwnd, GW_HWNDNEXT);
+    status.prev = ::GetNextWindow(hwnd, GW_HWNDPREV);
+    status.end = ::GetNextWindow(hwnd, GW_HWNDLAST);
+    status.owner = ::GetWindow(hwnd, GW_OWNER);
+    status.firstChild = ::GetWindow(hwnd, GW_CHILD);
+    status.firstBrother = ::GetWindow(hwnd, GW_HWNDFIRST);
+    status.lastSibling = ::GetWindow(hwnd, GW_HWNDLAST);
+
+
+    return status;
 }

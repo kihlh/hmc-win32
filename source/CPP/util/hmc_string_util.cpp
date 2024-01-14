@@ -1092,51 +1092,131 @@ std::wstring hmc_string_util::text_to_lower(std::wstring data)
     return Result;
 }
 
-LPCSTR hmc_string_util::string_to_lpstr(std::string input, size_t &psize)
+LPCSTR hmc_string_util::string_to_lpstr(std::string input, size_t *psize)
 {
 
-    char *output = new char[input.size() + sizeof(char)];
+    std::string copy_input = std::string(input.begin(), input.end());
 
-    for (size_t i = 0; i < input.size(); i++)
+    copy_input.erase(std::remove(copy_input.begin(), copy_input.end(), '\0'),
+                     copy_input.end());
+
+    char *output = new char[copy_input.size() + sizeof(char)];
+
+    for (size_t i = 0; i < copy_input.size(); i++)
     {
-        char data = input[i];
+        char data = copy_input[i];
         output[i] = data;
     }
-    const size_t end = input.size();
+    const size_t end = copy_input.size();
     // 正好是 output-1 的位置
     output[end] = '\0';
-    psize = end;
+    (*psize) = end;
     return output;
 }
 
-LPWSTR hmc_string_util::string_to_lpstr(std::wstring input, size_t &psize)
+LPWSTR hmc_string_util::string_to_lpstr(std::wstring input, size_t *psize)
 {
 
-    wchar_t *output = new wchar_t[input.size() + sizeof(wchar_t)];
+    std::wstring copy_input = std::wstring(input.begin(), input.end());
 
-    for (size_t i = 0; i < input.size(); i++)
+    copy_input.erase(std::remove(copy_input.begin(), copy_input.end(), L'\0'),
+                     copy_input.end());
+
+    wchar_t *output = new wchar_t[copy_input.size() + sizeof(wchar_t)];
+
+    for (size_t i = 0; i < copy_input.size(); i++)
     {
-        wchar_t data = input[i];
+        wchar_t data = copy_input[i];
         output[i] = data;
     }
-    const size_t end = input.size();
+    const size_t end = copy_input.size();
     // 正好是 output-1 的位置
     output[end] = L'\0';
-    psize = end;
+    (*psize) = end;
+    return output;
+}
+
+LPWSTR hmc_string_util::string_to_lpstr(std::vector<std::wstring> input_list, size_t *psize)
+{
+
+    std::wstring copy_input_list;
+
+    const size_t count = input_list.size();
+
+    size_t temp = 0;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        auto it = string_to_lpstr(input_list[i], &temp);
+        copy_input_list.append(it);
+
+        if (copy_input_list.back() != L'\0')
+        {
+            copy_input_list.push_back(L'\0');
+        }
+    }
+
+    copy_input_list.push_back(L'\0');
+
+    size_t len = copy_input_list.size();
+    wchar_t *output = new wchar_t[len];
+
+    for (size_t i = 0; i < len; i++)
+    {
+        output[i] = copy_input_list[i];
+    }
+
+    (*psize) = len;
+
+    return output;
+}
+
+LPCSTR hmc_string_util::string_to_lpstr(std::vector<std::string> input_list, size_t *psize)
+{
+
+    std::string copy_input_list;
+
+    const size_t count = input_list.size();
+
+    size_t temp = 0;
+
+    for (size_t i = 0; i < count; i++)
+    {
+        auto it = string_to_lpstr(input_list[i], &temp);
+        copy_input_list.append(it);
+
+        if (copy_input_list.back() != '\0')
+        {
+            copy_input_list.push_back('\0');
+        }
+    }
+
+    copy_input_list.push_back('\0');
+
+    size_t len = copy_input_list.size();
+    char *output = new char[len];
+
+    for (size_t i = 0; i < len; i++)
+    {
+        output[i] = copy_input_list[i];
+    }
+
+    (*psize) = len;
+
     return output;
 }
 
 LPCSTR hmc_string_util::string_to_lpstr(std::string input)
 {
     size_t psize = 0;
-    return string_to_lpstr(input, psize);
+    return string_to_lpstr(input, &psize);
 }
 
 LPWSTR hmc_string_util::string_to_lpstr(std::wstring input)
 {
 
     size_t psize = 0;
-    return string_to_lpstr(input, psize);
+    return string_to_lpstr(input, &psize);
 }
 
 std::wstring hmc_string_util::lpstr_to_string(LPWSTR input)
@@ -1387,6 +1467,720 @@ std::wstring hmc_string_util::vec_to_array_json(std::vector<std::wstring> item_l
 
     result.append(L"]");
     return result;
+}
+
+namespace hmc_string_util
+{
+
+    bool hmc_string_util::removeMatchCharPtr(std::wstring &input, const wchar_t match_char, hmc_string_util::IGNORE_NULL_CHAR_TYPE ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        bool result = false;
+
+        size_t the_size = input.size();
+
+        if (the_size == 0)
+        {
+            return false;
+        }
+
+        // 全部删除
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+        {
+            input.erase(std::remove(input.begin(), input.end(), match_char),
+                        input.end());
+            return the_size != input.size();
+        }
+
+        // 判断是否全是此字符
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE || ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+            size_t length = input.size();
+            bool is_all_match_char = true;
+
+            for (size_t i = 0; i < length; i++)
+            {
+                wchar_t it = input[i];
+                if (it != match_char)
+                {
+                    is_all_match_char = false;
+                    break;
+                }
+            }
+
+            if (is_all_match_char)
+            {
+                input.clear();
+                return the_size != input.size();
+            }
+        }
+
+        // 只删除开头
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+
+            size_t front_index = 0;
+            size_t length = input.size();
+            for (size_t i = 0; i < length; i++)
+            {
+                wchar_t it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    front_index = i - 1;
+                    break;
+                }
+            }
+
+            if (front_index > 0)
+            {
+                input.erase(0, front_index);
+            }
+
+            return the_size != input.size();
+        }
+
+        // 只删除结尾
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE)
+        {
+
+            size_t length = input.size();
+            size_t end_index = length;
+
+            for (size_t i = length - 1; i >= 0; i--)
+            {
+                wchar_t it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    end_index = i + 1;
+                    break;
+                }
+            }
+
+            if (end_index < length)
+            {
+                input.erase(end_index, length);
+            }
+
+            return the_size != input.size();
+        }
+
+        // 只删除中间 并忽略开头结尾出现的
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::MIDDLE_IGNORE)
+        {
+
+            size_t length = input.size();
+            // 开头结尾 都不等于此字符 删除全部此字符
+            if (input.front() != match_char && input.back() != match_char)
+            {
+                input.erase(std::remove(input.begin(), input.end(), match_char),
+                            input.end());
+                return the_size != input.size();
+            }
+            // 新的开头
+            size_t ready_front_index = 0;
+            // 尾部需要忽略多少个字符
+            size_t ready_end_size = 0;
+
+            // 全部都是 match_char 应当拒绝处理
+            if (input.size() <= ready_end_size + 1)
+            {
+                return the_size != input.size();
+            }
+
+            // 计算出开头
+            if (input.front() == match_char)
+            {
+                for (size_t i = 0; i < length; i++)
+                {
+                    wchar_t it = input[i];
+                    if (it != match_char)
+                    {
+                        ready_front_index = i;
+                        break;
+                    }
+                }
+            }
+
+            // 计算出结尾
+            if (input.front() == match_char)
+            {
+                for (size_t i = length - 1; i >= 0; i--)
+                {
+                    wchar_t it = input[i];
+                    if (it != match_char)
+                    {
+                        break;
+                    }
+                    ready_end_size++;
+                }
+            }
+
+            for (size_t i = ready_front_index; i < input.size(); i++)
+            {
+
+                // 结尾完成
+                if (i + 1 > input.size() - ready_end_size)
+                {
+                    break;
+                }
+
+                if (input[i] == match_char)
+                {
+                    input.erase(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    std::wstring hmc_string_util::removeMatchChar(const std::wstring &Input_, const wchar_t match_char, hmc_string_util::IGNORE_NULL_CHAR_TYPE ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        std::wstring input = std::wstring(Input_.begin(), Input_.end());
+
+        bool result = false;
+
+        size_t the_size = input.size();
+
+        if (the_size == 0)
+        {
+            return input;
+        }
+
+        // 全部删除
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+        {
+            input.erase(std::remove(input.begin(), input.end(), match_char),
+                        input.end());
+            return input;
+        }
+
+        // 判断是否全是此字符
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE || ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+            size_t length = input.size();
+            bool is_all_match_char = true;
+
+            for (size_t i = 0; i < length; i++)
+            {
+                wchar_t it = input[i];
+                if (it != match_char)
+                {
+                    is_all_match_char = false;
+                    break;
+                }
+            }
+
+            if (is_all_match_char)
+            {
+                input.clear();
+                return input;
+            }
+        }
+
+        // 只删除开头
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+
+            size_t front_index = 0;
+            size_t length = input.size();
+            for (size_t i = 0; i < length; i++)
+            {
+                wchar_t it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    front_index = i - 1;
+                    break;
+                }
+            }
+
+            if (front_index > 0)
+            {
+                input.erase(0, front_index);
+            }
+
+            return input;
+        }
+
+        // 只删除结尾
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE)
+        {
+
+            size_t length = input.size();
+            size_t end_index = length;
+
+            for (size_t i = length - 1; i >= 0; i--)
+            {
+                wchar_t it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    end_index = i + 1;
+                    break;
+                }
+            }
+
+            if (end_index < length)
+            {
+                input.erase(end_index, length);
+            }
+
+            return input;
+        }
+
+        // 只删除中间 并忽略开头结尾出现的
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::MIDDLE_IGNORE)
+        {
+
+            size_t length = input.size();
+            // 开头结尾 都不等于此字符 删除全部此字符
+            if (input.front() != match_char && input.back() != match_char)
+            {
+                input.erase(std::remove(input.begin(), input.end(), match_char),
+                            input.end());
+                return input;
+            }
+            // 新的开头
+            size_t ready_front_index = 0;
+            // 尾部需要忽略多少个字符
+            size_t ready_end_size = 0;
+
+            // 全部都是 match_char 应当拒绝处理
+            if (input.size() <= ready_end_size + 1)
+            {
+                return input;
+            }
+
+            // 计算出开头
+            if (input.front() == match_char)
+            {
+                for (size_t i = 0; i < length; i++)
+                {
+                    wchar_t it = input[i];
+                    if (it != match_char)
+                    {
+                        ready_front_index = i;
+                        break;
+                    }
+                }
+            }
+
+            // 计算出结尾
+            if (input.front() == match_char)
+            {
+                for (size_t i = length - 1; i >= 0; i--)
+                {
+                    wchar_t it = input[i];
+                    if (it != match_char)
+                    {
+                        break;
+                    }
+                    ready_end_size++;
+                }
+            }
+
+            for (size_t i = ready_front_index; i < input.size(); i++)
+            {
+
+                // 结尾完成
+                if (i + 1 > input.size() - ready_end_size)
+                {
+                    break;
+                }
+
+                if (input[i] == match_char)
+                {
+                    input.erase(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        return input;
+    }
+
+    bool hmc_string_util::removeMatchCharPtr(std::string &input, const char match_char, hmc_string_util::IGNORE_NULL_CHAR_TYPE ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        bool result = false;
+
+        size_t the_size = input.size();
+
+        if (the_size == 0)
+        {
+            return false;
+        }
+
+        // 全部删除
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+        {
+            input.erase(std::remove(input.begin(), input.end(), match_char),
+                        input.end());
+            return the_size != input.size();
+        }
+
+        // 判断是否全是此字符
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE || ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+            size_t length = input.size();
+            bool is_all_match_char = true;
+
+            for (size_t i = 0; i < length; i++)
+            {
+                char it = input[i];
+                if (it != match_char)
+                {
+                    is_all_match_char = false;
+                    break;
+                }
+            }
+
+            if (is_all_match_char)
+            {
+                input.clear();
+                return the_size != input.size();
+            }
+        }
+
+        // 只删除开头
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+
+            size_t front_index = 0;
+            size_t length = input.size();
+            for (size_t i = 0; i < length; i++)
+            {
+                char it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    front_index = i - 1;
+                    break;
+                }
+            }
+
+            if (front_index > 0)
+            {
+                input.erase(0, front_index);
+            }
+
+            return the_size != input.size();
+        }
+
+        // 只删除结尾
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE)
+        {
+
+            size_t length = input.size();
+            size_t end_index = length;
+
+            for (size_t i = length - 1; i >= 0; i--)
+            {
+                char it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    end_index = i + 1;
+                    break;
+                }
+            }
+
+            if (end_index < length)
+            {
+                input.erase(end_index, length);
+            }
+
+            return the_size != input.size();
+        }
+
+        // 只删除中间 并忽略开头结尾出现的
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::MIDDLE_IGNORE)
+        {
+
+            size_t length = input.size();
+            // 开头结尾 都不等于此字符 删除全部此字符
+            if (input.front() != match_char && input.back() != match_char)
+            {
+                input.erase(std::remove(input.begin(), input.end(), match_char),
+                            input.end());
+                return the_size != input.size();
+            }
+            // 新的开头
+            size_t ready_front_index = 0;
+            // 尾部需要忽略多少个字符
+            size_t ready_end_size = 0;
+
+            // 全部都是 match_char 应当拒绝处理
+            if (input.size() <= ready_end_size + 1)
+            {
+                return the_size != input.size();
+            }
+
+            // 计算出开头
+            if (input.front() == match_char)
+            {
+                for (size_t i = 0; i < length; i++)
+                {
+                    char it = input[i];
+                    if (it != match_char)
+                    {
+                        ready_front_index = i;
+                        break;
+                    }
+                }
+            }
+
+            // 计算出结尾
+            if (input.front() == match_char)
+            {
+                for (size_t i = length - 1; i >= 0; i--)
+                {
+                    char it = input[i];
+                    if (it != match_char)
+                    {
+                        break;
+                    }
+                    ready_end_size++;
+                }
+            }
+
+            for (size_t i = ready_front_index; i < input.size(); i++)
+            {
+
+                // 结尾完成
+                if (i + 1 > input.size() - ready_end_size)
+                {
+                    break;
+                }
+
+                if (input[i] == match_char)
+                {
+                    input.erase(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    std::string hmc_string_util::removeMatchChar(const std::string &Input_, const char match_char, hmc_string_util::IGNORE_NULL_CHAR_TYPE ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        std::string input = std::string(Input_.begin(), Input_.end());
+
+        bool result = false;
+
+        size_t the_size = input.size();
+
+        if (the_size == 0)
+        {
+            return input;
+        }
+
+        // 全部删除
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+        {
+            input.erase(std::remove(input.begin(), input.end(), match_char),
+                        input.end());
+            return input;
+        }
+
+        // 判断是否全是此字符
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE || ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+            size_t length = input.size();
+            bool is_all_match_char = true;
+
+            for (size_t i = 0; i < length; i++)
+            {
+                char it = input[i];
+                if (it != match_char)
+                {
+                    is_all_match_char = false;
+                    break;
+                }
+            }
+
+            if (is_all_match_char)
+            {
+                input.clear();
+                return input;
+            }
+        }
+
+        // 只删除开头
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::START_IGNORE)
+        {
+
+            size_t front_index = 0;
+            size_t length = input.size();
+            for (size_t i = 0; i < length; i++)
+            {
+                char it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    front_index = i - 1;
+                    break;
+                }
+            }
+
+            if (front_index > 0)
+            {
+                input.erase(0, front_index);
+            }
+
+            return input;
+        }
+
+        // 只删除结尾
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::END_IGNORE)
+        {
+
+            size_t length = input.size();
+            size_t end_index = length;
+
+            for (size_t i = length - 1; i >= 0; i--)
+            {
+                char it = input[i];
+                if (i != 0 && it != match_char)
+                {
+                    end_index = i + 1;
+                    break;
+                }
+            }
+
+            if (end_index < length)
+            {
+                input.erase(end_index, length);
+            }
+
+            return input;
+        }
+
+        // 只删除中间 并忽略开头结尾出现的
+        if (ignore == hmc_string_util::IGNORE_NULL_CHAR_TYPE::MIDDLE_IGNORE)
+        {
+
+            size_t length = input.size();
+            // 开头结尾 都不等于此字符 删除全部此字符
+            if (input.front() != match_char && input.back() != match_char)
+            {
+                input.erase(std::remove(input.begin(), input.end(), match_char),
+                            input.end());
+                return input;
+            }
+            // 新的开头
+            size_t ready_front_index = 0;
+            // 尾部需要忽略多少个字符
+            size_t ready_end_size = 0;
+
+            // 全部都是 match_char 应当拒绝处理
+            if (input.size() <= ready_end_size + 1)
+            {
+                return input;
+            }
+
+            // 计算出开头
+            if (input.front() == match_char)
+            {
+                for (size_t i = 0; i < length; i++)
+                {
+                    char it = input[i];
+                    if (it != match_char)
+                    {
+                        ready_front_index = i;
+                        break;
+                    }
+                }
+            }
+
+            // 计算出结尾
+            if (input.front() == match_char)
+            {
+                for (size_t i = length - 1; i >= 0; i--)
+                {
+                    char it = input[i];
+                    if (it != match_char)
+                    {
+                        break;
+                    }
+                    ready_end_size++;
+                }
+            }
+
+            for (size_t i = ready_front_index; i < input.size(); i++)
+            {
+
+                // 结尾完成
+                if (i + 1 > input.size() - ready_end_size)
+                {
+                    break;
+                }
+
+                if (input[i] == match_char)
+                {
+                    input.erase(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        return input;
+    }
+
+    bool hmc_string_util::diffNullCharacters(const std::wstring str1, const std::wstring str2, hmc_string_util::IGNORE_NULL_CHAR_TYPE Ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        std::wstring input_01 = std::wstring(str1.begin(), str1.end());
+        input_01.reserve(input_01.size());
+        std::wstring input_02 = std::wstring(str2.begin(), str2.end());
+        input_02.reserve(input_02.size());
+
+        hmc_string_util::removeMatchCharPtr(input_01, L'\0', Ignore);
+        hmc_string_util::removeMatchCharPtr(input_02, L'\0', Ignore);
+        if (input_01.size() != input_02.size())
+        {
+            return false;
+        }
+
+        const size_t length = input_01.size();
+        for (size_t i = 0; i < length; i++)
+        {
+            const wchar_t it1 = input_01.at(i);
+            const wchar_t it2 = input_02.at(i);
+
+            if (it1 != it2)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool hmc_string_util::diffNullCharacters(const std::string str1, const std::string str2, hmc_string_util::IGNORE_NULL_CHAR_TYPE Ignore = hmc_string_util::IGNORE_NULL_CHAR_TYPE::ALL_IGNORE)
+    {
+        std::string input_01 = std::string(str1.begin(), str1.end());
+        input_01.reserve(input_01.size());
+        std::string input_02 = std::string(str2.begin(), str2.end());
+        input_02.reserve(input_02.size());
+
+        hmc_string_util::removeMatchCharPtr(input_01, '\0', Ignore);
+        hmc_string_util::removeMatchCharPtr(input_02, '\0', Ignore);
+
+        if (input_01.size() != input_02.size())
+        {
+            return false;
+        }
+
+        const size_t length = input_01.size();
+        for (size_t i = 0; i < length; i++)
+        {
+            const char it1 = input_01.at(i);
+            const char it2 = input_02.at(i);
+
+            if (it1 != it2)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
 
 #if _HAS_CXX17
