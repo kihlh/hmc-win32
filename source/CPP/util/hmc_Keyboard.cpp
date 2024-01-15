@@ -2,23 +2,24 @@
 
 namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
 {
-    bool _is_Keyboard_Next_Hook = false;                      // 是否继续执行
-    HHOOK _This_KeyboardHook = NULL;                          // 钩子句柄
-    long long _This_Event_id = 0;                             // 当前id
-    std::vector<KeyboardEvent> _This_KeyboardEvent_List;      // 鼠标按钮的事件容器(缓冲)  预扩容了256个
-    DWORD _This_HookThreadID = 0;                             // 正在执行hook线程
-    
+    bool _is_Keyboard_Next_Hook = false;                 // 是否继续执行
+    HHOOK _This_KeyboardHook = NULL;                     // 钩子句柄
+    long long _This_Event_id = 0;                        // 当前id
+    std::vector<KeyboardEvent> _This_KeyboardEvent_List; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
+    DWORD _This_HookThreadID = 0;                        // 正在执行hook线程
+    std::shared_mutex _This_Keyboard_HOOK_store_shared_mutex;
+
     bool KeyboardEvent::is_valid()
     {
         return id != 0;
     }
     std::string KeyboardEvent::to_json()
-    { 
+    {
         std::string result = R"({"id":{id},"time":{time},"down":{down},"flags":{flags},"keyCode":{keyCode},"scanCode":{scanCode}})";
 
         result.replace(result.find("{id}"), sizeof("{id}") - 1, std::to_string(id));
         result.replace(result.find("{time}"), sizeof("{time}") - 1, std::to_string(time));
-        result.replace(result.find("{down}"), sizeof("{down}") - 1, down?"true":"false");
+        result.replace(result.find("{down}"), sizeof("{down}") - 1, down ? "true" : "false");
         result.replace(result.find("{flags}"), sizeof("{flags}") - 1, std::to_string(flags));
         result.replace(result.find("{keyCode}"), sizeof("{keyCode}") - 1, std::to_string(keyCode));
         result.replace(result.find("{scanCode}"), sizeof("{scanCode}") - 1, std::to_string(scanCode));
@@ -183,12 +184,15 @@ void hmc_Keyboard::push_keyboard_data(KBDLLHOOKSTRUCT *input)
     data.flags = input->flags;
     data.down = (input->flags < 128);
 
+    std::unique_lock<std::shared_mutex> writer_mutex(_This_Keyboard_HOOK_store_shared_mutex);
     _This_KeyboardEvent_List.push_back(data);
+    writer_mutex.unlock();
 
     _This_Event_id = _This_Event_id + 1;
 }
 
-std::string hmc_Keyboard::getAllKeyboardEventJson() {
+std::string hmc_Keyboard::getAllKeyboardEventJson()
+{
     std::string result = "[";
 
     auto AllKeyboardEvent = hmc_Keyboard::getAllKeyboardEvent();
@@ -196,16 +200,17 @@ std::string hmc_Keyboard::getAllKeyboardEventJson() {
 
     for (size_t i = 0; i < length; i++)
     {
-        auto& it = AllKeyboardEvent[i];
-        if (it.is_valid()) {
+        auto &it = AllKeyboardEvent[i];
+        if (it.is_valid())
+        {
             result.append(it.to_json());
         }
-        
-        if (i + 1 < length) {
+
+        if (i + 1 < length)
+        {
             result.push_back(',');
         }
     }
-
     result.push_back(']');
 
     return result;
@@ -215,10 +220,13 @@ std::vector<hmc_Keyboard::KeyboardEvent> hmc_Keyboard::getAllKeyboardEvent()
 {
     std::vector<KeyboardEvent> event_list;
 
+    std::shared_lock<std::shared_mutex> read_mutex(_This_Keyboard_HOOK_store_shared_mutex);
+
     size_t len = _This_KeyboardEvent_List.size();
 
     if (len <= 0)
     {
+        read_mutex.unlock();
         return event_list;
     }
 
@@ -228,7 +236,13 @@ std::vector<hmc_Keyboard::KeyboardEvent> hmc_Keyboard::getAllKeyboardEvent()
         event_list.push_back(_This_KeyboardEvent_List[i]);
     }
 
+    read_mutex.unlock();
+
+    std::unique_lock<std::shared_mutex> writer_mutex(_This_Keyboard_HOOK_store_shared_mutex);
+
     _This_KeyboardEvent_List.erase(_This_KeyboardEvent_List.begin(), _This_KeyboardEvent_List.begin() + len);
+
+    writer_mutex.unlock();
 
     return event_list;
 }

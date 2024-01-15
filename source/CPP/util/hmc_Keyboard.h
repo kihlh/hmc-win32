@@ -43,6 +43,7 @@ namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
     extern long long _This_Event_id;                            // 当前id
     extern std::vector<KeyboardEvent> _This_KeyboardEvent_List; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
     extern DWORD _This_HookThreadID;                            // 正在执行hook线程
+    extern std::shared_mutex _This_Keyboard_HOOK_store_shared_mutex; // 存储的互斥体
 
     extern DWORD get_ThreadId(std::thread::id thread_id);
     extern DWORD get_ThreadId();

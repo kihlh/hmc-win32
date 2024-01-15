@@ -235,6 +235,7 @@ int API_TrashFile(std::wstring FromPath, bool bRecycle, bool isShow)
     return SHFileOperationW(&FileOp);
 }
 
+
 napi_value TrashFile(napi_env env, napi_callback_info info)
 {
     napi_value Results = as_Number32(0x10000);

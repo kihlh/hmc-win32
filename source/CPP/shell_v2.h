@@ -37,6 +37,8 @@ private:
     static vector<TaryIcon> EnumCommctrlList(HWND hWnd);
 };
 
+
+
 extern BOOL isSystemFor64bit();
 extern int API_TrashFile(std::wstring FromPath, bool bRecycle, bool isShow);
 
