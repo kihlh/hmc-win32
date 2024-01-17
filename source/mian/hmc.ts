@@ -5771,6 +5771,7 @@ class Iohook_Mouse {
     private _Close = false;
     // 计算直线的忽略参百分比
     _direction_percentage = 8;
+    private _next_Sleep = 50;
 
     constructor() {
     }
@@ -5817,6 +5818,30 @@ class Iohook_Mouse {
         mouseHook._onlistenerCountList[eventName as "data"].push(listener);
         return mouseHook;
     };
+    
+    /**
+     * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
+     * @param Sleep 要求 10ms - 5000ms
+     * @default 50ms
+     * @returns 
+     */
+    setRefreshRate(Sleep = 50){
+        Sleep = Number(Sleep);
+        
+        if(isNaN(Sleep)) return false;
+
+        // 小于10会导致访问过快照成性能消耗过大
+        if(Sleep<10){
+            return false;
+        }
+        // 太慢了会导致内存过大 如果内存超出了缓冲区预开辟内存大小将会变成动态开辟内存 影响单次键鼠响应的速度
+        if(Sleep>5000){
+            return false;
+        }
+
+        this._next_Sleep = Sleep;
+        return true;
+    }
     /**
      * 开始
      * @returns 
@@ -5884,7 +5909,7 @@ class Iohook_Mouse {
         (async () => {
             while (true) {
                 if (mouseHook._Close) return;
-                await Sleep(50);
+                await Sleep(this._next_Sleep);
                 emit_getMouseNextSession();
             }
         })();
@@ -6388,6 +6413,7 @@ class Iohook_Keyboard {
         change: [] as Function[],
     };
     private _Close = false;
+    private _next_Sleep = 50;
     constructor() {
 
     }
@@ -6418,6 +6444,29 @@ class Iohook_Keyboard {
         return keyboardHook;
     };
     /**
+     * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
+     * @param Sleep 要求 10ms - 10 000
+     * @default 50ms
+     * @returns 
+     */
+    setRefreshRate(Sleep = 50){
+        Sleep = Number(Sleep);
+        
+        if(isNaN(Sleep)) return false;
+
+        // 小于10会导致访问过快照成性能消耗过大
+        if(Sleep<10){
+            return false;
+        }
+        // 太慢了会导致内存过大 如果内存超出了缓冲区预开辟内存大小将会变成动态开辟内存 影响单次键鼠响应的速度
+        if(Sleep>10000){
+            return false;
+        }
+
+        this._next_Sleep = Sleep;
+        return true;
+    }
+    /**
      * 开始
      * @returns 
      */
@@ -6444,7 +6493,7 @@ class Iohook_Keyboard {
         (async () => {
             while (true) {
                 if (keyboardHook._Close) return;
-                await Sleep(15);
+                await Sleep(this._next_Sleep);
                 emit_getKeyboardNextSession();
             }
         })();

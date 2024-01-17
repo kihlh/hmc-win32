@@ -85,7 +85,6 @@ namespace hmc_string_util
 
 	}
 
-
 	enum IGNORE_NULL_CHAR_TYPE
 	{
 		// 不忽略出现的指定字符
@@ -160,8 +159,37 @@ namespace hmc_string_util
 	// ? 推荐w字符(utf16) 损耗更少一点 napi支持直接返回utf16
 	// ----------------------------------------------------------------
 	extern std::string utf8_to_ansi(const std::string utf8);
-	// UFT8 字符转为GBK(中文)
+
+	// ----------------------------------------------------------------
+	// U82[936]
+	// utf8 to CP_936 ( cp_936 [936] ) encoding
+	// utf8 字符 转 winapi A字符
+	// ----------------------------------------------------------------
 	extern std::string utf8_to_gbk(std::string u8str);
+
+	/**
+	 * @brief base64 编码 8位
+	 *
+	 * @param input
+	 * @return std::string
+	 */
+	extern std::string base64_encode(const std::string &input);
+
+	/**
+	 * @brief base64 二进制 八位无符号
+	 *
+	 * @param input
+	 * @return std::string
+	 */
+	extern std::string base64_encode(const std::vector<std::uint8_t> &input);
+
+	/**
+	 * @brief base64 编码 宽位字符
+	 *
+	 * @param input
+	 * @return std::wstring
+	 */
+	extern std::string base64_encode(const std::wstring &input);
 
 	extern std::vector<std::wstring> ansi_to_utf16(std::vector<std::string> item_list);
 	extern std::vector<std::string> utf16_to_ansi(std::vector<std::wstring> item_list);
@@ -452,7 +480,7 @@ namespace hmc_string_util
 	 * @return wstring
 	 */
 	extern std::wstring lpstr_to_string(LPWSTR input);
-	
+
 	/**
 	 * @brief 从指针获取文本到string容器
 	 *
@@ -499,7 +527,6 @@ namespace hmc_string_util
 	extern std::string StripSpaces(const std::string &str);
 	// 删除空白字符
 	extern std::wstring StripSpaces(const std::wstring &str);
-	
 
 	/**
 	 * @brief 删除匹配到的字符 但是不复制内存
@@ -556,10 +583,10 @@ namespace hmc_string_util
 	 * @return
 	 */
 	extern std::string removeMatchChar(const std::string &Input_, const char match_char, IGNORE_NULL_CHAR_TYPE Ignore);
-	
+
 	/**
 	 * @brief 对比文本 但是忽略指定字符
-	 * 
+	 *
 	 * @param str1 文本1
 	 * @param str2 文本2
 	 * @param Ignore 忽略类型 [默认全部忽略]
@@ -567,14 +594,14 @@ namespace hmc_string_util
 	 * - 2 / start_ignore 只忽略开头的空白字符
 	 * - 2 / end_ignore 只忽略尾部的空白字符
 	 * - 3 / middle_ignore 只忽略中间出现的空白字符 如果开头出现的则不管
-	 * @return true 
-	 * @return false 
+	 * @return true
+	 * @return false
 	 */
 	extern bool diffNullCharacters(const std::wstring str1, const std::wstring str2, IGNORE_NULL_CHAR_TYPE Ignore);
 
 	/**
 	 * @brief 对比文本 但是忽略指定字符
-	 * 
+	 *
 	 * @param str1 文本1
 	 * @param str2 文本2
 	 * @param Ignore 忽略类型 [默认全部忽略]
@@ -582,8 +609,8 @@ namespace hmc_string_util
 	 * - 2 / start_ignore 只忽略开头的空白字符
 	 * - 2 / end_ignore 只忽略尾部的空白字符
 	 * - 3 / middle_ignore 只忽略中间出现的空白字符 如果开头出现的则不管
-	 * @return true 
-	 * @return false 
+	 * @return true
+	 * @return false
 	 */
 	extern bool diffNullCharacters(const std::string str1, const std::string str2, IGNORE_NULL_CHAR_TYPE Ignore);
 
@@ -639,6 +666,7 @@ namespace hmc_string_util
 	 * @return string
 	 */
 	extern std::string map_to_jsonA(std::any item_list);
+	
 	/**
 	 * @brief any map 容器转为 json object
 	 *
@@ -648,7 +676,18 @@ namespace hmc_string_util
 	 * @return string
 	 */
 	extern std::wstring map_to_jsonW(std::any item_list);
+
+	/**
+	 * @brief push json 的 键值对
+	 * 
+	 * @param key 键
+	 * @param value 值
+	 * @param is_append 是否在尾部添加,
+	 * @param esp_type 是否添加 "value"
+	 * @return std::wstring 
+	 */
 	extern std::wstring push_json_value(std::wstring key, std::any value, bool is_append = false, bool esp_type = true);
+
 #endif //_HAS_CXX17
 };
 

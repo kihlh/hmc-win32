@@ -3270,3 +3270,195 @@ std::wstring hmc_string_util::unicodeStringToWString(UNICODE_STRING unicodeStrin
     }
     return result;
 }
+
+std::string hmc_string_util::base64_encode(const std::string &input)
+{
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::string encoded_temp;
+
+    if (input.empty())
+    {
+        return encoded_temp;
+    }
+
+    // 在Base64编码中，每3个字节的数据会编码为4个字符
+    size_t base64_size = ((input.size() / 3) + 1) * 4 + 52;
+    encoded_temp.reserve(base64_size);
+
+    int i = 0;
+    int j = 0;
+    unsigned char array3[3];
+    unsigned char array4[4];
+    sizeof(unsigned char) == sizeof(char);
+
+    for (char c : input)
+    {
+        array3[i++] = c;
+        if (i == 3)
+        {
+            array4[0] = (array3[0] & 0xfc) >> 2;
+            array4[1] = ((array3[0] & 0x03) << 4) + ((array3[1] & 0xf0) >> 4);
+            array4[2] = ((array3[1] & 0x0f) << 2) + ((array3[2] & 0xc0) >> 6);
+            array4[3] = array3[2] & 0x3f;
+
+            for (int k = 0; k < 4; k++)
+            {
+                auto it = base64_chars[array4[k]];
+                encoded_temp.push_back(it);
+            }
+
+            i = 0;
+        }
+    }
+
+    if (i != 0)
+    {
+        for (int k = i; k < 3; k++)
+            array3[k] = '\0';
+
+        // 对照表
+        array4[0] = (array3[0] & 0xfc) >> 2;
+        array4[1] = ((array3[0] & 0x03) << 4) + ((array3[1] & 0xf0) >> 4);
+        array4[2] = ((array3[1] & 0x0f) << 2) + ((array3[2] & 0xc0) >> 6);
+        array4[3] = array3[2] & 0x3f;
+
+        for (int k = 0; k < i + 1; k++)
+        {
+            auto it = base64_chars[array4[k]];
+            encoded_temp.push_back(it);
+        }
+
+        //  尾部不足4的倍数 添加=
+        while (i++ < 3)
+        {
+            encoded_temp.push_back('=');
+        }
+    }
+
+    return std::string(encoded_temp.begin(), encoded_temp.end());
+}
+
+std::string hmc_string_util::base64_encode(const std::vector<std::uint8_t> &input)
+{
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    std::string output;
+
+    if (input.empty())
+    {
+        return output;
+    }
+
+    // 在Base64编码中，每3个字节的数据会编码为4个字符
+    size_t base64_size = ((input.size() / 3) + 1) * 4 + 52;
+    output.reserve(base64_size);
+
+    const unsigned char *bytes_to_encode = &input[0];
+    unsigned int len = input.size();
+    int i = 0;
+    int j = 0;
+    unsigned char char_array_3[3];
+    unsigned char char_array_4[4];
+
+    while (len--)
+    {
+        char_array_3[i++] = *(bytes_to_encode++);
+        if (i == 3)
+        {
+            char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+            char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+            char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+            char_array_4[3] = char_array_3[2] & 0x3f;
+
+            for (i = 0; (i < 4); i++)
+            {
+                const auto it = base64_chars[char_array_4[i]];
+                output.push_back(it);
+            }
+            i = 0;
+        }
+    }
+
+    if (i)
+    {
+        for (j = i; j < 3; j++)
+            char_array_3[j] = '\0';
+
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+
+        for (j = 0; (j < i + 1); j++)
+        {
+            const auto it = base64_chars[char_array_4[i]];
+            output.push_back(it);
+        }
+
+        while ((i++ < 3))
+        {
+            output.push_back('=');
+        }
+    }
+
+    return std::string(output.begin(), output.end());
+}
+
+#ifndef HMC_IMPORT_HMC_BYTE_UTIL_H
+namespace hmc_string_util
+{
+std::vector<std::uint8_t> int32ToBytes(const std::uint32_t data)
+{
+    std::vector<std::uint8_t> bytes = std::vector<std::uint8_t>();
+    bytes.reserve(4);
+    bytes.push_back((data >> 24) & 0xFF);
+    bytes.push_back((data >> 16) & 0xFF);
+    bytes.push_back((data >> 8) & 0xFF);
+    bytes.push_back(data & 0xFF);
+    return bytes;
+}
+
+std::vector<std::uint8_t> wstringToBytes(const wchar_t &bytes_string)
+{
+    std::vector<std::uint8_t> buff = {};
+
+    // utf32
+    if (bytes_string >= 0x10FFFF)
+    {
+        std::uint32_t value = static_cast<std::uint32_t>(bytes_string);
+        auto int32Bytes = int32ToBytes(value);
+
+        for (size_t i = 0; i < int32Bytes.size(); i++)
+        {
+            buff.push_back(int32Bytes.at(i));
+        }
+    }
+    else
+    {
+
+        // utf16
+        std::uint16_t value = static_cast<std::uint16_t>(bytes_string);
+        std::uint8_t partA = (std::uint8_t)((value & 0xFF00) >> 8);
+        std::uint8_t partB = (std::uint8_t)(value & 0x00FF);
+        buff.push_back(partA);
+        buff.push_back(partB);
+    }
+
+    return buff;
+}
+}
+
+#endif // HMC_IMPORT_HMC_BYTE_UTIL_H
+
+std::string hmc_string_util::base64_encode(const std::wstring &input)
+{
+    static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    std::string encoded_temp;
+
+    if (input.empty())
+    {
+        return encoded_temp;
+    }
+
+    return std::string(encoded_temp.begin(), encoded_temp.end());
+}

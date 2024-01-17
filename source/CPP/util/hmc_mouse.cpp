@@ -317,7 +317,11 @@ bool hmc_mouse::isStartHookMouse()
 
 void hmc_mouse::push_Mouse_Event(MouseEvent event)
 {
+
+    std::unique_lock<std::shared_mutex> writer_mutex(_This_Mouse_HOOK_store_shared_mutex);	
 	_This_MouseEvent_List.push_back(event);
+	writer_mutex.unlock();
+
 }
 
 LRESULT CALLBACK hmc_mouse::WinApiCallBackMouseHook(int nCode, WPARAM wParam, LPARAM lParam)
@@ -469,20 +473,27 @@ vector<hmc_mouse::MouseEvent> hmc_mouse::getMouseEvent()
 
 	vector<MouseEvent> event_list;
 
+    std::shared_lock<std::shared_mutex> read_mutex(_This_Mouse_HOOK_store_shared_mutex);
 	size_t len = _This_MouseEvent_List.size();
-
+	
 	if (len <= 0)
 	{
+		read_mutex.unlock();
 		return event_list;
 	}
+	
+	event_list.reserve(len);
 
 	for (size_t i = 0; i < len; i++)
 	{
-
 		event_list.push_back(_This_MouseEvent_List[i]);
 	}
 
+    read_mutex.unlock();
+
+    std::unique_lock<std::shared_mutex> writer_mutex(_This_Mouse_HOOK_store_shared_mutex);
 	_This_MouseEvent_List.erase(_This_MouseEvent_List.begin() + 0, _This_MouseEvent_List.begin() + len);
+    writer_mutex.unlock();
 
 	return event_list;
 }
