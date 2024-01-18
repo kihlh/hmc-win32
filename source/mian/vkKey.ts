@@ -189,7 +189,7 @@ export const KeyboardVKcodeEmenList: Array<[VK_key, VK_code | null, VK_keyCode, 
     ["+", "NumpadAdd", 107, 0x6b],
     ["/", "NumpadDivide", 111, 0x6f],
     ["-", "NumpadSubtract", 109, 0x6d],
-    ["Separator", null, 108, 0x6c],
+    ["Separator", null, 108, 0x6c,[' ']],
     [";", "Semicolon", 186, 0xba],
     ["+", "Equal", 187, 0xbb],
     [",", "Comma", 188, 0xbc],
@@ -199,10 +199,9 @@ export const KeyboardVKcodeEmenList: Array<[VK_key, VK_code | null, VK_keyCode, 
     ["`", "Backquote", 192, 0xc0],
     ["[", "BracketLeft", 219, 0xdb],
     ["\\", "Backslash", 220, 0xdc],
-    ["]", "BracketLeft", 221, 0xdd],
+    ["]", "BracketRight", 221, 0xdd],
     ["'", "Quote", 222, 0xde],
-    ["Win", "MetaLeft", 91, 0x5B],
-    ["Win", "MetaRight", 92, 0x5C]
+    ["Enter", "NumpadEnter", 224, 0xE0],
 ];
 export type VK_key = string
 export type VK_code = string

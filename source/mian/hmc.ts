@@ -6445,7 +6445,7 @@ class Iohook_Keyboard {
     };
     /**
      * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
-     * @param Sleep 要求 10ms - 10 000
+     * @param Sleep 要求 10ms - 10,000
      * @default 50ms
      * @returns 
      */

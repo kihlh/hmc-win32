@@ -13,6 +13,10 @@
 #include <winuser.h>
 #include <shared_mutex>
 #include <atomic>
+#include <random>
+#include <map>
+#include <optional>
+#include <functional>
 
 namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
 {
@@ -42,6 +46,13 @@ namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
          * @return false
          */
         static bool initKeyboardEventHook();
+
+        /**
+         * @brief 添加一个低级hook 的工作空间(异步的)
+         * @return true
+         * @return false
+         */
+        static bool initKeyboardEventHook(std::function<bool(KeyboardEvent event)> callback);
 
         /**
          * @brief 将KeyboardEvent 格式化为文本json (utf8 string)
@@ -81,12 +92,13 @@ namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
         static DWORD getThreadId();
 
     private:
-        static bool GpAllowHookToken;                         // 是否继续执行
-        static HHOOK GpHookHandle;                            // 钩子句柄
-        static long long GpEventNextID;                       // 当前id
-        static std::vector<KeyboardEvent> GpEventSessionList; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
-        static DWORD GpWorkerThreadID;                        // 正在执行hook线程
-        static std::shared_mutex GpStoreSharedMutex;          // 存储的互斥体
+        static bool GpAllowHookToken;                                                            // 是否继续执行
+        static HHOOK GpHookHandle;                                                               // 钩子句柄
+        static long long GpEventNextID;                                                          // 当前id
+        static std::vector<KeyboardEvent> GpEventSessionList;                                    // 鼠标按钮的事件容器(缓冲)  预扩容了256个
+        static DWORD GpWorkerThreadID;                                                           // 正在执行hook线程
+        static std::shared_mutex GpStoreSharedMutex;                                             // 存储的互斥体
+        static std::optional<std::function<bool(KeyboardEvent event)>> GpEventSessionToCallBack; // 当此值为存在的时候将不会触发存储 但是会执行回调
 
         /**
          * @brief 添加一个低级hook 的工作空间(这里不是异步的)
@@ -120,10 +132,42 @@ namespace hmc_Keyboard // hmc_Keyboard 是个鼠标操作功能合集
         static void initializeBasicValues();
     };
 
+    // 键盘四大功能键的状态
+    struct chHasKeysBasic
+    {
+        bool shift; // shift 被按下
+        bool alt;   // alt 被按下
+        bool ctrl;  // ctrl 被按下
+        bool win;   // win 被按下
+    };
+
+    /**
+     * @brief 判断四大键盘功能键的状态
+     * 
+     * @return chHasKeysBasic 
+     */
+    extern chHasKeysBasic hasKeysBasic();
+    
+    typedef hmc_Keyboard::keyboardHook::KeyboardEvent chKeyboardHookEvent;
+
 }
 
 namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
 {
+
+    struct chMouseBasic
+    {
+        bool middle; // 鼠标中键被按下
+        bool right;  // 鼠标右键被按下
+        bool left;   // 鼠标左键被按下
+    };
+
+    /**
+     * @brief 判断基础的鼠标按钮是否被按下
+     *
+     * @return chMouseBasic
+     */
+    extern chMouseBasic hasMouseBasic();
 
     /**
      * @brief 获取当前鼠标坐标
@@ -169,6 +213,8 @@ namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
             MouseEvent();
             // 判断内容是否有效
             bool is_valid();
+            // 转到json
+            std::string to_json();
         };
 
         /**
@@ -203,6 +249,20 @@ namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
          *
          */
         static bool initMouseEventHook();
+        /**
+         * @brief 添加一个低级鼠标hook 的工作空间(异步的)
+         *
+         */
+        static bool initMouseEventHook(std::function<bool(MouseEvent event)> callback);
+
+        /**
+         * @brief 设置鼠标位置抖动时间(本次有效) [init以后才能调用]
+         * 
+         * @param time 
+         * @return true 
+         * @return false 
+         */
+        static void setShakeEventTime(long time);
 
         /**
          * @brief 获取当前hook线程的线程id
@@ -221,14 +281,7 @@ namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
         static std::vector<MouseEvent> GpMouseEventSessionList; // 鼠标按钮的事件容器(缓冲)  预扩容了256个
         static MouseEvent GpMouseTempEventBuffer;               // 预开劈缓冲区 每次鼠标回调不会动态创建 而是把此变量作为temp
         static DWORD GpMouseWorkerThreadID;                     // 正在执行hook线程
-
-        /**
-         * @brief 将MouseEvent 格式化为文本json
-         *
-         * @param event 事件体
-         * @return json object
-         */
-        static std::string MouseEventJsonA(MouseEvent event);
+        static std::optional<std::function<bool(MouseEvent event)>> GpEventSessionToCallBack; // 当此值为存在的时候将不会触发存储 但是会执行回调
 
         /**
          * @brief 推入事件容器内
@@ -292,12 +345,81 @@ namespace hmc_mouse // hmc_mouse 是个鼠标操作功能合集
         static void setLimitMouseRange_async_worker(long ms, long x, long y, long right, long bottom);
     };
 
+    typedef MouseHook::MouseEvent chMouseHookEvent;
 }
 
 namespace hmc_automation_util
 {
 
+    /**
+     * @brief 线程id转数字
+     *
+     * @param thread_id
+     * @return DWORD
+     */
     extern DWORD toThreadId(std::thread::id thread_id);
+
+    /**
+     * @brief mouse_event 参数文本互转
+     *
+     * @param event
+     * @return std::wstring
+     */
+    extern std::wstring mouseEventName(UINT event);
+
+    /**
+     * @brief mouse_event 参数文本互转
+     *
+     * @param event
+     * @return UINT
+     */
+    extern UINT mouseEventName(std::wstring event);
+
+    /**
+     * @brief 随机数
+     *
+     * @param min 最小
+     * @param max 最大
+     * @return int
+     */
+    extern int randomInt(int min, int max);
+
+    /**
+     * @brief 合成键击、鼠标动作和按钮单击。
+     *
+     * @param cInputs pInputs 数组中的结构数。
+     * @param pInputs INPUT 结构的数组。 每个结构都表示要插入键盘或鼠标输入流的事件
+     * @param cbSize INPUT 结构的大小（以字节为单位）。 如果 cbSize 不是 INPUT 结构的大小，则函数将失败
+     * @return UINT
+     */
+    extern UINT GpSendInput(UINT cInputs, LPINPUT pInputs, int cbSize);
+
+    /**
+     * @brief 判断指定的值是否被按下
+     *
+     * @param nVirtKey
+     * @return true
+     * @return false
+     */
+    extern bool hasKeyActivate(int nVirtKey);
+
+    /**
+     * @brief 相对符合w3c标准的 `Key`
+     * @link https://developer.mozilla.org/zh-CN/docs/Web/API/KeyboardEvent/code
+     *
+     * @param input
+     * @return std::string
+     */
+    extern std::string GpMapVirtualKey(std::uint8_t input);
+
+    /**
+     * @brief 相对符合w3c标准的 `Code`
+     * @link https://developer.mozilla.org/zh-CN/docs/Web/API/KeyboardEvent/code
+     *
+     * @param input
+     * @return std::string
+     */
+    extern std::string GpMapVirtualCode(std::uint8_t input);
 
 }
 
