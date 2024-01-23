@@ -262,20 +262,19 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\module\hmc_automation_util.cpp" />
+    <ClCompile Include="..\module\hmc_byte_util.cpp" />
+    <ClCompile Include="..\module\hmc_clip_util.cpp" />
+    <ClCompile Include="..\module\hmc_napi_value_util.cpp" />
+    <ClCompile Include="..\module\hmc_registr_util.cpp" />
+    <ClCompile Include="..\module\hmc_shell_util.cpp" />
+    <ClCompile Include="..\module\hmc_string_util.cpp" />
+    <ClCompile Include="..\module\hmc_windows_util.cpp" />
     <ClCompile Include="..\registr_v2.cpp" />
     <ClCompile Include="..\screen_v2.cpp" />
     <ClCompile Include="..\shell_v2.cpp" />
-    <ClCompile Include="..\util\byte.cpp" />
-    <ClCompile Include="..\util\hmc_mouse.cpp" />
-    <ClCompile Include="..\util\hmc_registr_util.cpp" />
-    <ClCompile Include="..\util\napi_value_util.cpp">
-      <ObjectFileName>$(IntDir)\util\napi_value_util.obj</ObjectFileName>
-    </ClCompile>
     <ClCompile Include="..\Main.cpp">
       <ObjectFileName>$(IntDir)\Main.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\test.cpp">
-      <ObjectFileName>$(IntDir)\test.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\usb.cpp">
       <ObjectFileName>$(IntDir)\usb.obj</ObjectFileName>
@@ -294,9 +293,6 @@
     </ClCompile>
     <ClCompile Include="..\process.cpp">
       <ObjectFileName>$(IntDir)\process.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="..\util\hmc_string_util.cpp">
-      <ObjectFileName>$(IntDir)\util\hmc_string_util.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\util\fn_process.cpp">
       <ObjectFileName>$(IntDir)\util\fn_process.obj</ObjectFileName>

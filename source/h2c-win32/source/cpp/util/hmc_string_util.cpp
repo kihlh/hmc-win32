@@ -1,5 +1,5 @@
 ﻿
-#include "./hmc_string_util.hpp"
+#include "./hmc_string_util.h"
 
 /**
  * @brief 仅拼接文本

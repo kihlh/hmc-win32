@@ -1,4 +1,6 @@
 #include "./Mian.hpp";
+#include "./module/hmc_napi_value_util.h"
+
 void util_getSubProcessList(DWORD ProcessId, vector<DWORD> &SubProcessIDList);
 vector<string> util_getModulePathList(DWORD processID)
 {

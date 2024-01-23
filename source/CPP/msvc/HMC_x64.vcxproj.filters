@@ -85,15 +85,12 @@
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..\module">
+      <UniqueIdentifier>{15c9d155-5988-4aa8-bf9f-0e04d1738545}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\util\napi_value_util.cpp">
-      <Filter>..\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\Main.cpp">
-      <Filter>..</Filter>
-    </ClCompile>
-    <ClCompile Include="..\test.cpp">
       <Filter>..</Filter>
     </ClCompile>
     <ClCompile Include="..\usb.cpp">
@@ -114,9 +111,6 @@
     <ClCompile Include="..\process.cpp">
       <Filter>..</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\hmc_string_util.cpp">
-      <Filter>..\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\util\fn_process.cpp">
       <Filter>..\util</Filter>
     </ClCompile>
@@ -129,23 +123,38 @@
     <None Include="..\binding.gyp">
       <Filter>..</Filter>
     </None>
-    <ClCompile Include="..\util\hmc_mouse.cpp">
-      <Filter>..\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\shell_v2.cpp">
       <Filter>..</Filter>
     </ClCompile>
     <ClCompile Include="..\registr_v2.cpp">
       <Filter>..</Filter>
     </ClCompile>
-    <ClCompile Include="..\util\hmc_registr_util.cpp">
-      <Filter>..\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\util\byte.cpp">
-      <Filter>..\util</Filter>
-    </ClCompile>
     <ClCompile Include="..\screen_v2.cpp">
       <Filter>..</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_napi_value_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_registr_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_shell_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_string_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_windows_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_automation_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_byte_util.cpp">
+      <Filter>..\module</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_clip_util.cpp">
+      <Filter>..\module</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

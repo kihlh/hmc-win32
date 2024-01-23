@@ -5,7 +5,7 @@
 #include <iostream>
 #include <node_api.h>
 
-#include "./hmc_string_util.hpp"
+#include "./hmc_string_util.h"
 
 #define _HMC_ALL_UTIL 0x0666
 #define napi_ass_false -66666666

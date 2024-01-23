@@ -1,6 +1,6 @@
 ﻿#define NAPI_EXPERIMENTAL
 #include <node_api.h>
-#include <util\hmc_string_util.hpp>
+#include <util\hmc_string_util.h>
 #include <util\napi_value_util.hpp>
 #include <string>
 #include <any>

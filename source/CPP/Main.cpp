@@ -1,9 +1,11 @@
 ﻿#include "./Mian.hpp";
 
-#include "./util/hmc_string_util.hpp"
-#include "./util/napi_value_util.hpp"
+#include "./module/hmc_string_util.h"
+#include "./module/hmc_napi_value_util.h"
 #include "./shell_v2.h"
-#include "./util/hmc_mouse.h"
+#include "./module/hmc_automation_util.h"
+#include "./module/hmc_windows_util.h"
+#include "./module/hmc_shell_util.h"
 #include "./registr_v2.hpp"
 
 bool _________HMC___________;
@@ -87,6 +89,7 @@ static napi_value systemStartTime(napi_env env, napi_callback_info info)
     }
     return Results;
 }
+
 // 进程阻塞
 static napi_value sleep(napi_env env, napi_callback_info info)
 {
@@ -121,6 +124,7 @@ static napi_value sleep(napi_env env, napi_callback_info info)
 
     return Sleep_info;
 }
+
 // 判断是否是管理员权限
 napi_value isAdmin(napi_env env, napi_callback_info info)
 {
@@ -128,102 +132,7 @@ napi_value isAdmin(napi_env env, napi_callback_info info)
     napi_get_boolean(env, IsUserAnAdmin(), &info_isAdmin);
     return info_isAdmin;
 }
-// 执行软件的打开
-auto win32ToShellExecute(LPCSTR openType, string lpFile, string lpParameters, string lpDirectory, bool OPEN_Hide)
-{
-    int OPEN_Hide_Code = 5;
-    if (OPEN_Hide)
-    {
-        OPEN_Hide_Code = 0;
-    }
-    auto ToShellExecute = ShellExecute(
-        NULL,
-        (LPCTSTR)openType,
-        (LPCTSTR)lpFile.c_str(),
-        (LPCTSTR)lpParameters.c_str(),
-        (LPCTSTR)lpDirectory.c_str(),
-        OPEN_Hide_Code);
-    return (long long)ToShellExecute;
-}
-// 打开软件
-bool Attain_openApp(string lpFile, string lpParameters, string lpDirectory, bool OPEN_Hide)
-{
-    auto ToShellExecute = win32ToShellExecute((LPCSTR) "open", lpFile, lpParameters, lpDirectory, OPEN_Hide);
-    if (ToShellExecute > 32)
-        return true;
-    else
-        return false;
-}
-// 打开软件并将其提升为管理员权限
-bool Attain_openAppToUAC(string lpFile, string lpParameters, string lpDirectory, bool OPEN_Hide)
-{
-    auto ToShellExecute = win32ToShellExecute((LPCSTR) "runas", lpFile, lpParameters, lpDirectory, OPEN_Hide);
-    if (ToShellExecute > 32)
-        return true;
-    else
-        return false;
-}
 
-// 执行可执行文件让其独立运行
-static napi_value openApp(napi_env env, napi_callback_info info)
-{
-    napi_value ToShellExecute;
-    napi_status status;
-    size_t argc = 5;
-    napi_value args[5];
-    status = $napi_get_cb_info(argc, args);
-    assert(status == napi_ok);
-    if (argc)
-    {
-        if (argc < 5)
-        {
-            string WrongString = "Wrong length of arguments =>";
-            WrongString.append(to_string(argc).c_str());
-            napi_throw_type_error(env, NULL, WrongString.c_str());
-            return NULL;
-        }
-
-        napi_valuetype valuetype0;
-        status = napi_typeof(env, args[0], &valuetype0);
-        assert(status == napi_ok);
-
-        napi_valuetype valuetype1;
-        status = napi_typeof(env, args[1], &valuetype1);
-        assert(status == napi_ok);
-
-        if (valuetype0 != napi_string || valuetype0 != napi_string)
-        {
-
-            napi_throw_type_error(env, NULL, "Wrong arguments");
-            return NULL;
-        }
-    }
-    else
-    {
-        napi_throw_type_error(env, NULL, "Wrong arguments");
-        return NULL;
-    }
-    // 参数1 打开的可执行文件
-    string lpFile = hmc_napi_get_value::string_ansi(env, args[0]);
-    // 参数2 命令行
-    string lpParameters = hmc_napi_get_value::string_ansi(env, args[1]);
-    // 参数3 cwd
-    string lpDirectory = hmc_napi_get_value::string_ansi(env, args[2]);
-    // 参数4 是否显示
-    bool OPEN_Hide;
-    napi_get_value_bool(env, args[3], &OPEN_Hide);
-    // 参数5 是否提升到管理员权限
-    bool OPEN_TO_UAC;
-    napi_get_value_bool(env, args[4], &OPEN_TO_UAC);
-    // 执行
-    bool OpenToShellExecute;
-    if (OPEN_TO_UAC)
-        OpenToShellExecute = Attain_openApp(lpFile, lpParameters, lpDirectory, OPEN_Hide);
-    else
-        OpenToShellExecute = Attain_openAppToUAC(lpFile, lpParameters, lpDirectory, OPEN_Hide);
-    napi_get_boolean(env, OpenToShellExecute, &ToShellExecute);
-    return ToShellExecute;
-}
 // 权限提升
 BOOL EnableShutDownPriv()
 {
@@ -313,6 +222,7 @@ static napi_value powerControl(napi_env env, napi_callback_info info)
     assert(status == napi_ok);
     return napi_info_bool;
 }
+
 // 获取前台活动窗口句柄
 napi_value getForegroundWindow(napi_env env, napi_callback_info info)
 {
@@ -382,6 +292,7 @@ static napi_value getSystemMenu(napi_env env, napi_callback_info info)
     bool is_GetSystemMenu = GetSystemMenu(__HWND, bRevert);
     return as_Boolean(is_GetSystemMenu);
 }
+
 /**
  * @brief 显示窗口
  * @URL: https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-showwindow?redirectedfrom=MSDN
@@ -1430,33 +1341,6 @@ static napi_value setWindowEnabled(napi_env env, napi_callback_info info)
     return as_Boolean(EnableWindow(Handle, is_WindowEnabledCommand));
 }
 
-HWND SetWindowJitter_Handle;
-int SetWindowJitter_Sleep_time = 50;   // 休眠的时间，为60毫秒
-int SetWindowJitter_Move_distance = 6; // 移动5像素
-
-void SetWindowJitter()
-{
-    RECT rect;
-    // 获取指定窗口的位置
-    if (!GetWindowRect(SetWindowJitter_Handle, &rect))
-        return;
-    int DeviceCapsWidth = GetSystemMetrics(SM_CXSCREEN);
-    int DeviceCapsHeight = GetSystemMetrics(SM_CYSCREEN);
-    // 计算出来源来的宽高 屏幕和坐标的减法可以得到窗口大小(带阴影)
-    int Env_height = (DeviceCapsHeight - rect.top) - (DeviceCapsHeight - rect.bottom);
-    int Env_width = (DeviceCapsWidth - rect.left) - (DeviceCapsWidth - rect.right);
-    // 抖动6次
-    for (size_t i = 0; i < 6; i++)
-    {
-        MoveWindow(SetWindowJitter_Handle, rect.left + SetWindowJitter_Move_distance, rect.top + SetWindowJitter_Move_distance - 3, Env_width, Env_height, TRUE);
-        Sleep(SetWindowJitter_Sleep_time);
-        MoveWindow(SetWindowJitter_Handle, rect.left, rect.top, Env_width, Env_height, TRUE);
-        Sleep(SetWindowJitter_Sleep_time);
-        MoveWindow(SetWindowJitter_Handle, rect.left - SetWindowJitter_Move_distance, rect.top - SetWindowJitter_Move_distance - 3, Env_width, Env_height, TRUE);
-        Sleep(SetWindowJitter_Sleep_time);
-        MoveWindow(SetWindowJitter_Handle, rect.left, rect.top, Env_width, Env_height, TRUE);
-    }
-}
 // 窗口抖动
 static napi_value windowJitter(napi_env env, napi_callback_info info)
 {
@@ -1474,10 +1358,10 @@ static napi_value windowJitter(napi_env env, napi_callback_info info)
     }
     int64_t NumHandle;
     napi_get_value_int64(env, args[0], &NumHandle);
-    SetWindowJitter_Handle = (HWND)NumHandle;
-    std::thread(SetWindowJitter).detach();
+    hmc_windows_util::setWindowShake((HWND)NumHandle,6,6,60);
     return NULL;
 }
+
 // 设置窗口焦点
 static napi_value setWindowFocus(napi_env env, napi_callback_info info)
 {
@@ -1498,6 +1382,7 @@ static napi_value setWindowFocus(napi_env env, napi_callback_info info)
     HWND Handle = (HWND)NumHandle;
     return as_Boolean(SetFocus(Handle));
 }
+
 // 判断该句柄是否有效
 static napi_value updateWindow(napi_env env, napi_callback_info info)
 {
@@ -1518,6 +1403,7 @@ static napi_value updateWindow(napi_env env, napi_callback_info info)
     HWND Handle = (HWND)NumHandle;
     return as_Boolean(UpdateWindow(Handle));
 }
+
 // 获取所有窗口
 static napi_value getAllWindows(napi_env env, napi_callback_info info)
 {
@@ -1572,6 +1458,7 @@ static napi_value getAllWindows(napi_env env, napi_callback_info info)
 
     return Results;
 }
+
 static napi_value getAllWindowsNot(napi_env env, napi_callback_info info)
 {
     napi_status status;
@@ -1691,166 +1578,117 @@ static napi_value SetSystemHOOK(napi_env env, napi_callback_info info)
 
 napi_value openURL(napi_env env, napi_callback_info info)
 {
-    napi_value argv[1];
-    size_t argc = 1;
-    napi_status status;
-    status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+   auto input = hmc_NodeArgsValue(env, info);
 
-    // 检查我们是否有3个参数 - Hive, Path, Name
-    if (argc < 1)
-    {
-        napi_throw_error(env, "EINVAL", "Wrong number of arguments");
-        return nullptr;
-    }
+    input.eq({
+        {0, js_string}
+        },true);
+    
+    // 参数1 打开的可执行文件
+    wstring lpUrl = input.getStringWide(0,L"");
+    // 执行
+    bool is_success = hmc_shell_util::ShellOpen::openUrl(lpUrl)>= 31 ;
 
-    // 检索3个参数
-    for (int i = 0; i < 1; i++)
-    {
-        napi_valuetype value_type;
-        napi_typeof(env, argv[i], &value_type);
-        if (value_type != napi_string)
-        {
-            napi_throw_error(env, "EINVAL", "Missing parameters");
-            return nullptr;
-        };
-    }
-
-    string URL_String = hmc_napi_get_value::string_ansi(env, argv[0]);
-    HINSTANCE hResult = ShellExecuteA(NULL, "open", URL_String.c_str(), NULL, NULL, SW_SHOWNORMAL);
-    // return  _create_int64_Number(env,long(hResult));
-    return as_Boolean(long long(hResult) >= 31);
+    return as_Boolean(is_success);
 }
 
 napi_value openExternal(napi_env env, napi_callback_info info)
 {
-    napi_value argv[1];
-    size_t argc = 1;
-    napi_status status;
-    status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    auto input = hmc_NodeArgsValue(env, info);
 
-    // 检查我们是否有3个参数 - Hive, Path, Name
-    if (argc < 1)
-    {
-        napi_throw_error(env, "EINVAL", "Wrong number of arguments");
-        return nullptr;
-    }
+    input.eq({
+        {0, js_string}
+        },true);
+    
+    // 参数1 打开的可执行文件
+    wstring lpFile = input.getStringWide(0,L"");
+    
+    bool isSelect = input.exists(0) ? input.getBool(0,false) : false;
 
-    // 检索3个参数
-    for (int i = 0; i < 1; i++)
-    {
-        napi_valuetype value_type;
-        napi_typeof(env, argv[i], &value_type);
-        if (value_type != napi_string)
-        {
-            napi_throw_error(env, "EINVAL", "Missing parameters");
-            return nullptr;
-        };
-    }
+    // 执行
+    bool is_success = hmc_shell_util::ShellOpen::showItemInFolder(lpFile,isSelect)>= 31 ;
 
-    string PATH_String = hmc_napi_get_value::string_ansi(env, argv[0]);
-    string ExploerCmd = string("/select, \"");
-
-    HINSTANCE hResult = ShellExecuteA(NULL, "open", "explorer.exe", ExploerCmd.append(PATH_String.c_str()).append("\"").c_str(), NULL, SW_SHOWNORMAL);
-    // return  _create_int64_Number(env,long(hResult));
-
-    return as_Boolean(long long(hResult) >= 31);
+    return as_Boolean(is_success);
 }
 
 napi_value openPath(napi_env env, napi_callback_info info)
 {
-    napi_value argv[1];
-    size_t argc = 1;
-    napi_status status;
-    status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    auto input = hmc_NodeArgsValue(env, info);
 
-    // 检查我们是否有3个参数 - Hive, Path, Name
-    if (argc < 1)
-    {
-        napi_throw_error(env, "EINVAL", "Wrong number of arguments");
-        return nullptr;
-    }
+    input.eq({
+        {0, js_string}
+        },true);
+    
+    // 参数1 打开的可执行文件
+    wstring lpFile = input.getStringWide(0,L"");
+    
+    // 执行
+    bool is_success = hmc_shell_util::ShellOpen::openInExplorer(lpFile)>= 31 ;
 
-    // 检索3个参数
-    for (int i = 0; i < 1; i++)
-    {
-        napi_valuetype value_type;
-        napi_typeof(env, argv[i], &value_type);
-        if (value_type != napi_string)
-        {
-            napi_throw_error(env, "EINVAL", "Missing parameters");
-            return nullptr;
-        };
-    }
-
-    HINSTANCE hResult = ShellExecuteA(NULL, "open", "explorer.exe", hmc_napi_get_value::string_ansi(env, argv[0]).c_str(), NULL, SW_SHOWNORMAL);
-    return as_Boolean(long long(hResult) >= 31);
+    return as_Boolean(is_success);
 }
 
-vector<HWND> enumChildWindowsList;
 
-static BOOL CALLBACK enumchildWindowCallback(HWND hWnd, LPARAM lparam)
+// 执行可执行文件让其独立运行
+static napi_value openApp(napi_env env, napi_callback_info info)
 {
-    enumChildWindowsList.push_back(hWnd);
-    return TRUE;
+    
+    auto input = hmc_NodeArgsValue(env, info);
+
+    input.eq({
+        {0, js_string},
+        {1, js_string},
+        {2, js_string},
+        {3, js_boolean},
+        {4, js_boolean}
+        },true);
+    
+    // 参数1 打开的可执行文件
+    wstring lpFile = input.getStringWide(0,L"");
+    // 参数2 命令行
+    wstring lpParameters = input.getStringWide(1,L"");
+    // 参数3 cwd
+    wstring lpDirectory = input.getStringWide(2,L"");
+    
+    // 参数4 是否显示
+    bool isHideWindow = input.getBool(3,false);
+    
+    // 参数5 是否提升到管理员权限
+    bool isAdmin = input.getBool(4,false);
+
+    // 执行
+    bool is_success = hmc_shell_util::ShellOpen::openApp(lpFile,lpParameters,lpDirectory,isHideWindow,isAdmin)>= 31 ;
+
+    return as_Boolean(is_success);
 }
+
 
 static napi_value enumChildWindows(napi_env env, napi_callback_info info)
 {
-    napi_status status;
-    napi_value ResultsHandleList;
-    status = napi_create_array(env, &ResultsHandleList);
-    if (status != napi_ok)
-        return ResultsHandleList;
-    size_t argc = 1;
-    napi_value args[1];
-    status = $napi_get_cb_info(argc, args);
-    if (status != napi_ok)
-        return ResultsHandleList;
-    if (!argc)
-    {
-        napi_throw_type_error(env, 0, string("The number of parameters entered is not legal size =>").append(to_string(argc)).c_str());
-    }
-    // get HWND
-    int64_t NumHandle;
-    status = napi_get_value_int64(env, args[0], &NumHandle);
-    if (status != napi_ok)
-        return ResultsHandleList;
-    HWND Handle = (HWND)NumHandle;
+    auto input = hmc_NodeArgsValue(env, info);
+    input.eq(0, js_number,true);
 
-    // is the handle
-    if (!(GetWindow(Handle, GW_OWNER) == (HWND)0 && IsWindowVisible(Handle)))
-        return ResultsHandleList;
-    // enum
-    enumChildWindowsList.clear();
+    HWND Handle = input.getHwnd(0,0);
 
-    // LPARAM lm = (LPARAM)&parm; //获取结构体地址
+    auto subHandleList = hmc_windows_util::getSubWindows(Handle);
 
-    EnumChildWindows(Handle, enumchildWindowCallback, NULL);
-    int oidSize = enumChildWindowsList.size();
-    switch (true)
-    {
-        int sizes = enumChildWindowsList.size();
-        Sleep(2);
-        if (oidSize == sizes)
+    if(subHandleList.index()==0){
+       
+        std::vector<HWND> subHandleResuleList = std::get<0>(subHandleList);
+        std::vector<int> sub_num_list = {};
+
+        size_t count = subHandleResuleList.size();
+        for (size_t i = 0; i < count; i++)
         {
-            oidSize = sizes;
-            Sleep(3);
-            if (oidSize == enumChildWindowsList.size())
-                break;
+            auto it = subHandleResuleList.at(i);
+            subHandleResuleList.push_back(it);
         }
-        oidSize = sizes;
+        
+       return hmc_napi_create_value::Array::Number(env, sub_num_list);
+
     }
-    for (size_t i = 0; i < enumChildWindowsList.size(); i++)
-    {
-        status = napi_set_element(env, ResultsHandleList, i, as_Number((int64_t)enumChildWindowsList[i]));
-        if (status != napi_ok)
-        {
-            enumChildWindowsList.clear();
-            return ResultsHandleList;
-        }
-    }
-    enumChildWindowsList.clear();
-    return ResultsHandleList;
+
+    return as_ArrayNul();
 }
 
 // 获取屏幕个数
@@ -2741,16 +2579,23 @@ static void hmc_gc_func()
 {
 
     // 防止鼠标被锁定
-    if (hmc_mouse::__LimitMouseRange_worker)
+    if (hmc_mouse::LimitMouseRange::hasLimitMouseRange_worker())
     {
-        hmc_mouse::stopLimitMouseRange_worker();
+        hmc_mouse::LimitMouseRange::stopLimitMouseRange_worker();
     }
 
     // 释放鼠标监听的线程
-    if (!hmc_mouse::isStartHookMouse())
+    if (!hmc_mouse::MouseHook::isValidHookMouse())
     {
-        hmc_mouse::StopHookMouse();
+        hmc_mouse::MouseHook::stopHookMouse();
     }
+
+    // 释放键盘监听的线程
+    if (!hmc_Keyboard::keyboardHook::isValidHookKeyboard())
+    {
+        hmc_Keyboard::keyboardHook::stopHookKeyboard();
+    }
+
 }
 
 napi_value fn_SendMessage(napi_env env, napi_callback_info info)
@@ -2771,7 +2616,7 @@ void Init_MAIN_DATA()
 
 static napi_value Init(napi_env env, napi_value exports)
 {
-    // std::thread(Init_MAIN_DATA).detach();
+    
     napi_property_descriptor BIND_NAPI_METHOD[] = {
         ADD_NAPI_METHOD_Str_VALUE("version", "0.0.0"),
         ADD_NAPI_METHOD_Str_VALUE("desc", "Easier Access to System APIs"),

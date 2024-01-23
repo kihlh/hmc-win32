@@ -1152,7 +1152,31 @@ export module HMC {
     }
 
     // 自定义鼠标事件
-    export type mouse_event = /**不支持的属性 请使用 setCursorPos 方法设置位置*/ 32768 | /**左键按下 */ 2 | /**左边的按钮是向上的 */ 4 | /**中间的按钮是向下的 */ 32 | /**中间的按钮是向上的 */ 64 | /**鼠标移动和按钮点击 */ 1 | /**鼠标右键按下 */ 8 | /**鼠标右键弹起 */ 16 | /**滚轮按钮被旋转 */ 2048 | /**按下了 X 按钮 */ 128 | /**X 按钮被释放 */ 256 | /**滚轮按钮倾斜*/ 4096 | /**不支持的属性 请使用 setCursorPos 方法设置位置*/ "MOUSEEVENTF_ABSOLUTE" | /**左键按下 */ "MOUSEEVENTF_LEFTDOWN" | /**左边的按钮是向上的 */ "MOUSEEVENTF_LEFTUP" | /**中间的按钮是向下的 */ "MOUSEEVENTF_MIDDLEDOWN" | /**中间的按钮是向上的 */ "MOUSEEVENTF_MIDDLEUP" | /**鼠标移动和按钮点击 */ "MOUSEEVENTF_MOVE" | /**鼠标右键按下 */ "MOUSEEVENTF_RIGHTDOWN" | /**鼠标右键弹起 */ "MOUSEEVENTF_RIGHTUP" | /**滚轮按钮被旋转 */ "MOUSEEVENTF_WHEEL" | /**按下了 X 按钮 */ "MOUSEEVENTF_XDOWN" | /**X 按钮被释放 */ "MOUSEEVENTF_XUP" | /**滚轮按钮倾斜*/ "MOUSEEVENTF_HWHEEL";
+    export type mouse_event =
+    /**不支持的属性 请使用 setCursorPos 方法设置位置*/ 32768 |
+    /**左键按下 */ 2 |
+    /**左边的按钮是向上的 */ 4 |
+    /**中间的按钮是向下的 */ 32 |
+    /**中间的按钮是向上的 */ 64 |
+    /**鼠标移动和按钮点击 */ 1 |
+     /**鼠标右键按下 */ 8 |
+      /**鼠标右键弹起 */ 16 |
+       /**滚轮按钮被旋转 */ 2048 |
+        /**按下了 X 按钮 */ 128 |
+         /**X 按钮被释放 */ 256 |
+          /**滚轮按钮倾斜*/ 4096 |
+           /**不支持的属性 请使用 setCursorPos 方法设置位置*/ "MOUSEEVENTF_ABSOLUTE" |
+            /**左键按下 */ "MOUSEEVENTF_LEFTDOWN" |
+             /**左边的按钮是向上的 */ "MOUSEEVENTF_LEFTUP" |
+              /**中间的按钮是向下的 */ "MOUSEEVENTF_MIDDLEDOWN" |
+               /**中间的按钮是向上的 */ "MOUSEEVENTF_MIDDLEUP" |
+                /**鼠标移动和按钮点击 */ "MOUSEEVENTF_MOVE" |
+                 /**鼠标右键按下 */ "MOUSEEVENTF_RIGHTDOWN" |
+                  /**鼠标右键弹起 */ "MOUSEEVENTF_RIGHTUP" |
+                   /**滚轮按钮被旋转 */ "MOUSEEVENTF_WHEEL" |
+                    /**按下了 X 按钮 */ "MOUSEEVENTF_XDOWN" |
+                     /**X 按钮被释放 */ "MOUSEEVENTF_XUP" |
+                      /**滚轮按钮倾斜*/ "MOUSEEVENTF_HWHEEL";
 
     // 消息框显示方式
     export type MB_UINT =  /**消息框包含三个按钮：终止、重试和忽略。 */ "MB_ABORTRETRYIGNORE" | /**消息框包含三个按钮：取消、重试、继续。使用此消息框类型而不是 MB_ABORTRETRYIGNORE。 */ "MB_CANCELTRYCONTINUE" | /**向消息框 添加帮助按钮。当用户单击帮助按钮或按 F1 时|系统会向所有者 发送WM_HELP消息。 */ "MB_HELP" | /**消息框包含一个按钮：确定。这是默认设置。 */ "MB_OK" | /**消息框包含两个按钮：确定和取消。 */ "MB_YESNOCANCEL" | /**消息框包含两个按钮：是和否。 */ "MB_YESNO" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_OKCANCEL" | /**消息框包含两个按钮：OK和Cancel。 */ "MB_RETRYCANCEL" | /**消息框包含三个按钮：Yes、No和Cancel。 一个停止标志图标出现在消息框中。*/ "MB_ICONERROR" | /**一个停止标志图标出现在消息框中。 */ "MB_ICONSTOP" | /**问号图标出现在消息框中。不再推荐使用问号消息图标|因为它不能清楚地表示特定类型的消息|并且作为问题的消息措辞可能适用于任何消息类型。此外|用户可能会将消息符号问号与帮助信息混淆。因此|请勿在消息框中使用此问号消息符号。系统继续支持它的包含只是为了向后兼容。 */ "MB_ICONQUESTION" | /**一个由圆圈中的小写字母i组成的图标出现在消息框中。 */ "MB_ICONASTERISK" | "MB_ICONINFORMATION" | /**消息框中会出现一个感叹号图标。 */ "MB_ICONEXCLAMATION" | /** 消息框中会出现一个感叹号图标。 */ "MB_ICONWARNING" | /* 消息框成为前台窗口 **/ "MB_TOPMOST" | "MB_SETFOREGROUND" | "MB_RTLREADING" | "MB_RIGHT" | "MB_DEFAULT_DESKTOP_ONLY" | "MB_TASKMODAL" | "MB_SYSTEMMODAL" | "MB_APPLMODAL" | "MB_DEFBUTTON4" | "MB_DEFBUTTON3" | "MB_DEFBUTTON2" | "MB_ICONHAND" | "MB_DEFBUTTON1";
@@ -5818,24 +5842,24 @@ class Iohook_Mouse {
         mouseHook._onlistenerCountList[eventName as "data"].push(listener);
         return mouseHook;
     };
-    
+
     /**
      * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
      * @param Sleep 要求 10ms - 5000ms
      * @default 50ms
      * @returns 
      */
-    setRefreshRate(Sleep = 50){
+    setRefreshRate(Sleep = 50) {
         Sleep = Number(Sleep);
-        
-        if(isNaN(Sleep)) return false;
+
+        if (isNaN(Sleep)) return false;
 
         // 小于10会导致访问过快照成性能消耗过大
-        if(Sleep<10){
+        if (Sleep < 10) {
             return false;
         }
         // 太慢了会导致内存过大 如果内存超出了缓冲区预开辟内存大小将会变成动态开辟内存 影响单次键鼠响应的速度
-        if(Sleep>5000){
+        if (Sleep > 5000) {
             return false;
         }
 
@@ -6449,17 +6473,17 @@ class Iohook_Keyboard {
      * @default 50ms
      * @returns 
      */
-    setRefreshRate(Sleep = 50){
+    setRefreshRate(Sleep = 50) {
         Sleep = Number(Sleep);
-        
-        if(isNaN(Sleep)) return false;
+
+        if (isNaN(Sleep)) return false;
 
         // 小于10会导致访问过快照成性能消耗过大
-        if(Sleep<10){
+        if (Sleep < 10) {
             return false;
         }
         // 太慢了会导致内存过大 如果内存超出了缓冲区预开辟内存大小将会变成动态开辟内存 影响单次键鼠响应的速度
-        if(Sleep>10000){
+        if (Sleep > 10000) {
             return false;
         }
 

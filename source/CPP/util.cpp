@@ -1,6 +1,6 @@
 #include "./util.h";
-#include "./util/hmc_string_util.hpp"
-#include "./util/napi_value_util.hpp"
+#include "./module/hmc_string_util.h"
+#include "./module/hmc_napi_value_util.h"
 
 bool util_diff_napi_type(napi_env env, napi_value value, napi_valuetype valuetype)
 {

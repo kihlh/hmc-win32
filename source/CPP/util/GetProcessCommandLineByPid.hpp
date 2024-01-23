@@ -598,6 +598,7 @@ std::wstring GetCurrentWorkingDirectory(HANDLE hProcess)
     }
     return result;
 }
+
 std::wstring GetCurrentWorkingDirectory(DWORD processId)
 {
     HANDLE ProcessHandle = NULL;

@@ -14,8 +14,8 @@
 #include <Tlhelp32.h>
 #include <ShlObj.h>
 // #include "./registr.hpp"
-#include "./hmc_string_util.hpp"
-#include "./hmc_registr_util.hpp"
+#include "../module/hmc_string_util.h"
+#include "../module/hmc_registr_util.h"
 
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")

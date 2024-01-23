@@ -22,7 +22,7 @@
 #include <thread>
 #include <shared_mutex>
 
-#include "./hmc_string_util.hpp"
+#include "./hmc_string_util.h"
 
 using namespace std;
 

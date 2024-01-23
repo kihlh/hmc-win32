@@ -7,7 +7,7 @@
 #include <map>
 #include <set>
 #include <any>
-#include "./util/hmc_string_util.hpp"
+#include "./util/hmc_string_util.h"
 #include "./AutoItX3/AutoItX3_DLL.h"
 
 #define HMC_IS_DEUG_COUT 1

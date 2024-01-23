@@ -1,5 +1,6 @@
 #include "./Mian.hpp";
 #include "./screen_v2.hpp";
+#include "./module/hmc_napi_value_util.h";
 
 bool hmc_screen::isInside(int x1, int y1, int x2, int y2, int x, int y)
 {
@@ -13,8 +14,22 @@ void hmc_screen::CaptureBmpToFile(string filename, int x, int y, int nScopeWidth
 {
     vector<std::uint8_t> buffer;
     CaptureBmpToBuff(buffer, x, y, nScopeWidth, nScopeHeight);
-    std::ofstream OutFile(filename);
-    OutFile << buffer.data();
+
+    std::ofstream OutFile(filename.c_str(), std::ofstream::ios_base::trunc|std::ofstream::ios_base::binary );
+
+    if (!OutFile.is_open())
+    {
+        return;
+    }
+
+    OutFile.write(reinterpret_cast<char *>(buffer.data()),buffer.size());
+
+    if (OutFile.fail())
+    {
+        OutFile.close();
+        return;
+    }
+
     OutFile.close();
 }
 

@@ -1,6 +1,6 @@
 #include "../Mian.hpp";
-#include "./hmc_string_util.hpp"
-#include "./napi_value_util.hpp";
+#include "../module/hmc_string_util.h"
+#include "../module/hmc_napi_value_util.h";
 // #include "./environment.hpp";
 // #include "./fmt11.hpp";
 #include "./GetProcessCommandLineByPid.hpp";
@@ -219,16 +219,24 @@ wstring GetProcessIdFilePathW(DWORD processID, bool is_snapshot_match)
 	//
 	if (!result.empty() && result.front() == '\\')
 	{
-		// vector<util_Volume> volumeList = util_getVolumeList();
+		vector<util_Volume> volumeList = util_getVolumeList();
 
-		// for (size_t i = 0; i < volumeList.size(); i++)
-		// {
-		//     util_Volume volume = volumeList[i];
-		//     if (result.find(volume.device) == 0)
-		//     {
-		//         result.replace(0, volume.device.length(), volume.path);
-		//     }
-		// }
+		for (size_t i = 0; i < volumeList.size(); i++)
+		{
+		    util_Volume volume = volumeList[i];
+			volume.path.push_back('\\');
+			
+		    if (result.find(volume.device) == 0)
+		    {
+		        result.replace(0, volume.device.length(), volume.path);
+		    }
+		    
+			if (result.find(volume.name) == 0)
+		    {
+		        result.replace(0, volume.name.length(), volume.path);
+		    }
+			
+		}
 	}
 
 	// 处理 ntoskrnl.exe 不可见问题

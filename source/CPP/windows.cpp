@@ -1,4 +1,5 @@
 #include "./Mian.hpp";
+#include "./module/hmc_napi_value_util.h"
 
 // 获取所有窗口
 napi_value getAllWindowsHandle(napi_env env, napi_callback_info info)

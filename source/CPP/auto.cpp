@@ -1,5 +1,6 @@
 #include "./Mian.hpp";
-#include "./util/hmc_mouse.h";
+#include "./module/hmc_automation_util.h";
+#include "./module/hmc_napi_value_util.h"
 
 HHOOK keyboardHook = 0; // 钩子句柄、
 HHOOK MouseHook = 0;    // 钩子句柄、
@@ -710,7 +711,7 @@ napi_value sendBasicKeys(napi_env env, napi_callback_info info)
         inputs[3].type = INPUT_KEYBOARD;
         inputs[3].ki.wVk = keyCode;
         inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
-
+        
         inputs[4].type = INPUT_KEYBOARD;
         inputs[4].ki.wVk = BasicKeys_wVk1;
         inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
@@ -839,24 +840,25 @@ napi_value getCursorPos(napi_env env, napi_callback_info info)
 
 napi_value installHookMouse2(napi_env env, napi_callback_info info)
 {
-    std::thread(hmc_mouse::InitHookMouse).detach();
-    return hmc_napi_create_value::Undefined(env);
+    bool result = hmc_mouse::MouseHook::initMouseEventHook();
+    return  as_Boolean(result);
 }
 
 napi_value unHookMouse2(napi_env env, napi_callback_info info)
 {
-    hmc_mouse::StopHookMouse();
-    return hmc_napi_create_value::Undefined(env);
+     bool result = hmc_mouse::MouseHook::stopHookMouse();
+    return  as_Boolean(result);
 }
 
 napi_value getMouseNextSession2(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::String(env, hmc_mouse::getMouseEventListJsonA());
+     std::string result = hmc_mouse::MouseHook::getMouseEventListJsonA();
+    return  as_String(result);
 }
 
 napi_value isStartHookMouse2(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::Boolean(env, hmc_mouse::isStartHookMouse());
+    return hmc_napi_create_value::Boolean(env, hmc_mouse::MouseHook::isValidHookMouse());
 }
 
 napi_value getLastInputTime(napi_env env, napi_callback_info info)
@@ -866,7 +868,7 @@ napi_value getLastInputTime(napi_env env, napi_callback_info info)
 
 napi_value stopLimitMouseRangeWorker(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::Boolean(env, hmc_mouse::stopLimitMouseRange_worker());
+    return hmc_napi_create_value::Boolean(env, hmc_mouse::LimitMouseRange::stopLimitMouseRange_worker());
 }
 
 napi_value setLimitMouseRange(napi_env env, napi_callback_info info)
@@ -881,7 +883,7 @@ napi_value setLimitMouseRange(napi_env env, napi_callback_info info)
         {4,js_number},
         });
     
-    return hmc_napi_create_value::Boolean(env, hmc_mouse::setLimitMouseRange(
+    return hmc_napi_create_value::Boolean(env, hmc_mouse::LimitMouseRange::setLimitMouseRange(
         args.getInt64(/*ms*/0,50), 
         args.getInt64(/*x*/1,1), 
         args.getInt64(/*y*/2,1), 
@@ -893,5 +895,5 @@ napi_value setLimitMouseRange(napi_env env, napi_callback_info info)
 
 napi_value hasLimitMouseRangeWorker(napi_env env, napi_callback_info info)
 {
-    return hmc_napi_create_value::Boolean(env, hmc_mouse::hasLimitMouseRange_worker());
+    return hmc_napi_create_value::Boolean(env, hmc_mouse::LimitMouseRange::hasLimitMouseRange_worker());
 }
