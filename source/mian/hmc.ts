@@ -5186,7 +5186,7 @@ export function formatVolumePath(VolumePath: string) {
                 return VolumePath.replace(Volume.device, Volume.path).replace(/[\\/]+/, "\\");
             }
         }
-    } else return path;
+    } else return VolumePath;
 }
 
 /**
