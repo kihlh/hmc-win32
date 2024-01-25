@@ -47,6 +47,13 @@ namespace hmc_process_util
         typedef NTSTATUS(NTAPI *ZwQuerySystemInformation_t)(SYSTEM_INFORMATION_CLASS, PVOID, ULONG, PULONG);
         typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
 
+        extern std::wstring GetProcessCommandLineByPid(_In_ DWORD pid);
+        extern std::wstring GetProcessCommandLineOld(_In_ HANDLE ProcessHandle, _Out_ long *status);
+        extern std::wstring GetProcessCommandLineNew(_In_ HANDLE ProcessHandle, _Out_ long *status);
+        extern PVOID GetPebAddress(HANDLE ProcessHandle);
+        extern NTSTATUS PhpQueryProcessVariableSize(_In_ HANDLE ProcessHandle, _In_ _PROCESSINFOCLASS ProcessInformationClass, _Out_ PVOID *Buffer);
+        extern BOOLEAN PhHeapInitialization(_In_opt_ SIZE_T HeapReserveSize, _In_opt_ SIZE_T HeapCommitSize);
+
     }
 
     // （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
@@ -70,6 +77,17 @@ namespace hmc_process_util
          * @return std::wstring
          */
         std::wstring to_json();
+    };
+
+    struct ch_ProcessHandle
+    {
+        // 句柄id
+        long long handle;
+        // 类型
+        std::wstring type;
+        // 名称(数据)
+        std::wstring name;
+        int id;
     };
 
     // （进程内核快照）
@@ -150,7 +168,39 @@ namespace hmc_process_util
      * @param isSnapshotName 如果获取不到请尽可能从内核列表中获取
      * @return std::wstring
      */
-    extern std::wstring getProcessFilePath(DWORD processID, bool isEnumListExists, bool isService, bool isSnapshotName);
+    extern std::wstring getProcessFilePath(DWORD processID, bool isEnumListExists, bool isService);
+
+    /**
+     * @brief 获取进程名称 快照法
+     *
+     * @param processID 进程id
+     * @return std::wstring
+     */
+    extern std::wstring getProcessNameSnp(DWORD processID);
+
+    /**
+     * @brief 获取进程名称 内核法
+     *
+     * @param processID 进程id
+     * @return std::wstring
+     */
+    extern std::wstring getProcessNameNt(DWORD processID);
+
+    /**
+     * @brief 获取进程名称 尽可能获取
+     *
+     * @param processID 进程id
+     * @return std::wstring
+     */
+    extern std::wstring getProcessName(DWORD processID);
+
+    /**
+     * @brief 获取进程名称 尽可能获取 但是不从文件完整名称获取
+     *
+     * @param processID 进程id
+     * @return std::wstring
+     */
+    extern std::wstring GpGetProcessNameEx(DWORD processID);
 
     /**
      * @brief 枚举进程列表(快照)
@@ -166,6 +216,14 @@ namespace hmc_process_util
      * @return false
      */
     extern bool EnableShutDownPriv();
+
+    /**
+     * @brief 提权令牌
+     *
+     * @return true
+     * @return false
+     */
+    extern bool EnableShutDownPriv(DWORD DesiredAccess);
 
     /**
      * @brief 结束指定进程
@@ -240,7 +298,45 @@ namespace hmc_process_util
      */
     extern double getProcessCpuUsage(DWORD ProcessID);
 
-    class OpenProcessToken
+    /**
+     * @brief 枚举进程的线程列表
+     *
+     * @param processID
+     * @return std::vector<THREADENTRY32>
+     */
+    extern std::vector<THREADENTRY32> getProcessThreadList(DWORD processID);
+
+    /**
+     * @brief 枚举线程快照
+     *
+     * @return std::vector<THREADENTRY32>
+     */
+    extern std::vector<THREADENTRY32> getThreadSnapshot();
+
+    /**
+     * @brief 枚举进程打开的模块路径
+     *
+     * @return std::vector<std::wstring>
+     */
+    extern std::vector<std::wstring> getProcessModuleList(DWORD processID);
+
+    /**
+     * @brief 获取进程的工作路径
+     *
+     * @param processID
+     * @return std::wstring
+     */
+    extern std::wstring getProcessCwdPath(DWORD processID);
+
+    /**
+     * @brief 获取指定进程的启动命令行
+     *
+     * @param processID
+     * @return std::wstring
+     */
+    extern std::wstring getProcessCommandLine(DWORD processID);
+
+    class openProcessToken
     {
     public:
         /**
@@ -249,8 +345,8 @@ namespace hmc_process_util
          * @param ProcessId 进程Id
          * @param isEnableShutDownPriv 是否使用提权令牌
          */
-        OpenProcessToken(DWORD ProcessId, bool isEnableShutDownPriv = false);
-        ~OpenProcessToken();
+        openProcessToken(DWORD ProcessId, bool isEnableShutDownPriv = false);
+        ~openProcessToken();
         DWORD GpProcessId = NULL;
         HANDLE GpHProcess = NULL;
 
@@ -298,6 +394,76 @@ namespace hmc_process_util
         std::vector<PROCESS_INFO> data_list = {};
         // json模版
         const std::wstring json_temp = LR"({ "processId":{ProcessId} ,"sessionId":{SessionId} , "userSid":{UserSid} , "processName":"{ProcessName}" , "userName":"{UserName}" , "domainName":"{DomainName}" })";
+    };
+
+    class CpGetProcessCwdPath
+    {
+    private:
+#define PTR_ADD_OFFSET(Pointer, Offset) ((PVOID)((ULONG_PTR)(Pointer) + (ULONG_PTR)(Offset)))
+
+        struct CURDIR
+        {
+            UNICODE_STRING DosPath;
+            HANDLE Handle;
+        };
+
+        struct LOCAL_RTL_USER_PROCESS_PARAMETERS
+        {
+            ULONG _1[4];
+            HANDLE _2;
+            ULONG _3;
+            HANDLE _4[3];
+            CURDIR CurrentDirectory;
+        };
+
+        struct UNICODE_STRING32
+        {
+            USHORT Length;
+            USHORT MaximumLength;
+            ULONG Buffer;
+        };
+
+        struct CURDIR32
+        {
+            UNICODE_STRING32 DosPath;
+            ULONG Handle;
+        };
+
+        struct LOCAL_RTL_USER_PROCESS_PARAMETERS32
+        {
+            ULONG _1[9];
+            CURDIR32 CurrentDirectory;
+        };
+
+        struct PEB32
+        {
+            BOOLEAN _1[4];
+            ULONG _2[3];
+            ULONG ProcessParameters;
+        };
+
+        typedef NTSTATUS(__stdcall *nt_close)(HANDLE);
+        typedef NTSTATUS(__stdcall *nt_openProcess)(PHANDLE, ACCESS_MASK, POBJECT_ATTRIBUTES, CLIENT_ID *);
+        typedef NTSTATUS(__stdcall *nt_queryInformationProcess)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, ULONG_PTR);
+        typedef NTSTATUS(__stdcall *nt_readVirtualMemory)(HANDLE, PVOID, PVOID, SIZE_T, PSIZE_T);
+
+        struct NtCall
+        {
+            HMODULE p_ntdll;
+            nt_close close;
+            nt_openProcess openProcess;
+            nt_queryInformationProcess queryInformationProcess;
+            nt_readVirtualMemory readVirtualMemory;
+        };
+
+        NtCall nt = {nullptr, nullptr, nullptr, nullptr, nullptr};
+
+        void initializeNtCall();
+        NTSTATUS readCwd(wchar_t **outputString, unsigned long pid);
+
+    public:
+        std::wstring cwdPath;
+        CpGetProcessCwdPath(DWORD processID);
     };
 
 }

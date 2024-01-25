@@ -1,4 +1,15 @@
-﻿#pragma once
+﻿/**
+ * @file hmc_usb_util.h
+ * @author kiic
+ * @brief 本模块是USB相关功能的合集
+ * @version 0.1
+ * @date 2024-01-25
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#pragma once
 
 // 防止重复导入
 #ifndef MODE_INTERNAL_INCLUDE_HMC_USB_UTIL_HPP
@@ -16,14 +27,20 @@
 #include <Usbioctl.h>
 #include <variant>
 
+#include <variant>
+
 #pragma comment(lib, "Setupapi.lib")
 
-#define EPOCH_TIME	UINT64_C(116444736000000000)	// 1970.01.01 00:00:000 in MS Filetime
+#define EPOCH_TIME UINT64_C(116444736000000000) // 1970.01.01 00:00:000 in MS Filetime
 
 namespace hmc_usb_util
 {
     DEFINE_GUID(UsbClassGuid, 0xa5dcbf10L, 0x6530, 0x11d2, 0x90, 0x1f, 0x00, 0xc0, 0x4f, 0xb9, 0x51, 0xed);
-    
+
+    namespace hmc_define_util
+    {
+        std::wstring hmc_usb_util_escapeJsonString(const std::wstring &input, bool is_to_value);
+    }
     struct chVolume
     {
         // 路径 "D:\\"
@@ -32,18 +49,22 @@ namespace hmc_usb_util
         std::wstring name;
         // 驱动器 磁盘号    "\\Device\\HarddiskVolume6"
         std::wstring device;
+
+        std::wstring to_json();
     };
 
     struct chUsbDevsInfo
     {
         // 设备名称  如 "\\\\?\\usb\\vid_0bda&pid_8812\\123456\\{a5abcd66-6530-66d2-666f-666666666}""
         std::wstring name;
-        // 设备名称 
+        // 设备名称
         std::wstring description;
         //  产品ID，它是由设备制造商分配的一个标识符，可以用来区分同一制造商产生的不同产品
         DWORD dwProductId;
         //  供应商ID，它是由USB实现论坛 (USB-IF) 分配的一个标识符
         DWORD dwVendorId;
+
+        std::wstring to_json();
     };
 
     struct chHidSomeInfo
@@ -64,6 +85,8 @@ namespace hmc_usb_util
         DWORD usUsage;
         //  这是设备的用途页面ID，它配合 usUsage 使用，确定设备的具体类型和用途。例如，usUsagePage = 1 表示设备是一个通用桌面控制类的设备，例如键盘或鼠标等。null
         DWORD usUsagePage;
+
+        std::wstring to_json();
     };
 
     struct chHidKeyboardInfo
@@ -86,8 +109,9 @@ namespace hmc_usb_util
         DWORD dwSubType;
         // 设备类型。例如 81 代表键盘设备。
         DWORD dwType;
-    };
 
+        std::wstring to_json();
+    };
 
     struct chHidMouseInfo
     {
@@ -105,6 +129,8 @@ namespace hmc_usb_util
         DWORD dwSampleRate;
         // 表示这个鼠标是否有横向滚轮。此例中其值为false，表示鼠标没有横向滚轮。
         bool fHasHorizontalWheel;
+
+        std::wstring to_json();
     };
 
     typedef std::variant<hmc_usb_util::chHidSomeInfo, hmc_usb_util::chHidKeyboardInfo, hmc_usb_util::chHidMouseInfo> thHidInfo;
@@ -145,11 +171,11 @@ namespace hmc_usb_util
 
     /**
      * @brief USB设备信息列表 （如U盘，加密狗，可移动硬盘，等）
-     * 
-     * @return std::vector<hmc_usb_util::chUsbDevsInfo> 
+     *
+     * @return std::vector<hmc_usb_util::chUsbDevsInfo>
      */
     std::vector<hmc_usb_util::chUsbDevsInfo> getUsbDevsInfoList();
-    
+
     /**
      * @brief 获取当前接入的usb hid设备的名称(id)列表（如键盘，鼠标，触摸屏，等）
      *
@@ -165,13 +191,13 @@ namespace hmc_usb_util
     std::vector<thHidInfo> getUsbHidList();
 
     /**
-     * @brief VolumePath 格式化 驱动器路径 
-     * @param '\\\\?\\Volume{68de5ae6-0000-0000-0000-100000000000}\\123'  -> H:\\ 
+     * @brief VolumePath 格式化 驱动器路径
+     * @param '\\\\?\\Volume{68de5ae6-0000-0000-0000-100000000000}\\123'  -> H:\\
      * @param '\Device\HarddiskVolume2\\123'   \\DosDevices\\H:\\123  -> H:\\
-     * @return std::wstring 
+     * @return std::wstring
      */
     std::wstring formatVolumePath(std::wstring VolumePath);
-    
+
 }
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_USB_UTIL_HPP

@@ -1,6 +1,10 @@
-#include <io.h>
+﻿#include <io.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <iostream>
+#include <string>
+
+#include <chrono>
 
 namespace hmc_console_util
 {
@@ -42,4 +46,12 @@ namespace hmc_console_util
         bool __stdin = false;
         bool __stderr = false;
     };
+
+    extern void console_time();
+
+    extern void console_timeEnd();
+
+    extern std::chrono::steady_clock::time_point start_time;
+
+    extern std::chrono::steady_clock::time_point end_time;
 }

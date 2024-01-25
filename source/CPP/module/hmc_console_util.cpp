@@ -1,4 +1,4 @@
-#include "hmc_console_util.h"
+﻿#include "hmc_console_util.h"
 
 namespace hmc_console_util
 {
@@ -56,7 +56,7 @@ namespace hmc_console_util
             temp = _setmode(_fileno(stderr), set_type);
     }
 
-    AutoRelease::AutoRelease(bool _stdout, bool _stdin , bool _stderr)
+    AutoRelease::AutoRelease(bool _stdout, bool _stdin, bool _stderr)
     {
         __stdout = _stdout;
         __stdin = _stdin;
@@ -64,8 +64,30 @@ namespace hmc_console_util
         start(__stdout, __stdin, __stderr);
     }
 
-    AutoRelease:: ~AutoRelease()
+    AutoRelease::~AutoRelease()
     {
         stop(__stdout, __stdin, __stderr);
     }
+
+    std::chrono::steady_clock::time_point start_time = std::chrono::high_resolution_clock::now();
+
+    std::chrono::steady_clock::time_point end_time = std::chrono::high_resolution_clock::now();
+
+    void console_time()
+    {
+        hmc_console_util::start_time = std::chrono::high_resolution_clock::now(); // 获取当前时间
+    }
+
+    void console_timeEnd()
+    {
+        hmc_console_util::end_time = std::chrono::high_resolution_clock::now(); // 获取当前时间
+
+        // 计算并打印执行时间
+        std::chrono::nanoseconds diff = end_time - start_time;
+
+        double get_ms = (diff.count() / 1000.0 / 1000.0);
+
+        std::cout << "Code executed in " << std::to_string(diff.count()) << "ns " << std::to_string(get_ms) << "ms  seconds\n";
+    }
+
 }

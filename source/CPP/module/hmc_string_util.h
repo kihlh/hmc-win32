@@ -1,4 +1,15 @@
-﻿#pragma once
+﻿/**
+ * @file hmc_string_util.h
+ * @author kiic
+ * @brief 本模块是文本处理相关功能的合集
+ * @version 0.1
+ * @date 2024-01-25
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#pragma once
 
 // 防止重复导入
 #ifndef MODE_INTERNAL_INCLUDE_HMC_STRING_UTIL_HPP
