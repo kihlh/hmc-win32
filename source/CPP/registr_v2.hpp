@@ -4,8 +4,8 @@
 #ifndef MODE_INTERNAL_INCLUDE_HMC_REGISTR_V2_HPP
 #define MODE_INTERNAL_INCLUDE_HMC_REGISTR_V2_HPP
 
-#include "./module/hmc_string_util.h"
-#include "./module/hmc_registr_util.h"
+#include "hmc_string_util.h"
+#include "hmc_registr_util.h"
 #include "./Mian.hpp"
 
 extern napi_value getStringRegKey(napi_env env, napi_callback_info info);

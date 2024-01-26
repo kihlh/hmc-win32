@@ -1,6 +1,6 @@
-#include "./module/hmc_string_util.h"
-#include "./module/hmc_napi_value_util.h";
-#include "./module/hmc_registr_util.h"
+#include "hmc_string_util.h"
+#include "hmc_napi_value_util.h";
+#include "hmc_registr_util.h"
 #include "./registr_v2.hpp"
 #include "./Mian.hpp"
 #include <format>

@@ -1,7 +1,7 @@
 #include "./Mian.hpp"
 #include "./shell_v2.h"
-#include "./module/hmc_string_util.h"
-#include "./module/hmc_napi_value_util.h";
+#include "hmc_string_util.h"
+#include "hmc_napi_value_util.h";
 
 vector<GetTaryIconList::TaryIcon> GetTaryIconList::getTrayList()
 {

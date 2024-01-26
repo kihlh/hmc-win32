@@ -1,11 +1,11 @@
 ﻿#include "./Mian.hpp";
 
-#include "./module/hmc_string_util.h"
-#include "./module/hmc_napi_value_util.h"
+#include "hmc_string_util.h"
+#include "hmc_napi_value_util.h"
 #include "./shell_v2.h"
-#include "./module/hmc_automation_util.h"
-#include "./module/hmc_windows_util.h"
-#include "./module/hmc_shell_util.h"
+#include "hmc_automation_util.h"
+#include "hmc_windows_util.h"
+#include "hmc_shell_util.h"
 #include "./registr_v2.hpp"
 
 bool _________HMC___________;

@@ -13,9 +13,6 @@
     <Filter Include="..\..\..\..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="..\..\..\..\util">
-      <UniqueIdentifier>{F977CC92-61A1-407C-2835-A38A3BBED548}</UniqueIdentifier>
-    </Filter>
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
@@ -67,26 +64,68 @@
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源代码">
+      <UniqueIdentifier>{5e7a52e2-980e-4cfc-b84f-bb541665af8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头">
+      <UniqueIdentifier>{2bc6a5fa-bec7-450c-b61e-4204e048e494}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源代码\export">
+      <UniqueIdentifier>{778d295e-8f8e-43c4-b509-f21c84f2c404}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\util\hmc_string_util.cpp">
-      <Filter>..\..\..\..\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\util\napi_value_util.cpp">
-      <Filter>..\..\..\..\util</Filter>
-    </ClCompile>
-    <ClCompile Include="..\temp.cpp">
-      <Filter>..</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Main.cpp">
-      <Filter>..</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Users\kiic\AppData\Roaming\npm\node_modules\node-gyp\src\win_delay_load_hook.cc">
       <Filter>C:\Users\kiic\AppData\Roaming\npm\node_modules\node-gyp\src</Filter>
     </ClCompile>
     <None Include="..\binding.gyp">
       <Filter>..</Filter>
     </None>
+    <ClCompile Include="..\main.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_automation_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_byte_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_clip_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_console_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_json_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_napi_value_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_process_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_registr_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_shell_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_string_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_usb_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\module\hmc_windows_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
+    <ClCompile Include="..\export\clip.cpp">
+      <Filter>源代码\export</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />

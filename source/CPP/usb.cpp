@@ -1,5 +1,5 @@
 #include "./Mian.hpp";
-#include "./module/hmc_napi_value_util.h"
+#include "hmc_napi_value_util.h"
 #include <windows.h> // This is required to include before setupapi.h
 #include <setupapi.h>
 #include <Cfgmgr32.h>

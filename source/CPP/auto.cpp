@@ -1,6 +1,6 @@
 #include "./Mian.hpp";
-#include "./module/hmc_automation_util.h";
-#include "./module/hmc_napi_value_util.h"
+#include "hmc_automation_util.h";
+#include "hmc_napi_value_util.h"
 
 HHOOK keyboardHook = 0; // 钩子句柄、
 HHOOK MouseHook = 0;    // 钩子句柄、
