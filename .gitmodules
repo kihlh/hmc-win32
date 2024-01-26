@@ -1,0 +1,3 @@
+[submodule "source/h2c-win32/source/hmc-module"]
+	path = source/h2c-win32/source/hmc-module
+	url = https://github.com/kihlh/hmc-module.git
