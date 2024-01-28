@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // 防止重复导入
 #ifndef MODE_INTERNAL_INCLUDE_HMC_MAIN_V2_H

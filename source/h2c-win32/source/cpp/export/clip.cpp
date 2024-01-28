@@ -1,4 +1,4 @@
-#include "./export.h"
+﻿#include "./export.h"
 #include "hmc_napi_value_util.h"
 #include "hmc_clip_util.h"
 
@@ -142,21 +142,3 @@ napi_value getClipboardHTML(napi_env env, napi_callback_info info)
     return hmc_napi_create_value::Null(env);
 }
 
-napi_value ClipboardFunc(napi_env env, napi_callback_info info)
-{
-    napi_value Results;
-    napi_create_object(env, &Results);
-
-    hmc_napi_create_value::Object::putValue(env, Results, "getClipboardFilePaths", as_ExFunction(getClipboardFilePaths));
-    hmc_napi_create_value::Object::putValue(env, Results, "setClipboardFilePaths", as_ExFunction(setClipboardFilePaths));
-    hmc_napi_create_value::Object::putValue(env, Results, "setClipboardText", as_ExFunction(setClipboardText));
-    hmc_napi_create_value::Object::putValue(env, Results, "getClipboardText", as_ExFunction(getClipboardText));
-    hmc_napi_create_value::Object::putValue(env, Results, "clearClipboard", as_ExFunction(clearClipboard));
-    hmc_napi_create_value::Object::putValue(env, Results, "getClipboardInfo", as_ExFunction(getClipboardInfo));
-    hmc_napi_create_value::Object::putValue(env, Results, "enumClipboardFormats", as_ExFunction(enumClipboardFormats));
-    hmc_napi_create_value::Object::putValue(env, Results, "getClipboardHTML", as_ExFunction(getClipboardHTML));
-
-    napi_wrap(env, Results, NULL, NULL, NULL, NULL);
-
-    return Results;
-}

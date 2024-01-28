@@ -62,15 +62,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <ExternalIncludePath>F:\source\module\hmc-win32\source\hmc-module\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <ExternalIncludePath>F:\source\module\hmc-win32\source\hmc-module\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <ExternalIncludePath>F:\source\module\hmc-win32\source\hmc-module\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <ExternalIncludePath>F:\source\module\hmc-win32\source\hmc-module\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -262,14 +266,19 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\module\hmc_automation_util.cpp" />
-    <ClCompile Include="..\module\hmc_byte_util.cpp" />
-    <ClCompile Include="..\module\hmc_clip_util.cpp" />
-    <ClCompile Include="..\module\hmc_napi_value_util.cpp" />
-    <ClCompile Include="..\module\hmc_registr_util.cpp" />
-    <ClCompile Include="..\module\hmc_shell_util.cpp" />
-    <ClCompile Include="..\module\hmc_string_util.cpp" />
-    <ClCompile Include="..\module\hmc_windows_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_automation_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_byte_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_clip_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_console_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_json_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_napi_value_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_process_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_registr_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_shell_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_string_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_usb_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_util.cpp" />
+    <ClCompile Include="..\..\hmc-module\src\hmc_windows_util.cpp" />
     <ClCompile Include="..\registr_v2.cpp" />
     <ClCompile Include="..\screen_v2.cpp" />
     <ClCompile Include="..\shell_v2.cpp" />

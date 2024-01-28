@@ -11,7 +11,9 @@ const log = log4js.getLogger("cheese");
 process.exitCode = 666;
 
 console.time("load hmc dll");
-const native: _hmc.HMC.Native & Native = require(process.argv.at(-1) || "");
+let native: _hmc.HMC.Native & Native |any= setTimeout(()=>{
+    native=require(process.argv.at(-1) || "");
+});
 console.timeEnd("load hmc dll");
 
 export interface Native {

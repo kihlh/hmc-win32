@@ -8,7 +8,9 @@ log4js.configure({ appenders: { cheese: { type: "file", filename: "cheese.log" }
 const log = log4js.getLogger("cheese");
 process.exitCode = 666;
 console.time("load hmc dll");
-const native = require(process.argv.at(-1) || "");
+let native = setTimeout(() => {
+    native = require(process.argv.at(-1) || "");
+});
 console.timeEnd("load hmc dll");
 function setRegistrValue(Hive, folderPath, keyName, data = null, type = undefined) {
     const hive_value = __1.ref.string(Hive || "HKEY_CURRENT_USER");

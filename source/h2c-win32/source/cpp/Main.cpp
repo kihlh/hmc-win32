@@ -1,6 +1,6 @@
-#include "./main.h"
+﻿#include "./main.h"
 #include "./export/export.h"
-#include "./module/hmc_automation_util.h"
+#include "hmc_automation_util.h"
 
 
 
@@ -32,7 +32,23 @@ static napi_value Init(napi_env env, napi_value exports)
     napi_property_descriptor BIND_NAPI_METHOD[] = {
 
         // clip.cpp
-        DECLARE_NAPI_METHODRM("_load_ClipboardFunc", ClipboardFunc),
+        DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths),
+        DECLARE_NAPI_METHODRM("setClipboardText", setClipboardText),
+        DECLARE_NAPI_METHODRM("getClipboardText", getClipboardText),
+        DECLARE_NAPI_METHODRM("clearClipboard", clearClipboard),
+        DECLARE_NAPI_METHODRM("setClipboardFilePaths", setClipboardFilePaths),
+        DECLARE_NAPI_METHODRM("getClipboardInfo", getClipboardInfo),
+        DECLARE_NAPI_METHODRM("enumClipboardFormats", enumClipboardFormats),
+        DECLARE_NAPI_METHODRM("getClipboardHTML", getClipboardHTML),
+        
+        // shell.cpp
+        DECLARE_NAPI_METHODRM("getTrayList", getTrayList),
+        DECLARE_NAPI_METHODRM("trashFile", trashFile),
+        DECLARE_NAPI_METHODRM("clearTrash", clearTrash),
+        DECLARE_NAPI_METHODRM("copyFile", copyFile),
+        DECLARE_NAPI_METHODRM("moveFile", moveFile),
+        DECLARE_NAPI_METHODRM("getThumbnailPng", getThumbnailPng),
+        DECLARE_NAPI_METHODRM("getLinkTarget", getLinkTarget),
         
     };
     
