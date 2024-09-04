@@ -1,5 +1,5 @@
 ﻿#include "./main.h"
-#include "./export/export.h"
+#include "export.h"
 #include <stdlib.h>
 
 #include "hmc_automation_util.h"

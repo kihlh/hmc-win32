@@ -37,7 +37,7 @@ const get_native: () => HMC.Native = (binPath?: string) => {
     function _require_bin(): HMC.Native | null {
         try {
             if (binPath) return require(binPath);
-            if (process.arch.match(/^x32|ia32$/)) return require("./bin/HMC_x86.node");
+            if (process.arch.match(/^(x32|ia32)$/)) return require("./bin/HMC_x86.node");
             if (process.arch.match(/^x64$/)) return require("./bin/HMC_x64.node");
         } catch (X_X) {
 

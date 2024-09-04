@@ -6,11 +6,19 @@
       "conditions": [
         ['OS=="win"', {
           "sources": [
-            "util/napi_value_util.cpp",
-            "util/hmc_string_util.cpp",
-            "util/hmc_registr_util.cpp",
-            # "util/hmc_windows_util.cpp",
-            "util/byte.cpp",
+            "../hmc-module/src/hmc_automation_util.cpp",
+            "../hmc-module/src/hmc_byte_util.cpp",
+            "../hmc-module/src/hmc_clip_util.cpp",
+            "../hmc-module/src/hmc_console_util.cpp",
+            "../hmc-module/src/hmc_json_util.cpp",
+            "../hmc-module/src/hmc_napi_value_util.cpp",
+            "../hmc-module/src/hmc_process_util.cpp",
+            "../hmc-module/src/hmc_shell_util.cpp",
+            "../hmc-module/src/hmc_string_util.cpp",
+            "../hmc-module/src/hmc_registr_util.cpp",
+            "../hmc-module/src/hmc_usb_util.cpp",
+            "../hmc-module/src/hmc_util.cpp",
+            "../hmc-module/src/hmc_windows_util.cpp",
             "Main.cpp",
             "shell_v2.cpp",
             "test.cpp",
@@ -23,9 +31,9 @@
             "process.cpp",
             "screen_v2.cpp",
             "util/fn_process.cpp",
-            "util/fn_environment.cpp",
-            "util/hmc_mouse.cpp",
-          ],
+            "util/fn_environment.cpp"
+          ], 
+          "include_dirs": ["../hmc-module/include"],
           'msvs_settings': {
             'VCCLCompilerTool': {
               'AdditionalOptions': [

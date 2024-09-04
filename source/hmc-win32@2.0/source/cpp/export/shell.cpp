@@ -1,4 +1,4 @@
-﻿#include "./export.h"
+﻿#include "export.h"
 #include "hmc_string_util.h"
 #include "hmc_napi_value_util.h"
 #include "hmc_string_util.h"

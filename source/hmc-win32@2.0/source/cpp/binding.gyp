@@ -1,15 +1,32 @@
 {
   "targets": [
     {
-      "target_name": "hmc_debug",
+      "target_name": "HMC_Beta",
       "conditions": [
         ['OS=="win"', {
           "sources": [
-            "../../../util/hmc_string_util.cpp",
-            "../../../util/napi_value_util.cpp",
-            "temp.cpp",
-            "Main.cpp",
-          ],
+            "../../../hmc-module/src/hmc_string_util.cpp",
+            "../../../hmc-module/src/hmc_automation_util.cpp",
+            "../../../hmc-module/src/hmc_byte_util.cpp",
+            "../../../hmc-module/src/hmc_clip_util.cpp",
+            "../../../hmc-module/src/hmc_console_util.cpp",
+            "../../../hmc-module/src/hmc_json_util.cpp",
+            "../../../hmc-module/src/hmc_napi_value_util.cpp",
+            "../../../hmc-module/src/hmc_process_util.cpp",
+            "../../../hmc-module/src/hmc_registr_util.cpp",
+            "../../../hmc-module/src/hmc_screen_util.cpp",
+            "../../../hmc-module/src/hmc_shell_util.cpp",
+            "../../../hmc-module/src/hmc_string_util.cpp",
+            "../../../hmc-module/src/hmc_usb_util.cpp",
+            "../../../hmc-module/src/hmc_util.cpp",
+            "../../../hmc-module/src/hmc_windows_util.cpp",
+            "./export/shell.cpp",
+            "./export/screen.cpp",
+            "./export/clip.cpp",
+            "./export/window.cpp",
+            "main.cpp",
+          ], 
+          "include_dirs": ["../../../hmc-module/include","./export"],
           'msvs_settings': {
             'VCCLCompilerTool': {
               'AdditionalOptions': [
