@@ -27,9 +27,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\hmc-module\src\hmc_clip_util.cpp" />
     <ClCompile Include="src\hmc_automation_util.cpp" />
     <ClCompile Include="src\hmc_byte_util.cpp" />
+    <ClCompile Include="src\hmc_clip_util.cpp" />
     <ClCompile Include="src\hmc_json_util.cpp" />
     <ClCompile Include="src\hmc_process_util.cpp" />
     <ClCompile Include="src\hmc_registr_util.cpp" />
@@ -42,10 +42,9 @@
     <ClCompile Include="src\hmc_windows_util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="example\example_sock\hmc-module\include\hmc_clip_util.h" />
-    <ClInclude Include="example\example_sock\hmc-module\include\hmc_usb_util.h" />
     <ClInclude Include="include\hmc_automation_util.h" />
     <ClInclude Include="include\hmc_byte_util.h" />
+    <ClInclude Include="include\hmc_clip_util.h" />
     <ClInclude Include="include\hmc_json_util.h" />
     <ClInclude Include="include\hmc_process_util.h" />
     <ClInclude Include="include\hmc_registr_util.h" />
@@ -53,6 +52,7 @@
     <ClInclude Include="include\hmc_shell_util.h" />
     <ClInclude Include="include\hmc_sock_util.h" />
     <ClInclude Include="include\hmc_string_util.h" />
+    <ClInclude Include="include\hmc_usb_util.h" />
     <ClInclude Include="include\hmc_util.h" />
     <ClInclude Include="include\hmc_windows_util.h" />
   </ItemGroup>
@@ -185,6 +185,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -243,6 +244,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>

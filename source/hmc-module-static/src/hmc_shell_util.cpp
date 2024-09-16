@@ -1264,9 +1264,9 @@ void GetThumbnail::GetBitmapPixel(HBITMAP hbitmap, std::vector<BYTE> &result, Gd
     WriteToImageByte(bitmapWithAlpha, formatMimeType, result);
 }
 
-std::vector<BYTE> hmc_shell_util::getThumbnailBuffer(std::wstring input, int nSize)
+std::vector<std::uint8_t> hmc_shell_util::getThumbnailBuffer(std::wstring input, int nSize)
 {
-    std::vector<BYTE> result;
+    std::vector<std::uint8_t> result;
 
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
@@ -1356,6 +1356,7 @@ bool hmc_shell_util::Startup::set(const std::wstring &key, const std::wstring &e
     {
         ExecPath.push_back('"');
         ExecPath.append(execPath);
+        hmc_util::removeAllCharPtr(ExecPath, '\0');
         ExecPath.push_back('"');
 
         ExecPath.push_back(' ');
@@ -1406,6 +1407,7 @@ bool hmc_shell_util::Startup::setOnce(const std::wstring &key, const std::wstrin
     {
         ExecPath.push_back('"');
         ExecPath.append(execPath);
+        hmc_util::removeAllCharPtr(ExecPath, '\0');
         ExecPath.push_back('"');
 
         ExecPath.push_back(' ');

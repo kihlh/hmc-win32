@@ -103,7 +103,7 @@ napi_value enumClipboardFormats(napi_env env, napi_callback_info info)
     {
         std::wstring obj = LR"({"type":{type},"type_name":"{type_name}"})";
         auto it = formats.at(i);
-        auto name = hmc_clip_util::GetClipboardFormatNameW((UINT)it);
+        auto name = hmc_clip_util::GetClipboardFormatNameW((std::uint8_t)it);
         hmc_string_util::replace(obj, L"{type_name}", name);
         hmc_string_util::replace(obj, L"{type}", std::to_wstring(it));
         if (i + 1 < count)

@@ -67,30 +67,38 @@
     <TargetPath>$(OutDir)\$(ProjectName).node</TargetPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);F:\我的坚果云;F:\source\module\hmc-win32\source\hmc-module\include</ExternalIncludePath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);F:\我的坚果云</IncludePath>
-    <ReferencePath>$(VC_ReferencesPath_x86);;F:\我的坚果云</ReferencePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);F:\我的坚果云</LibraryPath>
-    <SourcePath>$(VC_SourcePath);F:\我的坚果云;</SourcePath>
-    <PublicIncludeDirectories>F:\我的坚果云</PublicIncludeDirectories>
-    <PublicModuleDirectories>F:\我的坚果云</PublicModuleDirectories>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <IncludePath>F:\source\module\hmc-win32\source\hmc-module-static\include;$(ProjectDir)\export;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <ReferencePath>$(VC_ReferencesPath_x86)</ReferencePath>
+    <LibraryPath>F:\source\module\hmc-win32\source\hmc-module-static\SharedLibrary;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);</LibraryPath>
+    <SourcePath>$(VC_SourcePath);</SourcePath>
+    <PublicIncludeDirectories>
+    </PublicIncludeDirectories>
+    <PublicModuleDirectories>
+    </PublicModuleDirectories>
     <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);F:\我的坚果云;F:\source\module\hmc-win32\source\hmc-module\include</ExternalIncludePath>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);F:\我的坚果云</IncludePath>
-    <ReferencePath>$(VC_ReferencesPath_x64);;F:\我的坚果云</ReferencePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);F:\我的坚果云</LibraryPath>
-    <SourcePath>$(VC_SourcePath);F:\我的坚果云;</SourcePath>
-    <PublicIncludeDirectories>F:\我的坚果云</PublicIncludeDirectories>
-    <PublicModuleDirectories>F:\我的坚果云</PublicModuleDirectories>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <IncludePath>F:\source\module\hmc-win32\source\hmc-module-static\include;$(ProjectDir)\export;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <ReferencePath>$(VC_ReferencesPath_x64);</ReferencePath>
+    <LibraryPath>F:\source\module\hmc-win32\source\hmc-module-static\SharedLibrary;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <SourcePath>$(VC_SourcePath);</SourcePath>
+    <PublicIncludeDirectories>
+    </PublicIncludeDirectories>
+    <PublicModuleDirectories>
+    </PublicModuleDirectories>
     <CopyCppRuntimeToOutputDir>true</CopyCppRuntimeToOutputDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;F:\source\module\hmc-win32\source\hmc-module\include</ExternalIncludePath>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
+    <IncludePath>F:\source\module\hmc-win32\source\hmc-module-static\include;$(ProjectDir)\export;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>F:\source\module\hmc-win32\source\hmc-module-static\SharedLibrary;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);;F:\source\module\hmc-win32\source\hmc-module\include</ExternalIncludePath>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
+    <IncludePath>F:\source\module\hmc-win32\source\hmc-module-static\include;$(ProjectDir)\export;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>F:\source\module\hmc-win32\source\hmc-module-static\SharedLibrary;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -276,20 +284,7 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_automation_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_byte_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_clip_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_console_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_json_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_napi_value_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_process_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_registr_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_screen_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_shell_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_string_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_usb_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_util.cpp" />
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_windows_util.cpp" />
+    <ClCompile Include="..\..\..\..\hmc-module-static\src\hmc_napi_value_util.cpp" />
     <ClCompile Include="..\export\clip.cpp" />
     <ClCompile Include="..\export\screen.cpp" />
     <ClCompile Include="..\export\shell.cpp" />
@@ -298,6 +293,7 @@
     <ClCompile Include="C:\Users\kiic\AppData\Roaming\npm\node_modules\node-gyp\src\win_delay_load_hook.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\export\export.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

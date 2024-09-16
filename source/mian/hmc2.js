@@ -1,6 +1,18 @@
 "use strict";
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _Startup_Startup;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.captureBmp2Sync = exports.captureBmp2 = exports.setFolderIcon = exports.getTrayList = exports.setClipboardFilePaths = exports.clearClipboard = exports.getClipboardText = exports.setClipboardText = exports.getClipboardFilePaths = exports.readElectronHandle = exports.showContextMenu = exports.captureBmpToFile = exports.captureBmpToBuff = exports.getThumbnailPng = exports.closeWindow2Sync = exports.closeWindow2 = exports.asyncTaskQueue = exports.native2 = exports.HMCC = void 0;
+exports.captureBmp2Sync = exports.captureBmp2 = exports.setFolderIcon = exports.getTrayList = exports.setClipboardFilePaths = exports.clearClipboard = exports.getClipboardText = exports.setClipboardText = exports.getClipboardFilePaths = exports.readElectronHandle = exports.showContextMenu = exports.captureBmpToFile = exports.captureBmpToBuff = exports.getThumbnailPng = exports.closeWindow2Sync = exports.closeWindow2 = exports.Startup = exports.asyncTaskQueue = exports.native2 = exports.HMCC = void 0;
 const hmc_1 = require("./hmc");
 var HMCC;
 (function (HMCC) {
@@ -22,7 +34,7 @@ const get_native = (binPath) => {
         try {
             if (binPath)
                 return require(binPath);
-            if (process.arch.match(/^x32|ia32$/))
+            if (process.arch.match(/^(x32|ia32)$/))
                 return require("./bin/HMC@Beta_x86.node");
             if (process.arch.match(/^x64$/))
                 return require("./bin/HMC@Beta_x64.node");
@@ -73,6 +85,17 @@ class AsyncFunctionTaskQueue {
     }
 }
 exports.asyncTaskQueue = new AsyncFunctionTaskQueue();
+class Startup {
+    constructor() {
+        _Startup_Startup.set(this, void 0);
+        __classPrivateFieldSet(this, _Startup_Startup, exports.native2.StartupClassConstructor(), "f");
+    }
+    has(keyName) {
+        return __classPrivateFieldGet(this, _Startup_Startup, "f").has(keyName);
+    }
+}
+exports.Startup = Startup;
+_Startup_Startup = new WeakMap();
 /**
  * 关闭窗口 异步
  * - 1 温柔的关闭 (正常关闭)

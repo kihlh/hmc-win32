@@ -24,9 +24,6 @@
     <ClCompile Include="src\hmc_string_util.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\hmc-module\src\hmc_clip_util.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\hmc_usb_util.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -57,6 +54,9 @@
     <ClCompile Include="src\hmc_sock_util.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\hmc_clip_util.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\hmc_sock_util.h">
@@ -66,12 +66,6 @@
       <Filter>头文件\include</Filter>
     </ClInclude>
     <ClInclude Include="include\hmc_string_util.h">
-      <Filter>头文件\include</Filter>
-    </ClInclude>
-    <ClInclude Include="example\example_sock\hmc-module\include\hmc_clip_util.h">
-      <Filter>头文件\include</Filter>
-    </ClInclude>
-    <ClInclude Include="example\example_sock\hmc-module\include\hmc_usb_util.h">
       <Filter>头文件\include</Filter>
     </ClInclude>
     <ClInclude Include="include\hmc_json_util.h">
@@ -96,6 +90,12 @@
       <Filter>头文件\include</Filter>
     </ClInclude>
     <ClInclude Include="include\hmc_process_util.h">
+      <Filter>头文件\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hmc_usb_util.h">
+      <Filter>头文件\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hmc_clip_util.h">
       <Filter>头文件\include</Filter>
     </ClInclude>
   </ItemGroup>

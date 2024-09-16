@@ -1,3 +1,4 @@
+import { native } from "hmc-win32";
 import { HMC } from "./hmc";
 import { HWND, ref } from "./hmc";
 
@@ -13,7 +14,7 @@ export module HMCC {
         StartHTML: number;
         Version: number;
     }
-    export enum FS_MK_LINK_TARGET_TYPE{
+    export enum FS_MK_LINK_TARGET_TYPE {
         CREATE_DIR_SYMLINK = 166,
         CREATE_SYMLINK = 168,
         CREATE_HARD_LINK = 170,
@@ -146,8 +147,8 @@ export type HMCC = {
      * @param path 
      * @returns 
      */
-    isLinkLink?:(path: string) => boolean;
-    
+    isLinkLink?: (path: string) => boolean;
+
     /**
      * 创建 软链接/硬链接/目录连接点/文件夹链接
      * @param targetType 创建类型
@@ -159,7 +160,7 @@ export type HMCC = {
      * @param sourcePath 源文件路径
      * @returns 
      */
-    createFsLink?:(targetType: HMCC.FS_MK_LINK_TARGET_TYPE,targetPath:string,sourcePath:string) => boolean;
+    createFsLink?: (targetType: HMCC.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) => boolean;
     // DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
     // DECLARE_NAPI_METHODRM("getSystemMetrics", getSystemMetrics),
     // DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
@@ -173,7 +174,10 @@ export type HMCC = {
      */
     showContextMenu?: (hwnd: number | null, file: string | string[], x: number, y: number) => boolean;
 
+    StartupClassConstructor: () => any;
 };
+
+
 
 export module HMCC {
     export interface CaptureBmp {
@@ -212,6 +216,7 @@ const get_native: () => HMCC = (binPath?: string) => {
         return null;
     }
 
+    // @ts-expect-error
     let Native: HMCC = (process.platform == "win32" ? _require_bin() : null) || {};
 
     return Native;
@@ -265,6 +270,89 @@ class AsyncFunctionTaskQueue {
 
 export const asyncTaskQueue = new AsyncFunctionTaskQueue();
 
+class Startup {
+    #Startup: null | {
+        has: (keyName: string) => boolean;
+        hasOnce: (keyName: string) => boolean;
+        remove: (keyName: string) => boolean;
+        removeOnce: (keyName: string) => boolean;
+        set: (keyName: string, path: string, cmd: string) => boolean;
+        setOnce: (keyName: string, path: string, cmd: string) => boolean;
+    } = null;
+
+    #initialize() {
+        if (!this.#Startup) {
+            this.#Startup = native2.StartupClassConstructor();
+        }
+    }
+    
+    #root:"HKEY_LOCAL_MACHINE" = "HKEY_LOCAL_MACHINE";
+    #pathRun ="SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+    #pathRunOnce = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce";
+    constructor() { }
+
+    has(keyName: string) {
+        this.#initialize();
+        return this.#Startup?.has(ref.string(keyName)) || false;
+    }
+
+    hasOnce(keyName: string) {
+        this.#initialize();
+        return this.#Startup?.hasOnce(ref.string(keyName)) || false;
+    }
+
+
+    remove(keyName: string) {
+        this.#initialize();
+        return this.#Startup?.remove(ref.string(keyName)) || false;
+    }
+
+
+    removeOnce(keyName: string) {
+        this.#initialize();
+        return this.#Startup?.removeOnce(ref.string(keyName)) || false;
+    }
+
+    set(keyName: string, path: string, cmd?: string) {
+        this.#initialize();
+        return this.#Startup?.set(ref.string(keyName), ref.string(path), ref.string(cmd || "")) || false;
+    }
+
+    setOnce(keyName: string, path: string, cmd?: string) {
+        this.#initialize();
+        return this.#Startup?.setOnce(ref.string(keyName), ref.string(path), ref.string(cmd || "")) || false;
+    }
+
+    enum() {
+        const obj:{[key:string]:string} = {};
+        const keys = native.enumRegistrKey(this.#root, this.#pathRun);
+        for (let index = 0; index < keys.length; index++) {
+            let at = keys[index];
+            obj[at] = native.getStringRegKey(this.#root, this.#pathRun, at);
+        }
+        return obj;
+    }
+    
+    enumOnce() {
+        const obj:{[key:string]:string} = {};
+        const keys = native.enumRegistrKey(this.#root, this.#pathRunOnce);
+        for (let index = 0; index < keys.length; index++) {
+            let at = keys[index];
+            obj[at] = native.getStringRegKey(this.#root, this.#pathRunOnce, at);
+        }
+        return obj;
+    }
+
+    keys(){
+        return native.enumRegistrKey(this.#root,this.#pathRun);
+    }
+    
+    keysOnce(){
+        return native.enumRegistrKey(this.#root,this.#pathRunOnce);
+    }
+}
+
+export const startup = new Startup();
 
 /**
  * 关闭窗口 异步
@@ -492,7 +580,7 @@ export function captureBmp2(): Promise<Buffer | null>;
  * 截图窗口句柄区域为bmp缓冲区  [异步]
  * @param handle 句柄
  */
-export function captureBmp2(handle: number|HWND): Promise<Buffer | null>;
+export function captureBmp2(handle: number | HWND): Promise<Buffer | null>;
 /**
  * 截图主屏幕到文件中 [异步]
  * @param path 文件路径
@@ -504,7 +592,7 @@ export function captureBmp2(path: string): Promise<boolean>;
  * @param handle 句柄
  * @param path 文件路径
  */
-export function captureBmp2(handle: number|HWND, path: string): Promise<boolean>;
+export function captureBmp2(handle: number | HWND, path: string): Promise<boolean>;
 /**
  * 截图主屏幕为bmp缓冲区 [异步]
  * @param x (x) 从屏幕左边到所在位置得像素数
@@ -529,26 +617,26 @@ export async function captureBmp2(...args: unknown[]): Promise<unknown> {
         return asyncTaskQueue.runTask(native2.captureBmp2);
     }
 
-    if(args.length==1){
+    if (args.length == 1) {
         //  captureBmp2(handle: number|HWND): Promise<Buffer | null>;
-        if(typeof args[0]=="number"||typeof args[0]=="object"){
-            return asyncTaskQueue.runTask(native2.captureBmp2,ref.int(args[0]));
+        if (typeof args[0] == "number" || typeof args[0] == "object") {
+            return asyncTaskQueue.runTask(native2.captureBmp2, ref.int(args[0]));
         }
-        return asyncTaskQueue.runTask(native2.captureBmp2,ref.string(args[0]));
+        return asyncTaskQueue.runTask(native2.captureBmp2, ref.string(args[0]));
     }
 
 
-    if(args.length==2){
-        return asyncTaskQueue.runTask(native2.captureBmp2,ref.int(args[0]),ref.string(args[1]));
+    if (args.length == 2) {
+        return asyncTaskQueue.runTask(native2.captureBmp2, ref.int(args[0]), ref.string(args[1]));
     }
 
-    if(args.length==4){
-        return asyncTaskQueue.runTask(native2.captureBmp2,ref.int(args[0]),ref.int(args[1]),ref.int(args[2]),ref.int(args[3]),);
+    if (args.length == 4) {
+        return asyncTaskQueue.runTask(native2.captureBmp2, ref.int(args[0]), ref.int(args[1]), ref.int(args[2]), ref.int(args[3]),);
     }
 
 
-    if(args.length==5){
-        return asyncTaskQueue.runTask(native2.captureBmp2,ref.string(args[0]),ref.int(args[1]),ref.int(args[2]),ref.int(args[3]),ref.int(args[4]));
+    if (args.length == 5) {
+        return asyncTaskQueue.runTask(native2.captureBmp2, ref.string(args[0]), ref.int(args[1]), ref.int(args[2]), ref.int(args[3]), ref.int(args[4]));
     }
 
     return Promise.resolve(null);
@@ -563,7 +651,7 @@ export function captureBmp2Sync(): Buffer | null;
  * 截图窗口句柄区域为bmp缓冲区  [同步]
  * @param handle 句柄
  */
-export function captureBmp2Sync(handle: number|HWND): Buffer | null;
+export function captureBmp2Sync(handle: number | HWND): Buffer | null;
 /**
  * 截图主屏幕到文件中 [同步]
  * @param path 文件路径
@@ -575,7 +663,7 @@ export function captureBmp2Sync(path: string): boolean;
  * @param handle 句柄
  * @param path 文件路径
  */
-export function captureBmp2Sync(handle: number|HWND, path: string): boolean;
+export function captureBmp2Sync(handle: number | HWND, path: string): boolean;
 /**
  * 截图主屏幕为bmp缓冲区 [同步]
  * @param x (x) 从屏幕左边到所在位置得像素数
@@ -593,33 +681,33 @@ export function captureBmp2Sync(x: number, y: number, nScopeWidth: number, nScop
  */
 export function captureBmp2Sync(path: string, x: number, y: number, nScopeWidth: number, nScopeHeight: number): boolean;
 
-export function captureBmp2Sync(...args: unknown[]):unknown {
+export function captureBmp2Sync(...args: unknown[]): unknown {
 
     if (!native2.captureBmp2Sync) return null;
     if (!args.length) {
         return native2.captureBmp2Sync();
     }
 
-    if(args.length==1){
+    if (args.length == 1) {
         //  captureBmp2(handle: number|HWND): Promise<Buffer | null>;
-        if(typeof args[0]=="number"||typeof args[0]=="object"){
+        if (typeof args[0] == "number" || typeof args[0] == "object") {
             return native2.captureBmp2Sync(ref.int(args[0]));
         }
         return native2.captureBmp2Sync(ref.string(args[0]));
     }
 
 
-    if(args.length==2){
-        return native2.captureBmp2Sync(ref.int(args[0]),ref.string(args[1]));
+    if (args.length == 2) {
+        return native2.captureBmp2Sync(ref.int(args[0]), ref.string(args[1]));
     }
 
-    if(args.length==4){
-        return native2.captureBmp2Sync(ref.int(args[0]),ref.int(args[1]),ref.int(args[2]),ref.int(args[3]),);
+    if (args.length == 4) {
+        return native2.captureBmp2Sync(ref.int(args[0]), ref.int(args[1]), ref.int(args[2]), ref.int(args[3]),);
     }
 
 
-    if(args.length==5){
-        return native2.captureBmp2Sync(ref.string(args[0]),ref.int(args[1]),ref.int(args[2]),ref.int(args[3]),ref.int(args[4]));
+    if (args.length == 5) {
+        return native2.captureBmp2Sync(ref.string(args[0]), ref.int(args[1]), ref.int(args[2]), ref.int(args[3]), ref.int(args[4]));
     }
 
     return null;

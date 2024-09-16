@@ -538,7 +538,7 @@ namespace hmc_shell_util
     * @param nSize 要求尺寸
     * @return
     */
-    static std::vector<BYTE> getThumbnailBuffer(std::wstring input, int nSize = 256);
+    extern std::vector<std::uint8_t> getThumbnailBuffer(std::wstring input, int nSize = 256);
     /**
      * @brief 获取文件缩略图到文件中
      *
@@ -547,7 +547,7 @@ namespace hmc_shell_util
      * @param nSize 要求尺寸
      * @return
      */
-    static bool getThumbnailToFile(std::wstring input, std::wstring output, int nSize = 256);
+    extern bool getThumbnailToFile(std::wstring input, std::wstring output, int nSize = 256);
 
     class Startup
 	{

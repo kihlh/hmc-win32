@@ -4,18 +4,6 @@
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="..\..">
-      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\..\..">
-      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..\..\..\..">
-      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="..">
-      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="..">
       <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
     </Filter>
@@ -28,9 +16,6 @@
     <Filter Include="源代码\export">
       <UniqueIdentifier>{778d295e-8f8e-43c4-b509-f21c84f2c404}</UniqueIdentifier>
     </Filter>
-    <Filter Include="hmc-module">
-      <UniqueIdentifier>{2bc6a5fa-bec7-450c-b61e-4204e048e494}</UniqueIdentifier>
-    </Filter>
     <Filter Include="node-gyp">
       <UniqueIdentifier>{7B735499-E5DD-1C2B-6C26-70023832A1CF}</UniqueIdentifier>
     </Filter>
@@ -42,50 +27,8 @@
     <ClCompile Include="..\export\clip.cpp">
       <Filter>源代码\export</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_console_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_json_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_napi_value_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_process_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_registr_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_shell_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_string_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_usb_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_windows_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_automation_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_byte_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_clip_util.cpp">
-      <Filter>hmc-module</Filter>
-    </ClCompile>
     <ClCompile Include="..\export\shell.cpp">
       <Filter>源代码\export</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module\src\hmc_screen_util.cpp">
-      <Filter>hmc-module</Filter>
     </ClCompile>
     <ClCompile Include="..\export\screen.cpp">
       <Filter>源代码\export</Filter>
@@ -93,9 +36,15 @@
     <ClCompile Include="..\export\window.cpp">
       <Filter>源代码\export</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\hmc-module-static\src\hmc_napi_value_util.cpp">
+      <Filter>源代码</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="..\export\export.h">
+      <Filter>源代码\export</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="hmc_debug.rc" />

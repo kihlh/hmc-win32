@@ -1,5 +1,5 @@
 ﻿#include "./main.h"
-#include "export.h"
+#include "./export/export.h"
 #include <stdlib.h>
 
 #include "hmc_automation_util.h"
@@ -60,6 +60,7 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
         DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
+        DECLARE_NAPI_METHODRM("StartupClassConstructor", shell_startup::StartupClassConstructor),
 
     };
 

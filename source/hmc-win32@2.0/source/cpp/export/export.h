@@ -1,6 +1,20 @@
 ﻿#include <node_api.h>
 #include "hmc_napi_value_util.h"
 
+#ifdef _DEBUG
+#ifdef _WIN64
+#pragma comment(lib, "hmc-module-static_DEBUG_X64.lib")
+#else
+#pragma comment(lib, "hmc-module-static_DEBUG_X86.lib")
+#endif
+#else
+#ifdef _WIN64
+#pragma comment(lib, "hmc-module-static_RELEASE_X64.lib")
+#else
+#pragma comment(lib, "hmc-module-static_RELEASE_X86.lib")
+#endif
+#endif
+
 // clip.cpp
 extern napi_value getClipboardFilePaths(napi_env env, napi_callback_info info);
 extern napi_value setClipboardText(napi_env env, napi_callback_info info);
@@ -36,3 +50,14 @@ extern napi_value captureBmpToFile(napi_env env, napi_callback_info info);
 
 void exports_window_async_fun(napi_env env, napi_value exports);
 void exports_screen_async_fun(napi_env env, napi_value exports);
+
+namespace shell_startup
+{
+    extern napi_value set(napi_env env, napi_callback_info info);
+    extern napi_value setOnce(napi_env env, napi_callback_info info);
+    extern napi_value remove(napi_env env, napi_callback_info info);
+    extern napi_value has(napi_env env, napi_callback_info info);
+    extern napi_value removeOnce(napi_env env, napi_callback_info info);
+    extern napi_value hasOnce(napi_env env, napi_callback_info info);
+    extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
+}

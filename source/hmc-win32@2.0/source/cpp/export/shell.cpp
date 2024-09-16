@@ -4,6 +4,7 @@
 #include "hmc_string_util.h"
 #include "hmc_shell_util.h"
 #include "hmc_process_util.h"
+#include <ShlObj.h>
 
 // 获取托盘图标
 napi_value getTrayList(napi_env env, napi_callback_info info)
@@ -105,7 +106,7 @@ napi_value getThumbnailPng(napi_env env, napi_callback_info info)
         std::wstring source = at_StringWOr(0, L"");
         int img_size = at_Number32Or(1, 256);
 
-        std::vector<std::uint8_t> buff = hmc_shell_util::GetThumbnail::GetBuff(source, img_size);
+        std::vector<std::uint8_t> buff = hmc_shell_util::getThumbnailBuffer(source, img_size);
 
         if (!buff.empty())
         {
@@ -120,7 +121,7 @@ napi_value getThumbnailPng(napi_env env, napi_callback_info info)
         std::wstring output = at_StringWOr(1, L"");
         int img_size = at_Number32Or(2, 256);
 
-        bool is_ok = hmc_shell_util::GetThumbnail::toFile(source, output, img_size);
+        bool is_ok = hmc_shell_util::getThumbnailToFile(source, output, img_size);
 
         return as_Boolean(is_ok);
     }
@@ -176,7 +177,7 @@ napi_value setFolderIcon(napi_env env, napi_callback_info info)
 
     std::wstring folderPath = at_StringW(0);
     std::wstring iconPath = at_StringW(1);
-    int iconIndex = at_Number32Or(2,0);
+    int iconIndex = at_Number32Or(2, 0);
 
     bool c_result = hmc_shell_util::SetFolderIcon(folderPath, iconPath, iconIndex);
 
@@ -415,7 +416,9 @@ napi_value getSystemMetrics(napi_env env, napi_callback_info info)
 
     if (nIndex == 1800008)
     {
-        result = as_Number((int)IsUserAnAdmin());
+        bool isadmin = IsUserAnAdmin();
+
+        result = as_Number((int)isadmin);
         return result;
     }
 
@@ -463,4 +466,141 @@ napi_value setConversionStatus(napi_env env, napi_callback_info info)
     result = as_Boolean(c_result_ok);
 
     return result;
+}
+
+namespace shell_startup
+{
+
+    napi_value shell_startup::has(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string}}, true);
+
+        std::wstring keyName = at_StringW(0);
+
+        bool c_result_ok = hmc_shell_util::Startup::has(keyName);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_value shell_startup::hasOnce(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string}}, true);
+
+        std::wstring keyName = at_StringW(0);
+
+        bool c_result_ok = hmc_shell_util::Startup::hasOnce(keyName);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_value shell_startup::remove(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string}}, true);
+
+        std::wstring keyName = at_StringW(0);
+
+        bool c_result_ok = hmc_shell_util::Startup::remove(keyName);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_value shell_startup::removeOnce(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string}}, true);
+
+        std::wstring keyName = at_StringW(0);
+
+        bool c_result_ok = hmc_shell_util::Startup::removeOnce(keyName);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_value shell_startup::set(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string},
+                  {1, js_string},
+                  {2, js_string}},
+                 true);
+
+        std::wstring keyName = at_StringW(0);
+        std::wstring execPath = at_StringW(1);
+        std::wstring cmd = at_StringW(2);
+
+        bool c_result_ok = hmc_shell_util::Startup::set(keyName, execPath, cmd);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_value shell_startup::setOnce(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Boolean(false);
+        auto input = hmc_NodeArgsValue(env, info);
+        input.eq({{0, js_string},
+                  {1, js_string},
+                  {2, js_string}},
+                 true);
+
+        std::wstring keyName = at_StringW(0);
+        std::wstring execPath = at_StringW(1);
+        std::wstring cmd = at_StringW(2);
+
+        bool c_result_ok = hmc_shell_util::Startup::set(keyName, execPath, cmd);
+
+        result = as_Boolean(c_result_ok);
+
+        return result;
+    }
+
+    napi_ref ref_result;
+    
+    napi_value StartupClassConstructor(napi_env env, napi_callback_info info)
+    {
+        napi_value constructor;
+        napi_value result;
+        napi_status status;
+
+        napi_create_object(env, &result);
+        // 定义类的属性
+        napi_property_descriptor properties[] = {
+            {"set", 0, setOnce, 0, 0, 0, napi_default, 0},
+            {"setOnce", 0, setOnce, 0, 0, 0, napi_default, 0},
+            {"remove", 0, remove, 0, 0, 0, napi_default, 0},
+            {"has", 0, has, 0, 0, 0, napi_default, 0},
+            {"removeOnce", 0, removeOnce, 0, 0, 0, napi_default, 0},
+            {"hasOnce", 0, hasOnce, 0, 0, 0, napi_default, 0}};
+
+        napi_set_named_property(env, result, "set", as_ExFunction(set));
+        napi_set_named_property(env, result, "setOnce", as_ExFunction(setOnce));
+        napi_set_named_property(env, result, "remove", as_ExFunction(remove));
+        napi_set_named_property(env, result, "removeOnce", as_ExFunction(removeOnce));
+        napi_set_named_property(env, result, "has", as_ExFunction(has));
+        napi_set_named_property(env, result, "hasOnce", as_ExFunction(hasOnce));
+
+        //注册长生命周期
+        status = napi_create_reference(env, result, 1, &ref_result);
+        if (status != napi_ok)
+            return NULL;
+
+        return result;
+    }
 }
