@@ -75,7 +75,10 @@ void InstallKeyboardHook()
 	}
 
     // 移除系统钩子
-    UnhookWindowsHookEx(keyboardHook);
+    if(UnhookWindowsHookEx(keyboardHook)){
+        keyboardHook =NULL;
+        Keyboard_HOOK_next = false;
+    };
     KeyboardRecordList.clear();
 }
 
@@ -105,6 +108,13 @@ napi_value unKeyboardHook(napi_env env, napi_callback_info info)
             KeyboardRecordList.erase(KeyboardRecordList.begin());
         }
     }
+
+    // 移除系统钩子
+    if(UnhookWindowsHookEx(keyboardHook)){
+        keyboardHook =NULL;
+        Keyboard_HOOK_next = false;
+    };
+
     return NULL;
 }
 
@@ -151,7 +161,7 @@ napi_value getKeyboardNextSession(napi_env env, napi_callback_info info)
 
 napi_value isStartKeyboardHook(napi_env env, napi_callback_info info)
 {
-    return as_Boolean( Keyboard_HOOK_next);
+    return as_Boolean(Keyboard_HOOK_next&&keyboardHook!=NULL);
 }
 
 // 判断是否按下三大金刚
