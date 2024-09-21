@@ -1,4 +1,5 @@
-﻿#include "../include/hmc_napi_value_util.h"
+﻿#include "hmc_napi_value_util.h"
+#include "hmc_util.h"
 
 // ?hmc_napi_util::type
 // 负责类型判断的逻辑
@@ -261,24 +262,24 @@ bool hmc_napi_type::diff(napi_env env, napi_value jsValue, napi_value jsValue2)
  * @return true
  * @return false
  */
-template <typename... Args>
-bool hmc_napi_type::diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
-{
-    napi_valuetype value_type;
-    napi_typeof(env, nodeValue, &value_type);
-    int result = false;
-
-    napi_valuetype temp[] = {first, args...};
-    size_t length = sizeof(temp) / sizeof(temp[0]);
-
-    for (size_t i = 0; i < length; i++)
-    {
-        if (temp[i] == value_type)
-            return temp[i];
-    }
-
-    return result;
-}
+// template <typename... Args>
+// bool hmc_napi_type::diff(napi_valuetype valuetype, const napi_valuetype &first, const Args &...args)
+//{
+//     napi_valuetype value_type;
+//     napi_typeof(env, nodeValue, &value_type);
+//     int result = false;
+//
+//     napi_valuetype temp[] = {first, args...};
+//     size_t length = sizeof(temp) / sizeof(temp[0]);
+//
+//     for (size_t i = 0; i < length; i++)
+//     {
+//         if (temp[i] == value_type)
+//             return temp[i];
+//     }
+//
+//     return result;
+// }
 
 template <typename... Args>
 bool hmc_napi_type::diff(napi_env env, napi_value nodeValue, const napi_valuetype &first, const Args &...args)
@@ -1806,7 +1807,7 @@ void hmc_napi_create_value::BufferFinalizer(napi_env env, void *data, void *poin
 napi_value hmc_napi_create_value::Buffer(napi_env env, std::vector<unsigned char> &buffer)
 {
     napi_status status;
-    napi_value Results;
+    napi_value Results = NULL;
 
     if (buffer.size() < 1)
     {
@@ -1869,28 +1870,28 @@ napi_value hmc_napi_create_value::Rect(napi_env env, RECT rect)
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "bottom"), Number(env, rect.bottom));
+    status = napi_set_property(env, ResultforObject, String(env, "bottom"), Number(env, (int64_t)rect.bottom));
 
     if (status != napi_ok)
     {
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "left"), Number(env, rect.left));
+    status = napi_set_property(env, ResultforObject, String(env, "left"), Number(env, (int64_t)rect.left));
 
     if (status != napi_ok)
     {
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "right"), Number(env, rect.right));
+    status = napi_set_property(env, ResultforObject, String(env, "right"), Number(env, (int64_t)rect.right));
 
     if (status != napi_ok)
     {
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "top"), Number(env, rect.top));
+    status = napi_set_property(env, ResultforObject, String(env, "top"), Number(env, (int64_t)rect.top));
     if (status != napi_ok)
     {
         return NULL;
@@ -1910,14 +1911,14 @@ napi_value hmc_napi_create_value::Point(napi_env env, POINT point)
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "x"), Number(env, point.x));
+    status = napi_set_property(env, ResultforObject, String(env, "x"), Number(env, (int64_t)point.x));
 
     if (status != napi_ok)
     {
         return NULL;
     }
 
-    status = napi_set_property(env, ResultforObject, String(env, "y"), Number(env, point.y));
+    status = napi_set_property(env, ResultforObject, String(env, "y"), Number(env, (int64_t)point.y));
 
     if (status != napi_ok)
     {
@@ -1958,7 +1959,7 @@ napi_value hmc_napi_create_value::Undefined(napi_env env)
 napi_value hmc_napi_create_value::New(napi_env env, std::any anyValue)
 {
     napi_status status;
-    napi_value ResultForAny;
+    napi_value ResultForAny = NULL;
     if (anyValue.has_value())
     {
         // 整形
@@ -1972,7 +1973,7 @@ napi_value hmc_napi_create_value::New(napi_env env, std::any anyValue)
         }
         else if (anyValue.type() == typeid(long))
         {
-            ResultForAny = Number(env, std::any_cast<long>(anyValue));
+            ResultForAny = Number(env, (int64_t)std::any_cast<long>(anyValue));
         }
         else if (anyValue.type() == typeid(long long))
         {
@@ -2060,6 +2061,20 @@ hmc_NodeArgsValue::~hmc_NodeArgsValue()
 {
     args.clear();
     env = NULL;
+}
+
+bool hmc_NodeArgsValue::removeIndex(size_t Index)
+{
+
+    size_t oid_len = args.size();
+
+    if (Index < oid_len)
+    {
+        args.erase(args.begin() + Index);
+        return oid_len != args.size();
+    }
+
+    return false;
 }
 
 hmc_NodeArgsValue::hmc_NodeArgsValue(napi_env envs, napi_callback_info info)
@@ -3123,7 +3138,7 @@ size_t hmc_PromiseSession::open2(_Fn &&_Fx, _Args &&..._Ax)
     std::thread data = std::thread([_Fx, _Ax = std::forward_as_tuple(std::forward<_Args>(_Ax)...), PromiseID]()
                                    {
         std::apply(_Fx, _Ax); // 将_Ax的值作为参数传递给_Fx
-        end(PromiseID, any()); });
+        end(PromiseID, std::any()); });
     data.detach();
 
     return PromiseID;
@@ -4115,3 +4130,254 @@ napi_value PromiseFunctionUtil::startSync(napi_env env, napi_callback_info info,
 
     return result;
 }
+
+// 初始化模块
+void InitAsyncFunction(napi_env env, napi_value exports, const char *utf8name, napi_callback StartAsyncTask, napi_callback ExecuteSync)
+{
+    napi_value asyncTaskFunction;
+    napi_create_function(env, nullptr, 0, StartAsyncTask, nullptr, &asyncTaskFunction);
+
+    napi_value syncTaskFunction;
+    napi_create_function(env, nullptr, 0, ExecuteSync, nullptr, &syncTaskFunction);
+
+    napi_set_named_property(env, exports, utf8name, asyncTaskFunction);
+    std::string utf8nameTemp;
+    utf8nameTemp.append(utf8name);
+    utf8nameTemp.append("Sync");
+    napi_set_named_property(env, exports, utf8nameTemp.c_str(), syncTaskFunction);
+}
+
+std::map<size_t, HMC_PromiseStore::chFormatArgFun> HMC_PromiseStore::PromiseFormatEventListenerFunList = {};
+std::map<size_t, HMC_PromiseStore::chExecuteWorkFun> HMC_PromiseStore::PromiseWorkEventListenerFunList = {};
+std::map<size_t, HMC_PromiseStore::chExecuteResultFormatFun> HMC_PromiseStore::PromiseResultFormatEventListenerFunList = {};
+
+void HMC_PromiseEval::ExecuteAsyncWork(napi_env env, void *data)
+{
+    HMC_PromiseStore::EnvNextWorkData *workData = (HMC_PromiseStore::EnvNextWorkData *)data;
+
+    if (workData->ResultStore == NULL)
+    {
+        return;
+    }
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(workData->TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end())
+    {
+        return;
+    }
+
+    std::any result = HMC_PromiseStore::PromiseWorkEventListenerFunList.at(workData->TASK_TYPE)(env, workData->TASK_TYPE, workData->ArgsStore);
+    workData->ResultStore->reset();
+    workData->ResultStore->swap(result);
+}
+
+void HMC_PromiseEval::GCEnvNextWorkData(void *data)
+{
+
+    HMC_PromiseStore::EnvNextWorkData *workData = (HMC_PromiseStore::EnvNextWorkData *)data;
+    if (workData->ArgsStore != NULL)
+    {
+        workData->ArgsStore->clear();
+        delete workData->ArgsStore;
+        workData->ArgsStore = NULL;
+    }
+
+    if (workData->ResultStore != NULL)
+    {
+        workData->ResultStore->reset();
+        delete workData->ResultStore;
+        workData->ResultStore = NULL;
+    }
+
+    HMC_VcFree(workData);
+}
+
+napi_value HMC_PromiseEval::StartAsyncTask(napi_env env, napi_callback_info info)
+{
+    napi_value promise;
+    napi_value resourceName;
+    napi_create_string_utf8(env, __FUNCSIG__, NAPI_AUTO_LENGTH, &resourceName);
+
+    // 初始化异步工作的数据
+    HMC_PromiseStore::EnvNextWorkData *workData = HMC_VcAllocAutoLength(HMC_PromiseStore::EnvNextWorkData);
+
+    if (workData != NULL) {
+        workData->ResultStore = new std::any();
+     }
+
+    auto input = hmc_NodeArgsValue(env, info);
+
+    if (!input.eq({{0, js_number}}, true))
+    {
+        return NULL;
+    }
+
+    workData->TASK_TYPE = input.getInt64(0, 0);
+
+    input.removeIndex(0);
+
+    if (HMC_PromiseStore::PromiseFormatEventListenerFunList.find(workData->TASK_TYPE) != HMC_PromiseStore::PromiseFormatEventListenerFunList.end())
+    {
+        
+        workData->ArgsStore = new std::vector<std::any>();
+        bool is_next = HMC_PromiseStore::PromiseFormatEventListenerFunList.at(workData->TASK_TYPE)(env, info, input, workData->ArgsStore);
+
+        if (!is_next)
+        {
+            napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("The passed argument was rejected by the formatting function"));
+            return NULL;
+        }
+    }
+
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(workData->TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end()) {
+        napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("This task ID was not found. It may not be supported or the environment is missing"));
+        return NULL;
+    }
+
+    napi_create_promise(env, &workData->deferred, &promise);
+    napi_create_async_work(env, nullptr, resourceName, ExecuteAsyncWork, ResolveWork, workData, &workData->work);
+    napi_queue_async_work(env, workData->work);
+    return promise;
+}
+
+void HMC_PromiseEval::ResolveWork(napi_env env, napi_status status, void *data)
+{
+    HMC_PromiseStore::EnvNextWorkData *workData = (HMC_PromiseStore::EnvNextWorkData *)data;
+    std::shared_ptr<void> O_o(nullptr, [&](void *)
+                              {
+            napi_delete_async_work(env, workData->work);
+            GCEnvNextWorkData(workData); });
+
+    if (status != napi_ok)
+    {
+        return;
+    }
+
+    napi_value result;
+    napi_get_null(env, &result);
+
+    if (workData == NULL || !workData->ResultStore->has_value())
+    {
+        napi_resolve_deferred(env, workData->deferred, result);
+        return;
+    }
+
+    if (HMC_PromiseStore::PromiseResultFormatEventListenerFunList.find(workData->TASK_TYPE) != HMC_PromiseStore::PromiseResultFormatEventListenerFunList.end())
+    {
+
+        result = HMC_PromiseStore::PromiseResultFormatEventListenerFunList.at(workData->TASK_TYPE)(env, status, workData->ResultStore, workData->ArgsStore);
+    }
+
+    else if (workData->ResultStore->type() == typeid(napi_value))
+    {
+        result = (std::any_cast<napi_value>(*workData->ResultStore));
+    }
+    else
+    {
+        result = hmc_napi_create_value::New(env, *workData->ResultStore);
+    }
+
+    napi_resolve_deferred(env, workData->deferred, result);
+}
+
+napi_value HMC_PromiseEval::ExecuteSync(napi_env env, napi_callback_info info)
+{
+    napi_value result = as_Null();
+
+    auto input = hmc_NodeArgsValue(env, info);
+
+    if (!input.eq({{0, js_number}}, true))
+    {
+        return NULL;
+    }
+
+    size_t TASK_TYPE = input.getInt64(0, 0);
+    input.removeIndex(0);
+    
+    auto ArgsStore = std::vector<std::any>();
+    std::any ResultStore = std::any();
+
+    if (HMC_PromiseStore::PromiseFormatEventListenerFunList.find(TASK_TYPE) != HMC_PromiseStore::PromiseFormatEventListenerFunList.end())
+    {
+        bool is_next = HMC_PromiseStore::PromiseFormatEventListenerFunList.at(TASK_TYPE)(env, info, input, &ArgsStore);
+        if (!is_next)
+        {
+            napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("The passed argument was rejected by the formatting function"));
+            return NULL;
+        }
+    }
+
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end()) {
+        napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("This task ID was not found. It may not be supported or the environment is missing"));
+        return NULL;
+    }
+
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(TASK_TYPE) != HMC_PromiseStore::PromiseWorkEventListenerFunList.end())
+    {
+        ResultStore = HMC_PromiseStore::PromiseWorkEventListenerFunList.at(TASK_TYPE)(env, TASK_TYPE, &ArgsStore);
+    }
+
+    if (!ResultStore.has_value())
+    {
+        return result;
+    }
+
+    if (HMC_PromiseStore::PromiseResultFormatEventListenerFunList.find(TASK_TYPE) != HMC_PromiseStore::PromiseResultFormatEventListenerFunList.end())
+    {
+
+        result = HMC_PromiseStore::PromiseResultFormatEventListenerFunList.at(TASK_TYPE)(env, napi_ok, &ResultStore, &ArgsStore);
+    }
+    else
+    {
+
+        result = hmc_napi_create_value::New(env, ResultStore);
+    }
+
+    return result;
+}
+
+void HMC_PromiseEval::append(size_t ID, std::optional<HMC_PromiseStore::chFormatArgFun> FormatFun, HMC_PromiseStore::chExecuteWorkFun WorkFun, std::optional<HMC_PromiseStore::chExecuteResultFormatFun> ResultFormatFun)
+{
+
+    if (FormatFun.has_value() && HMC_PromiseStore::PromiseFormatEventListenerFunList.find(ID) != HMC_PromiseStore::PromiseFormatEventListenerFunList.end())
+    {
+        std::string errorName = " [ HMC_PromiseEval :: chFormatArgFun ] The current task environment ID already exists ID: < ";
+        errorName.append(std::to_string(ID));
+        errorName.append(" >");
+        throw errorName;
+        return;
+    }
+
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(ID) != HMC_PromiseStore::PromiseWorkEventListenerFunList.end())
+    {
+        std::string errorName = " [ HMC_PromiseEval :: chExecuteWorkFun ] The current task environment ID already exists ID: < ";
+        errorName.append(std::to_string(ID));
+        errorName.append(" >");
+        throw errorName;
+        return;
+    }
+
+    if (ResultFormatFun.has_value() && HMC_PromiseStore::PromiseResultFormatEventListenerFunList.find(ID) != HMC_PromiseStore::PromiseResultFormatEventListenerFunList.end())
+    {
+        std::string errorName = " [ HMC_PromiseEval :: chExecuteResultFormatFun ] The current task environment ID already exists ID: < ";
+        errorName.append(std::to_string(ID));
+        errorName.append(" >");
+        throw errorName;
+        return;
+    }
+
+    if (FormatFun.has_value())
+    {
+        HMC_PromiseStore::PromiseFormatEventListenerFunList.insert(
+            std::pair<size_t, HMC_PromiseStore::chFormatArgFun>(ID, FormatFun.value()));
+    }
+
+ 
+        HMC_PromiseStore::PromiseWorkEventListenerFunList.insert(
+            std::pair<size_t, HMC_PromiseStore::chExecuteWorkFun>(ID, WorkFun));
+
+    if (ResultFormatFun.has_value())
+    {
+        HMC_PromiseStore::PromiseResultFormatEventListenerFunList.insert(
+            std::pair<size_t, HMC_PromiseStore::chExecuteResultFormatFun>(ID, ResultFormatFun.value()));
+    }
+}
+

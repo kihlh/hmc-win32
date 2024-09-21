@@ -60,14 +60,25 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
         DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
-        DECLARE_NAPI_METHODRM("StartupClassConstructor", shell_startup::StartupClassConstructor),
-
+        DECLARE_NAPI_METHODRM("HMC_SHELL_STARTUP_CLASS", HMC_shell_startup::StartupClassConstructor),
+        DECLARE_NAPI_METHODRM("HMC_KEYBOARD_CLASS", HMC_Keyboard::StartupClassConstructor),
+        DECLARE_NAPI_METHODRM("HMC_MOUSE_CLASS", HMC_mouse::StartupClassConstructor),
     };
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
 
-    exports_window_async_fun(env, exports /* closeWindow2 */);
-    exports_screen_async_fun(env, exports /* captureBmp2 */);
+
+    // Promise 
+
+    InitAsyncFunction(env, exports, "getProcessName2", HMC_GetProcessName::StartAsyncTask, HMC_GetProcessName::ExecuteSync);
+    InitAsyncFunction(env, exports, "getProcessFilePath2", HMC_GetProcessFilePath::StartAsyncTask, HMC_GetProcessFilePath::ExecuteSync);
+    InitAsyncFunction(env, exports, "getProcessEnvInfo2", HMC_GetProcessEnvInfo::StartAsyncTask, HMC_GetProcessEnvInfo::ExecuteSync);
+    InitAsyncFunction(env, exports, "HMC_PromiseEval", HMC_PromiseEval::StartAsyncTask, HMC_PromiseEval::ExecuteSync);
+
+    HMC_PromiseEval::append(HMC_PromiseStore::GetClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
+    CaptureBmp2::initialize(HMC_PromiseStore::CaptureBmp2);
+    CloseWindow2::initialize(HMC_PromiseStore::CloseWindow2);
+
 
     atexit(hmc_gc_func);
 

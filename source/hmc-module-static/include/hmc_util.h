@@ -48,11 +48,18 @@
         ::VirtualFree(Virtua, 0, MEM_RELEASE);
 #endif // HMC_VcFree
 
-// 自动释放dll
+
 #ifndef HMC_VcAlloc
 #define HMC_VcAlloc(Type, leng) \
     (reinterpret_cast<Type>(::VirtualAlloc(nullptr, static_cast<DWORD>(leng), MEM_COMMIT, PAGE_READWRITE)))
 #endif // HMC_VcAlloc
+
+
+#ifndef HMC_VcAllocAutoLength
+#define HMC_VcAllocAutoLength(Type) \
+    (reinterpret_cast<Type*>(::VirtualAlloc(nullptr, static_cast<DWORD>(sizeof(Type)), MEM_COMMIT, PAGE_READWRITE)))
+#endif // HMC_VcAllocAutoLength
+
 
 // 自动释放内存
 #ifndef HMC_VcFreeAuto

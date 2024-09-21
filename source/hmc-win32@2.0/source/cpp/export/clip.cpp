@@ -140,3 +140,28 @@ napi_value getClipboardHTML(napi_env env, napi_callback_info info)
 
     return hmc_napi_create_value::Null(env);
 }
+
+std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list)
+{
+    std::vector<std::wstring> file_list = hmc_clip_util::GetClipboardPathListW();
+    std::wstring temp = L"";
+    const size_t file_size = file_list.size();
+
+    size_t msize = 0;
+
+    for (size_t i = 0; i < file_size; i++)
+    {
+        msize = msize + file_list.at(i).size();
+    }
+
+    temp.reserve(msize + file_size * 2);
+
+    for (size_t i = 0; i < file_size; i++)
+    {
+        temp.append(file_list.at(i));
+        temp.push_back(L'\0');
+    }
+
+    return temp;
+}
+

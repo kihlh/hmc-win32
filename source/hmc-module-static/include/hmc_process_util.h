@@ -26,6 +26,13 @@ namespace hmc_process_util
         LONG tpBasePri;
         LONG tpDeltaPri;
         DWORD dwFlags;
+        /**
+         * @brief 转为json
+         *
+         * @return std::wstring
+         */
+        std::wstring to_json();
+        static std::wstring to_json(std::vector<ch_THREADENTRY32> data);
     };
 
     // （进程快照）PROCESSENTRY 结构体  它包含了进程的各种信息，如进程 ID、线程计数器、优先级等等
@@ -49,6 +56,8 @@ namespace hmc_process_util
          * @return std::wstring
          */
         std::wstring to_json();
+
+        static std::wstring to_json(std::vector<ch_PROCESSENTRY32W> data);
     };
 
     struct ch_ProcessHandle
@@ -106,6 +115,25 @@ namespace hmc_process_util
          * @return std::wstring
          */
         std::wstring to_json();
+
+        static std::wstring to_json(std::vector<ch_PSYSTEM_PROCESS_INFORMATION> data);
+    };
+
+    struct ch_ProcessEnumItem{
+        /**
+         * @brief 转为json
+         *
+         * @return std::wstring
+         */
+        std::wstring to_json();
+        // 进程id
+        DWORD pid;
+        // 进程的名称
+        std::wstring name;
+        // 进程路径
+        std::wstring path;
+
+        static std::wstring to_json(std::vector<ch_ProcessEnumItem> data);
     };
 
     /**
@@ -235,6 +263,14 @@ namespace hmc_process_util
      * @return std::vector<ch_PSYSTEM_PROCESS_INFORMATION>
      */
     extern std::vector<ch_PSYSTEM_PROCESS_INFORMATION> getAllProcessNtList();
+    
+    /**
+     * @brief 枚舉進程列表 
+     * @details wow64 下使用 EnumProcesses 正常模式下使用镜像获取
+     *
+     * @return std::vector<ch_PSYSTEM_PROCESS_INFORMATION>
+     */
+    extern std::vector<ch_ProcessEnumItem> getAllProcessList(bool isAppendPath);
 
     /**
      * @brief 判断进程是否在64位系统下运行32位镜像 `WOW64 是 x86 仿真器`
@@ -467,6 +503,38 @@ namespace hmc_process_util
     {
         inline void operator()(wchar_t **ptr) const { ::LocalFree(ptr); }
     };
+
+    enum emGetNameType
+    {
+        // 查找所有可能性
+        GET_ALL = 1,
+        // 使用内核法查找
+        GET_NT = 2,
+        // 获取进程快照的名字
+        GET_SNP = 3,
+        // 找到时就停下
+        GET_FIND = 5,
+        // 找模块名
+        GET_MODE = 7,
+        // 即便是从可执行文件中路径获取也行
+        GET_FILE_NAME = 8
+    };
+
+    /**
+     * @brief 获取进程所有可能的名称
+     * 
+     * @param processID 进程id
+     * @return std::vector<std::wstring> 
+     */
+    extern std::vector<std::wstring> getProcessAllName(DWORD ProcessID);
+    /**
+     * @brief 获取进程名称
+     * 
+     * @param processID 进程id
+     * @param Type 获取类别
+     * @return std::wstring 
+     */
+    extern std::wstring getProcessName(DWORD ProcessID, emGetNameType Type );
 
 }
 

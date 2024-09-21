@@ -25,6 +25,8 @@ extern napi_value getClipboardInfo(napi_env env, napi_callback_info info);
 extern napi_value enumClipboardFormats(napi_env env, napi_callback_info info);
 extern napi_value getClipboardHTML(napi_env env, napi_callback_info info);
 
+extern std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+
 // shell.cpp
 extern napi_value getTrayList(napi_env env, napi_callback_info info);
 extern napi_value trashFile(napi_env env, napi_callback_info info);
@@ -51,7 +53,7 @@ extern napi_value captureBmpToFile(napi_env env, napi_callback_info info);
 void exports_window_async_fun(napi_env env, napi_value exports);
 void exports_screen_async_fun(napi_env env, napi_value exports);
 
-namespace shell_startup
+namespace HMC_shell_startup
 {
     extern napi_value set(napi_env env, napi_callback_info info);
     extern napi_value setOnce(napi_env env, napi_callback_info info);
@@ -61,3 +63,105 @@ namespace shell_startup
     extern napi_value hasOnce(napi_env env, napi_callback_info info);
     extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
 }
+
+namespace HMC_GetProcessName
+{
+    napi_value ExecuteSync(napi_env env, napi_callback_info info);
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_GetProcessFilePath
+{
+    napi_value ExecuteSync(napi_env env, napi_callback_info info);
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_GetProcessEnvInfo
+{
+    napi_value ExecuteSync(napi_env env, napi_callback_info info);
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_Keyboard
+{
+    extern napi_value initKeyboardEventHook(napi_env env, napi_callback_info info);
+    extern napi_value isValidHookKeyboard(napi_env env, napi_callback_info info);
+    extern napi_value hasKeyActivate(napi_env env, napi_callback_info info);
+    extern napi_value hasKeysBasic(napi_env env, napi_callback_info info);
+    extern napi_value getAllKeyboardEventJson(napi_env env, napi_callback_info info);
+    extern napi_value stopHookKeyboard(napi_env env, napi_callback_info info);
+    // Init
+    extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_mouse
+{
+    extern napi_value initMouseEventHook(napi_env env, napi_callback_info info);
+    extern napi_value isValidHookMouse(napi_env env, napi_callback_info info);
+    extern napi_value getMouseEventListJson(napi_env env, napi_callback_info info);
+    extern napi_value stopHookMouse(napi_env env, napi_callback_info info);
+    extern napi_value setShakeEventTime(napi_env env, napi_callback_info info);
+    extern napi_value setLimitMouseRange(napi_env env, napi_callback_info info);
+    extern napi_value hasLimitMouseRange_worker(napi_env env, napi_callback_info info);
+    extern napi_value stopLimitMouseRange_worker(napi_env env, napi_callback_info info);
+    // Init
+    extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
+}
+
+
+class CaptureBmp2
+{
+public:
+    // 输入命令格式化或拒绝任务
+    static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue ArgsValue, std::vector<std::any> *data_list);
+    // 执行任务
+    static std::any ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+    // 值自定义格式化
+    static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *data_list);
+    // 初始化函数
+    static void initialize(const int ID){
+        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,ResultFormat);
+    }
+};
+
+class CloseWindow2
+{
+public:
+    // 输入命令格式化或拒绝任务
+    static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
+    // 执行任务
+    static std::any ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::vector<std::any> *arguments_list);
+    // 值自定义格式化
+    // static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *arguments_list);
+    // 初始化函数
+    static void initialize(const int ID){
+        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,std::nullopt);
+        
+    }
+};
+
+
+// class GetClipboardFilePaths2
+// {
+// public:
+//     // 输入命令格式化或拒绝任务
+//     static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
+//     // 执行任务
+//     static std::any ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::vector<std::any> *arguments_list);
+//     // 值自定义格式化
+//     static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *arguments_list);
+//     // 初始化函数
+//     static void initialize(const int ID){
+//         HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,ResultFormat);
+//         HMC_PromiseEval::append(ID,std::nullopt,ExecuteWorkFun,ResultFormat);
+//         HMC_PromiseEval::append(ID,std::nullopt,ExecuteWorkFun,std::nullopt);
+//     }
+// };
+
+// bool 输入命令格式化或拒绝任务(napi_env env, napi_callback_info info, hmc_NodeArgsValue ArgsValue, std::vector<std::any> *data_list);
+// std::any 执行任务(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+// napi_value 值自定义格式化(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *data_list);
+// 暴露
+// HMC_PromiseEval::append(1,输入命令格式化或拒绝任务,执行任务,值自定义格式化);
+// HMC_PromiseEval::append(1,输入命令格式化或拒绝任务,执行任务);
+// HMC_PromiseEval::append(1,执行任务);

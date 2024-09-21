@@ -36,8 +36,11 @@
     <ClCompile Include="..\export\window.cpp">
       <Filter>源代码\export</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\hmc-module-static\src\hmc_napi_value_util.cpp">
-      <Filter>源代码</Filter>
+    <ClCompile Include="..\export\process.cpp">
+      <Filter>源代码\export</Filter>
+    </ClCompile>
+    <ClCompile Include="..\export\auto.cpp">
+      <Filter>源代码\export</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

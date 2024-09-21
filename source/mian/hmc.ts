@@ -2542,7 +2542,45 @@ export const ref = {
         return String(Str || "");
     },
     /**
-     * 格式化数字为int(强制)
+     * 格式化数字为float(强制) 浮点
+     * @param Num
+     * @returns
+     */
+    float(Num: any): number {
+        if (!Num) return 0;
+        if (typeof Num == "object" && Num instanceof Number) {
+            Num = Num?.valueOf();
+        }
+
+        if(typeof Num == "string"){
+            Num = parseFloat(Num);
+            if(isNaN(Num))return 0;
+            
+            if (Num >= Infinity) {
+                Num = 999999999999999.999;
+            }
+            if (Num <= -Infinity) {
+                Num = -999999999999999.999;
+            }
+
+            return Num;
+        }
+        
+        if (typeof Num == "number" && !isNaN(Num)) return Num;
+        // true == 1
+        if (Num && typeof Num == "boolean") Num = 1;
+        // false = 0;
+        if (!Num && typeof Num == "boolean") Num = 0;
+        if (Num >= Infinity) {
+            Num = 999999999999999.999;
+        }
+        if (Num <= -Infinity) {
+            Num = -999999999999999.999;
+        }
+        return Num;
+    },
+    /**
+     * 格式化数字为int(强制) 取整
      * @param Num
      * @returns
      */

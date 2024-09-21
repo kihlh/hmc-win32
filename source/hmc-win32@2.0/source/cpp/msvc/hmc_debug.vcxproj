@@ -128,7 +128,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;"C:\\Users\\kiic\\AppData\\Local\\node-gyp\\Cache\\18.16.1\\x64\\node.lib"</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;"$(LOCALAPPDATA)\\node-gyp\\Cache\\18.16.1\\x64\\node.lib"</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /guard:cf /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -218,7 +218,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;"C:\\Users\\kiic\\AppData\\Local\\node-gyp\\Cache\\18.16.1\\x64\\node.lib"</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;DelayImp.lib;"$(LOCALAPPDATA)\\node-gyp\\Cache\\18.16.1\\x64\\node.lib"</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /guard:cf /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -284,8 +284,9 @@
     <None Include="..\binding.gyp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\hmc-module-static\src\hmc_napi_value_util.cpp" />
+    <ClCompile Include="..\export\auto.cpp" />
     <ClCompile Include="..\export\clip.cpp" />
+    <ClCompile Include="..\export\process.cpp" />
     <ClCompile Include="..\export\screen.cpp" />
     <ClCompile Include="..\export\shell.cpp" />
     <ClCompile Include="..\export\window.cpp" />

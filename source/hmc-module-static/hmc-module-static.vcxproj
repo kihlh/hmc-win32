@@ -31,6 +31,7 @@
     <ClCompile Include="src\hmc_byte_util.cpp" />
     <ClCompile Include="src\hmc_clip_util.cpp" />
     <ClCompile Include="src\hmc_json_util.cpp" />
+    <ClCompile Include="src\hmc_napi_value_util.cpp" />
     <ClCompile Include="src\hmc_process_util.cpp" />
     <ClCompile Include="src\hmc_registr_util.cpp" />
     <ClCompile Include="src\hmc_screen_util.cpp" />
@@ -46,6 +47,7 @@
     <ClInclude Include="include\hmc_byte_util.h" />
     <ClInclude Include="include\hmc_clip_util.h" />
     <ClInclude Include="include\hmc_json_util.h" />
+    <ClInclude Include="include\hmc_napi_value_util.h" />
     <ClInclude Include="include\hmc_process_util.h" />
     <ClInclude Include="include\hmc_registr_util.h" />
     <ClInclude Include="include\hmc_screen_util.h" />
@@ -133,7 +135,7 @@
     <IncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_DEBUG_X86</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -141,7 +143,7 @@
     <IncludePath>$(ProjectDir)\include;$(IncludePath);</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_RELEASE_X86</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MD_Release|Win32'">
@@ -149,7 +151,7 @@
     <IncludePath>$(ProjectDir)\include;$(IncludePath);</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_RELEASE_X86</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -157,7 +159,7 @@
     <IncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_DEBUG_X64</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -165,7 +167,7 @@
     <IncludePath>$(ProjectDir)\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_RELEASE_X64</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MD_Release|x64'">
@@ -173,7 +175,7 @@
     <IncludePath>$(ProjectDir)\include;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)\SharedLibrary\</OutDir>
     <TargetName>$(ProjectName)_RELEASE_X64</TargetName>
-    <ExternalIncludePath>$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <ExternalIncludePath>$(LOCALAPPDATA)\node-gyp\Cache\18.16.1\include\node;$(ProjectDir)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <IntDir>_Temp\$(Platform)_$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

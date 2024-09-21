@@ -66,6 +66,20 @@ namespace hmc_windows_util
      * @return false
      */
     extern bool setWindowEnabled(HWND hwnd, bool isEnabled);
+    
+    /**
+     * @brief 关闭指定窗口
+     * 
+     * @param hwnd 句柄
+     * @param grade  1 温柔的关闭 (正常关闭)
+     * @param grade  2 关闭 / 系统级(半强制)
+     * @param grade  3 关闭线程 (强制)
+     * @param grade  5 尝试所有方法直到关闭
+     * @return true 
+     * @return false 
+     */
+    extern bool closeWindow(HWND hwnd,int grade);
+
     /**
      * @brief 窗口聚焦
      *

@@ -57,6 +57,9 @@
     <ClCompile Include="src\hmc_clip_util.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\hmc_napi_value_util.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\hmc_sock_util.h">
@@ -96,6 +99,9 @@
       <Filter>头文件\include</Filter>
     </ClInclude>
     <ClInclude Include="include\hmc_clip_util.h">
+      <Filter>头文件\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hmc_napi_value_util.h">
       <Filter>头文件\include</Filter>
     </ClInclude>
   </ItemGroup>

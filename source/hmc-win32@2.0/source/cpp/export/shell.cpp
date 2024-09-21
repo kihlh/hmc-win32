@@ -468,10 +468,10 @@ napi_value setConversionStatus(napi_env env, napi_callback_info info)
     return result;
 }
 
-namespace shell_startup
+namespace HMC_shell_startup
 {
 
-    napi_value shell_startup::has(napi_env env, napi_callback_info info)
+    napi_value has(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -486,7 +486,7 @@ namespace shell_startup
         return result;
     }
 
-    napi_value shell_startup::hasOnce(napi_env env, napi_callback_info info)
+    napi_value hasOnce(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -501,7 +501,7 @@ namespace shell_startup
         return result;
     }
 
-    napi_value shell_startup::remove(napi_env env, napi_callback_info info)
+    napi_value remove(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -516,7 +516,7 @@ namespace shell_startup
         return result;
     }
 
-    napi_value shell_startup::removeOnce(napi_env env, napi_callback_info info)
+    napi_value removeOnce(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -531,7 +531,7 @@ namespace shell_startup
         return result;
     }
 
-    napi_value shell_startup::set(napi_env env, napi_callback_info info)
+    napi_value set(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -551,7 +551,7 @@ namespace shell_startup
         return result;
     }
 
-    napi_value shell_startup::setOnce(napi_env env, napi_callback_info info)
+    napi_value setOnce(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Boolean(false);
         auto input = hmc_NodeArgsValue(env, info);
@@ -571,33 +571,30 @@ namespace shell_startup
         return result;
     }
 
-    napi_ref ref_result;
+    napi_ref CONSTRUCTOR_LIFETIME_HANDLE = NULL;
     
     napi_value StartupClassConstructor(napi_env env, napi_callback_info info)
     {
+             
+        if(CONSTRUCTOR_LIFETIME_HANDLE!=NULL){
+            return NULL;
+        }
+
         napi_value constructor;
         napi_value result;
         napi_status status;
 
         napi_create_object(env, &result);
-        // 定义类的属性
-        napi_property_descriptor properties[] = {
-            {"set", 0, setOnce, 0, 0, 0, napi_default, 0},
-            {"setOnce", 0, setOnce, 0, 0, 0, napi_default, 0},
-            {"remove", 0, remove, 0, 0, 0, napi_default, 0},
-            {"has", 0, has, 0, 0, 0, napi_default, 0},
-            {"removeOnce", 0, removeOnce, 0, 0, 0, napi_default, 0},
-            {"hasOnce", 0, hasOnce, 0, 0, 0, napi_default, 0}};
-
-        napi_set_named_property(env, result, "set", as_ExFunction(set));
-        napi_set_named_property(env, result, "setOnce", as_ExFunction(setOnce));
-        napi_set_named_property(env, result, "remove", as_ExFunction(remove));
-        napi_set_named_property(env, result, "removeOnce", as_ExFunction(removeOnce));
-        napi_set_named_property(env, result, "has", as_ExFunction(has));
-        napi_set_named_property(env, result, "hasOnce", as_ExFunction(hasOnce));
+        
+        napi_set_named_property(env, result, as_ExFunctionNameAp(set));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(setOnce));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(remove));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(removeOnce));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(has));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(hasOnce));
 
         //注册长生命周期
-        status = napi_create_reference(env, result, 1, &ref_result);
+        status = napi_create_reference(env, result, 1, &CONSTRUCTOR_LIFETIME_HANDLE);
         if (status != napi_ok)
             return NULL;
 

@@ -2,24 +2,44 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--inspect</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerEnvironment>msvc_dir=$(LocalDebuggerWorkingDirectory)
+mode=$(TargetPath)
+hmc_debug_js=$(LocalDebuggerWorkingDirectory)/../../../source/debug
+hmc_source=$(LocalDebuggerWorkingDirectory)/../../../
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>node_x64.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--inspect</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>msvc_dir=$(LocalDebuggerWorkingDirectory)
+mode=$(TargetPath)
+hmc_debug_js=$(LocalDebuggerWorkingDirectory)/../../../source/debug
+hmc_source=$(LocalDebuggerWorkingDirectory)/../../../
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--inspect</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>node_x86.exe</LocalDebuggerCommand>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerEnvironment>msvc_dir=$(LocalDebuggerWorkingDirectory)
+mode=$(TargetPath)
+hmc_debug_js=$(LocalDebuggerWorkingDirectory)/../../../source/debug
+hmc_source=$(LocalDebuggerWorkingDirectory)/../../../
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommandArguments>$(LocalDebuggerWorkingDirectory)main.js --inspect  $(TargetPath)</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--inspect</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>node_x86.exe</LocalDebuggerCommand>
+    <LocalDebuggerEnvironment>msvc_dir=$(LocalDebuggerWorkingDirectory)
+mode=$(TargetPath)
+hmc_debug_js=$(LocalDebuggerWorkingDirectory)/../../../source/debug
+hmc_source=$(LocalDebuggerWorkingDirectory)/../../../
+$(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
 </Project>

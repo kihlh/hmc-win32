@@ -29,7 +29,7 @@
 
 const size_t BIT_2GB = 8589934592ull
 
-#define NAME_STR(func)#func 
+#define NAME_STR(func) #func
 
 // 导出一个 static 函数
 #define EXPORT_NAPI_STATIC_FN(func)              \
@@ -54,6 +54,7 @@ const size_t BIT_2GB = 8589934592ull
 		name, 0, (napi_callback) & func, 0, 0, 0, napi_default, 0 \
 	}
 #define as_Number(data) hmc_napi_create_value::Number(env, (int64_t)data)
+// 必须是utf8
 #define as_String(data) hmc_napi_create_value::String(env, data)
 #define as_Boolean(data) hmc_napi_create_value::Boolean(env, data)
 #define as_Null() hmc_napi_create_value::Null(env)
@@ -65,6 +66,7 @@ const size_t BIT_2GB = 8589934592ull
 #define as_ArrayNul() hmc_napi_create_value::Array::Number(env, std::vector<int>())
 
 #define as_ExFunction(func) hmc_napi_create_value::ExFunction(env, #func, func)
+#define as_ExFunctionNameAp(func) #func, hmc_napi_create_value::ExFunction(env, #func, func)
 
 #define at_Boolean(index) (input.exists(index) ? input.getBool(index, false) : false)
 #define at_StringW(index) (input.exists(index) ? input.getStringWide(index, L"") : L"")
@@ -1427,6 +1429,15 @@ public:
 	 * @return js_valuetype
 	 */
 	js_valuetype getType(size_t index);
+
+	/**
+	 * @brief 删除指定元素
+	 *
+	 * @param Index
+	 * @return true
+	 * @return false
+	 */
+	bool removeIndex(size_t Index);
 };
 
 namespace hmc_PromiseSession
@@ -2048,116 +2059,158 @@ napi_value fu_New_Promise_class::format_to_js_value(napi_env env, std::any resul
 
 #endif // MODE_INTERNAL_INCLUDE_HMC_NAPI_VALUE_UTIL_HPP
 
-
 /*
 
 
 
 namespace ExpShowContextMenu
 {
-    NEW_PROMISE_FUNCTION2_DEFAULT_FUN;
+	NEW_PROMISE_FUNCTION2_DEFAULT_FUN;
 
-    void ExpShowContextMenu::AddArgsToCallBack(napi_env env, napi_callback_info info, std::vector<std::any> *ArgumentsList, hmc_NodeArgsValue input)
-    {
-        // showContextMenu(hwnd:number, filePath:string|string[], x?:number|null, y?:number|null);
-        input.eq(0, {js_null, js_number, js_bigint}, true);
-        input.eq(1, {js_string, js_array}, true);
+	void ExpShowContextMenu::AddArgsToCallBack(napi_env env, napi_callback_info info, std::vector<std::any> *ArgumentsList, hmc_NodeArgsValue input)
+	{
+		// showContextMenu(hwnd:number, filePath:string|string[], x?:number|null, y?:number|null);
+		input.eq(0, {js_null, js_number, js_bigint}, true);
+		input.eq(1, {js_string, js_array}, true);
 
-        // hwnd:number
-        int64_t ihwnd = at_Number64Or(0, 0);
+		// hwnd:number
+		int64_t ihwnd = at_Number64Or(0, 0);
 
-        HWND hwnd = ihwnd <= 0 ? ::GetForegroundWindow() : (HWND)ihwnd;
-        std::variant<std::wstring, std::vector<std::wstring>> filePath;
-        int x = 0;
-        int y = 0;
+		HWND hwnd = ihwnd <= 0 ? ::GetForegroundWindow() : (HWND)ihwnd;
+		std::variant<std::wstring, std::vector<std::wstring>> filePath;
+		int x = 0;
+		int y = 0;
 
-        // filePath:string|string[]
-        if (input.eq(1, js_string, false))
-        {
-            filePath = input.getStringWide(1);
-        }
-        else
-        {
-            filePath = input.getArrayWstring(1);
-        }
+		// filePath:string|string[]
+		if (input.eq(1, js_string, false))
+		{
+			filePath = input.getStringWide(1);
+		}
+		else
+		{
+			filePath = input.getArrayWstring(1);
+		}
 
-        // x?:number|null, y?:number|null
+		// x?:number|null, y?:number|null
 
-        POINT point = {0};
+		POINT point = {0};
 
-        if (input.eq({{2, js_number}}, false))
-        {
-            x = input.getInt(2, 0);
-        }
+		if (input.eq({{2, js_number}}, false))
+		{
+			x = input.getInt(2, 0);
+		}
 
-        if (input.eq({{3, js_number}}, false))
-        {
-            y = input.getInt(2, 0);
-        }
+		if (input.eq({{3, js_number}}, false))
+		{
+			y = input.getInt(2, 0);
+		}
 
-        if (x + y == 0)
-        {
-            POINT point;
-            ::GetCursorPos(&point);
-            x = point.x;
-            y = point.y;
-        }
+		if (x + y == 0)
+		{
+			POINT point;
+			::GetCursorPos(&point);
+			x = point.x;
+			y = point.y;
+		}
 
-        ArgumentsList->push_back(hwnd);
+		ArgumentsList->push_back(hwnd);
 
-        if (std::holds_alternative<std::wstring>(filePath))
-        {
-            ArgumentsList->push_back(std::get<std::wstring>(filePath));
-        }
-        else
-        {
-            ArgumentsList->push_back(std::get<std::vector<std::wstring>>(filePath));
-        }
+		if (std::holds_alternative<std::wstring>(filePath))
+		{
+			ArgumentsList->push_back(std::get<std::wstring>(filePath));
+		}
+		else
+		{
+			ArgumentsList->push_back(std::get<std::vector<std::wstring>>(filePath));
+		}
 
-        ArgumentsList->push_back(x);
-        ArgumentsList->push_back(y);
-    }
+		ArgumentsList->push_back(x);
+		ArgumentsList->push_back(y);
+	}
 
-    // 需要异步的函数
-    std::any ExpShowContextMenu::PromiseWorkFunc(std::vector<std::any> *arguments_list)
-    {
-        std::any result = std::any();
-        HWND hwnd = std::any_cast<HWND>(arguments_list->at(0));
+	// 需要异步的函数
+	std::any ExpShowContextMenu::PromiseWorkFunc(std::vector<std::any> *arguments_list)
+	{
+		std::any result = std::any();
+		HWND hwnd = std::any_cast<HWND>(arguments_list->at(0));
 
-        int x = std::any_cast<int>(arguments_list->at(2));
-        int y = std::any_cast<int>(arguments_list->at(3));
+		int x = std::any_cast<int>(arguments_list->at(2));
+		int y = std::any_cast<int>(arguments_list->at(3));
 
-        if (arguments_list->at(1).type() == typeid(std::wstring))
-        {
-            std::wstring filePath = std::any_cast<std::wstring>(arguments_list->at(1));
-            result = hmc_shell_util::showContextMenu(hwnd, filePath, x, y);
-        }
+		if (arguments_list->at(1).type() == typeid(std::wstring))
+		{
+			std::wstring filePath = std::any_cast<std::wstring>(arguments_list->at(1));
+			result = hmc_shell_util::showContextMenu(hwnd, filePath, x, y);
+		}
 
-        if (arguments_list->at(1).type() == typeid(std::vector<std::wstring>))
-        {
-            std::vector<std::wstring> filePathList = std::any_cast<std::vector<std::wstring>>(arguments_list->at(1));
-            result = hmc_shell_util::showContextMenu(hwnd, filePathList, x, y);
-        }
+		if (arguments_list->at(1).type() == typeid(std::vector<std::wstring>))
+		{
+			std::vector<std::wstring> filePathList = std::any_cast<std::vector<std::wstring>>(arguments_list->at(1));
+			result = hmc_shell_util::showContextMenu(hwnd, filePathList, x, y);
+		}
 
-        return result;
-    }
+		return result;
+	}
 
-    // 格式化<需要异步的函数>返回值到js 返回值
-    napi_value ExpShowContextMenu::FormatResultValue(napi_env env, std::any *result_any_data)
-    {
-        napi_value result;
-        napi_get_null(env, &result);
+	// 格式化<需要异步的函数>返回值到js 返回值
+	napi_value ExpShowContextMenu::FormatResultValue(napi_env env, std::any *result_any_data)
+	{
+		napi_value result;
+		napi_get_null(env, &result);
 
-        if (!result_any_data->has_value())
-        {
-            return result;
-        }
-        result = as_Boolean(std::any_cast<bool>(result_any_data));
-        return result;
-    }
+		if (!result_any_data->has_value())
+		{
+			return result;
+		}
+		result = as_Boolean(std::any_cast<bool>(result_any_data));
+		return result;
+	}
 
 };
 
 
 
 */
+// 初始化模块
+extern void InitAsyncFunction(napi_env env, napi_value exports, const char *utf8name, napi_callback StartAsyncTask, napi_callback ExecuteSync);
+
+namespace HMC_PromiseStore
+{
+	struct EnvNextWorkData
+	{
+		napi_deferred deferred;
+		napi_async_work work;
+		size_t TASK_TYPE;
+		std::any *ResultStore;
+		std::vector<std::any> *ArgsStore;
+	};
+
+	// 执行取值格式化任务 返回为false时结束任务并返回null
+	typedef std::function<bool(napi_env env, napi_callback_info info, hmc_NodeArgsValue ArgsValue, std::vector<std::any> *data_list)> chFormatArgFun;
+	// 执行异步任务 并返回内容
+	typedef std::function<std::any(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list)> chExecuteWorkFun;
+	// 执行异步任务 并返回内容
+	typedef std::function<napi_value(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *data_list)> chExecuteResultFormatFun;
+	extern std::map<size_t, chFormatArgFun> PromiseFormatEventListenerFunList;
+	extern std::map<size_t, chExecuteWorkFun> PromiseWorkEventListenerFunList;
+	extern std::map<size_t, chExecuteResultFormatFun> PromiseResultFormatEventListenerFunList;
+
+	enum HMC_PROMISEEVAL_TASK_TYPE
+	{
+		GetClipboardFilePaths2 = 1,
+		CaptureBmp2 = 2,
+		CloseWindow2 = 3,
+	};
+
+}
+
+class HMC_PromiseEval
+{
+public:
+	static void ExecuteAsyncWork(napi_env env, void *data);
+	static void GCEnvNextWorkData(void *data);
+	static napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+	static void ResolveWork(napi_env env, napi_status status, void *data);
+	static napi_value ExecuteSync(napi_env env, napi_callback_info info);
+	static void append(size_t ID, std::optional<HMC_PromiseStore::chFormatArgFun> FormatFun, HMC_PromiseStore::chExecuteWorkFun WorkFun, std::optional<HMC_PromiseStore::chExecuteResultFormatFun> ResultFormatFun);
+};

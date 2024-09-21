@@ -1579,3 +1579,70 @@ RECT hmc_windows_util::get_variant(std::variant<RECT, DWORD> input)
 
     return of_to;
 }
+
+bool hmc_windows_util::closeWindow(HWND hwnd, int grade)
+{
+
+    if (grade == 1)
+    {
+        bool isWindowCloce = ::CloseWindow(hwnd);
+        return !hmc_windows_util::isWindow(hwnd);
+    }
+
+    if (grade == 2)
+    {
+        ::SendMessage(hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);
+
+        if (hmc_windows_util::isWindow(hwnd))
+        {
+            ::CloseHandle(hwnd);
+        }
+
+        return !hmc_windows_util::isWindow(hwnd);
+    }
+
+    if (grade == 3)
+    {
+        DWORD threadId = ::GetWindowThreadProcessId(hwnd, NULL);
+        if (threadId == 0)
+        {
+            return false;
+        }
+
+        // 强制终止线程
+        HANDLE hThread = ::OpenThread(THREAD_TERMINATE, FALSE, threadId);
+        if (hThread == NULL)
+        {
+            return false;
+        }
+
+        BOOL result = TerminateThread(hThread, 0);
+        if (!result)
+        {
+            ::CloseHandle(hThread);
+            return false;
+        }
+
+        ::CloseHandle(hThread);
+        return !hmc_windows_util::isWindow(hwnd);
+    }
+
+    if (grade == 5)
+    {
+        if (closeWindow(hwnd, 1))
+        {
+            return true;
+        }
+        
+        if (closeWindow(hwnd, 2))
+        {
+            return true;
+        }
+        
+        if (closeWindow(hwnd, 3))
+        {
+            return true;
+        }
+    }
+    return false;
+}
