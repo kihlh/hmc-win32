@@ -26,6 +26,7 @@ extern napi_value enumClipboardFormats(napi_env env, napi_callback_info info);
 extern napi_value getClipboardHTML(napi_env env, napi_callback_info info);
 
 extern std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+extern std::any GetClipboardText2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
 
 // shell.cpp
 extern napi_value getTrayList(napi_env env, napi_callback_info info);
@@ -126,7 +127,7 @@ public:
 
 class CloseWindow2
 {
-public:
+public: 
     // 输入命令格式化或拒绝任务
     static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
     // 执行任务

@@ -234,14 +234,14 @@ namespace HMC_mouse
         return result;
     }
 
-    napi_value hasLimitMouseRange_worker(napi_env env, napi_callback_info info)
+    napi_value hasLimitMouseRangeWorker(napi_env env, napi_callback_info info)
     {
         bool state =  hmc_mouse::LimitMouseRange::hasLimitMouseRange_worker();
 
         return as_Boolean(state);
     }
 
-    napi_value stopLimitMouseRange_worker(napi_env env, napi_callback_info info)
+    napi_value stopLimitMouseRangeWorker(napi_env env, napi_callback_info info)
     {
         bool state =  hmc_mouse::LimitMouseRange::stopLimitMouseRange_worker();
 
@@ -267,8 +267,10 @@ namespace HMC_mouse
         napi_set_named_property(env, result, as_ExFunctionNameAp(getMouseEventListJson));
         napi_set_named_property(env, result, as_ExFunctionNameAp(stopHookMouse));
         napi_set_named_property(env, result, as_ExFunctionNameAp(setShakeEventTime));
-        napi_set_named_property(env, result, as_ExFunctionNameAp(hasLimitMouseRange_worker));
-        napi_set_named_property(env, result, as_ExFunctionNameAp(stopLimitMouseRange_worker));
+
+        napi_set_named_property(env, result, as_ExFunctionNameAp(setLimitMouseRange));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(hasLimitMouseRangeWorker));
+        napi_set_named_property(env, result, as_ExFunctionNameAp(stopLimitMouseRangeWorker));
 
         // 注册长生命周期
         status = napi_create_reference(env, result, 1, &CONSTRUCTOR_LIFETIME_HANDLE);

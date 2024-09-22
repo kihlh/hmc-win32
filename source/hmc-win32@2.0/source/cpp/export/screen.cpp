@@ -56,14 +56,51 @@ napi_value captureBmpToBuff(napi_env env, napi_callback_info info)
 // 格式化
 bool CaptureBmp2::FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list)
 {
-    if (input.size() < 1)
+    if (input.empty())
+    {
+        return true;
+    }
+
+    // (handle: number): Buffer | null;
+    // (handle: number, path: string): boolean;
+    // (path: string): boolean;
+    // (): Buffer | null;
+    // (x: number, y: number, nScopeWidth: number, nScopeHeight: number): Buffer | null;
+    // (path: string, x: number, y: number, nScopeWidth: number, nScopeHeight: number): boolean;
+
+    if (
+        input.eq(0, { js_number }, false) &&
+        input.eq(1, { js_number }, false)&&
+        input.eq(2, { js_number }, false)&&
+        input.eq(3, { js_number }, false)&&
+        input.eq(4, { js_string }, false)
+        )
+    {
+        input.swap(4, 0);
+        input.swap(1, 2);
+        input.swap(2, 3);
+        input.swap(3, 4);
+    }
+
+    if (
+        (!input.eq(0, {js_number, js_string}, true)) ||
+        (input.size() >= 2 && !input.eq(1, {js_number, js_string}, true)) ||
+        (input.size() >= 3 && !input.eq(2, {js_number}, true)) ||
+        (input.size() >= 4 && !input.eq(3, {js_number}, true)) ||
+        (input.size() >= 5 && !input.eq(4, {js_number}, true)))
     {
         return false;
     }
 
-    // 0 : handle: number / path: string
-    if (input.eq(0, {js_number, js_string}, true))
+    if (input.size() == 2 &&(input.eq(0, { js_string }, false) && input.eq(1, { js_number }, false)))
     {
+        input.swap(0, 1);
+    }
+
+    // 0 : handle: number / path: string
+    if (input.eq(0, {js_number, js_string}, false))
+    {
+
         if (input.eq(0, js_string, false))
         {
             auto temp = input.getStringWide(0, L"");
@@ -75,12 +112,8 @@ bool CaptureBmp2::FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsV
             arguments_list->push_back(temp);
         }
     }
-    else
-    {
-        return false;
-    }
 
-    if (input.size() >= 2 && input.eq(1, {js_number, js_string}, true))
+    if (input.size() >= 2 && input.eq(1, {js_number, js_string}, false))
     {
 
         if (input.eq(1, js_string, false))
@@ -94,37 +127,24 @@ bool CaptureBmp2::FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsV
             arguments_list->push_back(temp);
         }
     }
-    else
-    {
-        return false;
-    }
 
-    if (input.size() >= 3 && input.eq(2, {js_number}, true))
+    if (input.size() >= 3 && input.eq(2, {js_number}, false))
     {
         auto temp = input.getInt64(2, 0);
         arguments_list->push_back(temp);
     }
-    else
-    {
-        return false;
-    }
 
-    if (input.size() >= 4 && input.eq(3, {js_number}, true))
+    if (input.size() >= 4 && input.eq(3, {js_number}, false))
     {
         auto temp = input.getInt64(3, 0);
         arguments_list->push_back(temp);
     }
-    else
-    {
-        return false;
-    }
 
-    if (input.size() >= 5 && input.eq(4, {js_number}, true))
+    if (input.size() >= 5 && input.eq(4, {js_number}, false))
     {
         auto temp = input.getInt64(4, 0);
         arguments_list->push_back(temp);
     }
- 
 
     return true;
 }
@@ -276,4 +296,3 @@ napi_value CaptureBmp2::ResultFormat(napi_env env, napi_status status, std::any 
 
     return result;
 }
-

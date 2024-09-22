@@ -2130,6 +2130,11 @@ size_t hmc_NodeArgsValue::size()
     return args.size();
 }
 
+bool hmc_NodeArgsValue::empty()
+{
+    return args.empty();
+}
+
 bool hmc_NodeArgsValue::argsSize(size_t min_length, size_t max_length, bool throw_error)
 {
     bool results = false;
@@ -2705,6 +2710,42 @@ std::vector<js_value> hmc_NodeArgsValue::get_values()
     return result;
 }
 
+bool hmc_NodeArgsValue::swap(size_t Index, size_t Index2)
+{
+    bool results = false;
+    size_t tmp_size = this->args.size();
+
+    if (tmp_size > Index && tmp_size > Index2)
+    {
+        std::swap(this->args[Index], this->args[Index2]);
+        results = true;
+        return results;
+    }
+
+    return results;
+}
+
+bool hmc_NodeArgsValue::replace(size_t Index, napi_value value)
+{
+    bool results = false;
+    size_t tmp_size = this->args.size();
+
+    if (tmp_size > Index)
+    {
+        this->args[Index] = value;
+        results = true;
+        return results;
+    }
+
+    if (tmp_size >= Index)
+    {
+        this->args.push_back(value);
+        results = true;
+        return results;
+    }
+    
+    return results;
+}
 namespace hmc_PromiseSession
 {
     // 任务id
@@ -4199,9 +4240,10 @@ napi_value HMC_PromiseEval::StartAsyncTask(napi_env env, napi_callback_info info
     // 初始化异步工作的数据
     HMC_PromiseStore::EnvNextWorkData *workData = HMC_VcAllocAutoLength(HMC_PromiseStore::EnvNextWorkData);
 
-    if (workData != NULL) {
+    if (workData != NULL)
+    {
         workData->ResultStore = new std::any();
-     }
+    }
 
     auto input = hmc_NodeArgsValue(env, info);
 
@@ -4216,7 +4258,7 @@ napi_value HMC_PromiseEval::StartAsyncTask(napi_env env, napi_callback_info info
 
     if (HMC_PromiseStore::PromiseFormatEventListenerFunList.find(workData->TASK_TYPE) != HMC_PromiseStore::PromiseFormatEventListenerFunList.end())
     {
-        
+
         workData->ArgsStore = new std::vector<std::any>();
         bool is_next = HMC_PromiseStore::PromiseFormatEventListenerFunList.at(workData->TASK_TYPE)(env, info, input, workData->ArgsStore);
 
@@ -4227,7 +4269,8 @@ napi_value HMC_PromiseEval::StartAsyncTask(napi_env env, napi_callback_info info
         }
     }
 
-    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(workData->TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end()) {
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(workData->TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end())
+    {
         napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("This task ID was not found. It may not be supported or the environment is missing"));
         return NULL;
     }
@@ -4291,7 +4334,7 @@ napi_value HMC_PromiseEval::ExecuteSync(napi_env env, napi_callback_info info)
 
     size_t TASK_TYPE = input.getInt64(0, 0);
     input.removeIndex(0);
-    
+
     auto ArgsStore = std::vector<std::any>();
     std::any ResultStore = std::any();
 
@@ -4305,7 +4348,8 @@ napi_value HMC_PromiseEval::ExecuteSync(napi_env env, napi_callback_info info)
         }
     }
 
-    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end()) {
+    if (HMC_PromiseStore::PromiseWorkEventListenerFunList.find(TASK_TYPE) == HMC_PromiseStore::PromiseWorkEventListenerFunList.end())
+    {
         napi_throw_type_error(env, NULL, hmc_string_util::string_to_lpstr("This task ID was not found. It may not be supported or the environment is missing"));
         return NULL;
     }
@@ -4370,9 +4414,8 @@ void HMC_PromiseEval::append(size_t ID, std::optional<HMC_PromiseStore::chFormat
             std::pair<size_t, HMC_PromiseStore::chFormatArgFun>(ID, FormatFun.value()));
     }
 
- 
-        HMC_PromiseStore::PromiseWorkEventListenerFunList.insert(
-            std::pair<size_t, HMC_PromiseStore::chExecuteWorkFun>(ID, WorkFun));
+    HMC_PromiseStore::PromiseWorkEventListenerFunList.insert(
+        std::pair<size_t, HMC_PromiseStore::chExecuteWorkFun>(ID, WorkFun));
 
     if (ResultFormatFun.has_value())
     {
@@ -4380,4 +4423,3 @@ void HMC_PromiseEval::append(size_t ID, std::optional<HMC_PromiseStore::chFormat
             std::pair<size_t, HMC_PromiseStore::chExecuteResultFormatFun>(ID, ResultFormatFun.value()));
     }
 }
-

@@ -31,8 +31,8 @@ static napi_value Init(napi_env env, napi_value exports)
     napi_property_descriptor BIND_NAPI_METHOD[] = {
 
         // screen.cpp
-        DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),
-        DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),
+        // DECLARE_NAPI_METHODRM("captureBmpToBuff", captureBmpToBuff),
+        // DECLARE_NAPI_METHODRM("captureBmpToFile", captureBmpToFile),
 
         // clip.cpp
         DECLARE_NAPI_METHODRM("getClipboardFilePaths", getClipboardFilePaths),
@@ -68,16 +68,19 @@ static napi_value Init(napi_env env, napi_value exports)
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
 
 
-    // Promise 
+    // Promise 高性能要求的
 
     InitAsyncFunction(env, exports, "getProcessName2", HMC_GetProcessName::StartAsyncTask, HMC_GetProcessName::ExecuteSync);
     InitAsyncFunction(env, exports, "getProcessFilePath2", HMC_GetProcessFilePath::StartAsyncTask, HMC_GetProcessFilePath::ExecuteSync);
     InitAsyncFunction(env, exports, "getProcessEnvInfo2", HMC_GetProcessEnvInfo::StartAsyncTask, HMC_GetProcessEnvInfo::ExecuteSync);
     InitAsyncFunction(env, exports, "HMC_PromiseEval", HMC_PromiseEval::StartAsyncTask, HMC_PromiseEval::ExecuteSync);
 
-    HMC_PromiseEval::append(HMC_PromiseStore::GetClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
-    CaptureBmp2::initialize(HMC_PromiseStore::CaptureBmp2);
-    CloseWindow2::initialize(HMC_PromiseStore::CloseWindow2);
+    // Promise 低调用量 低性能要求的
+    HMC_PromiseEval::append(HMC_PromiseStore::getClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
+    HMC_PromiseEval::append(HMC_PromiseStore::getClipboardText2, std::nullopt, GetClipboardText2, std::nullopt);
+
+    CaptureBmp2::initialize(HMC_PromiseStore::captureBmp2);
+    CloseWindow2::initialize(HMC_PromiseStore::closeWindow2);
 
 
     atexit(hmc_gc_func);

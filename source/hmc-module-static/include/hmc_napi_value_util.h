@@ -1438,6 +1438,34 @@ public:
 	 * @return false
 	 */
 	bool removeIndex(size_t Index);
+	/**
+	 * @brief 是否为空
+	 * 
+	 * @return true 
+	 * @return false 
+	 */
+	bool empty();
+
+	/**
+	 * @brief 让两个位置的元素互换
+	 * 
+	 * @param Index 索引1
+	 * @param Index2 索引2
+	 * @return true 
+	 * @return false 
+	 */
+	bool swap(size_t Index,size_t Index2);
+
+	/**
+	 * @brief 替换指定的元素位置
+	 * 
+	 * @param Index 索引
+	 * @param value 新的值
+	 * @return true 
+	 * @return false 
+	 */
+	bool replace(size_t Index , napi_value value);
+
 };
 
 namespace hmc_PromiseSession
@@ -2197,9 +2225,10 @@ namespace HMC_PromiseStore
 
 	enum HMC_PROMISEEVAL_TASK_TYPE
 	{
-		GetClipboardFilePaths2 = 1,
-		CaptureBmp2 = 2,
-		CloseWindow2 = 3,
+		getClipboardFilePaths2 = 1,
+		captureBmp2 = 2,
+		closeWindow2 = 3,
+		getClipboardText2 = 4,
 	};
 
 }

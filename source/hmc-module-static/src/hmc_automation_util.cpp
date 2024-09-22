@@ -465,7 +465,8 @@ namespace hmc_mouse
 
             return item_data;
         }
-        return std::string(R"({ "id":null,"time":null})");
+
+        return std::string(R"({ "id":0,"time":0})");
     }
 
     hmc_mouse::MouseHook::MouseEvent::MouseEvent()
