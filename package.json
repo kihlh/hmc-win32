@@ -109,7 +109,8 @@
     "ts": "tsc -d -w",
     "publish": "npm publish",
     "pull": "git push origin master -f",
-    "esbuild-cjs": "esbuild ./source/mian/hmc.ts --charset=utf8  --bundle --external:./HMC.node --external:../HMC.node --platform=node --format=iife --target=node8  --watch --format=cjs --outfile=index.js"
+    "esbuild-cjs": "esbuild ./source/mian/hmc.ts --charset=utf8  --bundle --external:./HMC.node --external:../HMC.node --platform=node --format=iife --target=node8  --watch --format=cjs --outfile=index.js",
+    "esbuild-cjs-Beta": "esbuild ./source/hmc-win32@2.0/source/main/index.ts --charset=utf8  --bundle --external:./HMC@Beta_x86.node --external:../HMC@Beta_x64.node --platform=node --format=iife --target=node8  --watch --format=cjs --outfile=./source/hmc-win32@2.0/index.js"
   },
   "engines": {
     "node": ">= 6.14.2"

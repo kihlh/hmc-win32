@@ -27,6 +27,7 @@ extern napi_value getClipboardHTML(napi_env env, napi_callback_info info);
 
 extern std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
 extern std::any GetClipboardText2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+extern std::any GetThumbnailPng2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
 
 // shell.cpp
 extern napi_value getTrayList(napi_env env, napi_callback_info info);
@@ -103,8 +104,8 @@ namespace HMC_mouse
     extern napi_value stopHookMouse(napi_env env, napi_callback_info info);
     extern napi_value setShakeEventTime(napi_env env, napi_callback_info info);
     extern napi_value setLimitMouseRange(napi_env env, napi_callback_info info);
-    extern napi_value hasLimitMouseRange_worker(napi_env env, napi_callback_info info);
-    extern napi_value stopLimitMouseRange_worker(napi_env env, napi_callback_info info);
+    extern napi_value hasLimitMouseRangeWorker(napi_env env, napi_callback_info info);
+    extern napi_value stopLimitMouseRangeWorker(napi_env env, napi_callback_info info);
     // Init
     extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
 }
@@ -141,6 +142,20 @@ public:
     }
 };
 
+class GetThumbnailPng2
+{
+public: 
+    // 输入命令格式化或拒绝任务
+    static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
+    // 执行任务
+    static std::any ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::vector<std::any> *arguments_list);
+    // 值自定义格式化
+    // static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *arguments_list);
+    // 初始化函数
+    static void initialize(const int ID){
+        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,std::nullopt);
+    }
+};
 
 // class GetClipboardFilePaths2
 // {

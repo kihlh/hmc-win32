@@ -2034,6 +2034,21 @@ napi_value hmc_napi_create_value::New(napi_env env, std::any anyValue)
         {
             ResultForAny = Boolean(env, std::any_cast<bool>(anyValue));
         }
+        else if (anyValue.type() == typeid(std::vector<uint8_t>))
+        {
+            auto temp = std::any_cast<std::vector<uint8_t>>(anyValue);
+            ResultForAny = Buffer(env, temp);
+        }
+        else if (anyValue.type() == typeid(std::vector<BYTE>))
+        {
+            auto temp = std::any_cast<std::vector<BYTE>>(anyValue);
+            ResultForAny = Buffer(env, temp);
+        }
+        else if (anyValue.type() == typeid(std::vector<byte>))
+        {
+            auto temp = std::any_cast<std::vector<byte>>(anyValue);
+            ResultForAny = Buffer(env, temp);
+        }
         else if (anyValue.type() == typeid(BOOL))
         {
             ResultForAny = Boolean(env, std::any_cast<BOOL>(anyValue));

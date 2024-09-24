@@ -1,6 +1,7 @@
 ﻿#include "./main.h"
 #include "./export/export.h"
 #include <stdlib.h>
+#include "hmc_util.h"
 
 #include "hmc_automation_util.h"
 
@@ -60,13 +61,14 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
         DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
+  
+        // auto.cpp
         DECLARE_NAPI_METHODRM("HMC_SHELL_STARTUP_CLASS", HMC_shell_startup::StartupClassConstructor),
         DECLARE_NAPI_METHODRM("HMC_KEYBOARD_CLASS", HMC_Keyboard::StartupClassConstructor),
         DECLARE_NAPI_METHODRM("HMC_MOUSE_CLASS", HMC_mouse::StartupClassConstructor),
     };
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
-
 
     // Promise 高性能要求的
 
@@ -78,10 +80,11 @@ static napi_value Init(napi_env env, napi_value exports)
     // Promise 低调用量 低性能要求的
     HMC_PromiseEval::append(HMC_PromiseStore::getClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
     HMC_PromiseEval::append(HMC_PromiseStore::getClipboardText2, std::nullopt, GetClipboardText2, std::nullopt);
+    // HMC_PromiseEval::append(HMC_PromiseStore::getThumbnailPng2, std::nullopt, GetThumbnailPng2, std::nullopt);
 
     CaptureBmp2::initialize(HMC_PromiseStore::captureBmp2);
     CloseWindow2::initialize(HMC_PromiseStore::closeWindow2);
-
+    GetThumbnailPng2::initialize(HMC_PromiseStore::getThumbnailPng2);
 
     atexit(hmc_gc_func);
 

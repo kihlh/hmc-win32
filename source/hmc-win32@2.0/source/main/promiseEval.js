@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promisee = exports.HMC_PROMISEEVAL_TASK_TYPE = void 0;
+exports.promiseEvalTask = exports.HMC_PROMISEEVAL_TASK_TYPE = void 0;
 const main = require("./index");
-const HMC2 = main.native;
 var HMC_PROMISEEVAL_TASK_TYPE;
 (function (HMC_PROMISEEVAL_TASK_TYPE) {
     HMC_PROMISEEVAL_TASK_TYPE[HMC_PROMISEEVAL_TASK_TYPE["getClipboardFilePaths2"] = 1] = "getClipboardFilePaths2";
     HMC_PROMISEEVAL_TASK_TYPE[HMC_PROMISEEVAL_TASK_TYPE["captureBmp2"] = 2] = "captureBmp2";
     HMC_PROMISEEVAL_TASK_TYPE[HMC_PROMISEEVAL_TASK_TYPE["closeWindow2"] = 3] = "closeWindow2";
+    HMC_PROMISEEVAL_TASK_TYPE[HMC_PROMISEEVAL_TASK_TYPE["getClipboardText2"] = 5] = "getClipboardText2";
 })(HMC_PROMISEEVAL_TASK_TYPE = exports.HMC_PROMISEEVAL_TASK_TYPE || (exports.HMC_PROMISEEVAL_TASK_TYPE = {}));
 ;
 class HMC_PromiseeEvalTask {
@@ -21,13 +21,13 @@ class HMC_PromiseeEvalTask {
             this.async[TASK_TYPE] = (...arg) => {
                 var _a;
                 try {
-                    if (!((_a = HMC2.native) === null || _a === void 0 ? void 0 : _a.HMC_PromiseEval)) {
-                        return Promise.reject(main.HMC2.HMCNotPlatform);
+                    if (!((_a = main.Native.native) === null || _a === void 0 ? void 0 : _a.HMC_PromiseEval)) {
+                        return Promise.reject(main.HMC2_MODE.HMCNotPlatform);
                     }
                     if (arg.length >= 1) {
-                        return HMC2.native.HMC_PromiseEval(TASK_ID, ...arg);
+                        return main.Native.native.HMC_PromiseEval(TASK_ID, ...arg);
                     }
-                    return HMC2.native.HMC_PromiseEval(TASK_ID);
+                    return main.Native.native.HMC_PromiseEval(TASK_ID);
                 }
                 catch (error) {
                     return Promise.reject(error);
@@ -35,13 +35,13 @@ class HMC_PromiseeEvalTask {
             };
             this.sync[TASK_TYPE] = (...arg) => {
                 var _a;
-                if (!((_a = HMC2.native) === null || _a === void 0 ? void 0 : _a.HMC_PromiseEvalSync)) {
+                if (!((_a = main.Native.native) === null || _a === void 0 ? void 0 : _a.HMC_PromiseEvalSync)) {
                     return null;
                 }
                 if (arg.length >= 1) {
-                    return HMC2.native.HMC_PromiseEvalSync(TASK_ID, ...arg) || null;
+                    return main.Native.native.HMC_PromiseEvalSync(TASK_ID, ...arg) || null;
                 }
-                return HMC2.native.HMC_PromiseEvalSync(TASK_ID);
+                return main.Native.native.HMC_PromiseEvalSync(TASK_ID);
             };
             if (!this[TASK_TYPE]) {
                 this[TASK_TYPE] = this.async[TASK_TYPE];
@@ -54,26 +54,31 @@ class HMC_PromiseeEvalTask {
     }
     async getClipboardFilePaths2() {
         var _a, _b;
-        if (!((_a = exports.promisee === null || exports.promisee === void 0 ? void 0 : exports.promisee.async) === null || _a === void 0 ? void 0 : _a.getClipboardFilePaths2)) {
+        if (!((_a = exports.promiseEvalTask === null || exports.promiseEvalTask === void 0 ? void 0 : exports.promiseEvalTask.async) === null || _a === void 0 ? void 0 : _a.getClipboardFilePaths2)) {
             return Promise.resolve([]);
         }
-        const data = await (((_b = exports.promisee === null || exports.promisee === void 0 ? void 0 : exports.promisee.async) === null || _b === void 0 ? void 0 : _b.getClipboardFilePaths2()) || null);
+        const data = await (((_b = exports.promiseEvalTask === null || exports.promiseEvalTask === void 0 ? void 0 : exports.promiseEvalTask.async) === null || _b === void 0 ? void 0 : _b.getClipboardFilePaths2()) || null);
         if (typeof data == "string") {
-            return data ? data === null || data === void 0 ? void 0 : data.split('\0') : [];
+            const temp = data ? data === null || data === void 0 ? void 0 : data.split('\0') : [];
+            if (temp.length && temp.at(-1) == "")
+                temp.pop();
+            return temp;
         }
         return data || [];
     }
     getClipboardFilePaths2Sync() {
         var _a, _b;
-        if (!((_a = exports.promisee === null || exports.promisee === void 0 ? void 0 : exports.promisee.sync) === null || _a === void 0 ? void 0 : _a.getClipboardFilePaths2)) {
+        if (!((_a = exports.promiseEvalTask === null || exports.promiseEvalTask === void 0 ? void 0 : exports.promiseEvalTask.sync) === null || _a === void 0 ? void 0 : _a.getClipboardFilePaths2)) {
             return [];
         }
-        const data = (((_b = exports.promisee === null || exports.promisee === void 0 ? void 0 : exports.promisee.sync) === null || _b === void 0 ? void 0 : _b.getClipboardFilePaths2()) || null);
+        const data = (((_b = exports.promiseEvalTask === null || exports.promiseEvalTask === void 0 ? void 0 : exports.promiseEvalTask.sync) === null || _b === void 0 ? void 0 : _b.getClipboardFilePaths2()) || null);
         if (typeof data == "string") {
-            return data ? data === null || data === void 0 ? void 0 : data.split('\0') : [];
+            const temp = data ? data === null || data === void 0 ? void 0 : data.split('\0') : [];
+            if (temp.length && temp.at(-1) == "")
+                temp.pop();
+            return temp;
         }
         return data || [];
     }
 }
-;
-exports.promisee = new HMC_PromiseeEvalTask();
+exports.promiseEvalTask = new HMC_PromiseeEvalTask();

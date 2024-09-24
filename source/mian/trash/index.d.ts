@@ -1079,7 +1079,7 @@ declare class hmc_win32 {
          * @time 0.06591796875 ms
          * @returns
          */
-        has: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        has: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 获取内容(文本)
          * @param HKEY 根路径
@@ -1088,7 +1088,7 @@ declare class hmc_win32 {
          * @time 0.108ms
          * @returns
          */
-        get: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        get: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -1098,7 +1098,7 @@ declare class hmc_win32 {
          * @time 2.02392578125 ms
          * @returns
          */
-        set: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        set: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
         /**
          * 删除数据
          * @param HKEY 根路径
@@ -1107,7 +1107,7 @@ declare class hmc_win32 {
          * @time 0.076904296875 ms
          * @returns
          */
-        remove: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        remove: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 枚举键值
          * @param HKEY 根路径
@@ -1115,13 +1115,13 @@ declare class hmc_win32 {
          * @time 0.06689453125 ms
          * @returns
          */
-        keys: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+        keys: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string) => string[];
         /**
          * 将当前的路径的注册表值转表
          * @param HKEY
          * @param Path
          */
-        list: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+        list: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string) => {
             [key: string]: string | Buffer;
             "": string | Buffer;
         };
@@ -1132,14 +1132,14 @@ declare class hmc_win32 {
          * @time 2.02392578125 ms
          * @returns
          */
-        create: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        create: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径
          * @param Path 路径
          * @param key 键
          * @returns
-         */ open: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => {
+         */ open: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => {
             /**
              * 获取全路径
              */
@@ -1185,13 +1185,13 @@ declare class hmc_win32 {
          * @time 0.06591796875 ms
          * @returns
          */
-        readonly hasRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly hasRegistrKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 将当前的路径的注册表值转表
          * @param HKEY
          * @param Path
          */
-        readonly listRegistrPath: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => {
+        readonly listRegistrPath: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string) => {
             [key: string]: string | Buffer;
             "": string | Buffer;
         };
@@ -1202,7 +1202,7 @@ declare class hmc_win32 {
          * @time 0.06689453125 ms
          * @returns
          */
-        readonly enumRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string) => string[];
+        readonly enumRegistrKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string) => string[];
         /**
          * 删除数据
          * @param HKEY 根路径
@@ -1211,7 +1211,7 @@ declare class hmc_win32 {
          * @time 0.076904296875 ms
          * @returns
          */
-        readonly removeStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly removeStringRegKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 设置键值对
          * @param HKEY 根路径
@@ -1221,7 +1221,7 @@ declare class hmc_win32 {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly setRegistrKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
+        readonly setRegistrKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string, value: string) => boolean;
         /**
          * 获取内容(文本)
          * @param HKEY 根路径
@@ -1230,7 +1230,7 @@ declare class hmc_win32 {
          * @time 0.108ms
          * @returns
          */
-        readonly getStringRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
+        readonly getStringRegKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => string;
         /**
          * 获取内容(数字)
          * @param HKEY 根路径
@@ -1239,7 +1239,7 @@ declare class hmc_win32 {
          * @time 0.10888671875 ms
          * @returns
          */
-        getNumberRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => number;
+        getNumberRegKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => number;
         /**
          * 创建新的路径
          * @param HKEY 根路径
@@ -1247,7 +1247,7 @@ declare class hmc_win32 {
          * @time 2.02392578125 ms
          * @returns
          */
-        readonly createPathRegistr: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
+        readonly createPathRegistr: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => boolean;
         /**
          * 获取内容(二进制 Buffer)
          * @param HKEY 根路径
@@ -1256,7 +1256,7 @@ declare class hmc_win32 {
          * @time 0.06787109375 ms
          * @returns
          */
-        getRegistrBuffValue: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
+        getRegistrBuffValue: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => void | Buffer;
         /**
          * 打开一个注册表路径并返回一些实用方法
          * @param HKEY 根路径
@@ -1264,7 +1264,7 @@ declare class hmc_win32 {
          * @param key 键
          * @returns
          */
-        readonly openRegKey: (HKEY: "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_USER", Path: string, key: string) => {
+        readonly openRegKey: (HKEY: "HKEY_LOCAL_MACHINE" | "HKEY_CURRENT_CONFIG" | "HKEY_USERS" | "HKEY_CLASSES_ROOT" | "HKEY_CURRENT_USER", Path: string, key: string) => {
             /**
              * 获取全路径
              */

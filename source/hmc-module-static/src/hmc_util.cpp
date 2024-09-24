@@ -402,3 +402,127 @@ bool hmc_util::diffBaseName(const std::wstring path1, const std::wstring path2)
 
     return result;
 }
+
+inline bool hmc_util::anyCast(std::any Data, std::wstring Output)
+{
+    bool result = false;
+
+    if (Data.has_value())
+    {
+        if (Data.type() != typeid(std::wstring))
+        {
+            auto temp = std::any_cast<std::wstring>(Data);
+            Output.clear();
+            Output.append(std::move(temp));
+            result = true;
+            return result;
+        }
+
+        //if (Data.type() != typeid(wchar_t *))
+        //{
+        //    auto temp = std::any_cast<wchar_t *>(Data);
+        //    Output.clear();
+        //    Output.append(temp);
+        //    result = true;
+        //    return result;
+        //}
+    }
+
+    return result;
+}
+
+inline bool hmc_util::anyCast(std::any Data, std::string Output)
+{
+    bool result = false;
+    if (Data.has_value())
+    {
+        if (Data.type() != typeid(std::string))
+        {
+            auto temp = std::any_cast<std::string>(Data);
+            Output.clear();
+            Output.append(std::move(temp));
+            result = true;
+            return result;
+        }
+
+        if (Data.type() != typeid(char *))
+        {
+            auto temp = std::any_cast<char *>(Data);
+            Output.clear();
+            Output.append(temp);
+            result = true;
+            return result;
+        }
+    }
+    return result;
+}
+
+#define HMC_any_Cast_EQ_TO_PTR_TEMP(EQ_T, TO_T)\
+if (Data.has_value())\
+{\
+    if (Data.type() != typeid(EQ_T))\
+    {\
+        Output = nullptr;\
+        auto temp = static_cast<TO_T>(std::any_cast<EQ_T>(Data));\
+        Output = &temp;\
+        result = true;\
+        return result;\
+    }\
+}
+
+inline bool hmc_util::anyCast(std::any Data, size_t *Output)
+{
+    bool result = false;
+    if (Data.has_value())
+    {
+        if (Data.type() != typeid(size_t))
+        {
+            Output = nullptr;
+            auto temp = std::any_cast<size_t>(Data);
+            Output = &temp;
+            result = true;
+            return result;
+        }
+
+        HMC_any_Cast_EQ_TO_PTR_TEMP(char, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long long, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long int, size_t);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t);
+
+    }
+    return result;
+}
+
+inline bool hmc_util::anyCast(std::any Data, long long * Output)
+{
+    bool result = false;
+    if (Data.has_value())
+    {
+        if (Data.type() != typeid(long long))
+        {
+            Output = nullptr;
+            auto temp = std::any_cast<long long>(Data);
+            Output = &temp;
+            result = true;
+            return result;
+        }
+
+        HMC_any_Cast_EQ_TO_PTR_TEMP(char, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long long, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(long int, long long);
+        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
+
+    }
+    return result;
+}
+

@@ -16,7 +16,6 @@ exports.setLimitMouseRange = exports.HmcKeyboardClass = exports.HmcMouseClass = 
 const main = require("./index");
 const util = require("./util");
 const { ref } = util;
-const HMC2 = main.native;
 class HMC_MOUSE_CLASS {
     constructor() {
         _HMC_MOUSE_CLASS_instances.add(this);
@@ -64,8 +63,8 @@ class HMC_MOUSE_CLASS {
     }
 }
 _HMC_MOUSE_CLASS_fun = new WeakMap(), _HMC_MOUSE_CLASS_instances = new WeakSet(), _HMC_MOUSE_CLASS_initialize = function _HMC_MOUSE_CLASS_initialize() {
-    if (!__classPrivateFieldGet(this, _HMC_MOUSE_CLASS_fun, "f") && HMC2.native.HMC_MOUSE_CLASS) {
-        __classPrivateFieldSet(this, _HMC_MOUSE_CLASS_fun, HMC2.native.HMC_MOUSE_CLASS(), "f");
+    if (!__classPrivateFieldGet(this, _HMC_MOUSE_CLASS_fun, "f") && main.Native.native.HMC_MOUSE_CLASS) {
+        __classPrivateFieldSet(this, _HMC_MOUSE_CLASS_fun, main.Native.native.HMC_MOUSE_CLASS(), "f");
     }
 };
 exports.HmcMouseClass = new HMC_MOUSE_CLASS();
@@ -111,8 +110,8 @@ class HMC_KEYBOARD_CLASS {
     }
 }
 _HMC_KEYBOARD_CLASS_fun = new WeakMap(), _HMC_KEYBOARD_CLASS_instances = new WeakSet(), _HMC_KEYBOARD_CLASS_initialize = function _HMC_KEYBOARD_CLASS_initialize() {
-    if (!__classPrivateFieldGet(this, _HMC_KEYBOARD_CLASS_fun, "f") && HMC2.native.HMC_KEYBOARD_CLASS) {
-        __classPrivateFieldSet(this, _HMC_KEYBOARD_CLASS_fun, HMC2.native.HMC_KEYBOARD_CLASS(), "f");
+    if (!__classPrivateFieldGet(this, _HMC_KEYBOARD_CLASS_fun, "f") && main.Native.native.HMC_KEYBOARD_CLASS) {
+        __classPrivateFieldSet(this, _HMC_KEYBOARD_CLASS_fun, main.Native.native.HMC_KEYBOARD_CLASS(), "f");
     }
 };
 exports.HmcKeyboardClass = new HMC_KEYBOARD_CLASS();

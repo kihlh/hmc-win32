@@ -1831,7 +1831,13 @@ export declare const ref: {
      */
     string(Str: any): string;
     /**
-     * 格式化数字为int(强制)
+     * 格式化数字为float(强制) 浮点
+     * @param Num
+     * @returns
+     */
+    float(Num: any): number;
+    /**
+     * 格式化数字为int(强制) 取整
      * @param Num
      * @returns
      */
@@ -2789,7 +2795,7 @@ export declare function leftClick(ms?: number): void;
  * @description 衍生api(已预设): `confirm`  `alert` `MessageError` `MessageStop`
  * @returns
  */
-export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 2 | 1 | 4 | 5 | 3 | 6 | 7 | 10 | 11;
+export declare function messageBox(message: string, title: string, MB_UINT: HMC.MB_UINT): 1 | 2 | 3 | 4 | 5 | 6 | 7 | 10 | 11;
 /**自定义鼠标事件 https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-mouse_event **/
 export declare function mouse(mouse_event: HMC.mouse_event, ms?: number): void;
 /**
@@ -4957,7 +4963,13 @@ export declare const hmc: {
          */
         string(Str: any): string;
         /**
-         * 格式化数字为int(强制)
+         * 格式化数字为float(强制) 浮点
+         * @param Num
+         * @returns
+         */
+        float(Num: any): number;
+        /**
+         * 格式化数字为int(强制) 取整
          * @param Num
          * @returns
          */

@@ -2228,7 +2228,8 @@ namespace HMC_PromiseStore
 		getClipboardFilePaths2 = 1,
 		captureBmp2 = 2,
 		closeWindow2 = 3,
-		getClipboardText2 = 4,
+		getClipboardText2 = 5,
+		getThumbnailPng2 = 6,
 	};
 
 }

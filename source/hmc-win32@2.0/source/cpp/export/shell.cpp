@@ -4,6 +4,8 @@
 #include "hmc_string_util.h"
 #include "hmc_shell_util.h"
 #include "hmc_process_util.h"
+#include "hmc_util.h"
+
 #include <ShlObj.h>
 
 // 获取托盘图标
@@ -572,20 +574,20 @@ namespace HMC_shell_startup
     }
 
     napi_ref CONSTRUCTOR_LIFETIME_HANDLE = NULL;
-    
+
     napi_value StartupClassConstructor(napi_env env, napi_callback_info info)
     {
-             
-        if(CONSTRUCTOR_LIFETIME_HANDLE!=NULL){
-            return NULL;
-        }
+
+        // if(CONSTRUCTOR_LIFETIME_HANDLE!=NULL){
+        //     return NULL;
+        // }
 
         napi_value constructor;
         napi_value result;
         napi_status status;
 
         napi_create_object(env, &result);
-        
+
         napi_set_named_property(env, result, as_ExFunctionNameAp(set));
         napi_set_named_property(env, result, as_ExFunctionNameAp(setOnce));
         napi_set_named_property(env, result, as_ExFunctionNameAp(remove));
@@ -593,11 +595,100 @@ namespace HMC_shell_startup
         napi_set_named_property(env, result, as_ExFunctionNameAp(has));
         napi_set_named_property(env, result, as_ExFunctionNameAp(hasOnce));
 
-        //注册长生命周期
+        // 注册长生命周期
         status = napi_create_reference(env, result, 1, &CONSTRUCTOR_LIFETIME_HANDLE);
         if (status != napi_ok)
             return NULL;
 
         return result;
     }
+}
+
+std::any GetThumbnailPng2::ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list)
+{
+    std::any result = std::any();
+    auto arg = hmc_util::anyCastList(data_list);
+    if (arg.empty())
+    {
+        return result;
+    }
+
+    std::wstring filePath = std::any_cast<std::wstring>(data_list->at(0));
+    size_t img_size = std::any_cast<size_t>(data_list->at(1));
+    std::wstring output = std::any_cast<std::wstring>(data_list->at(2));
+
+    if (!img_size || img_size > 50000)
+    {
+        img_size = 256;
+    }
+
+    if (output.empty())
+    {
+        std::vector<std::uint8_t> buff = hmc_shell_util::getThumbnailBuffer(filePath, img_size);
+
+        if (!buff.empty())
+        {
+            result = buff;
+        }
+
+        return result;
+    }
+
+    result = hmc_shell_util::getThumbnailToFile(filePath, output, img_size);
+
+    return result;
+}
+
+bool GetThumbnailPng2::FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list)
+{
+    bool result = true;
+
+    if (input.eq({js_string, js_string, js_number}, false))
+    {
+        std::wstring source = at_StringWOr(0, L"");
+        std::wstring output = at_StringWOr(1, L"");
+        size_t img_size = at_Number32Or(2, 256);
+        arguments_list->push_back(source);
+        arguments_list->push_back(img_size);
+        arguments_list->push_back(output);
+
+        return result;
+    }
+
+    if (input.eq({js_string, js_number, js_string}, false))
+    {
+        std::wstring source = at_StringWOr(0, L"");
+        size_t img_size = at_Number32Or(1, 256);
+        std::wstring output = at_StringWOr(2, L"");
+        arguments_list->push_back(source);
+        arguments_list->push_back(img_size);
+        arguments_list->push_back(output);
+
+        return result;
+    }
+
+    if (input.eq({js_string, js_number}, false))
+    {
+        std::wstring source = at_StringWOr(0, L"");
+        std::wstring output = L"";
+        size_t img_size = at_Number32Or(1, 256);
+        arguments_list->push_back(source);
+        arguments_list->push_back(img_size);
+        arguments_list->push_back(output);
+
+        return result;
+    }
+
+    if (input.eq({js_string, js_string}, false))
+    {
+        std::wstring source = at_StringWOr(0, L"");
+        std::wstring output = at_StringWOr(1, L"");
+        size_t img_size = 256;
+        arguments_list->push_back(source);
+        arguments_list->push_back(img_size);
+        arguments_list->push_back(output);
+        return result;
+    }
+
+    return result;
 }

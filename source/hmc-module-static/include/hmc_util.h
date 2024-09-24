@@ -48,18 +48,15 @@
         ::VirtualFree(Virtua, 0, MEM_RELEASE);
 #endif // HMC_VcFree
 
-
 #ifndef HMC_VcAlloc
 #define HMC_VcAlloc(Type, leng) \
     (reinterpret_cast<Type>(::VirtualAlloc(nullptr, static_cast<DWORD>(leng), MEM_COMMIT, PAGE_READWRITE)))
 #endif // HMC_VcAlloc
 
-
 #ifndef HMC_VcAllocAutoLength
 #define HMC_VcAllocAutoLength(Type) \
-    (reinterpret_cast<Type*>(::VirtualAlloc(nullptr, static_cast<DWORD>(sizeof(Type)), MEM_COMMIT, PAGE_READWRITE)))
+    (reinterpret_cast<Type *>(::VirtualAlloc(nullptr, static_cast<DWORD>(sizeof(Type)), MEM_COMMIT, PAGE_READWRITE)))
 #endif // HMC_VcAllocAutoLength
-
 
 // 自动释放内存
 #ifndef HMC_VcFreeAuto
@@ -219,10 +216,202 @@ namespace hmc_util
     extern unsigned long toThreadId(std::thread::id thread_id);
     std::string getBaseName(const std::string path);
     std::wstring getBaseName(const std::wstring path);
+
     bool diffBaseName(const std::string path1, const std::string path2);
     bool diffBaseName(const std::wstring path1, const std::wstring path2);
 
 }
+
+#if _HAS_CXX17
+#include <variant>
+#include <optional>
+#include <map>
+#include <any>
+
+namespace hmc_util
+{
+    extern inline bool anyCast(std::any Data, std::wstring Output);
+    extern inline bool anyCast(std::any Data, std::string Output);
+    extern inline bool anyCast(std::any Data, size_t *Output);
+    extern inline bool anyCast(std::any Data, long long *Output);
+
+    class anyCastList
+    {
+    public:
+        std::vector<std::any> *m_data2;
+
+        anyCastList(std::vector<std::any> *Data)
+        {
+            m_data2 = Data;
+        }
+
+        /**
+         * @brief 判断值是否存在
+         *
+         * @param index
+         * @return true
+         * @return false
+         */
+        bool exists(size_t index)
+        {
+
+            if (m_data2 == NULL || index >= m_data2->size())
+            {
+                return false;
+            }
+            return true;
+        }
+        /**
+         * @brief 判断值是否存在
+         *
+         * @param index
+         * @return true
+         * @return false
+         */
+        bool exists(size_t index, bool existsValue)
+        {
+
+            if (m_data2 == NULL || index >= m_data2->size())
+            {
+                return false;
+            }
+            if (existsValue)
+            {
+
+                if (m_data2->at(index).has_value())
+                {
+                    return true;
+                }
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * @brief 取值
+         *
+         * @param index
+         * @return std::any
+         */
+        std::any get(size_t index)
+        {
+            if (m_data2 == NULL || index >= m_data2->size())
+            {
+                return std::any();
+            }
+            return m_data2->at(index);
+        }
+
+        /**
+         * @brief 取值
+         *
+         * @param index
+         * @return std::any
+         */
+        std::any get(size_t index, std::any orValue)
+        {
+
+            std::any any_temp = get(index);
+            if (any_temp.has_value())
+            {
+                return any_temp;
+            }
+            return orValue;
+        }
+
+        /**
+         * @brief 删除指定元素
+         *
+         * @param Index
+         * @return true
+         * @return false
+         */
+        bool removeIndex(size_t Index)
+        {
+
+            if (m_data2 == NULL || Index >= m_data2->size())
+            {
+                return false;
+            }
+            m_data2->erase(m_data2->begin() + Index);
+            return true;
+        }
+
+        /**
+         * @brief 是否为空
+         *
+         * @return true
+         * @return false
+         */
+        bool empty()
+        {
+
+            if (m_data2 == NULL || m_data2->empty())
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * @brief 让两个位置的元素互换
+         *
+         * @param Index 索引1
+         * @param Index2 索引2
+         * @return true
+         * @return false
+         */
+        bool swap(size_t Index, size_t Index2)
+        {
+
+            if (!m_data2)
+            {
+                return false;
+            }
+
+            if (Index >= m_data2->size() || Index2 >= m_data2->size())
+            {
+                return false;
+            }
+            std::swap(m_data2[Index], m_data2[Index2]);
+            return true;
+        }
+
+        /**
+         * @brief 替换指定的元素位置
+         *
+         * @param Index 索引
+         * @param value 新的值
+         * @return true
+         * @return false
+         */
+        bool replace(size_t Index, std::any value)
+        {
+
+            if (!m_data2 || Index >= m_data2->size())
+            {
+                return false;
+            }
+
+            m_data2->at(Index) = value;
+
+            return true;
+        }
+
+        /**
+         * @brief 获取数量
+         *
+         * @return size_t
+         */
+        size_t size()
+        {
+            return m_data2 ? m_data2->size() : 0;
+        }
+    };
+
+}
+
+#endif // _HAS_CXX17
 
 template <typename T>
 class VcRef

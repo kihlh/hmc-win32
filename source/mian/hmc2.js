@@ -1,19 +1,6 @@
 "use strict";
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var _Startup_instances, _Startup_Startup, _Startup_initialize, _Startup_root, _Startup_pathRun, _Startup_pathRunOnce;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.captureBmp2Sync = exports.captureBmp2 = exports.setFolderIcon = exports.getTrayList = exports.setClipboardFilePaths = exports.clearClipboard = exports.getClipboardText = exports.setClipboardText = exports.getClipboardFilePaths = exports.readElectronHandle = exports.showContextMenu = exports.captureBmpToFile = exports.captureBmpToBuff = exports.getThumbnailPng = exports.closeWindow2Sync = exports.closeWindow2 = exports.startup = exports.asyncTaskQueue = exports.native2 = exports.HMCC = void 0;
-const hmc_win32_1 = require("hmc-win32");
+exports.captureBmp2Sync = exports.captureBmp2 = exports.setFolderIcon = exports.getTrayList = exports.setClipboardFilePaths = exports.clearClipboard = exports.getClipboardText = exports.setClipboardText = exports.getClipboardFilePaths = exports.readElectronHandle = exports.showContextMenu = exports.captureBmpToFile = exports.captureBmpToBuff = exports.getThumbnailPng = exports.closeWindow2Sync = exports.closeWindow2 = exports.asyncTaskQueue = exports.native2 = exports.HMCC = void 0;
 const hmc_1 = require("./hmc");
 var HMCC;
 (function (HMCC) {
@@ -44,7 +31,6 @@ const get_native = (binPath) => {
         }
         return null;
     }
-    // @ts-expect-error
     let Native = (process.platform == "win32" ? _require_bin() : null) || {};
     return Native;
 };
@@ -87,75 +73,6 @@ class AsyncFunctionTaskQueue {
     }
 }
 exports.asyncTaskQueue = new AsyncFunctionTaskQueue();
-class Startup {
-    constructor() {
-        _Startup_instances.add(this);
-        _Startup_Startup.set(this, null);
-        _Startup_root.set(this, "HKEY_LOCAL_MACHINE");
-        _Startup_pathRun.set(this, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
-        _Startup_pathRunOnce.set(this, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce");
-    }
-    has(keyName) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.has(hmc_1.ref.string(keyName))) || false;
-    }
-    hasOnce(keyName) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.hasOnce(hmc_1.ref.string(keyName))) || false;
-    }
-    remove(keyName) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.remove(hmc_1.ref.string(keyName))) || false;
-    }
-    removeOnce(keyName) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.removeOnce(hmc_1.ref.string(keyName))) || false;
-    }
-    set(keyName, path, cmd) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.set(hmc_1.ref.string(keyName), hmc_1.ref.string(path), hmc_1.ref.string(cmd || ""))) || false;
-    }
-    setOnce(keyName, path, cmd) {
-        var _a;
-        __classPrivateFieldGet(this, _Startup_instances, "m", _Startup_initialize).call(this);
-        return ((_a = __classPrivateFieldGet(this, _Startup_Startup, "f")) === null || _a === void 0 ? void 0 : _a.setOnce(hmc_1.ref.string(keyName), hmc_1.ref.string(path), hmc_1.ref.string(cmd || ""))) || false;
-    }
-    enum() {
-        const obj = {};
-        const keys = hmc_win32_1.native.enumRegistrKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRun, "f"));
-        for (let index = 0; index < keys.length; index++) {
-            let at = keys[index];
-            obj[at] = hmc_win32_1.native.getStringRegKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRun, "f"), at);
-        }
-        return obj;
-    }
-    enumOnce() {
-        const obj = {};
-        const keys = hmc_win32_1.native.enumRegistrKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRunOnce, "f"));
-        for (let index = 0; index < keys.length; index++) {
-            let at = keys[index];
-            obj[at] = hmc_win32_1.native.getStringRegKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRunOnce, "f"), at);
-        }
-        return obj;
-    }
-    keys() {
-        return hmc_win32_1.native.enumRegistrKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRun, "f"));
-    }
-    keysOnce() {
-        return hmc_win32_1.native.enumRegistrKey(__classPrivateFieldGet(this, _Startup_root, "f"), __classPrivateFieldGet(this, _Startup_pathRunOnce, "f"));
-    }
-}
-_Startup_Startup = new WeakMap(), _Startup_root = new WeakMap(), _Startup_pathRun = new WeakMap(), _Startup_pathRunOnce = new WeakMap(), _Startup_instances = new WeakSet(), _Startup_initialize = function _Startup_initialize() {
-    if (!__classPrivateFieldGet(this, _Startup_Startup, "f")) {
-        __classPrivateFieldSet(this, _Startup_Startup, exports.native2.StartupClassConstructor(), "f");
-    }
-};
-exports.startup = new Startup();
 /**
  * 关闭窗口 异步
  * - 1 温柔的关闭 (正常关闭)

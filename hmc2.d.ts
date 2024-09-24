@@ -27,8 +27,9 @@ export type HMCC = {
      * - 1 关闭 / 非强制
      * - 2 关闭 / 系统级(半强制)
      * - 3 关闭线程 (强制)
+     * - 5 尝试所有办法直到关闭 (默认)
      */
-    closeWindow2?: (handle: number, grade: 1 | 2 | 3) => Promise<boolean>;
+    closeWindow2?: (handle: number, grade?: 1 | 2 | 3) => Promise<boolean>;
     /**
      * 关闭窗口 同步
      * @param handle 句柄

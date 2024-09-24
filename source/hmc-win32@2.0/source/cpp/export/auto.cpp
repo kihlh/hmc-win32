@@ -129,10 +129,10 @@ namespace HMC_Keyboard
     napi_value StartupClassConstructor(napi_env env, napi_callback_info info)
     {
 
-        if (CONSTRUCTOR_LIFETIME_HANDLE != NULL)
-        {
-            return NULL;
-        }
+        // if (CONSTRUCTOR_LIFETIME_HANDLE != NULL)
+        // {
+        //     return NULL;
+        // }
 
         napi_value constructor;
         napi_value result;
@@ -251,10 +251,10 @@ namespace HMC_mouse
     napi_value StartupClassConstructor(napi_env env, napi_callback_info info)
     {
 
-        if (CONSTRUCTOR_LIFETIME_HANDLE != NULL)
-        {
-            return NULL;
-        }
+        // if (CONSTRUCTOR_LIFETIME_HANDLE != NULL)
+        // {
+        //     return NULL;
+        // }
 
         napi_value constructor;
         napi_value result;
