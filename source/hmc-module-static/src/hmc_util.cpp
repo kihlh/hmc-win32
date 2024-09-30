@@ -403,126 +403,417 @@ bool hmc_util::diffBaseName(const std::wstring path1, const std::wstring path2)
     return result;
 }
 
-inline bool hmc_util::anyCast(std::any Data, std::wstring Output)
+// inline bool hmc_util::anyCast(std::any Data, std::wstring Output)
+// {
+//     bool result = false;
+
+//     if (Data.has_value())
+//     {
+//         if (Data.type() != typeid(std::wstring))
+//         {
+//             auto temp = std::any_cast<std::wstring>(Data);
+//             Output.clear();
+//             Output.append(std::move(temp));
+//             result = true;
+//             return result;
+//         }
+
+//         //if (Data.type() != typeid(wchar_t *))
+//         //{
+//         //    auto temp = std::any_cast<wchar_t *>(Data);
+//         //    Output.clear();
+//         //    Output.append(temp);
+//         //    result = true;
+//         //    return result;
+//         //}
+//     }
+
+//     return result;
+// }
+
+// inline bool hmc_util::anyCast(std::any Data, std::string Output)
+// {
+//     bool result = false;
+//     if (Data.has_value())
+//     {
+//         if (Data.type() != typeid(std::string))
+//         {
+//             auto temp = std::any_cast<std::string>(Data);
+//             Output.clear();
+//             Output.append(std::move(temp));
+//             result = true;
+//             return result;
+//         }
+
+//         if (Data.type() != typeid(char *))
+//         {
+//             auto temp = std::any_cast<char *>(Data);
+//             Output.clear();
+//             Output.append(temp);
+//             result = true;
+//             return result;
+//         }
+//     }
+//     return result;
+// }
+
+// #define HMC_any_Cast_EQ_TO_PTR_TEMP(EQ_T, TO_T)\
+//     if (Data->type() != typeid(EQ_T))\
+//     {\
+//         Output = nullptr;\
+//         auto temp = static_cast<TO_T>(std::any_cast<EQ_T>(Data));\
+//         Output = temp;\
+//         result = true;\
+//         return result;\
+// }
+
+// inline bool hmc_util::anyCast(std::any *Data, size_t *Output)
+// {
+//     bool result = false;
+//     if (Data->has_value())
+//     {
+//         if (Data->type() != typeid(size_t))
+//         {
+//             Output = nullptr;
+//             auto temp = std::any_cast<size_t>(Data);
+//             Output = temp;
+//             result = true;
+//             return result;
+//         }
+
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(char, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long long, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long int, size_t*);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t*);
+
+//     }
+//     return result;
+// }
+
+// inline bool hmc_util::anyCast(std::any *Data, long long * Output)
+// {
+//     bool result = false;
+//     if (Data->has_value())
+//     {
+//         if (Data->type() != typeid(long long))
+//         {
+//             Output = nullptr;
+//             auto temp = std::any_cast<long long>(Data);
+//             Output = temp;
+//             result = true;
+//             return result;
+//         }
+
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(char, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long long, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(long int, long long);
+//         HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
+
+//     }
+//     return result;
+// }
+
+hmc_util::anyCastList::anyCastList(std::vector<std::any> *Data)
 {
-    bool result = false;
+    m_data2 = Data;
+}
 
-    if (Data.has_value())
+/**
+ * @brief 判断值是否存在
+ *
+ * @param index
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::exists(size_t index)
+{
+
+    if (m_data2 == NULL || index >= m_data2->size())
     {
-        if (Data.type() != typeid(std::wstring))
-        {
-            auto temp = std::any_cast<std::wstring>(Data);
-            Output.clear();
-            Output.append(std::move(temp));
-            result = true;
-            return result;
-        }
+        return false;
+    }
+    return true;
+}
+/**
+ * @brief 判断值是否存在
+ *
+ * @param index
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::exists(size_t index, bool existsValue)
+{
 
-        //if (Data.type() != typeid(wchar_t *))
-        //{
-        //    auto temp = std::any_cast<wchar_t *>(Data);
-        //    Output.clear();
-        //    Output.append(temp);
-        //    result = true;
-        //    return result;
-        //}
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return false;
+    }
+    if (existsValue)
+    {
+
+        if (m_data2->at(index).has_value())
+        {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @brief 取值
+ *
+ * @param index
+ * @return std::any
+ */
+std::any hmc_util::anyCastList::get(size_t index)
+{
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return std::any();
+    }
+    return m_data2->at(index);
+}
+
+/**
+ * @brief 取值
+ *
+ * @param index
+ * @return std::any
+ */
+std::any hmc_util::anyCastList::get(size_t index, std::any orValue)
+{
+
+    std::any any_temp = get(index);
+    if (any_temp.has_value())
+    {
+        return any_temp;
+    }
+    return orValue;
+}
+
+/**
+ * @brief 删除指定元素
+ *
+ * @param Index
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::removeIndex(size_t Index)
+{
+
+    if (m_data2 == NULL || Index >= m_data2->size())
+    {
+        return false;
+    }
+    m_data2->erase(m_data2->begin() + Index);
+    return true;
+}
+
+/**
+ * @brief 是否为空
+ *
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::empty()
+{
+
+    if (m_data2 == NULL || m_data2->empty())
+    {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief 让两个位置的元素互换
+ *
+ * @param Index 索引1
+ * @param Index2 索引2
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::swap(size_t Index, size_t Index2)
+{
+
+    if (!m_data2)
+    {
+        return false;
+    }
+
+    if (Index >= m_data2->size() || Index2 >= m_data2->size())
+    {
+        return false;
+    }
+    std::swap(m_data2[Index], m_data2[Index2]);
+    return true;
+}
+
+/**
+ * @brief 替换指定的元素位置
+ *
+ * @param Index 索引
+ * @param value 新的值
+ * @return true
+ * @return false
+ */
+bool hmc_util::anyCastList::replace(size_t Index, std::any value)
+{
+
+    if (!m_data2 || Index >= m_data2->size())
+    {
+        return false;
+    }
+
+    m_data2->at(Index) = value;
+
+    return true;
+}
+
+/**
+ * @brief 获取数量
+ *
+ * @return size_t
+ */
+size_t hmc_util::anyCastList::size()
+{
+    return m_data2 ? m_data2->size() : 0;
+}
+
+bool hmc_util::anyCastList::is_wstring(size_t index)
+{
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return false;
+    }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        if (typeid(std::wstring) == it->type() ||
+            typeid(wchar_t *) == it->type())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hmc_util::anyCastList::is_string(size_t index)
+{
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return false;
+    }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        if (typeid(std::string) == it->type() ||
+            typeid(char *) == it->type())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hmc_util::anyCastList::is_integral(size_t index)
+{
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return false;
+    }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        const std::type_info &ti = typeid(long long);
+
+        if (typeid(int) == ti ||
+            typeid(int64_t) == ti ||
+            typeid(long long) == ti ||
+            typeid(int32_t) == ti ||
+            typeid(size_t) == ti ||
+            typeid(unsigned long) == ti ||
+            typeid(unsigned long long) == ti ||
+            typeid(long) == ti ||
+            typeid(long int) == ti ||
+            typeid(unsigned char) == ti ||
+            typeid(char) == ti ||
+            typeid(wchar_t) == ti)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hmc_util::anyCastList::is_floating_point(size_t index)
+{
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return false;
+    }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        if (typeid(short) == it->type() ||
+            typeid(long double) == it->type() ||
+            typeid(double) == it->type())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+const std::type_info &hmc_util::anyCastList::getTypeInfo(size_t index)
+{
+    const std::type_info &result = typeid(nullptr);
+
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return result;
+    }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        const std::type_info &ti = it->type();
+        return ti;
     }
 
     return result;
 }
 
-inline bool hmc_util::anyCast(std::any Data, std::string Output)
+bool hmc_util::anyCastList::diffType(size_t index, const std::type_info &type)
 {
     bool result = false;
-    if (Data.has_value())
-    {
-        if (Data.type() != typeid(std::string))
-        {
-            auto temp = std::any_cast<std::string>(Data);
-            Output.clear();
-            Output.append(std::move(temp));
-            result = true;
-            return result;
-        }
 
-        if (Data.type() != typeid(char *))
-        {
-            auto temp = std::any_cast<char *>(Data);
-            Output.clear();
-            Output.append(temp);
-            result = true;
-            return result;
-        }
+    if (m_data2 == NULL || index >= m_data2->size())
+    {
+        return result;
     }
+
+    std::any *it = &m_data2->at(index);
+    if (it->has_value())
+    {
+        const std::type_info &ti = it->type();
+        return ti == type;
+    }
+
     return result;
 }
-
-#define HMC_any_Cast_EQ_TO_PTR_TEMP(EQ_T, TO_T)\
-if (Data.has_value())\
-{\
-    if (Data.type() != typeid(EQ_T))\
-    {\
-        Output = nullptr;\
-        auto temp = static_cast<TO_T>(std::any_cast<EQ_T>(Data));\
-        Output = &temp;\
-        result = true;\
-        return result;\
-    }\
-}
-
-inline bool hmc_util::anyCast(std::any Data, size_t *Output)
-{
-    bool result = false;
-    if (Data.has_value())
-    {
-        if (Data.type() != typeid(size_t))
-        {
-            Output = nullptr;
-            auto temp = std::any_cast<size_t>(Data);
-            Output = &temp;
-            result = true;
-            return result;
-        }
-
-        HMC_any_Cast_EQ_TO_PTR_TEMP(char, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long long, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long int, size_t);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, size_t);
-
-    }
-    return result;
-}
-
-inline bool hmc_util::anyCast(std::any Data, long long * Output)
-{
-    bool result = false;
-    if (Data.has_value())
-    {
-        if (Data.type() != typeid(long long))
-        {
-            Output = nullptr;
-            auto temp = std::any_cast<long long>(Data);
-            Output = &temp;
-            result = true;
-            return result;
-        }
-
-        HMC_any_Cast_EQ_TO_PTR_TEMP(char, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int64_t, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long long, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(int32_t, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(long int, long long);
-        HMC_any_Cast_EQ_TO_PTR_TEMP(unsigned long, long long);
-
-    }
-    return result;
-}
-

@@ -945,7 +945,7 @@ std::string hmc_mouse::getCursorPosJsonA()
         std::string res = std::string(R"({"x":)");
         res.append(std::to_string(x));
         res.append(std::string(R"(,"y":)"));
-        res.append(std::to_string(x));
+        res.append(std::to_string(y));
         res.append("}");
         return res;
     }

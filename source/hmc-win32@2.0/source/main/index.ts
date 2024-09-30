@@ -335,11 +335,10 @@ export module HMC2_MODE {
         win: boolean;
     }
 
-
     export interface HMC_KEYBOARD_CLASS {
         initKeyboardEventHook(): boolean;
-        isValidHookKeyboard(): boolean;
-        getAllKeyboardEventJson(): string;
+        isValidHookKeyboard(): false | number;
+        getAllKeyboardEventJson(): `KeyboardEvent[]`;
         stopHookKeyboard(): boolean;
         hasKeysBasic(): BASIC_KEYS;
         hasKeyActivate(KeysEvent: number): boolean;
@@ -347,7 +346,7 @@ export module HMC2_MODE {
 
     export interface HMC_MOUSE_CLASS {
         initMouseEventHook(): boolean;
-        isValidHookMouse(): boolean;
+        isValidHookMouse(): false | number;
         getMouseEventListJson(): string;
         stopHookMouse(): boolean;
         setShakeEventTime(ms: number): boolean;
@@ -387,22 +386,22 @@ export module HMC2_MODE {
     }
 
     export interface KeyboardEvent {
-        // 事件id (每次结束时次记)
+        /**事件id (每次结束时次记) */
         id: number;
-        // 事件时间
+        /**事件时间 */
         time: number;
-        // 是否按下
+        /**是否按下 */
         down: boolean;
-        // 扩展键标志
+        /**扩展键标志 */
         flags: number;
-        // 键码
+        /**键码 */
         keyCode: number;
-        // 执行的设备id
+        /**执行的设备id */
         scanCode: number;
-        // 映射代码 例如 A 0 1
-        KeyName: string;
-        // 映射代码 例如 KeyE , KeyA
-        KeyNameCode: string;
+        /**映射代码 例如 A 0 1 */
+        key: string;
+        /**映射代码 例如 KeyE , KeyA */
+        code: string;
     }
 
     export type MouseEventButtonName = "left-mouse-button" | "right-mouse-button" | "middle-mouse-button" | null;
@@ -495,6 +494,8 @@ export module HMC2_MODE {
         GET_IS_PROCESS_WOW64 = 20,
         // getExecutableCwdList `Array<string>`
         GET_EXECUTABLE_CWD_LIST = 21,
+        // sleep(ms);
+        SEND_SLEEP = 22,
     };
 
     export type GET_PROCESS_LIST_COMMAND =
@@ -793,12 +794,8 @@ export const Native = (() => {
 export const { ref } = UtilMain;
 
 
-export module Auto {
+export const Auto = AutoMain;
 
-    // 限制鼠标光标可移动范围 (异步)
-    export const { setLimitMouseRange } = AutoMain;
-
-}
 
 // 启动项管理
 export const Startup = ShellMain.Shell.Startup;
@@ -808,7 +805,7 @@ export const Shell = ShellMain.Shell;
 
 // 进程操作功能集
 export const Process = ProcessMain.Process;
-
+export const {Sleep,sleep} = Process;
 
 export module Window {
 
@@ -843,3 +840,4 @@ export module Window {
 
 
 }
+

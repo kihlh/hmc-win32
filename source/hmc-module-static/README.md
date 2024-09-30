@@ -13,7 +13,7 @@
 
 -----------------------------------------
 
-![static call C++14 + ](https://img.shields.io/badge/C++ 14+ -static call-24ACF2.svg?longCache=true) ![Compile from code C++14](https://img.shields.io/badge/C++ 20 -Compile from code-5DA2E0.svg?longCache=true)
+![static call C++14 + ](https://img.shields.io/badge/C++%2014+%20-static%20call-24ACF2.svg?longCache=true) ![Compile from code C++14](https://img.shields.io/badge/C++%2020%20-Compile%20from%20code-5DA2E0.svg?longCache=true)
 
 #### hmc的开发宗旨永远在于
 
@@ -66,7 +66,7 @@
 
 #### 2.添加 include 环境
 
-![image-20240915074954827](F:\source\module\hmc-win32\source\hmc-module-static\assets\msvc_include_config.png)
+![image-20240915074954827](/assets/msvc_include_config.png)
 
 ### 案例
 

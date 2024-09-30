@@ -608,7 +608,11 @@ std::any GetThumbnailPng2::ExecuteWorkFun(napi_env env, size_t TASK_TYPE, std::v
 {
     std::any result = std::any();
     auto arg = hmc_util::anyCastList(data_list);
-    if (arg.empty())
+    
+    if (arg.empty()
+    &&arg.is_wstring(0)
+    &&arg.is_integral(1)
+    &&arg.is_wstring(1))
     {
         return result;
     }

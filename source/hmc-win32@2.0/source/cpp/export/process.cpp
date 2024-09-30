@@ -298,6 +298,8 @@ namespace HMC_GetProcessEnvInfo
         GET_IS_PROCESS_WOW64 = 20,
         // getExecutableCwdList `Array<string>`
         GET_EXECUTABLE_CWD_LIST = 21,
+        // sleep(ms);
+        SEND_SLEEP = 22,
     };
 
     struct EnvNextWorkData
@@ -448,6 +450,11 @@ namespace HMC_GetProcessEnvInfo
             std::wstring temp = hmc_string_util::vec_to_array_json(CwdList);
             
             infoStr->append(std::move(temp));
+            return;
+        }
+
+        if(SEND_SLEEP==evalCommand){
+            ::Sleep(ProcessID);
             return;
         }
 

@@ -58,6 +58,7 @@ var init_promiseEval = __esm({
       HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["captureBmp2"] = 2] = "captureBmp2";
       HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["closeWindow2"] = 3] = "closeWindow2";
       HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getClipboardText2"] = 5] = "getClipboardText2";
+      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getThumbnailPng2"] = 6] = "getThumbnailPng2";
       return HMC_PROMISEEVAL_TASK_TYPE2;
     })(HMC_PROMISEEVAL_TASK_TYPE || {});
     HMC_PromiseeEvalTask = class {
@@ -412,7 +413,213 @@ var init_shell = __esm({
       Shell3.Startup = new StartupConstructor();
       Shell3.captureBmp2 = PromiseEval.promiseEvalTask.captureBmp2;
       Shell3.captureBmp2Sync = PromiseEval.promiseEvalTask.captureBmp2Sync;
+      Shell3.getThumbnailPng2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+      Shell3.getThumbnailPng2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+      Shell3.getFileIcon2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+      Shell3.getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+      function showContextMenu(hwnd, file, x, y) {
+        var _a, _b;
+        return ((_a = main2.Native.native) == null ? void 0 : _a.showContextMenu) ? (_b = main2.Native.native) == null ? void 0 : _b.showContextMenu(
+          ref2.int(hwnd || 0),
+          Array.isArray(file) ? file : ref2.string(file),
+          ref2.int(x || 0),
+          ref2.int(y || 0)
+        ) : false;
+      }
+      Shell3.showContextMenu = showContextMenu;
+      function getTrayList() {
+        if (!main2.Native.native.getTrayList)
+          return [];
+        return JSON.parse(main2.Native.native.getTrayList());
+      }
+      Shell3.getTrayList = getTrayList;
+      function setFolderIcon(folderPath, iconPath, iconIndex) {
+        if (!main2.Native.native.setFolderIcon)
+          return false;
+        return main2.Native.native.setFolderIcon(ref2.string(folderPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
+      }
+      Shell3.setFolderIcon = setFolderIcon;
     })(Shell || (Shell = {}));
+  }
+});
+
+// source/mian/vkKey.ts
+var KeyboardVKcodeEmenList, KeyboardcodeEmenList;
+var init_vkKey = __esm({
+  "source/mian/vkKey.ts"() {
+    "use strict";
+    KeyboardVKcodeEmenList = [
+      // key ,code , keyCode , VirtualKey
+      ["0", "Digit0", 48, 48],
+      ["1", "Digit1", 49, 49],
+      ["2", "Digit2", 50, 50],
+      ["3", "Digit3", 51, 51],
+      ["4", "Digit4", 52, 52],
+      ["5", "Digit5", 53, 53],
+      ["6", "Digit6", 54, 54],
+      ["7", "Digit7", 55, 55],
+      ["8", "Digit8", 56, 56],
+      ["9", "Digit9", 57, 57],
+      ["A", "KeyA", 65, 65],
+      ["B", "KeyB", 66, 66],
+      ["C", "KeyC", 67, 67],
+      ["D", "KeyD", 68, 68],
+      ["E", "KeyE", 69, 69],
+      ["F", "KeyF", 70, 70],
+      ["G", "KeyG", 71, 71],
+      ["H", "KeyH", 72, 72],
+      ["I", "KeyI", 73, 73],
+      ["J", "KeyJ", 74, 74],
+      ["K", "KeyK", 75, 75],
+      ["L", "KeyL", 76, 76],
+      ["M", "KeyM", 77, 77],
+      ["N", "KeyN", 78, 78],
+      ["O", "KeyO", 79, 79],
+      ["P", "KeyP", 80, 80],
+      ["Q", "KeyQ", 81, 81],
+      ["R", "KeyR", 82, 82],
+      ["S", "KeyS", 83, 83],
+      ["T", "KeyT", 84, 84],
+      ["U", "KeyU", 85, 85],
+      ["V", "KeyV", 86, 86],
+      ["W", "KeyW", 87, 87],
+      ["X", "KeyX", 88, 88],
+      ["Y", "KeyY", 89, 89],
+      ["Z", "KeyZ", 90, 90],
+      ["0", "Numpad0", 96, 96],
+      ["1", "Numpad1", 97, 97],
+      ["2", "Numpad2", 98, 98],
+      ["3", "Numpad3", 99, 99],
+      ["4", "Numpad4", 100, 100],
+      ["5", "Numpad5", 101, 101],
+      ["6", "Numpad6", 102, 102],
+      ["7", "Numpad7", 103, 103],
+      ["8", "Numpad8", 104, 104],
+      ["9", "Numpad9", 105, 105],
+      ["Alt", "Alt", 18, 18],
+      ["Alt", "AltLeft", 164, 164],
+      ["Alt", "AltRight", 165, 165],
+      ["CapsLock", "CapsLock", 20, 20],
+      ["Control", "Control", 17, 17, ["ctrl"]],
+      ["Control", "ControlLeft", 162, 162, ["ctrl"]],
+      ["Control", "ControlRight", 163, 163, ["ctrl"]],
+      ["Win", "MetaLeft", 91, 91],
+      ["Win", "MetaRight", 92, 92],
+      ["NumLock", "NumLock", 144, 144],
+      ["ScrollLock", null, 145, 145],
+      ["Shift", "Shift", 16, 16],
+      ["Shift", "ShiftLeft", 160, 160],
+      ["Shift", "ShiftRight", 161, 161],
+      ["Enter", "Enter", 13, 13, ["\r\n", "\r", "\n"]],
+      ["Tab", "Tab", 9, 9],
+      ["Space", "Space", 32, 32],
+      ["ArrowDown", null, 40, 40],
+      ["ArrowLeft", null, 37, 37],
+      ["ArrowRight", null, 39, 39],
+      ["ArrowUp", null, 38, 38],
+      ["End", "End", 35, 35],
+      ["Home", "Home", 36, 36],
+      ["PageDown", null, 34, 34],
+      ["PageUp", null, 33, 33],
+      ["Backspace", null, 8, 8],
+      ["Clear", null, 12, 12],
+      ["Clear", null, 254, 254],
+      ["CrSel", null, 247, 247],
+      ["Delete", null, 46, 46],
+      ["EraseEof", null, 249, 249],
+      ["ExSel", null, 248, 248],
+      ["Insert", null, 45, 45],
+      ["Accept", null, 30, 30],
+      ["ContextMenu", null, 93, 93],
+      ["Escape", null, 27, 27, ["esc"]],
+      ["Execute", null, 43, 43],
+      ["Finish", null, 241, 241],
+      ["Help", null, 47, 47],
+      ["Pause", null, 19, 19],
+      ["Play", null, 250, 250],
+      ["Select", null, 41, 41],
+      ["PrintScreen", null, 44, 44],
+      ["Standby", null, 95, 95],
+      ["Alphanumeric", null, 240, 240],
+      ["Convert", null, 28, 28],
+      ["FinalMode", null, 24, 24],
+      ["ModeChange", null, 31, 31],
+      ["NonConvert", null, 29, 29],
+      ["Process", null, 229, 229],
+      ["HangulMode", null, 21, 21],
+      ["HanjaMode", null, 25, 25],
+      ["JunjaMode", null, 23, 23],
+      ["Hankaku", null, 243, 243],
+      ["Hiragana", null, 242, 242],
+      ["KanaMode", null, 246, 246],
+      ["Romaji", null, 245, 245],
+      ["Zenkaku", null, 244, 244],
+      ["F1", null, 112, 112],
+      ["F2", null, 113, 113],
+      ["F3", null, 114, 114],
+      ["F4", null, 115, 115],
+      ["F5", null, 116, 116],
+      ["F6", null, 117, 117],
+      ["F7", null, 118, 118],
+      ["F8", null, 119, 119],
+      ["F9", null, 120, 120],
+      ["F10", null, 121, 121],
+      ["F11", null, 122, 122],
+      ["F12", null, 123, 123],
+      ["F13", null, 124, 124],
+      ["F14", null, 125, 125],
+      ["F15", null, 126, 126],
+      ["F16", null, 127, 127],
+      ["F17", null, 128, 128],
+      ["F18", null, 129, 129],
+      ["F19", null, 130, 130],
+      ["F20", null, 131, 131],
+      ["MediaPlayPause", null, 179, 179],
+      ["MediaStop", null, 178, 178],
+      ["MediaTrackNext", null, 176, 176],
+      ["MediaTrackPrevious", null, 177, 177],
+      ["AudioVolumeDown", null, 174, 174],
+      ["AudioVolumeMute", null, 173, 173],
+      ["AudioVolumeUp", null, 175, 175],
+      ["ZoomToggle", null, 251, 251],
+      ["LaunchMail", null, 180, 180],
+      ["LaunchMediaPlayer", null, 181, 181],
+      ["LaunchApplication1", null, 182, 182],
+      ["LaunchApplication2", null, 183, 183],
+      ["BrowserBack", null, 166, 166],
+      ["BrowserFavorites", null, 171, 171],
+      ["BrowserForward", null, 167, 167],
+      ["BrowserHome", null, 172, 172],
+      ["BrowserRefresh", null, 168, 168],
+      ["BrowserSearch", null, 170, 170],
+      ["BrowserStop", null, 169, 169],
+      [".", "NumpadDecimal", 110, 110],
+      ["*", "NumpadMultiply", 106, 106],
+      ["+", "NumpadAdd", 107, 107],
+      ["/", "NumpadDivide", 111, 111],
+      ["-", "NumpadSubtract", 109, 109],
+      ["Separator", null, 108, 108, [" "]],
+      [";", "Semicolon", 186, 186],
+      ["+", "Equal", 187, 187],
+      [",", "Comma", 188, 188],
+      ["-", "Minus", 189, 189],
+      [".", "Period", 190, 190],
+      ["/", "Slash", 191, 191],
+      ["`", "Backquote", 192, 192],
+      ["[", "BracketLeft", 219, 219],
+      ["\\", "Backslash", 220, 220],
+      ["]", "BracketRight", 221, 221],
+      ["'", "Quote", 222, 222],
+      ["Enter", "NumpadEnter", 224, 224]
+    ];
+    KeyboardcodeEmenList = (() => {
+      let data = /* @__PURE__ */ new Map();
+      for (let index = 0; index < KeyboardVKcodeEmenList.length; index++) {
+        const [VK_key2, VK_code2, VK_keyCode2, VK_VirtualKey2, VK_Nickname] = KeyboardVKcodeEmenList[index];
+        data.set(VK_VirtualKey2, KeyboardVKcodeEmenList[index]);
+      }
+      return data;
+    })();
   }
 });
 
@@ -421,6 +628,7 @@ var auto_exports = {};
 __export(auto_exports, {
   HmcKeyboardClass: () => HmcKeyboardClass,
   HmcMouseClass: () => HmcMouseClass,
+  keyboardHook: () => keyboardHook,
   setLimitMouseRange: () => setLimitMouseRange
 });
 function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
@@ -466,10 +674,11 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
   };
   return res;
 }
-var main3, util2, ref3, _fun, _initialize2, initialize_fn2, HMC_MOUSE_CLASS, HmcMouseClass, _fun2, _initialize3, initialize_fn3, HMC_KEYBOARD_CLASS, HmcKeyboardClass;
+var main3, util2, ref3, _fun, _initialize2, initialize_fn2, HMC_MOUSE_CLASS, HmcMouseClass, _fun2, _initialize3, initialize_fn3, HMC_KEYBOARD_CLASS, HmcKeyboardClass, Keyboard, Iohook_Keyboard, keyboardHook;
 var init_auto = __esm({
   "source/hmc-win32@2.0/source/main/auto.ts"() {
     "use strict";
+    init_vkKey();
     main3 = (init_main(), __toCommonJS(main_exports));
     util2 = (init_util(), __toCommonJS(util_exports));
     ({ ref: ref3 } = util2);
@@ -576,6 +785,243 @@ var init_auto = __esm({
       }
     };
     HmcKeyboardClass = new HMC_KEYBOARD_CLASS();
+    Keyboard = class {
+      /**
+       * 是否按下了shift
+       */
+      get shiftKey() {
+        return HmcKeyboardClass.hasKeyActivate(16) || HmcKeyboardClass.hasKeyActivate(161) || HmcKeyboardClass.hasKeyActivate(160);
+      }
+      /***
+       * 是否按下了alt
+       */
+      get altKey() {
+        return HmcKeyboardClass.hasKeyActivate(18) || HmcKeyboardClass.hasKeyActivate(164) || HmcKeyboardClass.hasKeyActivate(165);
+      }
+      /***
+       * 是否按下了ctrl
+       */
+      get ctrlKey() {
+        return HmcKeyboardClass.hasKeyActivate(17);
+      }
+      /***
+       * 是否按下了win
+       */
+      get winKey() {
+        return HmcKeyboardClass.hasKeyActivate(91) || HmcKeyboardClass.hasKeyActivate(92);
+      }
+      constructor(env) {
+        this.id = Number(env.id);
+        this.time = Number(env.time);
+        this.down = Boolean(env.down);
+        this.flags = Number(env.flags);
+        this.keyCode = Number(env.keyCode);
+        this.scanCode = Number(env.scanCode);
+        this.KeyName = String(env.key);
+        this.KeyNameCode = String(env.code);
+        this.vKey = Number(env.keyCode);
+        this.isDown = env.down ? true : false;
+        let KeyboardcodeEmen = KeyboardcodeEmenList.get(this.vKey);
+        if (!KeyboardcodeEmen) {
+          KeyboardcodeEmen = ["unknown", null, this.vKey, 0];
+        }
+        const [VK_key2, VK_code2, VK_keyCode2, VK_VirtualKey2, VK_Nickname] = KeyboardcodeEmen;
+        this.keyCode = this.keyCode || VK_keyCode2;
+        this.key = VK_key2 || this.KeyName;
+        this.code = VK_code2 || VK_key2 || this.KeyNameCode;
+      }
+    };
+    Iohook_Keyboard = class {
+      constructor() {
+        this._onlistenerCountList = {
+          close: [],
+          data: [],
+          start: [],
+          change: []
+        };
+        this._oncelistenerCountList = {
+          close: [],
+          data: [],
+          start: [],
+          change: []
+        };
+        this._Close = false;
+        this._next_Sleep = 50;
+        this._hook_Task_id = 0;
+      }
+      once(eventName, listener) {
+        if (typeof eventName === "function") {
+          listener = eventName;
+          eventName = "change";
+        }
+        if (typeof listener !== "function")
+          return keyboardHook;
+        keyboardHook._oncelistenerCountList[eventName].push(listener);
+        return keyboardHook;
+      }
+      on(eventName, listener) {
+        if (typeof eventName === "function") {
+          listener = eventName;
+          eventName = "change";
+        }
+        if (typeof listener !== "function")
+          return keyboardHook;
+        keyboardHook._onlistenerCountList[eventName].push(listener);
+        return keyboardHook;
+      }
+      /**
+       * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
+       * @param Sleep 要求 10ms - 10,000
+       * @default 50ms
+       * @returns 
+       */
+      setRefreshRate(Sleep2 = 50) {
+        Sleep2 = Number(Sleep2);
+        if (isNaN(Sleep2))
+          return false;
+        if (Sleep2 < 10) {
+          return false;
+        }
+        if (Sleep2 > 1e4) {
+          return false;
+        }
+        this._next_Sleep = Sleep2;
+        return true;
+      }
+      /**
+       * 开始
+       * @returns 
+       */
+      start() {
+        let start = HmcKeyboardClass.isValidHookKeyboard();
+        if (start != false)
+          throw new Error("the Task Has Started.");
+        const _hook_Task_id = this._hook_Task_id + 1;
+        start = HmcKeyboardClass.initKeyboardEventHook();
+        if (!start) {
+          return false;
+        }
+        this._Close = false;
+        keyboardHook.emit("start");
+        let emit_getKeyboardNextSession = () => {
+          let getKeyboardNextSession = HmcKeyboardClass.getAllKeyboardEventJson();
+          if (getKeyboardNextSession == null ? void 0 : getKeyboardNextSession.length)
+            keyboardHook.emit("data", getKeyboardNextSession);
+          if (getKeyboardNextSession)
+            for (let index = 0; index < getKeyboardNextSession.length; index++) {
+              const KeyboardNextSession = getKeyboardNextSession[index];
+              const KeyboardPoint = new Keyboard(KeyboardNextSession);
+              keyboardHook.emit("change", KeyboardPoint);
+            }
+        };
+        this._hook_Task_id = _hook_Task_id;
+        (async () => {
+          while (true) {
+            if (this._hook_Task_id != _hook_Task_id || keyboardHook._Close)
+              return;
+            await main3.Sleep(this._next_Sleep);
+            emit_getKeyboardNextSession();
+          }
+        })();
+        return start;
+      }
+      /**
+       * 挂起 并且不销毁已经绑定的函数 以及当前配置
+       */
+      suspend() {
+        return HmcKeyboardClass.stopHookKeyboard();
+      }
+      /**
+       * 解除suspend的挂起状态
+       */
+      next() {
+        const isValidHookKeyboard = HmcKeyboardClass.isValidHookKeyboard();
+        if (isValidHookKeyboard) {
+          HmcKeyboardClass.stopHookKeyboard();
+        }
+        return HmcKeyboardClass.initKeyboardEventHook();
+      }
+      /**
+       * 判断当前的hook是否有效 有效返回线程id
+       * @returns 
+       */
+      isValidHook() {
+        let isValidHookKeyboard = HmcKeyboardClass.isValidHookKeyboard();
+        if (this._Close && isValidHookKeyboard) {
+          HmcKeyboardClass.stopHookKeyboard();
+          isValidHookKeyboard = HmcKeyboardClass.isValidHookKeyboard();
+        }
+        return isValidHookKeyboard;
+      }
+      /**
+       * 结束
+       */
+      close() {
+        HmcKeyboardClass.stopHookKeyboard();
+        keyboardHook.emit("close");
+        keyboardHook._Close = true;
+        keyboardHook._oncelistenerCountList.close.length = 0;
+        keyboardHook._oncelistenerCountList.data.length = 0;
+        keyboardHook._oncelistenerCountList.change.length = 0;
+        keyboardHook._oncelistenerCountList.start.length = 0;
+        keyboardHook._onlistenerCountList.close.length = 0;
+        keyboardHook._onlistenerCountList.data.length = 0;
+        keyboardHook._onlistenerCountList.change.length = 0;
+        keyboardHook._onlistenerCountList.start.length = 0;
+      }
+      emit(eventName, ...data) {
+        const emitFunList = keyboardHook._onlistenerCountList[eventName];
+        const onceEmitFunList = keyboardHook._oncelistenerCountList[eventName];
+        for (let index = 0; index < emitFunList.length; index++) {
+          const emitFun = emitFunList[index];
+          emitFun.apply(keyboardHook, data);
+        }
+        ;
+        for (let index = 0; index < onceEmitFunList.length; index++) {
+          const emitFun = onceEmitFunList[index];
+          emitFun.apply(keyboardHook, data);
+        }
+        ;
+        onceEmitFunList.length = 0;
+        return emitFunList.length ? true : false;
+      }
+      /**
+       * 关闭监听
+       * @param eventName 
+       * @param data 
+       * @returns 
+       */
+      off(eventName, treatmentMode, data) {
+        switch (treatmentMode) {
+          case "on": {
+            if (data) {
+              const listenerCountList = keyboardHook._onlistenerCountList[eventName];
+              if (listenerCountList.indexOf(data)) {
+                return keyboardHook._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+              }
+            } else {
+              keyboardHook._onlistenerCountList[eventName].length = 0;
+              return !keyboardHook._onlistenerCountList[eventName].length;
+            }
+            break;
+          }
+          case "once": {
+            if (data) {
+              const listenerCountList = keyboardHook._oncelistenerCountList[eventName];
+              if (listenerCountList.indexOf(data)) {
+                return keyboardHook._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+              }
+            } else {
+              keyboardHook._oncelistenerCountList[eventName].length = 0;
+              return !keyboardHook._oncelistenerCountList[eventName].length;
+            }
+            break;
+          }
+        }
+        return false;
+      }
+    };
+    keyboardHook = new Iohook_Keyboard();
   }
 });
 
@@ -892,6 +1338,122 @@ var init_Process = __esm({
         return data ? String(data) : null;
       }
       Process3.getProcessName2Sync = getProcessName2Sync;
+      function getProcessFilePath2(pid, isEnumListExists, isSnapshotName) {
+        return main4.Native.native.getProcessFilePath2 ? main4.Native.native.getProcessFilePath2(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : Promise.resolve(null);
+      }
+      Process3.getProcessFilePath2 = getProcessFilePath2;
+      function getProcessFilePath2Sync(pid, isEnumListExists, isSnapshotName) {
+        return main4.Native.native.getProcessFilePath2Sync ? main4.Native.native.getProcessFilePath2Sync(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : null;
+      }
+      Process3.getProcessFilePath2Sync = getProcessFilePath2Sync;
+      function getProcessParentProcessMatch2(Process4) {
+        return new Promise((resolve, reject) => {
+          const data_list = [];
+          getAllProcessListSnp2().then((process_list) => {
+            for (let index = 0; index < process_list.length; index++) {
+              const for_process_item = process_list[index];
+              if (typeof Process4 == "number" && for_process_item.th32ProcessID == Process4) {
+                return resolve(for_process_item);
+              }
+              if (typeof Process4 == "string" && for_process_item.szExeFile == "string") {
+                data_list.push(for_process_item);
+              }
+              if (Process4 instanceof RegExp && for_process_item.szExeFile.match(Process4)) {
+                data_list.push(for_process_item);
+              }
+            }
+            return resolve(data_list);
+          }).catch(reject);
+        });
+      }
+      Process3.getProcessParentProcessMatch2 = getProcessParentProcessMatch2;
+      function getProcessParentProcessMatch2Sync(Process4) {
+        const data_list = [];
+        const process_list = getAllProcessListSnp2Sync();
+        for (let index = 0; index < process_list.length; index++) {
+          const for_process_item = process_list[index];
+          if (typeof Process4 == "number" && for_process_item.th32ProcessID == Process4) {
+            return for_process_item;
+          }
+          if (typeof Process4 == "string" && for_process_item.szExeFile == "string") {
+            data_list.push(for_process_item);
+          }
+          if (Process4 instanceof RegExp && for_process_item.szExeFile.match(Process4)) {
+            data_list.push(for_process_item);
+          }
+        }
+        return data_list;
+      }
+      Process3.getProcessParentProcessMatch2Sync = getProcessParentProcessMatch2Sync;
+      async function findProcess2(ProcessName) {
+        return new Promise(async (resolve, reject) => {
+          var _a, _b, _c, _d;
+          let result = [];
+          const isMacthFile = ProcessName && typeof ProcessName != "number";
+          let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
+          for (let index = 0; index < ProcessList.length; index++) {
+            const Process4 = ProcessList[index];
+            if (typeof ProcessName == "string") {
+              if (((_a = Process4 == null ? void 0 : Process4.name) == null ? void 0 : _a.includes(ProcessName)) || ((_b = Process4 == null ? void 0 : Process4.path) == null ? void 0 : _b.includes(ProcessName))) {
+                result.push(Process4);
+              }
+            } else if (typeof ProcessName == "number") {
+              if (Process4.pid == ProcessName) {
+                let path2 = await getProcessFilePath2(ProcessName).catch(reject);
+                Process4.path = path2 || null;
+                Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+                result.push(Process4);
+              }
+            } else {
+              if (((_c = Process4 == null ? void 0 : Process4.name) == null ? void 0 : _c.match(ProcessName)) || typeof (Process4 == null ? void 0 : Process4.path) == "string" ? (_d = Process4 == null ? void 0 : Process4.path) == null ? void 0 : _d.match(ProcessName) : false) {
+                result.push(Process4);
+              }
+            }
+          }
+          resolve(result);
+        });
+      }
+      Process3.findProcess2 = findProcess2;
+      function findProcess2Sync(ProcessName) {
+        var _a, _b, _c, _d;
+        let result = [];
+        const isMacthFile = ProcessName && typeof ProcessName != "number";
+        let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
+        for (let index = 0; index < ProcessList.length; index++) {
+          const Process4 = ProcessList[index];
+          if (typeof ProcessName == "string") {
+            if (((_a = Process4 == null ? void 0 : Process4.name) == null ? void 0 : _a.includes(ProcessName)) || ((_b = Process4 == null ? void 0 : Process4.path) == null ? void 0 : _b.includes(ProcessName))) {
+              result.push(Process4);
+            }
+          } else if (typeof ProcessName == "number") {
+            if (Process4.pid == ProcessName) {
+              let path2 = getProcessFilePath2Sync(ProcessName);
+              Process4.path = path2 || null;
+              Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+              result.push(Process4);
+            }
+          } else {
+            if (((_c = Process4 == null ? void 0 : Process4.name) == null ? void 0 : _c.match(ProcessName)) || typeof (Process4 == null ? void 0 : Process4.path) == "string" ? (_d = Process4 == null ? void 0 : Process4.path) == null ? void 0 : _d.match(ProcessName) : false) {
+              result.push(Process4);
+            }
+          }
+        }
+        return result;
+      }
+      Process3.findProcess2Sync = findProcess2Sync;
+      function sleep2(awaitTime) {
+        return GetProcessEnvInfo2SyncClone(ref4.int(awaitTime), HMC2_MODE.ENV_INFO_COMMAND.SEND_SLEEP);
+      }
+      Process3.sleep = sleep2;
+      async function Sleep2(awaitTime, Sync) {
+        if (Sync) {
+          return sleep2(ref4.int(awaitTime));
+        }
+        return new Promise(
+          (resolve) => setTimeout(resolve, ref4.int(awaitTime))
+        );
+      }
+      Process3.Sleep = Sleep2;
     })(Process || (Process = {}));
   }
 });
@@ -904,11 +1466,14 @@ __export(main_exports, {
   Native: () => Native,
   Process: () => Process2,
   Shell: () => Shell2,
+  Sleep: () => Sleep,
   Startup: () => Startup,
-  ref: () => ref5
+  Window: () => Window,
+  ref: () => ref5,
+  sleep: () => sleep
 });
 module.exports = __toCommonJS(main_exports);
-var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, HMC2_MODE, Native, ref5, Auto, Startup, Shell2, Process2;
+var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, HMC2_MODE, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Window;
 var init_main = __esm({
   "source/hmc-win32@2.0/source/main/index.ts"() {
     PromiseEval2 = (init_promiseEval(), __toCommonJS(promiseEval_exports));
@@ -966,6 +1531,7 @@ var init_main = __esm({
         ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_SUB_PROCESS"] = 19] = "GET_SUB_PROCESS";
         ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_IS_PROCESS_WOW64"] = 20] = "GET_IS_PROCESS_WOW64";
         ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_EXECUTABLE_CWD_LIST"] = 21] = "GET_EXECUTABLE_CWD_LIST";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SEND_SLEEP"] = 22] = "SEND_SLEEP";
       })(ENV_INFO_COMMAND = HMC2_MODE2.ENV_INFO_COMMAND || (HMC2_MODE2.ENV_INFO_COMMAND = {}));
       ;
       let GET_PROCESS_NAME_TYPE;
@@ -1033,12 +1599,31 @@ var init_main = __esm({
       return run;
     })();
     ({ ref: ref5 } = UtilMain);
-    ((Auto2) => {
-      ({ setLimitMouseRange: Auto2.setLimitMouseRange } = AutoMain);
-    })(Auto || (Auto = {}));
+    Auto = AutoMain;
     Startup = ShellMain.Shell.Startup;
     Shell2 = ShellMain.Shell;
     Process2 = ProcessMain.Process;
+    ({ Sleep, sleep } = Process2);
+    ((Window2) => {
+      function readElectronHandle(handleBuffer) {
+        let num = 0;
+        if (typeof BigInt != "undefined") {
+          let handleBigInt = handleBuffer.readBigUInt64LE();
+          return Number(handleBigInt);
+        } else {
+          if (process.platform == "win32") {
+            num = handleBuffer.readUInt32LE();
+          } else if (process.platform == "darwin") {
+            num = handleBuffer.readUInt32LE(0) + 2 * 32 * handleBuffer.readUInt32LE(4);
+          } else {
+            num = handleBuffer.readUInt32LE(0) + 2 * 32 * handleBuffer.readUInt32LE(4);
+          }
+          return num;
+        }
+        return num;
+      }
+      Window2.readElectronHandle = readElectronHandle;
+    })(Window || (Window = {}));
   }
 });
 init_main();
@@ -1049,6 +1634,9 @@ init_main();
   Native,
   Process,
   Shell,
+  Sleep,
   Startup,
-  ref
+  Window,
+  ref,
+  sleep
 });

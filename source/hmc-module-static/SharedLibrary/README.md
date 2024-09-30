@@ -1,0 +1,1 @@
+此处放 hmc-module-static 静态编译文件

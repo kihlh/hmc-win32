@@ -27,8 +27,10 @@ function GetProcessEnvInfo2SyncClone(pid: number, command: HMC2_MODE.ENV_INFO_CO
 export module Process {
 
     /**
-     * 读取指定进程的工作目录  `Async(异步)`
-     * @param ProcessID 进程id
+     * 获取指定进程的工作目录
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * !此功能需要读取进程内存
+     * @module 异步async
      * @returns 
      */
     export async function getProcessCwdPath2(ProcessID: number): Promise<null | string> {
@@ -43,8 +45,10 @@ export module Process {
     }
 
     /**
-     * 读取指定进程的工作目录  `Sync(同步)`
-     * @param ProcessID 进程id
+     * 获取指定进程的工作目录
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * !此功能需要读取进程内存
+     * @module 同步Sync
      * @returns 
      */
     export function getProcessCwdPath2Sync(ProcessID: number): null | string {
@@ -53,6 +57,9 @@ export module Process {
 
     /**
      * 读取指定进程的启动命令行  `Async(异步)`
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * ?此功能在win8及以下系统 需要读取进程内存
+     * @module 异步async
      * @param ProcessID 进程id
      * @returns 
      */
@@ -69,6 +76,9 @@ export module Process {
 
     /**
      * 读取指定进程的启动命令行  `Sync(同步)`
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * ?此功能在win8及以下系统 需要读取进程内存
+     * @module 同步Sync
      * @param ProcessID 进程id
      * @returns 
      */
@@ -498,7 +508,6 @@ export module Process {
             HMC2_MODE.ENV_INFO_COMMAND.GET_EXECUTABLE_CWD_LIST) || "[]"));
     }
 
-
     /**
      * 获取进程名称
      * @param pid 进程id
@@ -564,5 +573,205 @@ export module Process {
 
         return data ? String(data) : null;
     }
+
+    /**
+     * 获取指定进程的可执行文件路径
+     * @param pid 进程id
+     * @param isEnumListExists 是否必须出现在进程列表中的 
+     * @default false
+     * @param isSnapshotName 获取失败时获取进程名称
+     * @default false
+     */
+    export function getProcessFilePath2(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): Promise<string | null> {
+
+        return main.Native.native.getProcessFilePath2 ?
+            main.Native.native.getProcessFilePath2(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
+            : Promise.resolve(null);
+    }
+
+    /**
+     * 获取指定进程的可执行文件路径
+     * @param pid 进程id
+     * @param isEnumListExists 是否必须出现在进程列表中的 
+     * @default false
+     * @param isSnapshotName 获取失败时获取进程名称
+     * @default false
+     */
+    export function getProcessFilePath2Sync(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): string | null {
+
+        return main.Native.native.getProcessFilePath2Sync ?
+            main.Native.native.getProcessFilePath2Sync(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
+            : null
+    }
+
+    /**
+     * 获取匹配进程的 父进程信息
+     * @param Process 需要被搜索的子进程 名称/pid/正则名称
+     * @returns 
+     */
+    export function getProcessParentProcessMatch2(Process: string | RegExp): Promise<Array<HMC2_MODE.PROCESSENTRY>>;
+    export function getProcessParentProcessMatch2(Process: number): Promise<HMC2_MODE.PROCESSENTRY>;
+    export function getProcessParentProcessMatch2(Process: unknown): unknown {
+        return new Promise((resolve, reject) => {
+            const data_list: Array<HMC2_MODE.PROCESSENTRY> = [];
+            getAllProcessListSnp2().then(process_list => {
+                for (let index = 0; index < process_list.length; index++) {
+                    const for_process_item = process_list[index];
+
+                    if (typeof Process == "number" && for_process_item.th32ProcessID == Process) {
+                        return resolve(for_process_item);
+                    }
+
+                    if (typeof Process == "string" && for_process_item.szExeFile == "string") {
+                        data_list.push(for_process_item);
+                    }
+
+                    if (Process instanceof RegExp && for_process_item.szExeFile.match(Process)) {
+                        data_list.push(for_process_item);
+                    }
+
+                }
+
+                return resolve(data_list);
+
+            }).catch(reject);
+        });
+    }
+
+
+    /**
+     * 获取匹配进程的 父进程信息
+     * @param Process 需要被搜索的子进程 名称/pid/正则名称
+     * @returns 
+     */
+    export function getProcessParentProcessMatch2Sync(Process: string | RegExp): Array<HMC2_MODE.PROCESSENTRY>;
+    export function getProcessParentProcessMatch2Sync(Process: number): HMC2_MODE.PROCESSENTRY | null;
+    export function getProcessParentProcessMatch2Sync(Process: unknown): unknown {
+
+        const data_list: Array<HMC2_MODE.PROCESSENTRY> = [];
+        const process_list = getAllProcessListSnp2Sync();
+        for (let index = 0; index < process_list.length; index++) {
+            const for_process_item = process_list[index];
+
+            if (typeof Process == "number" && for_process_item.th32ProcessID == Process) {
+                return for_process_item;
+            }
+
+            if (typeof Process == "string" && for_process_item.szExeFile == "string") {
+                data_list.push(for_process_item);
+            }
+
+            if (Process instanceof RegExp && for_process_item.szExeFile.match(Process)) {
+                data_list.push(for_process_item);
+            }
+
+        }
+
+        return data_list;
+    }
+
+
+    /**
+     * 按照名称搜索进程
+     * @param ProcessName 
+     * @returns 
+     */
+    export async function findProcess2(ProcessName: string | RegExp | number): Promise<{ pid: number, name: string | null, path: string | null }[]> {
+        return new Promise(async (resolve, reject) => {
+            let result: any = [];
+            const isMacthFile = ProcessName && (typeof ProcessName != "number");
+            let ProcessList = await (isMacthFile ? getAllProcessList2(true) : getAllProcessList2()).catch(reject) || [];
+
+            for (let index = 0; index < ProcessList.length; index++) {
+                const Process = ProcessList[index];
+                if (typeof ProcessName == "string") {
+                    if (Process?.name?.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
+                        result.push(Process);
+
+                    }
+                }
+                else if (typeof ProcessName == "number") {
+                    if (Process.pid == ProcessName) {
+                        let path = await getProcessFilePath2(ProcessName).catch(reject);
+                        // @ts-expect-error
+                        Process.path = path || null;
+                        // @ts-expect-error
+                        Process.name = path?.split(/[\\\/]+/).at(-1) || null;
+                        result.push(Process);
+                    }
+                }
+                else {
+                    if (Process?.name?.match(ProcessName) || (typeof Process?.path == "string") ? Process?.path?.match(ProcessName) : false) {
+                        result.push(Process);
+                    }
+                }
+            }
+
+            resolve(result);
+
+        });
+    }
+
+
+    /**
+     * 按照名称搜索进程
+     * @param ProcessName 
+     * @returns 
+     */
+    export function findProcess2Sync(ProcessName: string | RegExp | number): Array<{ pid: number, name: string, path: string }> {
+        let result: any = [];
+        const isMacthFile = ProcessName && (typeof ProcessName != "number");
+
+        let ProcessList = (isMacthFile ? getAllProcessList2Sync(true) : getAllProcessList2Sync()) || [];
+
+        for (let index = 0; index < ProcessList.length; index++) {
+            const Process = ProcessList[index];
+            if (typeof ProcessName == "string") {
+                if (Process?.name?.includes(ProcessName) || Process?.path?.includes(ProcessName)) {
+                    result.push(Process);
+                }
+            }
+            else if (typeof ProcessName == "number") {
+                if (Process.pid == ProcessName) {
+                    let path = getProcessFilePath2Sync(ProcessName);
+                    // @ts-expect-error
+                    Process.path = path || null;
+                    // @ts-expect-error
+                    Process.name = path?.split(/[\\\/]+/).at(-1) || null;
+                    result.push(Process);
+                }
+            }
+            else {
+                if (Process?.name?.match(ProcessName) || (typeof Process?.path == "string") ? Process?.path?.match(ProcessName) : false) {
+                    result.push(Process);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+    * `Sync` 同步阻塞(进程)
+    * @param awaitTime
+    * @returns
+    */
+    export function sleep(awaitTime: number) {
+        return GetProcessEnvInfo2SyncClone(ref.int(awaitTime), HMC2_MODE.ENV_INFO_COMMAND.SEND_SLEEP);
+    }
+
+    /**
+     * `async` 异步阻塞(进程)
+     * @param awaitTime
+     * @returns
+     */
+    export async function Sleep(awaitTime: number, Sync?: boolean) {
+        if (Sync) {
+            return sleep(ref.int(awaitTime));
+        }
+        return new Promise((resolve) =>
+            setTimeout(resolve, ref.int(awaitTime))
+        );
+    }
+
 
 }

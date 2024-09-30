@@ -1,11 +1,30 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include <vector>
 #include <string>
+#include <hmc_util.h>
+#include <hmc_automation_util.h>
+#include <hmc_byte_util.h>
+#include <hmc_clip_util.h>
 
-#include <windows.h>
+// node.js api
+#ifdef SRC_NODE_API_H_
+#include <hmc_napi_value_util.h>
+#endif  // SRC_NODE_API_H_
+
+#include <hmc_process_util.h>
+#include <hmc_registr_util.h>
+#include <hmc_screen_util.h>
+#include <hmc_shell_util.h>
+#include <hmc_sock_util.h>
+#include <hmc_string_util.h>
+#include <hmc_usb_util.h>
+#include <hmc_windows_util.h>
 
 #ifdef _DEBUG  
 #ifdef _WIN64 
+// å¦‚æœå‘ç°æ— æ³•æ‰¾åˆ°é™æ€æ–‡ä»¶å¯ä»¥æµ‹è¯•ä»¥ä¸‹æ–¹æ³•(å…¶ä¸­ä¸€ç§)
+// 1. å°†è·¯å¾„æ›¿æ¢ä¸ºç»å¯¹çš„è·¯å¾„(d:/SharedLibrary/hmc-module-static_DEBUG_X64.lib)
+// 2. åœ¨vså±æ€§é¡µä¸­é…ç½® VC++ç›®å½• ->å¸¸è§„->åº“ç›®å½• ($(é™æ€æ¨¡å—ä½ç½®)/SharedLibrary)
+// 3. åœ¨vså±æ€§é¡µä¸­é…ç½® é“¾æ¥å™¨->å¸¸è§„->é™„åŠ åº“ç›®å½•($(é™æ€æ¨¡å—ä½ç½®)/SharedLibrary)
 #pragma comment(lib, "hmc-module-static_DEBUG_X64.lib")
 #else  
 #pragma comment(lib, "hmc-module-static_DEBUG_X86.lib")
@@ -18,272 +37,3 @@
 #endif
 #endif
 
-
-namespace hmc_sock_util {
-
-    /**
-     * ¸ñÊ½»¯macµØÖ·
-     */
-    extern std::string FormatMacAddress(const BYTE* address, int length, char joinChar);
-
-    /**
-     * »ñÈ¡macµØÖ·
-     */
-    extern std::vector<std::string> GetMacAddresses(char joinChar);
-
-    /**
-     * »ñÈ¡macµØÖ·
-     */
-    extern std::vector<std::string> GetMacAddresses();
-
-}
-
-
-/**
- * @file hmc_sock_util.h
- * @author kihlh, kiic
- * @brief ÍøÂçÄ£¿é
- * @note windows.h »áÄ¬ÈÏ°Ñ<winsock.h> µ¼ÈëÒò´Ë´ËÄ£¿éĞèÒªÔÚwindows.hµ¼ÈëÖ®Ç°µ¼Èë
- * @version 0.1
- * @date 2024-01-28
- *
- * @copyright Copyright (c) 2024
- *
- */
-
-#pragma once
-
- // ·ÀÖ¹ÖØ¸´µ¼Èë
-#ifndef MODE_INTERNAL_INCLUDE_HMC_SOCK_UTIL_HPP
-#define MODE_INTERNAL_INCLUDE_HMC_SOCK_UTIL_HPP
-
-
-namespace hmc_sock_util
-{
-    namespace hmc_define_util
-    {
-
-    }
-
-    // Ã¶¾Ù±¾»úip±¾»ú¾ÖÓòÍøµÄip(v4) Êı¾İÌå
-    struct chLocalVddrItemV4
-    {
-        // ¹ã²¥
-        std::wstring broadcast;
-        // ÑÚÂë
-        std::wstring netmask;
-        // ip
-        std::wstring ipaddress;
-        std::wstring to_json();
-    };
-
-    struct chNetDnsServers
-    {
-        std::string IpAddress;
-        std::string IpMask;
-        DWORD context;
-        std::string to_json();
-    };
-
-    // Ö÷»úÍøÂçĞÅÏ¢
-    struct chNetParams
-    {
-        std::string hostName;                    // Ö÷»úÃû³Æ
-        std::string domainName;                  // ÓòÃûÃû³Æ
-        std::vector<chNetDnsServers> dnsServers; // dns·şÎñÆ÷ÁĞ±í
-        /**
-         * @brief ½ÚµãÀàĞÍ
-         * - BROADCAST_NODETYPE;
-         * - HYBRID_NODETYPE
-         * - MIXED_NODETYPE
-         * - PEER_TO_PEER_NODETYPE
-         * - UNKNOWN:<UINT>
-         */
-        std::string nodeType;
-
-        std::string dhcpScopeName; // dhcp ·¶Î§Ãû³Æ
-        bool enableRouting;        // ÊÇ·ñÆôÓÃÂ·ÓÉÑ¡Ôñ
-        bool enableArpProxy;       // ÊÇ·ñARP´úÀí
-        bool enableDns;            // ÊÇ·ñÆôÓÃdns
-        std::string to_json();
-    };
-
-    // ¼ìË÷ ±¾»ú Á¬½Ó±íÊı¾İÌå
-    // https://en.wikipedia.org/wiki/Transmission_Control_Protocol
-    // https://learn.microsoft.com/zh-cn/windows/win32/api/iphlpapi/nf-iphlpapi-gettcp6table
-    struct chConnectNet
-    {
-        std::wstring typeName; // "UDP" / "TCP" / "TCP6" / "UDP6"
-        DWORD type = 0;        // 6 tcp / tcp6   17 udp / udp6
-        DWORD ipAddr;          // dwLocalAddr
-        std::wstring ip;       // ½âÎö³öÀ´µÄÊµ¼Êip
-        DWORD port;            // Õ¼ÓÃµÄ¶Ë¿Ú
-        DWORD pid;             // Õ¼ÓÃ´Ë¶Ë¿ÚµÄ½ø³Ì
-        bool existsProcess;    // ÅĞ¶Ï´Ë½ø³ÌÊÇ·ñ´æÔÚ
-        std::wstring to_json();
-    };
-
-    struct chNetAdapterAddrList
-    {
-        // ip
-        std::wstring ipaddress;
-        // ipÀàĞÍÃû³Æ  ipv4 or ipv6
-        std::wstring typeName;
-        // ipÀàĞÍ 2(AF_INET) 23(AF_INET6)
-        DWORD type = 0;
-        std::wstring to_json();
-    };
-
-    struct chConnectNetTCP : public chConnectNet
-    {
-        DWORD remotePort;      // Ô¶³ÌµÄ¶Ë¿Ú
-        DWORD remoteIPAddr;    // Ô¶³ÌµÄip (LocalAddr)
-        std::wstring remoteIP; // ½âÎö³öÀ´µÄÊµ¼ÊÔ¶³Ìip
-        std::wstring state;    // ×´Ì¬Âë "CLOSED"|"LISTEN"|"SYN-SENT"|"SYN-RECEIVED"|"ESTABLISHED"|"FIN-WAIT-1"|"FIN-WAIT-2"|"CLOSE-WAIT"|"CLOSING"|"LAST-ACK"|"TIME-WAIT"|"DELETE-TCB"|"UNKNOWN"
-        std::wstring to_json();
-    };
-
-    // »ñÈ¡±¾»ú¾ÖÓòÍøµÄËùÓĞip ( ²¢°´ÕÕÊÊÅäÆ÷Ãû³ÆÇø·Ö ,v4,v6 )
-    struct chNetAdapterAddrItem
-    {
-        // ÍøÂçÊÊÅäÆ÷Ãû³Æ
-        std::wstring name;
-        // ip ÁĞ±í
-        std::vector<chNetAdapterAddrList> addr_item;
-        std::wstring to_json();
-    };
-
-    // ¸ñÊ½»¯ip
-    extern std::wstring formatIP(UCHAR ucLocalAddr[16]);
-    // ¸ñÊ½»¯ip
-    extern std::wstring formatIP(DWORD dwLocalAddr);
-
-    /**
-     * @brief »ñÈ¡tcp6 ¶Ë¿Ú¹ØÁª½ø³Ì
-     *
-     * @param port ¶Ë¿Ú
-     * @return DWORD
-     */
-    extern DWORD getPortProcessTCP(DWORD port);
-
-    /**
-     * @brief »ñÈ¡tcp6 ¶Ë¿Ú¹ØÁª½ø³Ì
-     *
-     * @param port ¶Ë¿Ú
-     * @return DWORD
-     */
-    extern DWORD getPortProcessUDP(DWORD port);
-
-    /**
-     * @brief »ñÈ¡tcp6 ¶Ë¿Ú¹ØÁª½ø³Ì
-     *
-     * @param port ¶Ë¿Ú
-     * @return std::vector<DWORD>
-     */
-    extern std::vector<DWORD> getPortProcessUDP6(DWORD port);
-
-    /**
-     * @brief »ñÈ¡tcp6 ¶Ë¿Ú¹ØÁª½ø³Ì
-     *
-     * @param port ¶Ë¿Ú
-     * @return std::vector<DWORD>
-     */
-    extern std::vector<DWORD> getPortProcessTCP6(DWORD port);
-
-    /**
-     * @brief ×´Ì¬Âë×ª»»
-     *
-     * @param dwState ×´Ì¬Âë
-     * @return std::wstring
-     */
-    extern std::wstring getStateName(DWORD dwState);
-
-    /**
-     * @brief »ñÈ¡±¾»ú¾ÖÓòÍøµÄËùÓĞip ( ²¢°´ÕÕÊÊÅäÆ÷Ãû³ÆÇø·Ö ,v4,v6 )
-     *
-     * @return std::vector<chNetAddrItem>
-     */
-    extern std::vector<chNetAdapterAddrItem> getAdapterIPList();
-
-    /**
-     * @brief Ö÷»úÍøÂçĞÅÏ¢
-     *
-     * @return chNetParams
-     */
-    extern chNetParams getNetParams();
-
-    /**
-     * ´ÓÄ¬ÈÏdns(ÁªÍø)½âÎöÓòÃûÖ÷»úip
-     * - ¡Ì goole.com
-     * - ¡Ì api.goole.com
-     * - ¡Á api.goole.com/services
-     * - ¡Á https://goole.com
-     * @param url
-     * @returns ipÁĞ±í
-     */
-    extern std::vector<std::wstring> getDomainAddress(std::wstring domainName);
-
-    /**
-     * @brief »ñÈ¡hostsÎÄ¼şµÄÂ·¾¶
-     *
-     * @return std::wstring
-     */
-    extern std::wstring getHostsPath();
-
-    /**
-     * @brief Ã¶¾Ù±¾»úTCP v6 µ±Ç°¶Ë¿ÚÁĞ±í
-     *
-     * @return std::vector<chConnectNetTCP>
-     */
-    extern std::vector<chConnectNetTCP> CpEnumConnectNetConnectTCP6();
-
-    /**
-     * @brief Ã¶¾Ù±¾»úTCP v4 µ±Ç°¶Ë¿ÚÁĞ±í
-     *
-     * @return std::vector<chConnectNetTCP>
-     */
-    extern std::vector<chConnectNetTCP> CpEnumConnectNetConnectTCP4();
-
-    /**
-     * @brief Ã¶¾Ù±¾»úUDP v6 µ±Ç°¶Ë¿ÚÁĞ±í
-     *
-     * @return std::vector<chConnectNet>
-     */
-    extern std::vector<chConnectNet> CpEnumConnectNetConnectUDP6();
-
-    /**
-     * @brief Ã¶¾Ù±¾»úUDP v4 µ±Ç°¶Ë¿ÚÁĞ±í
-     *
-     * @return std::vector<chConnectNet>
-     */
-    extern std::vector<chConnectNet> CpEnumConnectNetConnectUDP4();
-
-
-    /**
-     * ¸ñÊ½»¯macµØÖ·
-     */
-    extern std::string FormatMacAddress(const BYTE* address, int length, char joinChar);
-
-    /**
-     * »ñÈ¡macµØÖ·
-     */
-    extern std::vector<std::string> GetMacAddresses(char joinChar);
-
-    /**
-     * ¸ñÊ½»¯macµØÖ·
-     */
-    extern std::string FormatMacAddress(const BYTE* address, int length, char joinChar);
-
-    /**
-     * »ñÈ¡macµØÖ·
-     */
-    extern std::vector<std::string> GetMacAddresses(char joinChar);
-
-    /**
-     * »ñÈ¡macµØÖ·
-     */
-    extern std::vector<std::string> GetMacAddresses();
-
-};
-
-#endif // MODE_INTERNAL_INCLUDE_HMC_SOCK_UTIL_HPP

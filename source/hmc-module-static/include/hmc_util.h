@@ -240,10 +240,7 @@ namespace hmc_util
     public:
         std::vector<std::any> *m_data2;
 
-        anyCastList(std::vector<std::any> *Data)
-        {
-            m_data2 = Data;
-        }
+        anyCastList(std::vector<std::any> *Data);
 
         /**
          * @brief 判断值是否存在
@@ -252,15 +249,8 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool exists(size_t index)
-        {
+        bool exists(size_t index);
 
-            if (m_data2 == NULL || index >= m_data2->size())
-            {
-                return false;
-            }
-            return true;
-        }
         /**
          * @brief 判断值是否存在
          *
@@ -268,24 +258,7 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool exists(size_t index, bool existsValue)
-        {
-
-            if (m_data2 == NULL || index >= m_data2->size())
-            {
-                return false;
-            }
-            if (existsValue)
-            {
-
-                if (m_data2->at(index).has_value())
-                {
-                    return true;
-                }
-                return false;
-            }
-            return true;
-        }
+        bool exists(size_t index, bool existsValue);
 
         /**
          * @brief 取值
@@ -293,14 +266,7 @@ namespace hmc_util
          * @param index
          * @return std::any
          */
-        std::any get(size_t index)
-        {
-            if (m_data2 == NULL || index >= m_data2->size())
-            {
-                return std::any();
-            }
-            return m_data2->at(index);
-        }
+        std::any get(size_t index);
 
         /**
          * @brief 取值
@@ -308,16 +274,7 @@ namespace hmc_util
          * @param index
          * @return std::any
          */
-        std::any get(size_t index, std::any orValue)
-        {
-
-            std::any any_temp = get(index);
-            if (any_temp.has_value())
-            {
-                return any_temp;
-            }
-            return orValue;
-        }
+        std::any get(size_t index, std::any orValue);
 
         /**
          * @brief 删除指定元素
@@ -326,16 +283,7 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool removeIndex(size_t Index)
-        {
-
-            if (m_data2 == NULL || Index >= m_data2->size())
-            {
-                return false;
-            }
-            m_data2->erase(m_data2->begin() + Index);
-            return true;
-        }
+        bool removeIndex(size_t Index);
 
         /**
          * @brief 是否为空
@@ -343,15 +291,7 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool empty()
-        {
-
-            if (m_data2 == NULL || m_data2->empty())
-            {
-                return true;
-            }
-            return false;
-        }
+        bool empty();
 
         /**
          * @brief 让两个位置的元素互换
@@ -361,21 +301,7 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool swap(size_t Index, size_t Index2)
-        {
-
-            if (!m_data2)
-            {
-                return false;
-            }
-
-            if (Index >= m_data2->size() || Index2 >= m_data2->size())
-            {
-                return false;
-            }
-            std::swap(m_data2[Index], m_data2[Index2]);
-            return true;
-        }
+        bool swap(size_t Index, size_t Index2);
 
         /**
          * @brief 替换指定的元素位置
@@ -385,28 +311,31 @@ namespace hmc_util
          * @return true
          * @return false
          */
-        bool replace(size_t Index, std::any value)
-        {
-
-            if (!m_data2 || Index >= m_data2->size())
-            {
-                return false;
-            }
-
-            m_data2->at(Index) = value;
-
-            return true;
-        }
+        bool replace(size_t Index, std::any value);
 
         /**
          * @brief 获取数量
          *
          * @return size_t
          */
-        size_t size()
-        {
-            return m_data2 ? m_data2->size() : 0;
-        }
+        size_t size();
+
+        bool is_wstring(size_t index);
+
+        bool is_string(size_t index);
+
+        bool is_integral(size_t index);
+
+        bool is_floating_point(size_t index);
+
+        const std::type_info & getTypeInfo(size_t index);
+
+        bool diffType(size_t index,const std::type_info &type);
+
+        // bool diffType(size_t index,std::vector<const std::type_info> &type);
+        
+        // bool diffType(std::vector<const std::type_info> &type);
+
     };
 
 }
