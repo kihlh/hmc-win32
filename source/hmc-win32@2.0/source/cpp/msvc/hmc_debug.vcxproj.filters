@@ -39,6 +39,12 @@
     <ClCompile Include="..\export\auto.cpp">
       <Filter>源代码\export</Filter>
     </ClCompile>
+    <ClCompile Include="..\win_delay_load_hook.cc">
+      <Filter>node-gyp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\export\registr.cpp">
+      <Filter>源代码\export</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -48,11 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="hmc_debug.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="C:\Users\kiic\AppData\Roaming\npm\node_modules\node-gyp\src\win_delay_load_hook.cc">
-      <Filter>node-gyp</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\binding.gyp">

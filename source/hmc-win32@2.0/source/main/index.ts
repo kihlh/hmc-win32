@@ -3,6 +3,7 @@ import ShellMain = require("./shell");
 import AutoMain = require("./auto");
 import UtilMain = require("./util");
 import ProcessMain = require("./Process");
+import RegistrMain = require("./registr");
 
 
 interface Native {
@@ -268,10 +269,165 @@ interface Native {
     getProcessName2Sync?(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE): string | null;
     getProcessName2Sync?(pid: number, type?: unknown): unknown;
 
+    GetRegistrEnvInfo?(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]): Promise<unknown>;
+    GetRegistrEnvInfoSync?(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]): unknown;
 }
 
-
 export module HMC2_MODE {
+    /**注册表根目录 */
+    const Hkey = {
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG" as "HKEY_CURRENT_CONFIG",
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_USERS: "HKEY_USERS" as "HKEY_USERS",
+        /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
+        HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT" as "HKEY_CLASSES_ROOT",
+        /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
+        HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE" as "HKEY_LOCAL_MACHINE",
+        /**管理系统当前的用户信息 */
+        HKEY_CURRENT_USER: "HKEY_CURRENT_USER" as "HKEY_CURRENT_USER",
+    };
+
+    // 注册表根目录
+    export type HKEY = keyof typeof Hkey;
+    /**
+     * 注册表格式类型
+     */
+    export enum REG_TYPE {
+        /** 没有值 */
+        REG_NONE = 0,
+
+        /** 以空字符结尾的字符串 */
+        REG_SZ = 1,
+
+        /** 可扩展的字符串（例如环境变量） */
+        REG_EXPAND_SZ = 2,
+
+        /** 原始的二进制数据 */
+        REG_BINARY = 3,
+
+        /** 32位数字，使用小端字节序 */
+        REG_DWORD = 4,
+
+        /** 32位数字，使用小端字节序（与 REG_DWORD 相同） */
+        REG_DWORD_LITTLE_ENDIAN = 4,
+
+        /** 32位数字，使用大端字节序 */
+        REG_DWORD_BIG_ENDIAN = 5,
+
+        /** 符号链接，使用 Unicode 编码 */
+        REG_LINK = 6,
+
+        /** 多个以空字符结尾的 Unicode 字符串 */
+        REG_MULTI_SZ = 7,
+
+        /** 资源列表，存储在资源映射中 */
+        REG_RESOURCE_LIST = 8,
+
+        /** 硬件描述中的资源列表 */
+        REG_FULL_RESOURCE_DESCRIPTOR = 9,
+
+        /** 资源需求列表 */
+        REG_RESOURCE_REQUIREMENTS_LIST = 10,
+
+        /** 64位数字，使用小端字节序 */
+        REG_QWORD = 11,
+
+        /** 64位数字，使用小端字节序（与 REG_QWORD 相同） */
+        REG_QWORD_LITTLE_ENDIAN = 11,
+    }
+
+    export type RegistrValueStat = {
+        /**此值的类型 */
+        type: REG_TYPE;
+        /**内容大小 */
+        size: number;
+        /**此内容是否存在 */
+        exists: boolean;
+    };
+
+    export type RegistrFolderStat = {
+        /**目录键列表 */
+        folder?: string[];
+        /**值键列表 */
+        key?: string[];
+        /**此内容是否存在 */
+        exists: boolean;
+        /**大小 */
+        size: number;
+        /**目录键数量 */
+        folderSize: number;
+        /**该目录下有多少个值键 */
+        keySize: number;
+        /**该目录上次写入的时间戳 毫秒 */
+        time: number;
+    };
+
+    export interface REG_SZ_VALUE {
+        type: 1;
+        typeName: "REG_SZ";
+        data: string;
+        size: number;
+    }
+
+    export interface REG_EXPAND_SZ_VALUE {
+        type: REG_TYPE.REG_EXPAND_SZ;
+        typeName: "REG_EXPAND_SZ";
+        data: string;
+        dataExpand: string;
+        size: number;
+    }
+
+    export interface REG_DWORD_VALUE {
+        type: REG_TYPE.REG_DWORD | REG_TYPE.REG_DWORD_BIG_ENDIAN | REG_TYPE.REG_DWORD_LITTLE_ENDIAN;
+        typeName: "REG_DWORD" | "REG_DWORD_BIG_ENDIAN" | "REG_DWORD_LITTLE_ENDIAN";
+        data: number;
+        size: number;
+    }
+
+    export interface REG_QWORD_VALUE {
+        type: REG_TYPE.REG_QWORD | REG_TYPE.REG_QWORD_LITTLE_ENDIAN;
+        typeName: "REG_QWORD" | "REG_QWORD_LITTLE_ENDIAN";
+        data: bigint;
+        size: number;
+    }
+
+    export interface REG_BINARY_VALUE {
+        type: REG_TYPE.REG_BINARY;
+        typeName: "REG_BINARY";
+        data: Buffer;
+        size: number;
+    }
+
+    export interface REG_MULTI_SZ_VALUE {
+        type: REG_TYPE.REG_MULTI_SZ;
+        typeName: "REG_MULTI_SZ";
+        data: string[];
+        size: number;
+    }
+
+    export interface REG_NONE_VALUE {
+        type: REG_TYPE.REG_NONE;
+        typeName: "REG_NONE";
+        data: null;
+        size: number;
+    }
+
+    export interface REG_ANY_VALUE {
+        type: REG_TYPE.REG_FULL_RESOURCE_DESCRIPTOR | REG_TYPE.REG_LINK | REG_TYPE.REG_NONE | REG_TYPE.REG_RESOURCE_LIST | REG_TYPE.REG_RESOURCE_REQUIREMENTS_LIST;
+        typeName: "REG_FULL_RESOURCE_DESCRIPTOR" | "REG_LINK" | "REG_RESOURCE_LIST" | "REG_RESOURCE_REQUIREMENTS_LIST";
+        data: Buffer;
+        size: number;
+    }
+
+    export type REG_VALUE = REG_SZ_VALUE | REG_EXPAND_SZ_VALUE | REG_DWORD_VALUE | REG_QWORD_VALUE | REG_BINARY_VALUE | REG_MULTI_SZ_VALUE | REG_ANY_VALUE;
+
+    export interface chQueryFolderKey {
+        key: string[];
+        folder: string[];
+        size: number;
+    };
+
 
     export type CLIP_HTML_INFO = {
         /**剪贴板中的 HTML 数据 */
@@ -655,70 +811,62 @@ export module HMC2_MODE {
         GET_FILE_NAME = 8
     };
 
-}
+    export enum ENV_INFO_COMMAND {
+        NONE = 0,
+        // export function getRegistrQword(HKey: HKEY, SubKey: string, key: string | null): bigint | null;
+        GET_REGISTR_QWORD = 70,
+        // export function setRegistrQword(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): boolean;
+        SET_REGISTR_QWORD = 71,
+        // export function getRegistrDword(HKey: HKEY, SubKey: string, key: string | null): number | null;
+        GET_REGISTR_DWORD = 72,
+        // export function setRegistrDword(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): boolean;
+        SET_REGISTR_DWORD = 73,
+        // export function getRegistrString(HKey: HKEY, SubKey: string, key: string | null): string | null;
+        GET_REGISTR_STRING = 74,
+        // export function setRegistrString(HKey: HKEY, SubKey: string, key: string | null, String: string): boolean;
+        SET_REGISTR_STRING = 75,
+        // export function getRegistrKeys(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderKey;
+        GET_REGISTR_KEYS = 76,
+        // export function getRegistrStringList(HKey: HKEY, SubKey: string, key: string | null): string[] | null;
+        GET_REGISTR_STRING_LIST = 77,
+        // export function setRegistrStringList(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): boolean;
+        SET_REGISTR_STRING_LIST = 78,
+        // export function getRegistrBuffer(HKey: HKEY, SubKey: string, key: string | null): Buffer | null;
+        GET_REGISTR_BUFFER = 79,
+        // export function setRegistrBuffer(HKey: HKEY, SubKey: string, key: string | null, String: Buffer): boolean;
+        SET_REGISTR_BUFFER = 710,
+        // export function getRegistrValue(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null;
+        GET_REGISTR_VALUE = 711,
+        // export function copyRegistrValue(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): boolean;
+        COPY_REGISTR_VALUE = 712,
+        // export function copyRegistrFolder(HKey: HKEY, SourceSubKey: string, NewSubKey: string): boolean;
+        COPY_REGISTR_FOLDER = 713,
+        // export function setRegistrValue(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean;
+        SET_REGISTR_VALUE = 714,
+        // export function getRegistrValueStat(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat;
+        GET_REGISTR_VALUE_STAT = 715,
+        // export function getRegistrFolderStat(HKey: HKEY, SubKey: string, key: string | null): RegistrFolderStat;
+        GET_REGISTR_FOLDER_STAT = 716,
+        // export function clearRegistrValue(HKey: HKEY, SubKey: string, key: string | null): boolean;
+        CLEAR_REGISTR_VALUE = 717,
+        // export function clearRegistrFolder(HKey: HKEY, SubKey: string, key: string | null): boolean;
+        CLEAR_REGISTR_FOLDER = 718,
+        // export function removeRegistrValue(HKey: HKEY, SubKey: string, key: string | null): boolean;
+        REMOVE_REGISTR_VALUE = 719,
+        // export function removeRegistrFolder(HKey: HKEY, SubKey: string): boolean;
+        REMOVE_REGISTR_FOLDER = 720,
+        // export function removeRegistrFolderTree(HKey: HKEY, SubKey: string): boolean;
+        REMOVE_REGISTR_FOLDER_TREE = 721,
+        // export function createRegistrFolder(HKey: HKEY, SubKey: string): boolean;
+        CREATE_REGISTR_FOLDER = 722,
+        // export function createRegistrValueKey(HKey: HKEY, SubKey: string, key: string | string[]): boolean;
+        CREATE_REGISTR_VALUE_KEY = 723,
+        // export function hasRegistrKey(HKey: HKEY, SubKey: string, key: string | null): boolean;
+        HAS_REGISTR_KEY = 724,
+        // export function hasRegistrFolderKey(HKey: HKEY, SubKey: string): boolean;
+        HAS_REGISTR_FOLDER_KEY = 725,
+    };
 
-class HMC2_Native {
-
-    _BinPath = "";
-    _Native: Native = {};
-    _Loaded = false;
-
-    constructor(binPath?: string) {
-
-        if (binPath) {
-            this._BinPath = binPath;
-            return;
-        }
-
-        if (process.arch.match(/^(x32|ia32)$/)) {
-            this._BinPath = "./bin/HMC@Beta_x86.node";
-        }
-
-        if (process.arch.match(/^x64$/)) {
-            this._BinPath = "./bin/HMC@Beta_x64.node";
-        }
-
-    }
-
-    private LoadNodeBin() {
-        try {
-
-            // Debug 环境带入
-            if (process.env) {
-                if (process.env.USERNAME == "kiic" && process.env.msvc_dir && process.env.mode) {
-                    this._BinPath = process.env.mode;
-                    this._Native = require(this._BinPath);
-                    return;
-                }
-            }
-
-            if (this._BinPath) {
-                this._Native = require(this._BinPath);
-                return;
-            } else {
-
-                if (process.arch.match(/^(x32|ia32)$/)) {
-                    return require("./bin/HMC@Beta_x86.node");
-                }
-
-                if (process.arch.match(/^x64$/)) {
-                    return require("./bin/HMC@Beta_x64.node");
-                }
-
-            }
-
-        } catch (s_O) { }
-    }
-
-    get native(): Native {
-
-        if (!this._Loaded) {
-            this.LoadNodeBin();
-            this._Loaded = true;
-        }
-
-        return this._Native;
-    }
 
 }
 
@@ -793,19 +941,21 @@ export const Native = (() => {
 
 export const { ref } = UtilMain;
 
-
+// 键鼠/自动化相关
 export const Auto = AutoMain;
-
 
 // 启动项管理
 export const Startup = ShellMain.Shell.Startup;
 
-// win32 shell api
+// win32 shell(壳) api 继承
 export const Shell = ShellMain.Shell;
 
 // 进程操作功能集
 export const Process = ProcessMain.Process;
-export const {Sleep,sleep} = Process;
+export const { Sleep, sleep } = Process;
+
+//注册表编辑合集
+export const Registr = RegistrMain.Registr;
 
 export module Window {
 

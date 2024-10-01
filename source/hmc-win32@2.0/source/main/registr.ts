@@ -1,166 +1,20 @@
-//注册表编辑合集   (拥有统一化名称)
+import util = require("./util");
+import main = require("./index");
+import { HMC2_MODE } from "./index";
+
+
+//注册表编辑合集
 export module Registr {
 
-    /**注册表根目录 */
-    const Hkey = {
-        /**用作默认用户首选设置|也作为单个用户的首选设置 */
-        HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG" as "HKEY_CURRENT_CONFIG",
-        /**用作默认用户首选设置|也作为单个用户的首选设置 */
-        HKEY_USERS: "HKEY_USERS" as "HKEY_USERS",
-        /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
-        HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT" as "HKEY_CLASSES_ROOT",
-        /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
-        HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE" as "HKEY_LOCAL_MACHINE",
-        /**管理系统当前的用户信息 */
-        HKEY_CURRENT_USER: "HKEY_CURRENT_USER" as "HKEY_CURRENT_USER",
-    };
-
-    // 注册表根目录
-    export type HKEY = keyof typeof Hkey;
+    export type HKEY = HMC2_MODE.HKEY;
+    export type chQueryFolderKey = HMC2_MODE.chQueryFolderKey;
+    export type REG_VALUE = HMC2_MODE.REG_VALUE;
+    export type RegistrValueStat = HMC2_MODE.RegistrValueStat;
+    export type RegistrFolderStat = HMC2_MODE.RegistrFolderStat;
+    const { ref } = util;
 
     /**
-     * 注册表格式类型
-     */
-    export enum REG_TYPE {
-        /** 没有值 */
-        REG_NONE = 0,
-
-        /** 以空字符结尾的字符串 */
-        REG_SZ = 1,
-
-        /** 可扩展的字符串（例如环境变量） */
-        REG_EXPAND_SZ = 2,
-
-        /** 原始的二进制数据 */
-        REG_BINARY = 3,
-
-        /** 32位数字，使用小端字节序 */
-        REG_DWORD = 4,
-
-        /** 32位数字，使用小端字节序（与 REG_DWORD 相同） */
-        REG_DWORD_LITTLE_ENDIAN = 4,
-
-        /** 32位数字，使用大端字节序 */
-        REG_DWORD_BIG_ENDIAN = 5,
-
-        /** 符号链接，使用 Unicode 编码 */
-        REG_LINK = 6,
-
-        /** 多个以空字符结尾的 Unicode 字符串 */
-        REG_MULTI_SZ = 7,
-
-        /** 资源列表，存储在资源映射中 */
-        REG_RESOURCE_LIST = 8,
-
-        /** 硬件描述中的资源列表 */
-        REG_FULL_RESOURCE_DESCRIPTOR = 9,
-
-        /** 资源需求列表 */
-        REG_RESOURCE_REQUIREMENTS_LIST = 10,
-
-        /** 64位数字，使用小端字节序 */
-        REG_QWORD = 11,
-
-        /** 64位数字，使用小端字节序（与 REG_QWORD 相同） */
-        REG_QWORD_LITTLE_ENDIAN = 11,
-    }
-
-
-    export type RegistrValueStat = {
-        /**此值的类型 */
-        type: REG_TYPE;
-        /**内容大小 */
-        size: number;
-        /**此内容是否存在 */
-        exists: boolean;
-    };
-
-    export type RegistrFolderStat = {
-        /**目录键列表 */
-        folder?: string[];
-        /**值键列表 */
-        key?: string[];
-        /**此内容是否存在 */
-        exists: boolean;
-        /**大小 */
-        size: number;
-        /**目录键数量 */
-        folderSize: number;
-        /**该目录下有多少个值键 */
-        keySize: number;
-        /**该目录上次写入的时间戳 毫秒 */
-        time: number;
-    };
-
-    export interface REG_SZ_VALUE {
-        type: 1;
-        typeName: "REG_SZ";
-        data: string;
-        size: number;
-    }
-
-    export interface REG_EXPAND_SZ_VALUE {
-        type: REG_TYPE.REG_EXPAND_SZ;
-        typeName: "REG_EXPAND_SZ";
-        data: string;
-        dataExpand: string;
-        size: number;
-    }
-
-    export interface REG_DWORD_VALUE {
-        type: REG_TYPE.REG_DWORD | REG_TYPE.REG_DWORD_BIG_ENDIAN | REG_TYPE.REG_DWORD_LITTLE_ENDIAN;
-        typeName: "REG_DWORD" | "REG_DWORD_BIG_ENDIAN" | "REG_DWORD_LITTLE_ENDIAN";
-        data: number;
-        size: number;
-    }
-
-    export interface REG_QWORD_VALUE {
-        type: REG_TYPE.REG_QWORD | REG_TYPE.REG_QWORD_LITTLE_ENDIAN;
-        typeName: "REG_QWORD" | "REG_QWORD_LITTLE_ENDIAN";
-        data: bigint;
-        size: number;
-    }
-
-    export interface REG_BINARY_VALUE {
-        type: REG_TYPE.REG_BINARY;
-        typeName: "REG_BINARY";
-        data: Buffer;
-        size: number;
-    }
-
-    export interface REG_MULTI_SZ_VALUE {
-        type: REG_TYPE.REG_MULTI_SZ;
-        typeName: "REG_MULTI_SZ";
-        data: string[];
-        size: number;
-    }
-
-
-    export interface REG_NONE_VALUE {
-        type: REG_TYPE.REG_NONE;
-        typeName: "REG_NONE";
-        data: null;
-        size: number;
-    }
-
-    export interface REG_ANY_VALUE {
-        type: REG_TYPE.REG_FULL_RESOURCE_DESCRIPTOR | REG_TYPE.REG_LINK | REG_TYPE.REG_NONE | REG_TYPE.REG_RESOURCE_LIST | REG_TYPE.REG_RESOURCE_REQUIREMENTS_LIST;
-        typeName: "REG_FULL_RESOURCE_DESCRIPTOR" | "REG_LINK" | "REG_RESOURCE_LIST" | "REG_RESOURCE_REQUIREMENTS_LIST";
-        data: Buffer;
-        size: number;
-    }
-
-    export type REG_VALUE = REG_SZ_VALUE | REG_EXPAND_SZ_VALUE | REG_DWORD_VALUE | REG_QWORD_VALUE | REG_BINARY_VALUE | REG_MULTI_SZ_VALUE | REG_ANY_VALUE;
-
-    export interface chQueryFolderKey {
-        key: string[];
-        folder: string[];
-        size: number;
-    };
-
-
-    /**
-     * 获取内容(64位数字)
+     * `异步` 获取内容(64位数字)
      * @param HKEY 根路径
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -172,10 +26,26 @@ export module Registr {
      * @time 0.06787109375 ms
      * @returns
      */
-    export function getRegistrQword(HKey: HKEY, SubKey: string, key: string | null): bigint | null;
+    export async function getRegistrQword2(HKey: HKEY, SubKey: string, key: string | null): Promise<bigint | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+
+            return BigInt(data);
+        }
+
+        return null;
+    }
 
     /**
-     * 设置内容(64位数字)
+     * `异步` 设置内容(64位数字)
      * @param HKEY 根路径
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -186,10 +56,20 @@ export module Registr {
      * @param key 键名称  `""` `null` 将作为默认key
      * @param Qword 64位数字，接受 `bigint` 或 `number` 类型
      */
-    export function setRegistrQword(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): boolean;
+    export async function setRegistrQword2(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.int(Qword || 0));
+        return ref.bool(data);
+    }
 
     /**
-     * 获取内容(32位数字)
+     * `异步` 获取内容(32位数字)
      * @param HKEY 根路径
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -199,10 +79,26 @@ export module Registr {
      * @param SubKey 路径 类似于如同目录路径概念
      * @param key 键名称  `""` `null` 将作为默认key
      */
-    export function getRegistrDword(HKey: HKEY, SubKey: string, key: string | null): number | null;
+    export async function getRegistrDword2(HKey: HKEY, SubKey: string, key: string | null): Promise<number | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+
+            return ref.long(data);
+        }
+
+        return null;
+    }
 
     /**
-     * 设置内容(32位数字)
+     * `异步` 设置内容(32位数字)
      * @param HKEY 根路径
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -213,10 +109,21 @@ export module Registr {
      * @param key 键名称  `""` `null` 将作为默认key
      * @param Dword 32位数字，接受 `bigint` 或 `number` 类型
      */
-    export function setRegistrDword(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): boolean;
+    export async function setRegistrDword2(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.long(Dword)
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 获取注册表字符串值
+     * `异步` 获取注册表字符串值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -226,10 +133,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrString(HKey: HKEY, SubKey: string, key: string | null): string | null;
+    export async function getRegistrString2(HKey: HKEY, SubKey: string, key: string | null): Promise<string | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return typeof data == "string" ? data : null;
+    }
 
     /**
-     * 设置注册表字符串值
+     * `异步` 设置注册表字符串值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -240,10 +157,21 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param String - 要设置的字符串值
      */
-    export function setRegistrString(HKey: HKEY, SubKey: string, key: string | null, String: string): boolean;
+    export async function setRegistrString2(HKey: HKEY, SubKey: string, key: string | null, String: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.string(String || "")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 枚举注册表目录的所有键
+     * `异步` 枚举注册表目录的所有键
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -253,10 +181,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrKeys(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderKey;
+    export async function getRegistrKeys2(HKey: HKEY, SubKey: string, key: string | null): Promise<chQueryFolderKey | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) as chQueryFolderKey : null;
+    }
 
     /**
-     * 获取注册表字符串值列表
+     * `异步` 获取注册表字符串值列表
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -266,10 +204,38 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrStringList(HKey: HKEY, SubKey: string, key: string | null): string[] | null;
+    export async function getRegistrStringList2(HKey: HKEY, SubKey: string, key: string | null): Promise<string[] | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "string") {
+
+            if (data[0] == "[") {
+                return JSON.parse(data);
+            }
+
+            if (data.includes('\0')) {
+                const temp = data.split(/\0+/);
+
+                if (temp.at(-1) == "") {
+                    temp.pop();
+                }
+
+                return temp;
+            }
+        }
+
+        return Array.isArray(data) ? data : null;
+    }
 
     /**
-     * 设置注册表字符串值列表
+     * `异步` 设置注册表字符串值列表
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -280,10 +246,21 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param StringList - 要设置的字符串值列表
      */
-    export function setRegistrStringList(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): boolean;
+    export async function setRegistrStringList2(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            Array.isArray(StringList)?StringList:"\0\0"
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 获取注册表缓冲区值
+     * `异步` 获取注册表缓冲区值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -293,10 +270,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrBuffer(HKey: HKEY, SubKey: string, key: string | null): Buffer | null;
+    export async function getRegistrBuffer2(HKey: HKEY, SubKey: string, key: string | null): Promise<Buffer | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return Buffer.isBuffer(data) ? data : null;
+    }
 
     /**
-     * 设置注册表缓冲区值
+     * `异步` 设置注册表缓冲区值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -307,10 +294,21 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param String - 要设置的缓冲区值
      */
-    export function setRegistrBuffer(HKey: HKEY, SubKey: string, key: string | null, String: Buffer): boolean;
+    export async function setRegistrBuffer2(HKey: HKEY, SubKey: string, key: string | null, Buff: Buffer): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            Buff
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 获取注册表值
+     * `异步` 获取注册表值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -320,10 +318,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrValue(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null;
+    export async function getRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<REG_VALUE | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? data as REG_VALUE : null;
+    }
 
     /**
-     * 复制注册表值
+     * `异步` 复制注册表值
      * @param HKey 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -335,10 +343,23 @@ export module Registr {
      * @param NewSubKey 新子键路径
      * @param Newkey 新取值的键名
      */
-    export function copyRegistrValue(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): boolean;
+    export async function copyRegistrValue2(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SourceSubKey),
+            ref.string(Sourcekey || ""),
+            ref.string(NewSubKey || ""),
+            ref.string(Newkey || "")
+        );
+
+        return ref.bool(data);
+    }
 
     /**
-     * 复制注册表 目录
+     * `异步` 复制注册表 目录
      * @param HKey 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -348,10 +369,20 @@ export module Registr {
      * @param SourceSubKey 源路径
      * @param NewSubKey 新路径
      */
-    export function copyRegistrFolder(HKey: HKEY, SourceSubKey: string, NewSubKey: string): boolean;
+    export async function copyRegistrFolder2(HKey: HKEY, SourceSubKey: string, NewSubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SourceSubKey),
+            ref.string(NewSubKey || "")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 设置注册表值
+     * `异步` 设置注册表值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -362,10 +393,21 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param data - 要设置的注册表值
      */
-    export function setRegistrValue(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean;
+    export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data_2 = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            data
+        );
+        return ref.bool(data_2);
+    }
 
     /**
-     * 获取注册表值状态
+     * `异步` 获取注册表值状态
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -375,10 +417,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrValueStat(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat;
+    export async function getRegistrValueStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<RegistrValueStat | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+    }
 
     /**
-     * 获取注册表文件夹状态
+     * `异步` 获取注册表文件夹状态
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -388,10 +440,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrFolderStat(HKey: HKEY, SubKey: string, key: string | null): RegistrFolderStat;
+    export async function getRegistrFolderStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<RegistrFolderStat | null> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+    }
 
     /**
-     * 清除注册表值
+     * `异步` 清除注册表值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -401,10 +463,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function clearRegistrValue(HKey: HKEY, SubKey: string, key: string | null): boolean;
+    export async function clearRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 清除注册表文件夹
+     * `异步` 清除注册表文件夹
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -414,10 +486,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function clearRegistrFolder(HKey: HKEY, SubKey: string, key: string | null): boolean;
+    export async function clearRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string("")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 删除注册表值
+     * `异步` 删除注册表值
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -427,10 +509,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function removeRegistrValue(HKey: HKEY, SubKey: string, key: string | null): boolean;
+    export async function removeRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 删除注册表文件夹
+     * `异步` 删除注册表文件夹
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -439,10 +531,19 @@ export module Registr {
      * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
      * @param SubKey - 子键路径
      */
-    export function removeRegistrFolder(HKey: HKEY, SubKey: string): boolean;
+    export async function removeRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 删除注册表文件夹树
+     * `异步` 删除注册表文件夹树
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -451,10 +552,19 @@ export module Registr {
      * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
      * @param SubKey - 子键路径
      */
-    export function removeRegistrFolderTree(HKey: HKEY, SubKey: string): boolean;
+    export async function removeRegistrFolderTree2(HKey: HKEY, SubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 创建注册表文件夹
+     * `异步` 创建注册表文件夹
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -463,10 +573,19 @@ export module Registr {
      * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
      * @param folderPath - 要创建的文件夹路径
      */
-    export function createRegistrFolder(HKey: HKEY, SubKey: string): boolean;
+    export async function createRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 创建注册表值键
+     * `异步` 创建注册表值键
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -476,10 +595,20 @@ export module Registr {
      * @param folderPath - 要创建值键的文件夹路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function createRegistrValueKey(HKey: HKEY, SubKey: string, key: string | string[]): boolean;
+    export async function createRegistrValueKey2(HKey: HKEY, SubKey: string, key: string | string[]): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
 
     /**
-     * 判断注册表 键值 存在性
+     * `异步` 判断注册表 键值 存在性
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -489,10 +618,20 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function hasRegistrKey(HKey: HKEY, SubKey: string, key: string | null): boolean;
-    
+    export async function hasRegistrKey2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
     /**
-     * 判断注册表 目录 存在性
+     * `异步` 判断注册表 目录 存在性
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -501,5 +640,650 @@ export module Registr {
      * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
      * @param SubKey - 子键路径
      */
-    export function hasRegistrFolderKey(HKey: HKEY, SubKey: string): boolean;
+    export async function hasRegistrFolderKey2(HKey: HKEY, SubKey: string): Promise<boolean> {
+        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey));
+        return ref.bool(data);
+    }
+
+    /**
+ * `同步` 获取内容(64位数字)
+ * @param HKEY 根路径
+ * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+ * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+ * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+ * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+ * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+ * @param SubKey 路径 类似于如同目录路径概念
+ * @param key 键名称  `""` `null` 将作为默认key
+ * @time 0.06787109375 ms
+ * @returns
+ */
+    export function getRegistrQword2Sync(HKey: HKEY, SubKey: string, key: string | null): bigint | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+
+            return BigInt(data);
+        }
+
+        return null;
+    }
+
+    /**
+     * `同步` 设置内容(64位数字)
+     * @param HKEY 根路径
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey 路径 类似于如同目录路径概念
+     * @param key 键名称  `""` `null` 将作为默认key
+     * @param Qword 64位数字，接受 `bigint` 或 `number` 类型
+     */
+    export function setRegistrQword2Sync(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.int(Qword || 0));
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 获取内容(32位数字)
+     * @param HKEY 根路径
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey 路径 类似于如同目录路径概念
+     * @param key 键名称  `""` `null` 将作为默认key
+     */
+    export function getRegistrDword2Sync(HKey: HKEY, SubKey: string, key: string | null): number | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+
+            return ref.long(data);
+        }
+
+        return null;
+    }
+
+    /**
+     * `同步` 设置内容(32位数字)
+     * @param HKEY 根路径
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey 路径 类似于如同目录路径概念
+     * @param key 键名称  `""` `null` 将作为默认key
+     * @param Dword 32位数字，接受 `bigint` 或 `number` 类型
+     */
+    export function setRegistrDword2Sync(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.long(Dword)
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 获取注册表字符串值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null): string | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return typeof data == "string" ? data : null;
+    }
+
+    /**
+     * `同步` 设置注册表字符串值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     * @param String - 要设置的字符串值
+     */
+    export function setRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null, String: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            ref.string(String || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 枚举注册表目录的所有键
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrKeys2Sync(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderKey | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+    }
+
+    /**
+     * `同步` 获取注册表字符串值列表
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrStringList2Sync(HKey: HKEY, SubKey: string, key: string | null): string[] | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+
+        if (typeof data == "string") {
+
+            if (data[0] == "[") {
+                return JSON.parse(data);
+            }
+
+            if (data.includes('\0')) {
+                const temp = data.split(/\0+/);
+
+                if (temp.at(-1) == "") {
+                    temp.pop();
+                }
+
+                return temp;
+            }
+        }
+
+        return Array.isArray(data) ? data : null;
+    }
+
+    /**
+     * `同步` 设置注册表字符串值列表
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     * @param StringList - 要设置的字符串值列表
+     */
+    export function setRegistrStringList2Sync(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 获取注册表缓冲区值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrBuffer2Sync(HKey: HKEY, SubKey: string, key: string | null): Buffer | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return Buffer.isBuffer(data) ? data : null;
+    }
+
+    /**
+     * `同步` 设置注册表缓冲区值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     * @param String - 要设置的缓冲区值
+     */
+    export function setRegistrBuffer2Sync(HKey: HKEY, SubKey: string, key: string | null, Buff: Buffer): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            Buff
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 获取注册表值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? data as REG_VALUE : null;
+    }
+
+    /**
+     * `同步` 复制注册表值
+     * @param HKey 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SourceSubKey 源子键路径
+     * @param Sourcekey 源取值的键名
+     * @param NewSubKey 新子键路径
+     * @param Newkey 新取值的键名
+     */
+    export function copyRegistrValue2Sync(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SourceSubKey),
+            ref.string(Sourcekey || ""),
+            ref.string(NewSubKey || ""),
+            ref.string(Newkey || "")
+        );
+
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 复制注册表 目录
+     * @param HKey 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SourceSubKey 源路径
+     * @param NewSubKey 新路径
+     */
+    export function copyRegistrFolder2Sync(HKey: HKEY, SourceSubKey: string, NewSubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SourceSubKey),
+            ref.string(NewSubKey || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 设置注册表值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     * @param data - 要设置的注册表值
+     */
+    export function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data_2 = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || ""),
+            data
+        );
+        return ref.bool(data_2);
+    }
+
+    /**
+     * `同步` 获取注册表值状态
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrValueStat2Sync(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+    }
+
+    /**
+     * `同步` 获取注册表文件夹状态
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function getRegistrFolderStat2Sync(HKey: HKEY, SubKey: string, key: string | null): RegistrFolderStat | null {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return null;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+    }
+
+    /**
+     * `同步` 清除注册表值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function clearRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 清除注册表文件夹
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function clearRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string("")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 删除注册表值
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function removeRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 删除注册表文件夹
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     */
+    export function removeRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 删除注册表文件夹树
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     */
+    export function removeRegistrFolderTree2Sync(HKey: HKEY, SubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 创建注册表文件夹
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param folderPath - 要创建的文件夹路径
+     */
+    export function createRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey)
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 创建注册表值键
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param folderPath - 要创建值键的文件夹路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function createRegistrValueKey2Sync(HKey: HKEY, SubKey: string, key: string | string[]): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 判断注册表 键值 存在性
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     * @param key - 键名 允许 `null` or `""` 将作为默认key
+     */
+    export function hasRegistrKey2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey),
+            ref.string(key || "")
+        );
+        return ref.bool(data);
+    }
+
+    /**
+     * `同步` 判断注册表 目录 存在性
+     * @param HKey - 注册表的根键
+     * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
+     * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
+     * - `HKEY_LOCAL_MACHINE`   包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息
+     * - `HKEY_USERS`   用作默认用户首选设置，也作为单个用户的首选设置
+     * - `HKEY_CURRENT_CONFIG`   用作默认用户首选设置，也作为单个用户的首选设置
+     * @param SubKey - 子键路径
+     */
+    export function hasRegistrFolderKey2Sync(HKey: HKEY, SubKey: string): boolean {
+        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!GetRegistrEnvInfoSync) return false;
+        const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+            ref.string(HKey) as HKEY,
+            ref.string(SubKey));
+        return ref.bool(data);
+    }
+
 };

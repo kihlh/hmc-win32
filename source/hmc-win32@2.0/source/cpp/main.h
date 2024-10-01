@@ -4,9 +4,10 @@
 #ifndef MODE_INTERNAL_INCLUDE_HMC_MAIN_V2_H
 #define MODE_INTERNAL_INCLUDE_HMC_MAIN_V2_H
 
+#include "hmc_napi_value_util.h"
+
 // 开启实验性功能 比如异步(多线程)
 #define NAPI_EXPERIMENTAL
-#include <node_api.h>
 
 // 导出一个其他cpp中的模块
 #define DECLARE_NAPI_METHODRM(name, func)                         \
