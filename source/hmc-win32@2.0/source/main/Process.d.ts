@@ -1,25 +1,35 @@
 import { HMC2_MODE } from "./index";
 export declare module Process {
     /**
-     * 读取指定进程的工作目录  `Async(异步)`
-     * @param ProcessID 进程id
+     * 获取指定进程的工作目录
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * !此功能需要读取进程内存
+     * @module 异步async
      * @returns
      */
     function getProcessCwdPath2(ProcessID: number): Promise<null | string>;
     /**
-     * 读取指定进程的工作目录  `Sync(同步)`
-     * @param ProcessID 进程id
+     * 获取指定进程的工作目录
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * !此功能需要读取进程内存
+     * @module 同步Sync
      * @returns
      */
     function getProcessCwdPath2Sync(ProcessID: number): null | string;
     /**
      * 读取指定进程的启动命令行  `Async(异步)`
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * ?此功能在win8及以下系统 需要读取进程内存
+     * @module 异步async
      * @param ProcessID 进程id
      * @returns
      */
     function getProcessCommandLine2(ProcessID: number): Promise<null | string>;
     /**
      * 读取指定进程的启动命令行  `Sync(同步)`
+     * @dosc 由于跨进程权限问题 不保证获取得到
+     * ?此功能在win8及以下系统 需要读取进程内存
+     * @module 同步Sync
      * @param ProcessID 进程id
      * @returns
      */
@@ -224,4 +234,68 @@ export declare module Process {
     function getProcessName2Sync(pid: number): string | null;
     function getProcessName2Sync(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII): string[];
     function getProcessName2Sync(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE): string | null;
+    /**
+     * 获取指定进程的可执行文件路径
+     * @param pid 进程id
+     * @param isEnumListExists 是否必须出现在进程列表中的
+     * @default false
+     * @param isSnapshotName 获取失败时获取进程名称
+     * @default false
+     */
+    function getProcessFilePath2(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): Promise<string | null>;
+    /**
+     * 获取指定进程的可执行文件路径
+     * @param pid 进程id
+     * @param isEnumListExists 是否必须出现在进程列表中的
+     * @default false
+     * @param isSnapshotName 获取失败时获取进程名称
+     * @default false
+     */
+    function getProcessFilePath2Sync(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): string | null;
+    /**
+     * 获取匹配进程的 父进程信息
+     * @param Process 需要被搜索的子进程 名称/pid/正则名称
+     * @returns
+     */
+    function getProcessParentProcessMatch2(Process: string | RegExp): Promise<Array<HMC2_MODE.PROCESSENTRY>>;
+    function getProcessParentProcessMatch2(Process: number): Promise<HMC2_MODE.PROCESSENTRY>;
+    /**
+     * 获取匹配进程的 父进程信息
+     * @param Process 需要被搜索的子进程 名称/pid/正则名称
+     * @returns
+     */
+    function getProcessParentProcessMatch2Sync(Process: string | RegExp): Array<HMC2_MODE.PROCESSENTRY>;
+    function getProcessParentProcessMatch2Sync(Process: number): HMC2_MODE.PROCESSENTRY | null;
+    /**
+     * 按照名称搜索进程
+     * @param ProcessName
+     * @returns
+     */
+    function findProcess2(ProcessName: string | RegExp | number): Promise<{
+        pid: number;
+        name: string | null;
+        path: string | null;
+    }[]>;
+    /**
+     * 按照名称搜索进程
+     * @param ProcessName
+     * @returns
+     */
+    function findProcess2Sync(ProcessName: string | RegExp | number): Array<{
+        pid: number;
+        name: string;
+        path: string;
+    }>;
+    /**
+    * `Sync` 同步阻塞(进程)
+    * @param awaitTime
+    * @returns
+    */
+    function sleep(awaitTime: number): string | null;
+    /**
+     * `async` 异步阻塞(进程)
+     * @param awaitTime
+     * @returns
+     */
+    function Sleep(awaitTime: number, Sync?: boolean): Promise<unknown>;
 }

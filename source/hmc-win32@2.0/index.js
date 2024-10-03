@@ -140,63 +140,70 @@ var util_exports = {};
 __export(util_exports, {
   ref: () => ref
 });
-var path, ref;
+var _path, ref;
 var init_util = __esm({
   "source/hmc-win32@2.0/source/main/util.ts"() {
     "use strict";
-    path = require("path");
-    ref = {
-      /**
-      * 将内容格式化为文本路径
-      * @param Str
-      * @returns
-      */
-      path(Str) {
-        return path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, "\0");
-      },
-      /**
-       * 格式化为bool
-       * @param bool
-       * @returns
-       */
-      bool(bool) {
-        if (typeof bool == "string") {
-          const TEMP = bool.toUpperCase();
+    _path = require("path");
+    ((ref6) => {
+      function path(Str) {
+        return _path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, "\0");
+      }
+      ref6.path = path;
+      function bool(bool2) {
+        if (bool2 && typeof bool2 == "string") {
+          const TEMP = bool2.toUpperCase();
           if (TEMP == "0" || TEMP == "FALSE" || TEMP == "NULL" || TEMP == "NONE") {
             return false;
           }
           return true;
         }
-        return bool ? true : false;
-      },
-      /**
-       * 将内容格式化为文本
-       * @param Str
-       * @returns
-       */
-      string(Str) {
+        return bool2 ? true : false;
+      }
+      ref6.bool = bool;
+      function string(Str) {
+        if (!Str && typeof Str == "object") {
+          return "null";
+        }
+        if (typeof Str == "object" && Str instanceof String) {
+          Str = (Str == null ? void 0 : Str.toString()) || String(Str);
+          return Str;
+        }
+        if (typeof Str == "object" || Array.isArray(Str)) {
+          try {
+            return JSON.stringify(Str);
+          } catch (error) {
+            return String(Str);
+          }
+        }
+        if (typeof Str == "number") {
+          Str = String(Str);
+          return Str;
+        }
+        if (typeof Str == "boolean") {
+          Str = Str ? "true" : "false";
+          return Str;
+        }
         return String(Str || "");
-      },
-      /**
-       * 格式化数字为float(强制) 浮点
-       * @param Num
-       * @returns
-       */
-      float(Num) {
+      }
+      ref6.string = string;
+      function float(Num) {
         if (!Num)
           return 0;
         if (typeof Num == "object" && Num instanceof Number) {
           Num = Num == null ? void 0 : Num.valueOf();
         }
+        const MAX_VALUE = Math.pow(2, 31);
+        const MIN_VALUE = -Math.pow(2, 31);
         if (typeof Num == "string") {
           Num = parseFloat(Num);
           if (isNaN(Num))
             return 0;
-          if (Num >= Infinity) {
-            Num = 1e15;
+          if (Num >= MAX_VALUE) {
+            Num = parseFloat(string(MAX_VALUE - 1) + ".999");
           }
-          if (Num <= -Infinity) {
-            Num = -1e15;
+          if (Num <= MIN_VALUE) {
+            Num = parseFloat(string(MIN_VALUE) + ".999");
           }
           return Num;
         }
@@ -206,24 +213,23 @@ var init_util = __esm({
           Num = 1;
         if (!Num && typeof Num == "boolean")
           Num = 0;
-        if (Num >= Infinity) {
-          Num = 1e15;
+        if (Num >= MAX_VALUE) {
+          Num = parseFloat(string(MAX_VALUE - 1) + ".999");
         }
-        if (Num <= -Infinity) {
-          Num = -1e15;
+        if (Num <= MIN_VALUE) {
+          Num = parseFloat(string(MIN_VALUE) + ".999");
         }
         return Num;
-      },
-      /**
-       * 格式化数字为int(强制) 取整
-       * @param Num
-       * @returns
-       */
-      int(Num) {
+      }
+      ref6.float = float;
+      function int(Num) {
         if (!Num)
           return 0;
         if (typeof Num == "object" && Num instanceof Number) {
           Num = Num == null ? void 0 : Num.valueOf();
+        }
+        if (typeof Num == "bigint") {
+          Num = Number(Num);
         }
         Num = Math.trunc(Num + 0);
         if (typeof Num == "number" && !isNaN(Num))
@@ -232,59 +238,105 @@ var init_util = __esm({
           Num = 1;
         if (!Num && typeof Num == "boolean")
           Num = 0;
-        if (Num >= Infinity) {
-          Num = 999999999999999;
+        const MAX_VALUE = Math.pow(2, 31);
+        const MIN_VALUE = -Math.pow(2, 31);
+        if (Num >= MAX_VALUE) {
+          Num = MAX_VALUE - 1;
         }
-        if (Num <= -Infinity) {
-          Num = -999999999999999;
+        if (Num <= MIN_VALUE) {
+          Num = MIN_VALUE;
         }
         return Num;
-      },
-      /**
-       * 文本数组
-       * @param array 
-       * @returns 
-       */
-      stringArray(array) {
+      }
+      ref6.int = int;
+      function long(Num) {
+        if (!Num)
+          return 0;
+        if (typeof Num == "object" && Num instanceof Number) {
+          Num = Num == null ? void 0 : Num.valueOf();
+        }
+        if (typeof Num == "bigint") {
+          Num = Number(Num);
+        }
+        Num = Math.trunc(Num + 0);
+        if (typeof Num == "number" && !isNaN(Num))
+          return Num;
+        if (Num && typeof Num == "boolean")
+          Num = 1;
+        if (!Num && typeof Num == "boolean")
+          Num = 0;
+        const MAX_VALUE = Math.pow(2, 63);
+        const MIN_VALUE = -Math.pow(2, 63);
+        if (Num >= MAX_VALUE) {
+          Num = MAX_VALUE - 1;
+        }
+        if (Num <= MIN_VALUE) {
+          Num = MIN_VALUE;
+        }
+        return Num;
+      }
+      ref6.long = long;
+      function stringArray(array) {
         let dataList = [];
         if (Array.isArray(array)) {
           for (let index = 0; index < array.length; index++) {
             const cout = array[index];
-            dataList.push(this.string(cout));
+            dataList.push(string(cout));
           }
         }
         if (array instanceof Set) {
           for (const cout of array) {
-            dataList.push(this.string(cout));
+            dataList.push(string(cout));
           }
         }
         return dataList;
-      },
-      /**
-       * 文本数组
-       * @param array 
-       * @returns 
-       */
-      intArray(array) {
+      }
+      ref6.stringArray = stringArray;
+      function convertMultiStringArray(input) {
+        if (typeof input == "string") {
+          const temp = input.replace(/[\0]+$/, "").split("\0");
+          for (let index = 0; index < 2; index++) {
+            if (temp.at(-1)) {
+              return temp;
+            }
+            temp && temp.pop();
+          }
+        }
+        if (Array.isArray(input)) {
+          let temp = "";
+          for (let index = 0; index < input.length; index++) {
+            const element = input[index];
+            temp += string(element) + "\0";
+          }
+          return temp.replace(/[\0]+$/, "\0\0");
+        }
+        if (input && input instanceof Set) {
+          let temp = "";
+          for (const element of input) {
+            temp += string(element) + "\0";
+          }
+          return temp.replace(/[\0]+$/, "\0\0");
+        }
+        return [];
+      }
+      ref6.convertMultiStringArray = convertMultiStringArray;
+      function intArray(array) {
         let dataList = [];
         if (Array.isArray(array)) {
           for (let index = 0; index < array.length; index++) {
             const cout = array[index];
-            dataList.push(this.int(cout));
+            dataList.push(int(cout));
           }
         }
         if (array instanceof Set) {
           for (const cout of array) {
-            dataList.push(this.int(cout));
+            dataList.push(int(cout));
           }
         }
         return dataList;
-      },
-      /**
-       * 将命令行内容组转为cmd文本
-       * @param argv 
-       */
-      formatArgv(...argv) {
+      }
+      ref6.intArray = intArray;
+      function formatArgv(...argv) {
         let argvs = [];
         let argvsResult = [];
         for (let index = 0; index < argv.length; index++) {
@@ -292,11 +344,11 @@ var init_util = __esm({
           if (Array.isArray(cout)) {
             for (let cout_index = 0; cout_index < cout.length; cout_index++) {
               const cout2 = cout[cout_index];
-              argvs.push(this.string(cout2));
+              argvs.push(string(cout2));
             }
             continue;
           }
-          argvs.push(this.string(cout));
+          argvs.push(string(cout));
         }
         for (let index = 0; index < argvs.length; index++) {
           let cout = argvs[index];
@@ -314,13 +366,9 @@ var init_util = __esm({
           argvsResult.push(cout);
         }
         return argvsResult.join(" ");
-      },
-      /**
-       * 拼合buff片段
-       * @param buffList 
-       * @returns 
-       */
-      concatBuff(buffList) {
+      }
+      ref6.formatArgv = formatArgv;
+      function concatBuff(buffList) {
         let buffSize = 0;
         for (let index = 0; index < buffList.length; index++) {
           const buff = buffList[index];
@@ -329,7 +377,19 @@ var init_util = __esm({
         let ResponseData = Buffer.concat([...buffList], buffSize);
         return ResponseData;
       }
-    };
+      ref6.concatBuff = concatBuff;
+      function JSONP(...input) {
+        try {
+          return JSON.parse(input[0]);
+        } catch (error) {
+        }
+        if (input.length >= 2) {
+          return input[1];
+        }
+        return null;
+      }
+      ref6.JSONP = JSONP;
+    })(ref || (ref = {}));
   }
 });
 
@@ -374,15 +434,15 @@ var init_shell = __esm({
         __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
       }
-      set(keyName, path2, cmd) {
+      set(keyName, path, cmd) {
         var _a;
         __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path2), ref2.string(cmd || ""))) || false;
+        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
-      setOnce(keyName, path2, cmd) {
+      setOnce(keyName, path, cmd) {
         var _a;
         __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path2), ref2.string(cmd || ""))) || false;
+        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
       enum() {
         const obj = {};
@@ -1399,9 +1459,9 @@ var init_Process = __esm({
               }
             } else if (typeof ProcessName == "number") {
               if (Process4.pid == ProcessName) {
-                let path2 = await getProcessFilePath2(ProcessName).catch(reject);
-                Process4.path = path2 || null;
-                Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+                let path = await getProcessFilePath2(ProcessName).catch(reject);
+                Process4.path = path || null;
+                Process4.name = (path == null ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
                 result.push(Process4);
               }
             } else {
@@ -1427,9 +1487,9 @@ var init_Process = __esm({
             }
           } else if (typeof ProcessName == "number") {
             if (Process4.pid == ProcessName) {
-              let path2 = getProcessFilePath2Sync(ProcessName);
-              Process4.path = path2 || null;
-              Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
+              let path = getProcessFilePath2Sync(ProcessName);
+              Process4.path = path || null;
+              Process4.name = (path == null ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
               result.push(Process4);
             }
           } else {
@@ -1458,6 +1518,683 @@ var init_Process = __esm({
   }
 });
 
+// source/hmc-win32@2.0/source/main/registr.ts
+var registr_exports = {};
+__export(registr_exports, {
+  Registr: () => Registr
+});
+var util4, main5, Registr;
+var init_registr = __esm({
+  "source/hmc-win32@2.0/source/main/registr.ts"() {
+    "use strict";
+    init_main();
+    util4 = (init_util(), __toCommonJS(util_exports));
+    main5 = (init_main(), __toCommonJS(main_exports));
+    ((Registr3) => {
+      const { ref: ref6 } = util4;
+      async function GetRegistrEnvInfo(ENV_INFO_COMMAND, HKey, ...aegs) {
+        var _a;
+        const _GetRegistrEnvInfo = (_a = main5.Native.native) == null ? void 0 : _a.GetRegistrEnvInfo;
+        if (!_GetRegistrEnvInfo)
+          return Promise.reject("not func -> GetRegistrEnvInfo");
+        return _GetRegistrEnvInfo(ENV_INFO_COMMAND, HKey, ...aegs);
+      }
+      function GetRegistrEnvInfoSync(ENV_INFO_COMMAND, HKey, ...aegs) {
+        var _a;
+        const _GetRegistrEnvInfoSync = (_a = main5.Native.native) == null ? void 0 : _a.GetRegistrEnvInfoSync;
+        if (!_GetRegistrEnvInfoSync)
+          return null;
+        return _GetRegistrEnvInfoSync(ENV_INFO_COMMAND, HKey, ...aegs);
+      }
+      async function getRegistrQword2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+          return BigInt(data);
+        }
+        return null;
+      }
+      Registr3.getRegistrQword2 = getRegistrQword2;
+      async function setRegistrQword2(HKey, SubKey, key, Qword) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.int(Qword || 0)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrQword2 = setRegistrQword2;
+      async function getRegistrDword2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+          return ref6.long(data);
+        }
+        return null;
+      }
+      Registr3.getRegistrDword2 = getRegistrDword2;
+      async function setRegistrDword2(HKey, SubKey, key, Dword) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.long(Dword)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrDword2 = setRegistrDword2;
+      async function getRegistrString2(HKey, SubKey, key, expand) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          expand ? true : false
+        );
+        return typeof data == "string" ? data : null;
+      }
+      Registr3.getRegistrString2 = getRegistrString2;
+      async function setRegistrString2(HKey, SubKey, key, String2, expand) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.string(String2 || ""),
+          expand ? true : false
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrString2 = setRegistrString2;
+      async function getRegistrKeys2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+      }
+      Registr3.getRegistrKeys2 = getRegistrKeys2;
+      async function getRegistrStringList2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "string") {
+          if (data[0] == "[") {
+            return ref6.JSONP(data);
+          }
+          if (data.includes("\0")) {
+            const temp = data.split(/\0+/);
+            if (temp.at(-1) == "") {
+              temp.pop();
+            }
+            return temp;
+          }
+        }
+        return Array.isArray(data) ? data : null;
+      }
+      Registr3.getRegistrStringList2 = getRegistrStringList2;
+      async function setRegistrStringList2(HKey, SubKey, key, StringList) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          Array.isArray(StringList) ? ref6.stringArray(StringList) : ref6.convertMultiStringArray(ref6.string(StringList || "")) || []
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrStringList2 = setRegistrStringList2;
+      async function getRegistrBuffer2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return Buffer.isBuffer(data) ? data : null;
+      }
+      Registr3.getRegistrBuffer2 = getRegistrBuffer2;
+      async function setRegistrBuffer2(HKey, SubKey, key, Buff) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          Buff
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrBuffer2 = setRegistrBuffer2;
+      async function getRegistrValue2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? data : null;
+      }
+      async function copyRegistrValue2(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SourceSubKey),
+          ref6.string(Sourcekey || ""),
+          ref6.string(NewSubKey || ""),
+          ref6.string(Newkey || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.copyRegistrValue2 = copyRegistrValue2;
+      async function copyRegistrFolder2(HKey, SourceSubKey, NewSubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SourceSubKey),
+          ref6.string(NewSubKey || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.copyRegistrFolder2 = copyRegistrFolder2;
+      async function setRegistrValue2(HKey, SubKey, key, data) {
+        const data_2 = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          data
+        );
+        return ref6.bool(data_2);
+      }
+      Registr3.setRegistrValue2 = setRegistrValue2;
+      async function getRegistrValueStat2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? data : null;
+      }
+      Registr3.getRegistrValueStat2 = getRegistrValueStat2;
+      async function getRegistrFolderStat2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+      }
+      Registr3.getRegistrFolderStat2 = getRegistrFolderStat2;
+      async function clearRegistrValue2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.clearRegistrValue2 = clearRegistrValue2;
+      async function clearRegistrFolder2(HKey, SubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string("")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.clearRegistrFolder2 = clearRegistrFolder2;
+      async function removeRegistrValue2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrValue2 = removeRegistrValue2;
+      async function removeRegistrFolder2(HKey, SubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrFolder2 = removeRegistrFolder2;
+      async function removeRegistrFolderTree2(HKey, SubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrFolderTree2 = removeRegistrFolderTree2;
+      async function createRegistrFolder2(HKey, SubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.createRegistrFolder2 = createRegistrFolder2;
+      async function createRegistrValueKey2(HKey, SubKey, key, type) {
+        const regVlaue = {};
+        if (typeof key == "string") {
+          if (typeof type == "number") {
+            regVlaue[key] = type;
+          } else {
+            regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+          }
+        } else if (Array.isArray(key)) {
+          for (const Ckey of key) {
+            regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+          }
+        } else if (key && typeof key == "object") {
+          for (const Ckey in key) {
+            regVlaue[Ckey] = key[Ckey];
+          }
+        }
+        const bool_list = [];
+        for (const key2 in regVlaue) {
+          const type2 = regVlaue[key2] || HMC2_MODE.REG_TYPE.REG_NONE;
+          const keyname = key2;
+          const data = await GetRegistrEnvInfo(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+            ref6.string(HKey),
+            ref6.string(SubKey),
+            ref6.string(keyname),
+            ref6.int(type2)
+          );
+          bool_list.push(data ? true : false);
+        }
+        return ref6.bool(bool_list.length == 1 ? bool_list.pop() : bool_list.at(-1) || false);
+      }
+      Registr3.createRegistrValueKey2 = createRegistrValueKey2;
+      async function hasRegistrKey2(HKey, SubKey, key) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.hasRegistrKey2 = hasRegistrKey2;
+      async function hasRegistrFolderKey2(HKey, SubKey) {
+        const data = await GetRegistrEnvInfo(
+          HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.hasRegistrFolderKey2 = hasRegistrFolderKey2;
+      function getRegistrQword2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+          return BigInt(data);
+        }
+        return null;
+      }
+      Registr3.getRegistrQword2Sync = getRegistrQword2Sync;
+      function setRegistrQword2Sync(HKey, SubKey, key, Qword) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.int(Qword || 0)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrQword2Sync = setRegistrQword2Sync;
+      function getRegistrDword2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "number" || typeof data == "string" || typeof data == "boolean" || typeof data == "bigint") {
+          return ref6.long(data);
+        }
+        return null;
+      }
+      Registr3.getRegistrDword2Sync = getRegistrDword2Sync;
+      function setRegistrDword2Sync(HKey, SubKey, key, Dword) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.long(Dword)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrDword2Sync = setRegistrDword2Sync;
+      function getRegistrString2Sync(HKey, SubKey, key, expand) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          expand ? true : false
+        );
+        return typeof data == "string" ? data : null;
+      }
+      Registr3.getRegistrString2Sync = getRegistrString2Sync;
+      function setRegistrString2Sync(HKey, SubKey, key, String2, expand) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          ref6.string(String2 || ""),
+          expand ? true : false
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrString2Sync = setRegistrString2Sync;
+      function getRegistrKeys2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+      }
+      Registr3.getRegistrKeys2Sync = getRegistrKeys2Sync;
+      function getRegistrStringList2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        if (typeof data == "string") {
+          if (data[0] == "[") {
+            return ref6.JSONP(data);
+          }
+          if (data.includes("\0")) {
+            const temp = data.split(/\0+/);
+            if (temp.at(-1) == "") {
+              temp.pop();
+            }
+            return temp;
+          }
+        }
+        return Array.isArray(data) ? data : null;
+      }
+      Registr3.getRegistrStringList2Sync = getRegistrStringList2Sync;
+      function setRegistrStringList2Sync(HKey, SubKey, key, StringList) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          Array.isArray(StringList) ? ref6.stringArray(StringList) : ref6.convertMultiStringArray(ref6.string(StringList || "")) || []
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrStringList2Sync = setRegistrStringList2Sync;
+      function getRegistrBuffer2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return Buffer.isBuffer(data) ? data : null;
+      }
+      Registr3.getRegistrBuffer2Sync = getRegistrBuffer2Sync;
+      function setRegistrBuffer2Sync(HKey, SubKey, key, Buff) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          Buff
+        );
+        return ref6.bool(data);
+      }
+      Registr3.setRegistrBuffer2Sync = setRegistrBuffer2Sync;
+      function getRegistrValue2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? data : null;
+      }
+      function copyRegistrValue2Sync(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SourceSubKey),
+          ref6.string(Sourcekey || ""),
+          ref6.string(NewSubKey || ""),
+          ref6.string(Newkey || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.copyRegistrValue2Sync = copyRegistrValue2Sync;
+      function copyRegistrFolder2Sync(HKey, SourceSubKey, NewSubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SourceSubKey),
+          ref6.string(NewSubKey || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.copyRegistrFolder2Sync = copyRegistrFolder2Sync;
+      function setRegistrValue2Sync(HKey, SubKey, key, data) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data_2 = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || ""),
+          data
+        );
+        return ref6.bool(data_2);
+      }
+      function getRegistrValueStat2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data || null;
+      }
+      Registr3.getRegistrValueStat2Sync = getRegistrValueStat2Sync;
+      function getRegistrFolderStat2Sync(HKey, SubKey, key) {
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return data ? JSON.parse(String(data)) : null;
+      }
+      Registr3.getRegistrFolderStat2Sync = getRegistrFolderStat2Sync;
+      function clearRegistrValue2Sync(HKey, SubKey, key) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.clearRegistrValue2Sync = clearRegistrValue2Sync;
+      function clearRegistrFolder2Sync(HKey, SubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string("")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.clearRegistrFolder2Sync = clearRegistrFolder2Sync;
+      function removeRegistrValue2Sync(HKey, SubKey, key) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrValue2Sync = removeRegistrValue2Sync;
+      function removeRegistrFolder2Sync(HKey, SubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrFolder2Sync = removeRegistrFolder2Sync;
+      function removeRegistrFolderTree2Sync(HKey, SubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.removeRegistrFolderTree2Sync = removeRegistrFolderTree2Sync;
+      function createRegistrFolder2Sync(HKey, SubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.createRegistrFolder2Sync = createRegistrFolder2Sync;
+      function createRegistrValueKey2Sync(HKey, SubKey, key, type) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const regVlaue = {};
+        if (typeof key == "string") {
+          if (typeof type == "number") {
+            regVlaue[key] = type;
+          } else {
+            regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+          }
+        } else if (Array.isArray(key)) {
+          for (const Ckey of key) {
+            regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+          }
+        } else if (key && typeof key == "object") {
+          for (const Ckey in key) {
+            regVlaue[Ckey] = key[Ckey];
+          }
+        }
+        const bool_list = [];
+        for (const key2 in regVlaue) {
+          const type2 = regVlaue[key2] || HMC2_MODE.REG_TYPE.REG_NONE;
+          const keyname = key2;
+          const data = GetRegistrEnvInfoSync(
+            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+            ref6.string(HKey),
+            ref6.string(SubKey),
+            ref6.string(keyname),
+            ref6.int(type2)
+          );
+          bool_list.push(data ? true : false);
+        }
+        return ref6.bool(bool_list.length == 1 ? bool_list.pop() : bool_list.at(-1) || false);
+      }
+      Registr3.createRegistrValueKey2Sync = createRegistrValueKey2Sync;
+      function hasRegistrKey2Sync(HKey, SubKey, key) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+          ref6.string(HKey),
+          ref6.string(SubKey),
+          ref6.string(key || "")
+        );
+        return ref6.bool(data);
+      }
+      Registr3.hasRegistrKey2Sync = hasRegistrKey2Sync;
+      function hasRegistrFolderKey2Sync(HKey, SubKey) {
+        if (!GetRegistrEnvInfoSync)
+          return false;
+        const data = GetRegistrEnvInfoSync(
+          HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+          ref6.string(HKey),
+          ref6.string(SubKey)
+        );
+        return ref6.bool(data);
+      }
+      Registr3.hasRegistrFolderKey2Sync = hasRegistrFolderKey2Sync;
+    })(Registr || (Registr = {}));
+  }
+});
+
 // source/hmc-win32@2.0/source/main/index.ts
 var main_exports = {};
 __export(main_exports, {
@@ -1465,6 +2202,7 @@ __export(main_exports, {
   HMC2_MODE: () => HMC2_MODE,
   Native: () => Native,
   Process: () => Process2,
+  Registr: () => Registr2,
   Shell: () => Shell2,
   Sleep: () => Sleep,
   Startup: () => Startup,
@@ -1473,7 +2211,7 @@ __export(main_exports, {
   sleep: () => sleep
 });
 module.exports = __toCommonJS(main_exports);
-var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, HMC2_MODE, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Window;
+var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, RegistrMain, HMC2_MODE, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Registr2, Window;
 var init_main = __esm({
   "source/hmc-win32@2.0/source/main/index.ts"() {
     PromiseEval2 = (init_promiseEval(), __toCommonJS(promiseEval_exports));
@@ -1481,7 +2219,37 @@ var init_main = __esm({
     AutoMain = (init_auto(), __toCommonJS(auto_exports));
     UtilMain = (init_util(), __toCommonJS(util_exports));
     ProcessMain = (init_Process(), __toCommonJS(Process_exports));
+    RegistrMain = (init_registr(), __toCommonJS(registr_exports));
     ((HMC2_MODE2) => {
+      HMC2_MODE2.Hkey = {
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG",
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_USERS: "HKEY_USERS",
+        /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
+        HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT",
+        /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
+        HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE",
+        /**管理系统当前的用户信息 */
+        HKEY_CURRENT_USER: "HKEY_CURRENT_USER"
+      };
+      let REG_TYPE;
+      ((REG_TYPE2) => {
+        REG_TYPE2[REG_TYPE2["REG_NONE"] = 0] = "REG_NONE";
+        REG_TYPE2[REG_TYPE2["REG_SZ"] = 1] = "REG_SZ";
+        REG_TYPE2[REG_TYPE2["REG_EXPAND_SZ"] = 2] = "REG_EXPAND_SZ";
+        REG_TYPE2[REG_TYPE2["REG_BINARY"] = 3] = "REG_BINARY";
+        REG_TYPE2[REG_TYPE2["REG_DWORD"] = 4] = "REG_DWORD";
+        REG_TYPE2[REG_TYPE2["REG_DWORD_LITTLE_ENDIAN"] = 4] = "REG_DWORD_LITTLE_ENDIAN";
+        REG_TYPE2[REG_TYPE2["REG_DWORD_BIG_ENDIAN"] = 5] = "REG_DWORD_BIG_ENDIAN";
+        REG_TYPE2[REG_TYPE2["REG_LINK"] = 6] = "REG_LINK";
+        REG_TYPE2[REG_TYPE2["REG_MULTI_SZ"] = 7] = "REG_MULTI_SZ";
+        REG_TYPE2[REG_TYPE2["REG_RESOURCE_LIST"] = 8] = "REG_RESOURCE_LIST";
+        REG_TYPE2[REG_TYPE2["REG_FULL_RESOURCE_DESCRIPTOR"] = 9] = "REG_FULL_RESOURCE_DESCRIPTOR";
+        REG_TYPE2[REG_TYPE2["REG_RESOURCE_REQUIREMENTS_LIST"] = 10] = "REG_RESOURCE_REQUIREMENTS_LIST";
+        REG_TYPE2[REG_TYPE2["REG_QWORD"] = 11] = "REG_QWORD";
+        REG_TYPE2[REG_TYPE2["REG_QWORD_LITTLE_ENDIAN"] = 11] = "REG_QWORD_LITTLE_ENDIAN";
+      })(REG_TYPE = HMC2_MODE2.REG_TYPE || (HMC2_MODE2.REG_TYPE = {}));
       let FS_MK_LINK_TARGET_TYPE;
       ((FS_MK_LINK_TARGET_TYPE2) => {
         FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_DIR_SYMLINK"] = 166] = "CREATE_DIR_SYMLINK";
@@ -1545,6 +2313,36 @@ var init_main = __esm({
         GET_PROCESS_NAME_TYPE2[GET_PROCESS_NAME_TYPE2["GET_FILE_NAME"] = 8] = "GET_FILE_NAME";
       })(GET_PROCESS_NAME_TYPE = HMC2_MODE2.GET_PROCESS_NAME_TYPE || (HMC2_MODE2.GET_PROCESS_NAME_TYPE = {}));
       ;
+      ((ENV_INFO_COMMAND2) => {
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["NONE"] = 0] = "NONE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_QWORD"] = 70] = "GET_REGISTR_QWORD";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_QWORD"] = 71] = "SET_REGISTR_QWORD";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_DWORD"] = 72] = "GET_REGISTR_DWORD";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_DWORD"] = 73] = "SET_REGISTR_DWORD";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_STRING"] = 74] = "GET_REGISTR_STRING";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_STRING"] = 75] = "SET_REGISTR_STRING";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_KEYS"] = 76] = "GET_REGISTR_KEYS";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_STRING_LIST"] = 77] = "GET_REGISTR_STRING_LIST";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_STRING_LIST"] = 78] = "SET_REGISTR_STRING_LIST";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_BUFFER"] = 79] = "GET_REGISTR_BUFFER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_BUFFER"] = 710] = "SET_REGISTR_BUFFER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_VALUE"] = 711] = "GET_REGISTR_VALUE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["COPY_REGISTR_VALUE"] = 712] = "COPY_REGISTR_VALUE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["COPY_REGISTR_FOLDER"] = 713] = "COPY_REGISTR_FOLDER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["SET_REGISTR_VALUE"] = 714] = "SET_REGISTR_VALUE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_VALUE_STAT"] = 715] = "GET_REGISTR_VALUE_STAT";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["GET_REGISTR_FOLDER_STAT"] = 716] = "GET_REGISTR_FOLDER_STAT";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["CLEAR_REGISTR_VALUE"] = 717] = "CLEAR_REGISTR_VALUE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["CLEAR_REGISTR_FOLDER"] = 718] = "CLEAR_REGISTR_FOLDER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["REMOVE_REGISTR_VALUE"] = 719] = "REMOVE_REGISTR_VALUE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["REMOVE_REGISTR_FOLDER"] = 720] = "REMOVE_REGISTR_FOLDER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["REMOVE_REGISTR_FOLDER_TREE"] = 721] = "REMOVE_REGISTR_FOLDER_TREE";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["CREATE_REGISTR_FOLDER"] = 722] = "CREATE_REGISTR_FOLDER";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["CREATE_REGISTR_VALUE_KEY"] = 723] = "CREATE_REGISTR_VALUE_KEY";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["HAS_REGISTR_KEY"] = 724] = "HAS_REGISTR_KEY";
+        ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["HAS_REGISTR_FOLDER_KEY"] = 725] = "HAS_REGISTR_FOLDER_KEY";
+      })(ENV_INFO_COMMAND = HMC2_MODE2.ENV_INFO_COMMAND || (HMC2_MODE2.ENV_INFO_COMMAND = {}));
+      ;
     })(HMC2_MODE || (HMC2_MODE = {}));
     Native = (() => {
       const run = {};
@@ -1604,6 +2402,7 @@ var init_main = __esm({
     Shell2 = ShellMain.Shell;
     Process2 = ProcessMain.Process;
     ({ Sleep, sleep } = Process2);
+    Registr2 = RegistrMain.Registr;
     ((Window2) => {
       function readElectronHandle(handleBuffer) {
         let num = 0;
@@ -1633,6 +2432,7 @@ init_main();
   HMC2_MODE,
   Native,
   Process,
+  Registr,
   Shell,
   Sleep,
   Startup,

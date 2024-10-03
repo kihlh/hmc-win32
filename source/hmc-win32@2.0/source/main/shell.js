@@ -101,4 +101,50 @@ var Shell;
     * 截图为Bmp 文件/Buffer
     */
     Shell.captureBmp2Sync = PromiseEval.promiseEvalTask.captureBmp2Sync;
+    // 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    Shell.getThumbnailPng2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+    // 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    Shell.getThumbnailPng2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+    // 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    Shell.getFileIcon2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+    // 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    Shell.getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+    /**
+     * 弹出右键菜单的接口
+     * @param hwnd 调用窗口 / 允许为null
+     * @param file 指定需要被显示菜单的文件/文件夹/文件列表/ 为空 "" 为驱动器
+     * @param x 坐标 x+y=0的时候将会从鼠标所在的地方显示
+     * @param y 坐标
+     */
+    function showContextMenu(hwnd, file, x, y) {
+        var _a, _b;
+        return ((_a = main.Native.native) === null || _a === void 0 ? void 0 : _a.showContextMenu) ?
+            (_b = main.Native.native) === null || _b === void 0 ? void 0 : _b.showContextMenu(ref.int(hwnd || 0), Array.isArray(file) ? file : ref.string(file), ref.int(x || 0), ref.int(y || 0))
+            : false;
+    }
+    Shell.showContextMenu = showContextMenu;
+    /**
+     * 获取托盘图标列表
+     * 1.4.6 起返回json文本
+     * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
+     */
+    function getTrayList() {
+        if (!main.Native.native.getTrayList)
+            return [];
+        return JSON.parse(main.Native.native.getTrayList());
+    }
+    Shell.getTrayList = getTrayList;
+    /**
+     * 设置文件夹的缩略图
+     * @param folderPath 路径
+     * @param iconPath 图标路径
+     * @param iconIndex 图标索引 比如exe中的0
+     * @returns
+     */
+    function setFolderIcon(folderPath, iconPath, iconIndex) {
+        if (!main.Native.native.setFolderIcon)
+            return false;
+        return main.Native.native.setFolderIcon(ref.string(folderPath), ref.string(iconPath), ref.int(iconIndex || 0));
+    }
+    Shell.setFolderIcon = setFolderIcon;
 })(Shell = exports.Shell || (exports.Shell = {}));

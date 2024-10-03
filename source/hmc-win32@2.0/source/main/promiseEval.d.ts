@@ -3,7 +3,8 @@ export declare enum HMC_PROMISEEVAL_TASK_TYPE {
     getClipboardFilePaths2 = 1,
     captureBmp2 = 2,
     closeWindow2 = 3,
-    getClipboardText2 = 5
+    getClipboardText2 = 5,
+    getThumbnailPng2 = 6
 }
 export type HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_PROMISEEVAL_TASK_TYPE;
 declare class HMC_PromiseeEvalTask {
@@ -152,6 +153,78 @@ interface HMC_PromiseeEvalTask {
      * 获取剪贴板文本 `sync`
      */
     getClipboardText2Sync(): string | null;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param output 输出路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2(filePath: string, output: string, img_size: number): Promise<boolean | null>;
+    /**
+    * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    * @param filePath 被获取路径
+    * @param output 输出路径
+    * @default 256
+    */
+    getThumbnailPng2(filePath: string, output: string): Promise<boolean | null>;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2(filePath: string, img_size: number): Promise<Buffer | null>;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param img_size 图片大小 `256`
+     */
+    getThumbnailPng2(filePath: string): Promise<Buffer | null>;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param output 输出路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2(filePath: string, output?: string, img_size?: number): Promise<unknown>;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param output 输出路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2Sync(filePath: string, output: string, img_size: number): boolean | null;
+    /**
+    * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+    * @param filePath 被获取路径
+    * @param output 输出路径
+    * @default 256
+    */
+    getThumbnailPng2Sync(filePath: string, output: string): boolean | null;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2Sync(filePath: string, img_size: number): Buffer | null;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param img_size 图片大小 `256`
+     */
+    getThumbnailPng2Sync(filePath: string): Buffer | null;
+    /**
+     * 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
+     * @param filePath 被获取路径
+     * @param output 输出路径
+     * @param img_size 图片大小 推荐: `16` `64` `128` `256`
+     * @default 256
+     */
+    getThumbnailPng2Sync(filePath: string, output?: string, img_size?: number): unknown;
 }
 export declare const promiseEvalTask: HMC_PromiseeEvalTask;
 export {};

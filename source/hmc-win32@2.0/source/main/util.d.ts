@@ -1,56 +1,69 @@
 /// <reference types="node" />
-export declare const ref: {
+export declare module ref {
     /**
     * 将内容格式化为文本路径
     * @param Str
     * @returns
     */
-    path(Str: any): string;
+    function path(Str: any): string;
     /**
      * 格式化为bool
      * @param bool
      * @returns
      */
-    bool(bool: any): boolean;
+    function bool(bool: any): boolean;
     /**
      * 将内容格式化为文本
      * @param Str
      * @returns
      */
-    string(Str: any): string;
+    function string(Str: any): any;
     /**
      * 格式化数字为float(强制) 浮点
      * @param Num
      * @returns
      */
-    float(Num: any): number;
+    function float(Num: any): number;
     /**
      * 格式化数字为int(强制) 取整
-     * @param Num
+     * @param Num 整数型
      * @returns
      */
-    int(Num: any): number;
+    function int(Num: any): number;
+    /**
+     * 格式化数字为int(强制) 取整
+     * @param Num 整数型
+     * @returns
+     */
+    function long(Num: any): number;
     /**
      * 文本数组
      * @param array
      * @returns
      */
-    stringArray(array: Set<any> | Array<any>): string[];
+    function stringArray(array: Set<any> | Array<any>): string[];
+    function convertMultiStringArray(input: string): string[];
+    function convertMultiStringArray(input: Array<string | number>): string;
+    function convertMultiStringArray(input: Set<string | number>): string;
     /**
      * 文本数组
      * @param array
      * @returns
      */
-    intArray(array: Set<any> | Array<any>): number[];
+    function intArray(array: Set<any> | Array<any>): number[];
     /**
      * 将命令行内容组转为cmd文本
      * @param argv
      */
-    formatArgv(...argv: Array<any>[] | any[]): string;
+    function formatArgv(...argv: Array<any>[] | any[]): string;
     /**
      * 拼合buff片段
      * @param buffList
      * @returns
      */
-    concatBuff(buffList: Buffer[]): Buffer;
-};
+    function concatBuff(buffList: Buffer[]): Buffer;
+    function JSONP<T>(input: any, orData: T): T;
+    function JSONP(input: any): {
+        [key: string | number]: any;
+    } | Array<any> | null;
+}

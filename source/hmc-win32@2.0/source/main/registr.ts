@@ -7,11 +7,23 @@ import { HMC2_MODE } from "./index";
 export module Registr {
 
     export type HKEY = HMC2_MODE.HKEY;
-    export type chQueryFolderKey = HMC2_MODE.chQueryFolderKey;
     export type REG_VALUE = HMC2_MODE.REG_VALUE;
     export type RegistrValueStat = HMC2_MODE.RegistrValueStat;
-    export type RegistrFolderStat = HMC2_MODE.RegistrFolderStat;
+    export type chQueryFolderInfo = HMC2_MODE.chQueryFolderInfo;
     const { ref } = util;
+
+
+    async function GetRegistrEnvInfo(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]) {
+        const _GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+        if (!_GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+        return _GetRegistrEnvInfo(ENV_INFO_COMMAND, HKey, ...aegs);
+    }
+
+    function GetRegistrEnvInfoSync(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]) {
+        const _GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+        if (!_GetRegistrEnvInfoSync) return null;
+        return _GetRegistrEnvInfoSync(ENV_INFO_COMMAND, HKey, ...aegs);
+    }
 
     /**
      * `异步` 获取内容(64位数字)
@@ -27,8 +39,8 @@ export module Registr {
      * @returns
      */
     export async function getRegistrQword2(HKey: HKEY, SubKey: string, key: string | null): Promise<bigint | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
@@ -57,8 +69,8 @@ export module Registr {
      * @param Qword 64位数字，接受 `bigint` 或 `number` 类型
      */
     export async function setRegistrQword2(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
@@ -80,8 +92,8 @@ export module Registr {
      * @param key 键名称  `""` `null` 将作为默认key
      */
     export async function getRegistrDword2(HKey: HKEY, SubKey: string, key: string | null): Promise<number | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
@@ -110,8 +122,8 @@ export module Registr {
      * @param Dword 32位数字，接受 `bigint` 或 `number` 类型
      */
     export async function setRegistrDword2(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
@@ -133,14 +145,16 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function getRegistrString2(HKey: HKEY, SubKey: string, key: string | null): Promise<string | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    export async function getRegistrString2(HKey: HKEY, SubKey: string, key: string | null, expand?: boolean): Promise<string | null> {
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
+            ,
+            expand ? true : false
         );
         return typeof data == "string" ? data : null;
     }
@@ -157,15 +171,16 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param String - 要设置的字符串值
      */
-    export async function setRegistrString2(HKey: HKEY, SubKey: string, key: string | null, String: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    export async function setRegistrString2(HKey: HKEY, SubKey: string, key: string | null, String: string, expand?: boolean): Promise<boolean> {
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
-            ref.string(String || "")
+            ref.string(String || ""),
+            expand ? true : false
         );
         return ref.bool(data);
     }
@@ -181,16 +196,16 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function getRegistrKeys2(HKey: HKEY, SubKey: string, key: string | null): Promise<chQueryFolderKey | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    export async function getRegistrKeys2(HKey: HKEY, SubKey: string, key: string | null): Promise<chQueryFolderInfo | null> {
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
         );
-        return data ? JSON.parse(String(data)) as chQueryFolderKey : null;
+        return data ? JSON.parse(String(data)) as chQueryFolderInfo : null;
     }
 
     /**
@@ -205,8 +220,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function getRegistrStringList2(HKey: HKEY, SubKey: string, key: string | null): Promise<string[] | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
@@ -217,7 +232,7 @@ export module Registr {
         if (typeof data == "string") {
 
             if (data[0] == "[") {
-                return JSON.parse(data);
+                return ref.JSONP(data) as string[] | null;
             }
 
             if (data.includes('\0')) {
@@ -246,15 +261,15 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param StringList - 要设置的字符串值列表
      */
-    export async function setRegistrStringList2(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    export async function setRegistrStringList2(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[] | string): Promise<boolean> {
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
-            Array.isArray(StringList)?StringList:"\0\0"
+            Array.isArray(StringList) ? ref.stringArray(StringList) : ref.convertMultiStringArray(ref.string(StringList || "")) || []
         );
         return ref.bool(data);
     }
@@ -271,8 +286,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function getRegistrBuffer2(HKey: HKEY, SubKey: string, key: string | null): Promise<Buffer | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
@@ -295,8 +310,8 @@ export module Registr {
      * @param String - 要设置的缓冲区值
      */
     export async function setRegistrBuffer2(HKey: HKEY, SubKey: string, key: string | null, Buff: Buffer): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
@@ -318,9 +333,9 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function getRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<REG_VALUE | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    async function getRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<REG_VALUE | null> {
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -344,8 +359,8 @@ export module Registr {
      * @param Newkey 新取值的键名
      */
     export async function copyRegistrValue2(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -370,8 +385,8 @@ export module Registr {
      * @param NewSubKey 新路径
      */
     export async function copyRegistrFolder2(HKey: HKEY, SourceSubKey: string, NewSubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
@@ -394,8 +409,8 @@ export module Registr {
      * @param data - 要设置的注册表值
      */
     export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data_2 = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -418,15 +433,13 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function getRegistrValueStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<RegistrValueStat | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
         );
-        return data ? JSON.parse(String(data)) : null;
+        return data ? (data as RegistrValueStat) : null;
     }
 
     /**
@@ -440,9 +453,7 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function getRegistrFolderStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<RegistrFolderStat | null> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+    export async function getRegistrFolderStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<chQueryFolderInfo | null> {
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
             ref.string(HKey) as HKEY,
@@ -464,8 +475,6 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function clearRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -487,8 +496,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function clearRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
@@ -510,8 +519,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function removeRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -532,8 +541,8 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export async function removeRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
@@ -553,8 +562,8 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export async function removeRegistrFolderTree2(HKey: HKEY, SubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
             ref.string(HKey) as HKEY,
@@ -574,8 +583,8 @@ export module Registr {
      * @param folderPath - 要创建的文件夹路径
      */
     export async function createRegistrFolder2(HKey: HKEY, SubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
@@ -595,16 +604,48 @@ export module Registr {
      * @param folderPath - 要创建值键的文件夹路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function createRegistrValueKey2(HKey: HKEY, SubKey: string, key: string | string[]): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
-        const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
-            ref.string(HKey) as HKEY,
-            ref.string(SubKey),
-            ref.string(key || "")
-        );
-        return ref.bool(data);
+    export async function createRegistrValueKey2(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC2_MODE.REG_TYPE }, type?: HMC2_MODE.REG_TYPE): Promise<boolean> {
+
+        const regVlaue: { [key: string]: HMC2_MODE.REG_TYPE } = {};
+
+        if (typeof key == "string") {
+
+            if (typeof type == "number") {
+                regVlaue[key] = type;
+            } else {
+                regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+            }
+
+        }
+        else if (Array.isArray(key)) {
+
+            for (const Ckey of key) {
+                regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+            }
+        }
+        else if (key && typeof key == "object") {
+
+            for (const Ckey in key) {
+                regVlaue[Ckey] = key[Ckey];
+            }
+        }
+
+        const bool_list: boolean[] = [];
+
+        for (const key in regVlaue) {
+            const type = regVlaue[key] || HMC2_MODE.REG_TYPE.REG_NONE;
+            const keyname = key;
+            const data = await GetRegistrEnvInfo(
+                HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+                ref.string(HKey) as HKEY,
+                ref.string(SubKey),
+                ref.string(keyname), ref.int(type)
+            );
+
+            bool_list.push(data ? true : false);
+        }
+
+        return ref.bool(bool_list.length == 1 ? bool_list.pop() : bool_list.at(-1) || false);
     }
 
     /**
@@ -619,8 +660,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export async function hasRegistrKey2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
             ref.string(HKey) as HKEY,
@@ -641,8 +682,8 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export async function hasRegistrFolderKey2(HKey: HKEY, SubKey: string): Promise<boolean> {
-        const GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
-        if (!GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
+
+
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
             ref.string(HKey) as HKEY,
@@ -664,8 +705,8 @@ export module Registr {
  * @returns
  */
     export function getRegistrQword2Sync(HKey: HKEY, SubKey: string, key: string | null): bigint | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
@@ -694,7 +735,7 @@ export module Registr {
      * @param Qword 64位数字，接受 `bigint` 或 `number` 类型
      */
     export function setRegistrQword2Sync(HKey: HKEY, SubKey: string, key: string | null, Qword: bigint | number): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
@@ -717,8 +758,8 @@ export module Registr {
      * @param key 键名称  `""` `null` 将作为默认key
      */
     export function getRegistrDword2Sync(HKey: HKEY, SubKey: string, key: string | null): number | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
@@ -747,7 +788,7 @@ export module Registr {
      * @param Dword 32位数字，接受 `bigint` 或 `number` 类型
      */
     export function setRegistrDword2Sync(HKey: HKEY, SubKey: string, key: string | null, Dword: bigint | number): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
@@ -770,14 +811,16 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null): string | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+    export function getRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null, expand?: boolean): string | null {
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
+            , expand ? true : false
+
         );
         return typeof data == "string" ? data : null;
     }
@@ -794,15 +837,16 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param String - 要设置的字符串值
      */
-    export function setRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null, String: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+    export function setRegistrString2Sync(HKey: HKEY, SubKey: string, key: string | null, String: string, expand?: boolean): boolean {
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
-            ref.string(String || "")
+            ref.string(String || ""),
+            expand ? true : false
         );
         return ref.bool(data);
     }
@@ -818,9 +862,9 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrKeys2Sync(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderKey | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+    export function getRegistrKeys2Sync(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderInfo | null {
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
@@ -842,8 +886,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function getRegistrStringList2Sync(HKey: HKEY, SubKey: string, key: string | null): string[] | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
@@ -854,7 +898,7 @@ export module Registr {
         if (typeof data == "string") {
 
             if (data[0] == "[") {
-                return JSON.parse(data);
+                return ref.JSONP(data) as string[] | null;
             }
 
             if (data.includes('\0')) {
@@ -883,14 +927,15 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param StringList - 要设置的字符串值列表
      */
-    export function setRegistrStringList2Sync(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[]): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+    export function setRegistrStringList2Sync(HKey: HKEY, SubKey: string, key: string | null, StringList?: string[] | string): boolean {
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
-            ref.string(key || "")
+            ref.string(key || ""),
+            Array.isArray(StringList) ? ref.stringArray(StringList) : ref.convertMultiStringArray(ref.string(StringList || "")) || []
         );
         return ref.bool(data);
     }
@@ -907,8 +952,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function getRegistrBuffer2Sync(HKey: HKEY, SubKey: string, key: string | null): Buffer | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
@@ -931,7 +976,7 @@ export module Registr {
      * @param String - 要设置的缓冲区值
      */
     export function setRegistrBuffer2Sync(HKey: HKEY, SubKey: string, key: string | null, Buff: Buffer): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
@@ -954,9 +999,9 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+    function getRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null {
+
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
@@ -980,7 +1025,7 @@ export module Registr {
      * @param Newkey 新取值的键名
      */
     export function copyRegistrValue2Sync(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
@@ -1006,7 +1051,7 @@ export module Registr {
      * @param NewSubKey 新路径
      */
     export function copyRegistrFolder2Sync(HKey: HKEY, SourceSubKey: string, NewSubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
@@ -1029,8 +1074,8 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param data - 要设置的注册表值
      */
-    export function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+    function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean {
+
         if (!GetRegistrEnvInfoSync) return false;
         const data_2 = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
@@ -1054,15 +1099,14 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function getRegistrValueStat2Sync(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
         );
-        return data ? JSON.parse(String(data)) : null;
+        return (data as RegistrValueStat) || null;
     }
 
     /**
@@ -1076,9 +1120,8 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrFolderStat2Sync(HKey: HKEY, SubKey: string, key: string | null): RegistrFolderStat | null {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
-        if (!GetRegistrEnvInfoSync) return null;
+    export function getRegistrFolderStat2Sync(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderInfo | null {
+
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
             ref.string(HKey) as HKEY,
@@ -1100,7 +1143,7 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function clearRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
@@ -1123,7 +1166,7 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function clearRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
@@ -1146,7 +1189,7 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function removeRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
@@ -1168,7 +1211,7 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export function removeRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
@@ -1189,7 +1232,7 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export function removeRegistrFolderTree2Sync(HKey: HKEY, SubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
@@ -1210,7 +1253,7 @@ export module Registr {
      * @param folderPath - 要创建的文件夹路径
      */
     export function createRegistrFolder2Sync(HKey: HKEY, SubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
@@ -1231,16 +1274,50 @@ export module Registr {
      * @param folderPath - 要创建值键的文件夹路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function createRegistrValueKey2Sync(HKey: HKEY, SubKey: string, key: string | string[]): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+    export function createRegistrValueKey2Sync(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC2_MODE.REG_TYPE }, type?: HMC2_MODE.REG_TYPE): boolean {
+
         if (!GetRegistrEnvInfoSync) return false;
-        const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
-            ref.string(HKey) as HKEY,
-            ref.string(SubKey),
-            ref.string(key || "")
-        );
-        return ref.bool(data);
+        const regVlaue: { [key: string]: HMC2_MODE.REG_TYPE } = {};
+
+        if (typeof key == "string") {
+
+            if (typeof type == "number") {
+                regVlaue[key] = type;
+            } else {
+                regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+            }
+
+        }
+        else if (Array.isArray(key)) {
+
+            for (const Ckey of key) {
+                regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+            }
+        }
+        else
+            if (key && typeof key == "object") {
+
+                for (const Ckey in key) {
+                    regVlaue[Ckey] = key[Ckey];
+                }
+            }
+
+        const bool_list: boolean[] = [];
+
+        for (const key in regVlaue) {
+            const type = regVlaue[key] || HMC2_MODE.REG_TYPE.REG_NONE;
+            const keyname = key;
+            const data = GetRegistrEnvInfoSync(
+                HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+                ref.string(HKey) as HKEY,
+                ref.string(SubKey),
+                ref.string(keyname), ref.int(type)
+            );
+
+            bool_list.push(data ? true : false);
+        }
+
+        return ref.bool(bool_list.length == 1 ? bool_list.pop() : bool_list.at(-1) || false);
     }
 
     /**
@@ -1255,7 +1332,7 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
     export function hasRegistrKey2Sync(HKey: HKEY, SubKey: string, key: string | null): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
@@ -1277,7 +1354,7 @@ export module Registr {
      * @param SubKey - 子键路径
      */
     export function hasRegistrFolderKey2Sync(HKey: HKEY, SubKey: string): boolean {
-        const GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,

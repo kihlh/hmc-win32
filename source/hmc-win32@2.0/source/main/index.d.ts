@@ -1,7 +1,10 @@
+/// <reference types="node" />
 import PromiseEval = require("./promiseEval");
 import ShellMain = require("./shell");
 import AutoMain = require("./auto");
+import UtilMain = require("./util");
 import ProcessMain = require("./Process");
+import RegistrMain = require("./registr");
 interface Native {
     /**
      * 执行命令代码 并且按照api内容返回 异步
@@ -228,23 +231,192 @@ interface Native {
     getProcessName2Sync?(pid: number): string | null;
     getProcessName2Sync?(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE): string | null;
     getProcessName2Sync?(pid: number, type?: unknown): unknown;
+    GetRegistrEnvInfo?(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]): Promise<unknown>;
+    GetRegistrEnvInfoSync?(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]): unknown;
 }
 export declare module HMC2_MODE {
-    type CLIP_HTML_INFO = {
+    /**注册表根目录 */
+    const Hkey: {
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG";
+        /**用作默认用户首选设置|也作为单个用户的首选设置 */
+        HKEY_USERS: "HKEY_USERS";
+        /**是与文档类型和 OLE\COM 相关的信息的支持键。这个键是 */
+        HKEY_CLASSES_ROOT: "HKEY_CLASSES_ROOT";
+        /**包含描述计算机及其配置的条目。其中包括关于处理器、系统主板、内存和已安装的软件和硬件的信息 */
+        HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE";
+        /**管理系统当前的用户信息 */
+        HKEY_CURRENT_USER: "HKEY_CURRENT_USER";
+    };
+    type HKEY = keyof typeof Hkey;
+    /**
+     * 注册表格式类型
+     */
+    enum REG_TYPE {
+        /** 没有值 */
+        REG_NONE = 0,
+        /** 以空字符结尾的字符串 */
+        REG_SZ = 1,
+        /** 可扩展的字符串（例如环境变量） */
+        REG_EXPAND_SZ = 2,
+        /** 原始的二进制数据 */
+        REG_BINARY = 3,
+        /** 32位数字，使用小端字节序 */
+        REG_DWORD = 4,
+        /** 32位数字，使用小端字节序（与 REG_DWORD 相同） */
+        REG_DWORD_LITTLE_ENDIAN = 4,
+        /** 32位数字，使用大端字节序 */
+        REG_DWORD_BIG_ENDIAN = 5,
+        /** 符号链接，使用 Unicode 编码 */
+        REG_LINK = 6,
+        /** 多个以空字符结尾的 Unicode 字符串 */
+        REG_MULTI_SZ = 7,
+        /** 资源列表，存储在资源映射中 */
+        REG_RESOURCE_LIST = 8,
+        /** 硬件描述中的资源列表 */
+        REG_FULL_RESOURCE_DESCRIPTOR = 9,
+        /** 资源需求列表 */
+        REG_RESOURCE_REQUIREMENTS_LIST = 10,
+        /** 64位数字，使用小端字节序 */
+        REG_QWORD = 11,
+        /** 64位数字，使用小端字节序（与 REG_QWORD 相同） */
+        REG_QWORD_LITTLE_ENDIAN = 11
+    }
+    type RegistrValueStat = {
+        /**此值的类型 */
+        type: REG_TYPE;
+        /**内容大小 */
+        size: number;
+        /**此内容是否存在 */
+        exists: boolean;
+        /**类型 格式文本化*/
+        type_name: REG_VALUE_TYPE_NAME;
+    };
+    interface REG_SZ_VALUE {
+        type: 1;
+        typeName: "REG_SZ";
         data: string;
+        size: number;
+    }
+    interface REG_EXPAND_SZ_VALUE {
+        type: REG_TYPE.REG_EXPAND_SZ;
+        typeName: "REG_EXPAND_SZ";
+        data: string;
+        dataExpand: string;
+        size: number;
+    }
+    interface REG_DWORD_VALUE {
+        type: REG_TYPE.REG_DWORD | REG_TYPE.REG_DWORD_BIG_ENDIAN | REG_TYPE.REG_DWORD_LITTLE_ENDIAN;
+        typeName: "REG_DWORD" | "REG_DWORD_BIG_ENDIAN" | "REG_DWORD_LITTLE_ENDIAN";
+        data: number;
+        size: number;
+    }
+    interface REG_QWORD_VALUE {
+        type: REG_TYPE.REG_QWORD | REG_TYPE.REG_QWORD_LITTLE_ENDIAN;
+        typeName: "REG_QWORD" | "REG_QWORD_LITTLE_ENDIAN";
+        data: bigint;
+        size: number;
+    }
+    interface REG_BINARY_VALUE {
+        type: REG_TYPE.REG_BINARY;
+        typeName: "REG_BINARY";
+        data: Buffer;
+        size: number;
+    }
+    interface REG_MULTI_SZ_VALUE {
+        type: REG_TYPE.REG_MULTI_SZ;
+        typeName: "REG_MULTI_SZ";
+        data: string[];
+        size: number;
+    }
+    interface REG_NONE_VALUE {
+        type: REG_TYPE.REG_NONE;
+        typeName: "REG_NONE";
+        data: null;
+        size: number;
+    }
+    interface REG_ANY_VALUE {
+        type: REG_TYPE.REG_FULL_RESOURCE_DESCRIPTOR | REG_TYPE.REG_LINK | REG_TYPE.REG_NONE | REG_TYPE.REG_RESOURCE_LIST | REG_TYPE.REG_RESOURCE_REQUIREMENTS_LIST;
+        typeName: "REG_FULL_RESOURCE_DESCRIPTOR" | "REG_LINK" | "REG_RESOURCE_LIST" | "REG_RESOURCE_REQUIREMENTS_LIST";
+        data: Buffer;
+        size: number;
+    }
+    type REG_VALUE = REG_SZ_VALUE | REG_EXPAND_SZ_VALUE | REG_DWORD_VALUE | REG_QWORD_VALUE | REG_BINARY_VALUE | REG_MULTI_SZ_VALUE | REG_ANY_VALUE;
+    type REG_VALUE_TYPE_NAME = `${keyof typeof REG_TYPE}`;
+    type chQueryValueKeyItem = {
+        /**名称 */
+        name: string;
+        /**类型 */
+        type: number;
+        /**类型 格式文本化*/
+        type_name: REG_VALUE_TYPE_NAME;
+        /**大小 */
+        size: number;
+    };
+    type chQueryFolderKeyItem = {
+        /**名称 */
+        name: string;
+        /**上次修订时间 */
+        time: number;
+    };
+    type chQueryFolderInfo = {
+        /**目录键列表 */
+        folderKeyList: chQueryFolderKeyItem[];
+        /**值键列表 */
+        valueKeyList: chQueryValueKeyItem[];
+        /**此内容是否存在 */
+        exists: boolean;
+        /**大小 */
+        size: number;
+        /**目录键数量 */
+        folderSize: number;
+        /**该目录下有多少个值键 */
+        keySize: number;
+        /**该目录上次写入的时间戳 毫秒 */
+        time: number;
+        /**该目录下最大的值键的内容大小 */
+        maxValueDataSize: number;
+    };
+    type CLIP_HTML_INFO = {
+        /**剪贴板中的 HTML 数据 */
+        data: string;
+        /**片段结束位置（HTML 内容的结束偏移量） */
         EndFragment: number;
+        /**HTML 内容的结束偏移量 */
         EndHTML: number;
+        /**数据是否有效（是否为有效的 HTML 剪贴板数据） */
         is_valid: boolean;
+        /**源 URL（HTML 内容来源的 URL） */
         SourceURL: string;
+        /**片段起始位置（HTML 内容的开始偏移量） */
         StartFragment: number;
+        /** HTML 内容的开始偏移量 */
         StartHTML: number;
+        /**剪贴板数据的版本号 */
         Version: number;
     };
     enum FS_MK_LINK_TARGET_TYPE {
+        /**
+         * 文件夹链接
+         */
         CREATE_DIR_SYMLINK = 166,
+        /**
+         * 软链接
+         */
         CREATE_SYMLINK = 168,
+        /**
+         * 硬链接
+         */
         CREATE_HARD_LINK = 170,
+        /**
+         * 目录连接点
+         */
         CREATE_SYMBOLIC_LINK = 172
+    }
+    interface TRAY_ICON {
+        path: string;
+        info: string;
+        handle: number;
     }
     const HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
     type BASIC_KEYS = {
@@ -255,15 +427,15 @@ export declare module HMC2_MODE {
     };
     interface HMC_KEYBOARD_CLASS {
         initKeyboardEventHook(): boolean;
-        isValidHookKeyboard(): boolean;
-        getAllKeyboardEventJson(): string;
+        isValidHookKeyboard(): false | number;
+        getAllKeyboardEventJson(): `KeyboardEvent[]`;
         stopHookKeyboard(): boolean;
         hasKeysBasic(): BASIC_KEYS;
         hasKeyActivate(KeysEvent: number): boolean;
     }
     interface HMC_MOUSE_CLASS {
         initMouseEventHook(): boolean;
-        isValidHookMouse(): boolean;
+        isValidHookMouse(): false | number;
         getMouseEventListJson(): string;
         stopHookMouse(): boolean;
         setShakeEventTime(ms: number): boolean;
@@ -291,14 +463,22 @@ export declare module HMC2_MODE {
         WM_MOUSEMOVE = "move"
     }
     interface KeyboardEvent {
+        /**事件id (每次结束时次记) */
         id: number;
+        /**事件时间 */
         time: number;
+        /**是否按下 */
         down: boolean;
+        /**扩展键标志 */
         flags: number;
+        /**键码 */
         keyCode: number;
+        /**执行的设备id */
         scanCode: number;
-        KeyName: string;
-        KeyNameCode: string;
+        /**映射代码 例如 A 0 1 */
+        key: string;
+        /**映射代码 例如 KeyE , KeyA */
+        code: string;
     }
     type MouseEventButtonName = "left-mouse-button" | "right-mouse-button" | "middle-mouse-button" | null;
     enum MouseKey {
@@ -346,7 +526,8 @@ export declare module HMC2_MODE {
         GET_EXIST_PROCESS = 15,
         GET_SUB_PROCESS = 19,
         GET_IS_PROCESS_WOW64 = 20,
-        GET_EXECUTABLE_CWD_LIST = 21
+        GET_EXECUTABLE_CWD_LIST = 21,
+        SEND_SLEEP = 22
     }
     type GET_PROCESS_LIST_COMMAND = ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST | ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS | ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP | ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT | ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME | ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME;
     /**
@@ -479,35 +660,47 @@ export declare module HMC2_MODE {
         GET_DEFAULT = 0,
         GET_FILE_NAME = 8
     }
+    enum ENV_INFO_COMMAND {
+        NONE = 0,
+        GET_REGISTR_QWORD = 70,
+        SET_REGISTR_QWORD = 71,
+        GET_REGISTR_DWORD = 72,
+        SET_REGISTR_DWORD = 73,
+        GET_REGISTR_STRING = 74,
+        SET_REGISTR_STRING = 75,
+        GET_REGISTR_KEYS = 76,
+        GET_REGISTR_STRING_LIST = 77,
+        SET_REGISTR_STRING_LIST = 78,
+        GET_REGISTR_BUFFER = 79,
+        SET_REGISTR_BUFFER = 710,
+        GET_REGISTR_VALUE = 711,
+        COPY_REGISTR_VALUE = 712,
+        COPY_REGISTR_FOLDER = 713,
+        SET_REGISTR_VALUE = 714,
+        GET_REGISTR_VALUE_STAT = 715,
+        GET_REGISTR_FOLDER_STAT = 716,
+        CLEAR_REGISTR_VALUE = 717,
+        CLEAR_REGISTR_FOLDER = 718,
+        REMOVE_REGISTR_VALUE = 719,
+        REMOVE_REGISTR_FOLDER = 720,
+        REMOVE_REGISTR_FOLDER_TREE = 721,
+        CREATE_REGISTR_FOLDER = 722,
+        CREATE_REGISTR_VALUE_KEY = 723,
+        HAS_REGISTR_KEY = 724,
+        HAS_REGISTR_FOLDER_KEY = 725
+    }
 }
 export declare const Native: {
     native: Native;
 };
-export declare const ref: {
-    path(Str: any): string; /**
-     * 执行命令代码 并且按照api内容返回 异步
-     * @docs PromiseEval 是通过(hmc -> PromiseEval)生成的Promise / Sync 函数 他性能并不是特别出众 但是比编写一个标准化Promise 节省近百行C++代码
-     * @param pid 进程id
-     * @param command 命令
-     */
-    bool(bool: any): boolean;
-    string(Str: any): string;
-    float(Num: any): number;
-    int(Num: any): number;
-    stringArray(array: any[] | Set<any>): string[];
-    intArray(array: any[] | Set<any>): number[];
-    formatArgv(...argv: any[] | any[][]): string;
-    concatBuff(buffList: Buffer[]): Buffer;
-};
-export declare module Auto {
-    const setLimitMouseRange: typeof AutoMain.setLimitMouseRange;
-}
+export declare const ref: typeof UtilMain.ref;
+export declare const Auto: typeof AutoMain;
 export declare const Startup: {
-    "__#42927@#Startup": HMC2_MODE.HMC_SHELL_STARTUP_CLASS | null;
-    "__#42927@#initialize"(): void;
-    "__#42927@#root": "HKEY_LOCAL_MACHINE";
-    "__#42927@#pathRun": string;
-    "__#42927@#pathRunOnce": string;
+    "__#13951@#Startup": HMC2_MODE.HMC_SHELL_STARTUP_CLASS | null;
+    "__#13951@#initialize"(): void;
+    "__#13951@#root": "HKEY_LOCAL_MACHINE";
+    "__#13951@#pathRun": string;
+    "__#13951@#pathRunOnce": string;
     has(keyName: string): boolean;
     hasOnce(keyName: string): boolean;
     remove(keyName: string): boolean;
@@ -525,4 +718,14 @@ export declare const Startup: {
 };
 export declare const Shell: typeof ShellMain.Shell;
 export declare const Process: typeof ProcessMain.Process;
+export declare const Sleep: typeof ProcessMain.Process.Sleep, sleep: typeof ProcessMain.Process.sleep;
+export declare const Registr: typeof RegistrMain.Registr;
+export declare module Window {
+    /**
+     * 将 electron 句柄内存缓冲区转换为标准 窗口数字句柄
+     * @param handleBuffer 例如 Electron.BrowserWindow.getFocusedWindow().getNativeWindowHandle()
+     * @returns
+     */
+    function readElectronHandle(handleBuffer: any): number;
+}
 export {};

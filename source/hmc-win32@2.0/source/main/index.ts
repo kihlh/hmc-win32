@@ -275,7 +275,7 @@ interface Native {
 
 export module HMC2_MODE {
     /**注册表根目录 */
-    const Hkey = {
+    export const Hkey = {
         /**用作默认用户首选设置|也作为单个用户的首选设置 */
         HKEY_CURRENT_CONFIG: "HKEY_CURRENT_CONFIG" as "HKEY_CURRENT_CONFIG",
         /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -344,24 +344,10 @@ export module HMC2_MODE {
         size: number;
         /**此内容是否存在 */
         exists: boolean;
+        /**类型 格式文本化*/
+        type_name:REG_VALUE_TYPE_NAME;
     };
 
-    export type RegistrFolderStat = {
-        /**目录键列表 */
-        folder?: string[];
-        /**值键列表 */
-        key?: string[];
-        /**此内容是否存在 */
-        exists: boolean;
-        /**大小 */
-        size: number;
-        /**目录键数量 */
-        folderSize: number;
-        /**该目录下有多少个值键 */
-        keySize: number;
-        /**该目录上次写入的时间戳 毫秒 */
-        time: number;
-    };
 
     export interface REG_SZ_VALUE {
         type: 1;
@@ -422,12 +408,44 @@ export module HMC2_MODE {
 
     export type REG_VALUE = REG_SZ_VALUE | REG_EXPAND_SZ_VALUE | REG_DWORD_VALUE | REG_QWORD_VALUE | REG_BINARY_VALUE | REG_MULTI_SZ_VALUE | REG_ANY_VALUE;
 
-    export interface chQueryFolderKey {
-        key: string[];
-        folder: string[];
-        size: number;
+    export type REG_VALUE_TYPE_NAME =`${keyof typeof REG_TYPE}` ;//"REG_RESOURCE_REQUIREMENTS_LIST"|"REG_FULL_RESOURCE_DESCRIPTOR"|"REG_RESOURCE_LIST"|"REG_MULTI_SZ"|"REG_LINK"|"REG_QWORD"|"REG_DWORD"|"REG_BINARY"|"REG_EXPAND_SZ"|"REG_SZ"|"REG_NONE";
+
+    export type chQueryValueKeyItem = {
+        /**名称 */
+        name:string;
+        /**类型 */
+		type:number;
+         /**类型 格式文本化*/
+        type_name:REG_VALUE_TYPE_NAME;
+		/**大小 */
+        size:number;
     };
 
+    export type chQueryFolderKeyItem = {
+        /**名称 */
+        name:string;
+        /**上次修订时间 */
+		time:number;
+    };
+
+    export type chQueryFolderInfo = {
+        /**目录键列表 */
+        folderKeyList: chQueryFolderKeyItem[];
+        /**值键列表 */
+        valueKeyList: chQueryValueKeyItem[];
+        /**此内容是否存在 */
+        exists: boolean;
+        /**大小 */
+        size: number;
+        /**目录键数量 */
+        folderSize: number;
+        /**该目录下有多少个值键 */
+        keySize: number;
+        /**该目录上次写入的时间戳 毫秒 */
+        time: number;
+        /**该目录下最大的值键的内容大小 */
+        maxValueDataSize: number;
+    };
 
     export type CLIP_HTML_INFO = {
         /**剪贴板中的 HTML 数据 */

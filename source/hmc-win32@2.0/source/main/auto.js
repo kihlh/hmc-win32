@@ -12,7 +12,8 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
 };
 var _HMC_MOUSE_CLASS_instances, _HMC_MOUSE_CLASS_fun, _HMC_MOUSE_CLASS_initialize, _HMC_KEYBOARD_CLASS_instances, _HMC_KEYBOARD_CLASS_fun, _HMC_KEYBOARD_CLASS_initialize;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setLimitMouseRange = exports.HmcKeyboardClass = exports.HmcMouseClass = void 0;
+exports.keyboardHook = exports.setLimitMouseRange = exports.HmcKeyboardClass = exports.HmcMouseClass = void 0;
+const vkKey_1 = require("../../../mian/vkKey");
 const main = require("./index");
 const util = require("./util");
 const { ref } = util;
@@ -168,3 +169,270 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
     return res;
 }
 exports.setLimitMouseRange = setLimitMouseRange;
+class Keyboard {
+    /**
+     * 是否按下了shift
+     */
+    get shiftKey() {
+        return exports.HmcKeyboardClass.hasKeyActivate(0x10) || exports.HmcKeyboardClass.hasKeyActivate(0xA1) || exports.HmcKeyboardClass.hasKeyActivate(0xA0);
+    }
+    /***
+     * 是否按下了alt
+     */
+    get altKey() {
+        return exports.HmcKeyboardClass.hasKeyActivate(0x12) || exports.HmcKeyboardClass.hasKeyActivate(0xA4) || exports.HmcKeyboardClass.hasKeyActivate(0xA5);
+    }
+    /***
+     * 是否按下了ctrl
+     */
+    get ctrlKey() {
+        return exports.HmcKeyboardClass.hasKeyActivate(0x11);
+    }
+    /***
+     * 是否按下了win
+     */
+    get winKey() {
+        return exports.HmcKeyboardClass.hasKeyActivate(0x5B) || exports.HmcKeyboardClass.hasKeyActivate(0x5C);
+    }
+    constructor(env) {
+        this.id = Number(env.id);
+        this.time = Number(env.time);
+        this.down = Boolean(env.down);
+        this.flags = Number(env.flags);
+        this.keyCode = Number(env.keyCode);
+        this.scanCode = Number(env.scanCode);
+        this.KeyName = String(env.key);
+        this.KeyNameCode = String(env.code);
+        this.vKey = Number(env.keyCode);
+        this.isDown = env.down ? true : false;
+        let KeyboardcodeEmen = vkKey_1.KeyboardcodeEmenList.get(this.vKey);
+        if (!KeyboardcodeEmen) {
+            KeyboardcodeEmen = ["unknown", null, this.vKey, 0];
+            // throw new Error("key Value Data That Does Not Exist !");
+        }
+        const [VK_key, VK_code, VK_keyCode, VK_VirtualKey, VK_Nickname] = KeyboardcodeEmen;
+        this.keyCode = this.keyCode || VK_keyCode;
+        this.key = VK_key || this.KeyName;
+        this.code = VK_code || VK_key || this.KeyNameCode;
+    }
+}
+class Iohook_Keyboard {
+    constructor() {
+        this._onlistenerCountList = {
+            close: [],
+            data: [],
+            start: [],
+            change: [],
+        };
+        this._oncelistenerCountList = {
+            close: [],
+            data: [],
+            start: [],
+            change: [],
+        };
+        this._Close = false;
+        this._next_Sleep = 50;
+        this._hook_Task_id = 0;
+    }
+    once(eventName, listener) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "change";
+        }
+        if (typeof listener !== "function")
+            return exports.keyboardHook;
+        exports.keyboardHook._oncelistenerCountList[eventName].push(listener);
+        return exports.keyboardHook;
+    }
+    ;
+    on(eventName, listener) {
+        if (typeof eventName === "function") {
+            listener = eventName;
+            eventName = "change";
+        }
+        if (typeof listener !== "function")
+            return exports.keyboardHook;
+        exports.keyboardHook._onlistenerCountList[eventName].push(listener);
+        return exports.keyboardHook;
+    }
+    ;
+    /**
+     * 设置于hmc 对接的刷新延迟毫秒数 数字越小读取越快但是性能消耗将会增加
+     * @param Sleep 要求 10ms - 10,000
+     * @default 50ms
+     * @returns
+     */
+    setRefreshRate(Sleep = 50) {
+        Sleep = Number(Sleep);
+        if (isNaN(Sleep))
+            return false;
+        // 小于10会导致访问过快照成性能消耗过大
+        if (Sleep < 10) {
+            return false;
+        }
+        // 太慢了会导致内存过大 如果内存超出了缓冲区预开辟内存大小将会变成动态开辟内存 影响单次键鼠响应的速度
+        if (Sleep > 10000) {
+            return false;
+        }
+        this._next_Sleep = Sleep;
+        return true;
+    }
+    /**
+     * 开始
+     * @returns
+     */
+    start() {
+        let start = exports.HmcKeyboardClass.isValidHookKeyboard();
+        if (start != false)
+            throw new Error("the Task Has Started.");
+        const _hook_Task_id = this._hook_Task_id + 1;
+        start = exports.HmcKeyboardClass.initKeyboardEventHook();
+        if (!start) {
+            return false;
+        }
+        this._Close = false;
+        exports.keyboardHook.emit("start");
+        let emit_getKeyboardNextSession = () => {
+            let getKeyboardNextSession = exports.HmcKeyboardClass.getAllKeyboardEventJson();
+            if (getKeyboardNextSession === null || getKeyboardNextSession === void 0 ? void 0 : getKeyboardNextSession.length)
+                exports.keyboardHook.emit("data", getKeyboardNextSession);
+            if (getKeyboardNextSession)
+                for (let index = 0; index < getKeyboardNextSession.length; index++) {
+                    const KeyboardNextSession = getKeyboardNextSession[index];
+                    const KeyboardPoint = new Keyboard(KeyboardNextSession);
+                    exports.keyboardHook.emit("change", KeyboardPoint);
+                }
+        };
+        this._hook_Task_id = _hook_Task_id;
+        (async () => {
+            while (true) {
+                if (this._hook_Task_id != _hook_Task_id || exports.keyboardHook._Close)
+                    return;
+                await main.Sleep(this._next_Sleep);
+                emit_getKeyboardNextSession();
+            }
+        })();
+        return start;
+    }
+    /**
+     * 挂起 并且不销毁已经绑定的函数 以及当前配置
+     */
+    suspend() {
+        return exports.HmcKeyboardClass.stopHookKeyboard();
+    }
+    /**
+     * 解除suspend的挂起状态
+     */
+    next() {
+        const isValidHookKeyboard = exports.HmcKeyboardClass.isValidHookKeyboard();
+        if (isValidHookKeyboard) {
+            exports.HmcKeyboardClass.stopHookKeyboard();
+        }
+        return exports.HmcKeyboardClass.initKeyboardEventHook();
+    }
+    /**
+     * 判断当前的hook是否有效 有效返回线程id
+     * @returns
+     */
+    isValidHook() {
+        let isValidHookKeyboard = exports.HmcKeyboardClass.isValidHookKeyboard();
+        if (this._Close && isValidHookKeyboard) {
+            exports.HmcKeyboardClass.stopHookKeyboard();
+            isValidHookKeyboard = exports.HmcKeyboardClass.isValidHookKeyboard();
+        }
+        return isValidHookKeyboard;
+    }
+    /**
+     * 结束
+     */
+    close() {
+        exports.HmcKeyboardClass.stopHookKeyboard();
+        exports.keyboardHook.emit("close");
+        exports.keyboardHook._Close = true;
+        exports.keyboardHook._oncelistenerCountList.close.length = 0;
+        exports.keyboardHook._oncelistenerCountList.data.length = 0;
+        exports.keyboardHook._oncelistenerCountList.change.length = 0;
+        exports.keyboardHook._oncelistenerCountList.start.length = 0;
+        exports.keyboardHook._onlistenerCountList.close.length = 0;
+        exports.keyboardHook._onlistenerCountList.data.length = 0;
+        exports.keyboardHook._onlistenerCountList.change.length = 0;
+        exports.keyboardHook._onlistenerCountList.start.length = 0;
+    }
+    emit(eventName, ...data) {
+        const emitFunList = exports.keyboardHook._onlistenerCountList[eventName];
+        const onceEmitFunList = exports.keyboardHook._oncelistenerCountList[eventName];
+        for (let index = 0; index < emitFunList.length; index++) {
+            const emitFun = emitFunList[index];
+            emitFun.apply(exports.keyboardHook, data);
+        }
+        ;
+        for (let index = 0; index < onceEmitFunList.length; index++) {
+            const emitFun = onceEmitFunList[index];
+            emitFun.apply(exports.keyboardHook, data);
+        }
+        ;
+        onceEmitFunList.length = 0;
+        return emitFunList.length ? true : false;
+    }
+    /**
+     * 关闭监听
+     * @param eventName
+     * @param data
+     * @returns
+     */
+    off(eventName, treatmentMode, data) {
+        switch (treatmentMode) {
+            case "on": {
+                if (data) {
+                    const listenerCountList = exports.keyboardHook._onlistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return exports.keyboardHook._onlistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                }
+                else {
+                    exports.keyboardHook._onlistenerCountList[eventName].length = 0;
+                    return !exports.keyboardHook._onlistenerCountList[eventName].length;
+                }
+                break;
+            }
+            case "once": {
+                if (data) {
+                    const listenerCountList = exports.keyboardHook._oncelistenerCountList[eventName];
+                    if (listenerCountList.indexOf(data)) {
+                        return exports.keyboardHook._oncelistenerCountList[eventName].splice(listenerCountList.indexOf(data), 1) ? true : false;
+                    }
+                }
+                else {
+                    exports.keyboardHook._oncelistenerCountList[eventName].length = 0;
+                    return !exports.keyboardHook._oncelistenerCountList[eventName].length;
+                }
+                break;
+            }
+        }
+        return false;
+    }
+}
+/**
+ * 设置一个键盘低级变化监听
+ * @example ```javascript
+  // 添加处理函数
+  hmc.Auto.keyboardHook.on("change",function(env){
+     console.log(env.key,env.isDown,env);
+  });
+  // log => ctrl , true {...env}
+
+  // 启动
+  hmc.Auto.keyboardHook.start();
+
+  // 暂停 / 开始
+  hmc.Auto.keyboardHook.suspend()&&console.log("hook -> stop");
+
+  hmc.Sleep(5000).then(()=>hmc.Auto.keyboardHook.next()&&console.log("hook -> next"));
+   
+  // close
+  hmc.Sleep(15000).then(hmc.Auto.keyboardHook.close);
+
+ *  ```
+ *
+ */
+exports.keyboardHook = new Iohook_Keyboard();
