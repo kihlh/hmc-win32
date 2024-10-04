@@ -16,6 +16,12 @@
     <Filter Include="node-gyp">
       <UniqueIdentifier>{7B735499-E5DD-1C2B-6C26-70023832A1CF}</UniqueIdentifier>
     </Filter>
+    <Filter Include="hmc-module-static">
+      <UniqueIdentifier>{95298037-9ae6-4628-b34e-542c52f045c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hmc-module-static\node">
+      <UniqueIdentifier>{977160dd-7c4b-4896-920b-0dd12255d256}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\main.cpp">
@@ -50,6 +56,63 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\export\export.h">
       <Filter>源代码\export</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_automation_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_byte_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_clip_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_json_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_napi_value_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_process_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_registr_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_screen_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_shell_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_sock_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_string_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_usb_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_windows_util.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc-module.h">
+      <Filter>hmc-module-static</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\node_api_types.h">
+      <Filter>hmc-module-static\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\js_native_api.h">
+      <Filter>hmc-module-static\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\js_native_api_types.h">
+      <Filter>hmc-module-static\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\node_api.h">
+      <Filter>hmc-module-static\node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

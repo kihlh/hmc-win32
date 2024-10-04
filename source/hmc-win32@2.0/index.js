@@ -292,6 +292,20 @@ var init_util = __esm({
         return dataList;
       }
       ref6.stringArray = stringArray;
+      function is_stringArray(array) {
+        if (Array.isArray(array)) {
+          for (let index = 0; index < array.length; index++) {
+            const cout = array[index];
+            if (typeof cout != "string") {
+              return false;
+            }
+          }
+        } else {
+          return false;
+        }
+        return true;
+      }
+      ref6.is_stringArray = is_stringArray;
       function convertMultiStringArray(input) {
         if (typeof input == "string") {
           const temp = input.replace(/[\0]+$/, "").split("\0");
@@ -398,7 +412,7 @@ var shell_exports = {};
 __export(shell_exports, {
   Shell: () => Shell
 });
-var main2, util, PromiseEval, ref2, _Startup, _initialize, initialize_fn, _root, _pathRun, _pathRunOnce, StartupConstructor, Shell;
+var main2, util, PromiseEval, ref2, STARTUP_CONSTRUCTOR_DATA, StartupConstructor, Shell;
 var init_shell = __esm({
   "source/hmc-win32@2.0/source/main/shell.ts"() {
     "use strict";
@@ -406,43 +420,49 @@ var init_shell = __esm({
     util = (init_util(), __toCommonJS(util_exports));
     PromiseEval = (init_promiseEval(), __toCommonJS(promiseEval_exports));
     ({ ref: ref2 } = util);
+    STARTUP_CONSTRUCTOR_DATA = {
+      _Startup: null,
+      _initialize() {
+        if (!STARTUP_CONSTRUCTOR_DATA._Startup && main2.Native.native.HMC_SHELL_STARTUP_CLASS) {
+          STARTUP_CONSTRUCTOR_DATA._Startup = main2.Native.native.HMC_SHELL_STARTUP_CLASS();
+        }
+      },
+      _root: "HKEY_LOCAL_MACHINE",
+      _pathRun: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+      _pathRunOnce: "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce"
+    };
     StartupConstructor = class {
       constructor() {
-        __privateAdd(this, _initialize);
-        __privateAdd(this, _Startup, null);
-        __privateAdd(this, _root, "HKEY_LOCAL_MACHINE");
-        __privateAdd(this, _pathRun, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
-        __privateAdd(this, _pathRunOnce, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce");
       }
       has(keyName) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.has(ref2.string(keyName))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.has(ref2.string(keyName))) || false;
       }
       hasOnce(keyName) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.hasOnce(ref2.string(keyName))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.hasOnce(ref2.string(keyName))) || false;
       }
       remove(keyName) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.remove(ref2.string(keyName))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.remove(ref2.string(keyName))) || false;
       }
       removeOnce(keyName) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
       }
       set(keyName, path, cmd) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
       setOnce(keyName, path, cmd) {
         var _a;
-        __privateMethod(this, _initialize, initialize_fn).call(this);
-        return ((_a = __privateGet(this, _Startup)) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        STARTUP_CONSTRUCTOR_DATA._initialize();
+        return ((_a = STARTUP_CONSTRUCTOR_DATA._Startup) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
       enum() {
         const obj = {};
@@ -459,27 +479,17 @@ var init_shell = __esm({
         return [];
       }
     };
-    _Startup = new WeakMap();
-    _initialize = new WeakSet();
-    initialize_fn = function() {
-      if (!__privateGet(this, _Startup) && main2.Native.native.HMC_SHELL_STARTUP_CLASS) {
-        __privateSet(this, _Startup, main2.Native.native.HMC_SHELL_STARTUP_CLASS());
-      }
-    };
-    _root = new WeakMap();
-    _pathRun = new WeakMap();
-    _pathRunOnce = new WeakMap();
     ((Shell3) => {
       Shell3.Startup = new StartupConstructor();
-      Shell3.captureBmp2 = PromiseEval.promiseEvalTask.captureBmp2;
-      Shell3.captureBmp2Sync = PromiseEval.promiseEvalTask.captureBmp2Sync;
-      Shell3.getThumbnailPng2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
-      Shell3.getThumbnailPng2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
-      Shell3.getFileIcon2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
-      Shell3.getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+      let _SHELL = null;
+      function SHELL_initialize() {
+        if (!_SHELL && main2.Native.native.HMC_SHELL_CLASS) {
+          _SHELL = main2.Native.native.HMC_SHELL_CLASS();
+        }
+      }
       function showContextMenu(hwnd, file, x, y) {
-        var _a, _b;
-        return ((_a = main2.Native.native) == null ? void 0 : _a.showContextMenu) ? (_b = main2.Native.native) == null ? void 0 : _b.showContextMenu(
+        SHELL_initialize();
+        return (_SHELL == null ? void 0 : _SHELL.showContextMenu) ? _SHELL == null ? void 0 : _SHELL.showContextMenu(
           ref2.int(hwnd || 0),
           Array.isArray(file) ? file : ref2.string(file),
           ref2.int(x || 0),
@@ -488,17 +498,74 @@ var init_shell = __esm({
       }
       Shell3.showContextMenu = showContextMenu;
       function getTrayList() {
-        if (!main2.Native.native.getTrayList)
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.getTrayList))
           return [];
-        return JSON.parse(main2.Native.native.getTrayList());
+        return JSON.parse(_SHELL.getTrayList());
       }
       Shell3.getTrayList = getTrayList;
       function setFolderIcon(folderPath, iconPath, iconIndex) {
-        if (!main2.Native.native.setFolderIcon)
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.setFolderIcon))
           return false;
-        return main2.Native.native.setFolderIcon(ref2.string(folderPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
+        return _SHELL.setFolderIcon(ref2.string(folderPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
       }
       Shell3.setFolderIcon = setFolderIcon;
+      function trashFile(trash_path, is_Recycle, isShow) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.trashFile))
+          return false;
+        return _SHELL.trashFile(ref2.string(trash_path), ref2.bool(is_Recycle), ref2.bool(isShow));
+      }
+      Shell3.trashFile = trashFile;
+      function clearTrash(root_path, isShow) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.clearTrash))
+          return false;
+        return _SHELL.clearTrash(ref2.string(root_path), ref2.bool(isShow));
+      }
+      Shell3.clearTrash = clearTrash;
+      function copyFile(filePath, newFilePath, isShowConfirm, isShow, isShowProgress, trash_ok) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.copyFile))
+          return false;
+        return _SHELL.copyFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
+      }
+      Shell3.copyFile = copyFile;
+      function moveFile(filePath, newFilePath, isShowConfirm, isShow, isShowProgress, trash_ok) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.moveFile))
+          return false;
+        return _SHELL.moveFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
+      }
+      Shell3.moveFile = moveFile;
+      function getLinkTarget(Linkath) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.getLinkTarget))
+          return false;
+        return _SHELL.getLinkTarget(ref2.string(Linkath));
+      }
+      Shell3.getLinkTarget = getLinkTarget;
+      function isLinkLink(path) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.isLinkLink))
+          return false;
+        return _SHELL.isLinkLink(ref2.string(path));
+      }
+      Shell3.isLinkLink = isLinkLink;
+      function createFsLink(targetType, targetPath, sourcePath) {
+        SHELL_initialize();
+        if (!(_SHELL == null ? void 0 : _SHELL.createFsLink))
+          return false;
+        return _SHELL.createFsLink(ref2.int(targetType), ref2.string(targetPath), ref2.string(sourcePath));
+      }
+      Shell3.createFsLink = createFsLink;
+      Shell3.captureBmp2 = PromiseEval.promiseEvalTask.captureBmp2;
+      Shell3.captureBmp2Sync = PromiseEval.promiseEvalTask.captureBmp2Sync;
+      Shell3.getThumbnailPng2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+      Shell3.getThumbnailPng2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+      Shell3.getFileIcon2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
+      Shell3.getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
     })(Shell || (Shell = {}));
   }
 });
@@ -734,7 +801,7 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
   };
   return res;
 }
-var main3, util2, ref3, _fun, _initialize2, initialize_fn2, HMC_MOUSE_CLASS, HmcMouseClass, _fun2, _initialize3, initialize_fn3, HMC_KEYBOARD_CLASS, HmcKeyboardClass, Keyboard, Iohook_Keyboard, keyboardHook;
+var main3, util2, ref3, _fun, _initialize, initialize_fn, HMC_MOUSE_CLASS, HmcMouseClass, _fun2, _initialize2, initialize_fn2, HMC_KEYBOARD_CLASS, HmcKeyboardClass, Keyboard, Iohook_Keyboard, keyboardHook;
 var init_auto = __esm({
   "source/hmc-win32@2.0/source/main/auto.ts"() {
     "use strict";
@@ -744,53 +811,53 @@ var init_auto = __esm({
     ({ ref: ref3 } = util2);
     HMC_MOUSE_CLASS = class {
       constructor() {
-        __privateAdd(this, _initialize2);
+        __privateAdd(this, _initialize);
         __privateAdd(this, _fun, null);
       }
       initMouseEventHook() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.initMouseEventHook()) || false;
       }
       isValidHookMouse() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.isValidHookMouse()) || false;
       }
       getMouseEventListJson() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.getMouseEventListJson()) || false;
       }
       stopHookMouse() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.stopHookMouse()) || false;
       }
       setLimitMouseRange(ms, x, y, right, bottom) {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.setLimitMouseRange(ref3.int(ms), ref3.int(x), ref3.int(y), ref3.int(right), ref3.int(bottom))) || false;
       }
       setShakeEventTime(ms) {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.setShakeEventTime(ref3.int(ms))) || false;
       }
       hasLimitMouseRangeWorker() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.hasLimitMouseRangeWorker()) || false;
       }
       stopLimitMouseRangeWorker() {
         var _a;
-        __privateMethod(this, _initialize2, initialize_fn2).call(this);
+        __privateMethod(this, _initialize, initialize_fn).call(this);
         return ((_a = __privateGet(this, _fun)) == null ? void 0 : _a.stopLimitMouseRangeWorker()) || false;
       }
     };
     _fun = new WeakMap();
-    _initialize2 = new WeakSet();
-    initialize_fn2 = function() {
+    _initialize = new WeakSet();
+    initialize_fn = function() {
       if (!__privateGet(this, _fun) && main3.Native.native.HMC_MOUSE_CLASS) {
         __privateSet(this, _fun, main3.Native.native.HMC_MOUSE_CLASS());
       }
@@ -798,32 +865,32 @@ var init_auto = __esm({
     HmcMouseClass = new HMC_MOUSE_CLASS();
     HMC_KEYBOARD_CLASS = class {
       constructor() {
-        __privateAdd(this, _initialize3);
+        __privateAdd(this, _initialize2);
         __privateAdd(this, _fun2, null);
       }
       initKeyboardEventHook() {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return ((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.initKeyboardEventHook()) || false;
       }
       isValidHookKeyboard() {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return ((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.isValidHookKeyboard()) || false;
       }
       getAllKeyboardEventJson() {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return JSON.parse(((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.getAllKeyboardEventJson()) || "[]");
       }
       stopHookKeyboard() {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return ((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.stopHookKeyboard()) || false;
       }
       hasKeysBasic() {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return ((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.hasKeysBasic()) || {
           "alt": false,
           "ctrl": false,
@@ -833,13 +900,13 @@ var init_auto = __esm({
       }
       hasKeyActivate(KeysEvent) {
         var _a;
-        __privateMethod(this, _initialize3, initialize_fn3).call(this);
+        __privateMethod(this, _initialize2, initialize_fn2).call(this);
         return ((_a = __privateGet(this, _fun2)) == null ? void 0 : _a.hasKeyActivate(ref3.int(KeysEvent))) || false;
       }
     };
     _fun2 = new WeakMap();
-    _initialize3 = new WeakSet();
-    initialize_fn3 = function() {
+    _initialize2 = new WeakSet();
+    initialize_fn2 = function() {
       if (!__privateGet(this, _fun2) && main3.Native.native.HMC_KEYBOARD_CLASS) {
         __privateSet(this, _fun2, main3.Native.native.HMC_KEYBOARD_CLASS());
       }
@@ -1690,6 +1757,7 @@ var init_registr = __esm({
         );
         return data ? data : null;
       }
+      Registr3.getRegistrValue2 = getRegistrValue2;
       async function copyRegistrValue2(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey) {
         const data = await GetRegistrEnvInfo(
           HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
@@ -1712,13 +1780,15 @@ var init_registr = __esm({
         return ref6.bool(data);
       }
       Registr3.copyRegistrFolder2 = copyRegistrFolder2;
-      async function setRegistrValue2(HKey, SubKey, key, data) {
+      async function setRegistrValue2(HKey, SubKey, key, data, type) {
+        const send_data = convertRegistrData(data, type);
         const data_2 = await GetRegistrEnvInfo(
           HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
           ref6.string(HKey),
           ref6.string(SubKey),
           ref6.string(key || ""),
-          data
+          send_data.data,
+          send_data.type
         );
         return ref6.bool(data_2);
       }
@@ -2006,6 +2076,7 @@ var init_registr = __esm({
         );
         return data ? data : null;
       }
+      Registr3.getRegistrValue2Sync = getRegistrValue2Sync;
       function copyRegistrValue2Sync(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey) {
         if (!GetRegistrEnvInfoSync)
           return false;
@@ -2032,7 +2103,106 @@ var init_registr = __esm({
         return ref6.bool(data);
       }
       Registr3.copyRegistrFolder2Sync = copyRegistrFolder2Sync;
-      function setRegistrValue2Sync(HKey, SubKey, key, data) {
+      function typename(type) {
+        for (let i in main5.HMC2_MODE.REG_TYPE) {
+          const at = main5.HMC2_MODE.REG_TYPE[i];
+          if (at == type) {
+            return i;
+          }
+        }
+        return null;
+      }
+      Registr3.typename = typename;
+      function is_REG_VALUE(data) {
+        const result = data && typeof data == "object" && REG_TYPE(data.type) != null && (typeof data.data == "string" || typeof data.data == "object" && !data.data || Array.isArray(data.data), typeof data.data == "bigint" || typeof data.data == "number" || Buffer.isBuffer(data.data));
+        if (result && typeof result.type_name != "string") {
+          result.type_name = typename(result.type_name) || "REG_NONE";
+        }
+        return result;
+      }
+      Registr3.is_REG_VALUE = is_REG_VALUE;
+      function REG_VALUE(REG_VALUE2) {
+        if (is_REG_VALUE(REG_VALUE2))
+          return REG_VALUE2;
+        if (Buffer.isBuffer(REG_VALUE2)) {
+          return {
+            "data": REG_VALUE2,
+            "type": main5.HMC2_MODE.REG_TYPE.REG_BINARY,
+            "size": REG_VALUE2.length,
+            "typeName": "REG_BINARY"
+          };
+        }
+        if (typeof REG_VALUE2 == "string") {
+          return {
+            "data": REG_VALUE2,
+            "type": main5.HMC2_MODE.REG_TYPE.REG_SZ,
+            "size": REG_VALUE2.length,
+            "typeName": "REG_SZ"
+          };
+        }
+        if (typeof REG_VALUE2 == "bigint") {
+          return {
+            "data": REG_VALUE2,
+            "type": main5.HMC2_MODE.REG_TYPE.REG_QWORD,
+            "size": 8,
+            "typeName": "REG_QWORD"
+          };
+        }
+        if (typeof REG_VALUE2 == "number") {
+          return REG_VALUE2 <= 4294967295 ? {
+            "data": REG_VALUE2,
+            "type": main5.HMC2_MODE.REG_TYPE.REG_DWORD,
+            "size": 4,
+            "typeName": "REG_DWORD"
+          } : {
+            "data": BigInt(REG_VALUE2),
+            "type": main5.HMC2_MODE.REG_TYPE.REG_QWORD,
+            "size": 8,
+            "typeName": "REG_QWORD"
+          };
+        }
+        if (Array.isArray(REG_VALUE2)) {
+          return {
+            "data": ref6.is_stringArray(REG_VALUE2) ? REG_VALUE2 : ref6.stringArray(REG_VALUE2),
+            "type": main5.HMC2_MODE.REG_TYPE.REG_MULTI_SZ,
+            "size": 0,
+            "typeName": "REG_MULTI_SZ"
+          };
+        }
+        return null;
+      }
+      Registr3.REG_VALUE = REG_VALUE;
+      function REG_TYPE(type) {
+        if (typeof type == "string") {
+          for (let i in main5.HMC2_MODE.REG_TYPE) {
+            if ((i == null ? void 0 : i.toUpperCase()) == (type == null ? void 0 : type.toUpperCase())) {
+              return main5.HMC2_MODE.REG_TYPE[i];
+            }
+          }
+        }
+        if (typeof type == "number") {
+          for (let i in main5.HMC2_MODE.REG_TYPE) {
+            const at = main5.HMC2_MODE.REG_TYPE[i];
+            if (at == type) {
+              return at;
+            }
+          }
+        }
+        return main5.HMC2_MODE.REG_TYPE.REG_NONE;
+      }
+      Registr3.REG_TYPE = REG_TYPE;
+      function convertRegistrData(data, type) {
+        const data_copy = REG_VALUE(data);
+        const type_copy = REG_TYPE(type);
+        const send_data = {
+          type: type_copy || (data_copy == null ? void 0 : data_copy.type) || HMC2_MODE.REG_TYPE.REG_NONE,
+          data: typeof (data_copy == null ? void 0 : data_copy.data) != "undefined" ? data_copy.data : Buffer.alloc(0)
+        };
+        return send_data;
+      }
+      Registr3.convertRegistrData = convertRegistrData;
+      function setRegistrValue2Sync(HKey, SubKey, key, data, type) {
+        const send_data = convertRegistrData(data, type);
         if (!GetRegistrEnvInfoSync)
           return false;
         const data_2 = GetRegistrEnvInfoSync(
@@ -2040,10 +2210,12 @@ var init_registr = __esm({
           ref6.string(HKey),
           ref6.string(SubKey),
           ref6.string(key || ""),
-          data
+          send_data.data,
+          send_data.type
         );
         return ref6.bool(data_2);
       }
+      Registr3.setRegistrValue2Sync = setRegistrValue2Sync;
       function getRegistrValueStat2Sync(HKey, SubKey, key) {
         const data = GetRegistrEnvInfoSync(
           HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,

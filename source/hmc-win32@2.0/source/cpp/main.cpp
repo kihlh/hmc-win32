@@ -46,24 +46,25 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardHTML", getClipboardHTML),
 
         // shell.cpp
-        DECLARE_NAPI_METHODRM("getTrayList", getTrayList),
-        DECLARE_NAPI_METHODRM("trashFile", trashFile),
-        DECLARE_NAPI_METHODRM("clearTrash", clearTrash),
-        DECLARE_NAPI_METHODRM("copyFile", copyFile),
-        DECLARE_NAPI_METHODRM("moveFile", moveFile),
-        DECLARE_NAPI_METHODRM("getThumbnailPng", getThumbnailPng),
-        DECLARE_NAPI_METHODRM("getLinkTarget", getLinkTarget),
-        DECLARE_NAPI_METHODRM("setFolderIcon", setFolderIcon),
-        DECLARE_NAPI_METHODRM("isLinkLink", isLinkLink),
-        DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
-        DECLARE_NAPI_METHODRM("createFsLink", createFsLink),
-        DECLARE_NAPI_METHODRM("getSystemMetrics", getSystemMetrics),
-        DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
-        DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
-        DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
-  
-        // auto.cpp
+        // DECLARE_NAPI_METHODRM("getTrayList", getTrayList),
+        // DECLARE_NAPI_METHODRM("trashFile", trashFile),
+        // DECLARE_NAPI_METHODRM("clearTrash", clearTrash),
+        // DECLARE_NAPI_METHODRM("copyFile", copyFile),
+        // DECLARE_NAPI_METHODRM("moveFile", moveFile),
+        // DECLARE_NAPI_METHODRM("getThumbnailPng", getThumbnailPng),
+        // DECLARE_NAPI_METHODRM("getLinkTarget", getLinkTarget),
+        // DECLARE_NAPI_METHODRM("setFolderIcon", setFolderIcon),
+        // DECLARE_NAPI_METHODRM("isLinkLink", isLinkLink),
+        // DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
+        // DECLARE_NAPI_METHODRM("createFsLink", createFsLink),
+        // DECLARE_NAPI_METHODRM("getSystemMetrics", getSystemMetrics),
+        // DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
+        // DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
+        // DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
+        DECLARE_NAPI_METHODRM("HMC_SHELL_CLASS", HMC_shell::StartupClassConstructor),
         DECLARE_NAPI_METHODRM("HMC_SHELL_STARTUP_CLASS", HMC_shell_startup::StartupClassConstructor),
+
+        // auto.cpp
         DECLARE_NAPI_METHODRM("HMC_KEYBOARD_CLASS", HMC_Keyboard::StartupClassConstructor),
         DECLARE_NAPI_METHODRM("HMC_MOUSE_CLASS", HMC_mouse::StartupClassConstructor),
     };

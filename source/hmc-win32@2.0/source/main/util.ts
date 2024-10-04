@@ -206,6 +206,19 @@ export module ref {
         return dataList;
     }
 
+    export function is_stringArray(array: Array<any>):array is Array<string> {
+        if (Array.isArray(array)) {
+            for (let index = 0; index < array.length; index++) {
+                const cout = array[index];
+                if(typeof cout != "string"){
+                    return false;
+                }
+          
+            }
+        }else{return false;}
+        
+        return true;
+    }
     export function convertMultiStringArray(input: string): string[];
     export function convertMultiStringArray(input: Array<string | number>): string;
     export function convertMultiStringArray(input: Set<string | number>): string;

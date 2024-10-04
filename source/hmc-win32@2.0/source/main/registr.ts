@@ -10,6 +10,10 @@ export module Registr {
     export type REG_VALUE = HMC2_MODE.REG_VALUE;
     export type RegistrValueStat = HMC2_MODE.RegistrValueStat;
     export type chQueryFolderInfo = HMC2_MODE.chQueryFolderInfo;
+    export type REG_TYPE = HMC2_MODE.REG_TYPE;
+    export type REG_VALUE_TYPE_NAME = HMC2_MODE.REG_VALUE_TYPE_NAME;
+    export type REG_VALUE_DATA_TYPE = HMC2_MODE.REG_VALUE_DATA_TYPE;
+
     const { ref } = util;
 
 
@@ -333,7 +337,7 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    async function getRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<REG_VALUE | null> {
+    export async function getRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<REG_VALUE | null> {
 
 
         const data = await GetRegistrEnvInfo(
@@ -396,6 +400,9 @@ export module Registr {
         return ref.bool(data);
     }
 
+    export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE_DATA_TYPE, type?: REG_TYPE|REG_VALUE_TYPE_NAME): Promise<boolean>;
+    export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): Promise<boolean>;
+
     /**
      * `异步` 设置注册表值
      * @param HKey - 注册表的根键
@@ -408,15 +415,17 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param data - 要设置的注册表值
      */
-    export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): Promise<boolean> {
+    export async function setRegistrValue2(HKey: HKEY, SubKey: string, key: string | null, data: unknown, type?:unknown): Promise<boolean> {
 
+        const send_data = convertRegistrData(data as any,type as any);
 
         const data_2 = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
-            data
+            send_data.data,
+            send_data.type
         );
         return ref.bool(data_2);
     }
@@ -485,7 +494,7 @@ export module Registr {
     }
 
     /**
-     * `异步` 清除注册表文件夹
+     * `异步` 清除注册表文件夹内的所有值(不涉及子目录 并保留目录)
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -531,7 +540,7 @@ export module Registr {
     }
 
     /**
-     * `异步` 删除注册表文件夹
+     * `异步` 删除注册表文件夹(无子目录)
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -999,7 +1008,7 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    function getRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null {
+    export function getRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null): REG_VALUE | null {
 
 
         const data = GetRegistrEnvInfoSync(
@@ -1062,6 +1071,147 @@ export module Registr {
         return ref.bool(data);
     }
 
+    export function typename (type:REG_TYPE):REG_VALUE_TYPE_NAME |null{
+        // if(typeof type =="number"){
+            for(let i in main.HMC2_MODE.REG_TYPE){
+              const at =  main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE ];
+              if(at==type){
+                return i as REG_VALUE_TYPE_NAME;
+              }
+            }
+        // }
+
+        return null;
+    }
+
+    type REG_DATA_SEND = {type:REG_TYPE,data:REG_VALUE_DATA_TYPE};
+
+    export function is_REG_VALUE(data:any):data is  REG_VALUE{
+        const result =  (
+            data&&typeof data =="object"
+            
+            // data.type
+            && REG_TYPE(data.type)!=null
+            // data.data
+            &&(
+                typeof data.data =="string" ||
+                (typeof data.data =="object" &&!data.data)||
+                Array.isArray(data.data),
+               typeof data.data =="bigint"||
+               typeof data.data =="number" ||
+               Buffer.isBuffer(data.data)
+            )
+        );
+
+        if(result&&typeof result.type_name !="string"){
+            result.type_name = typename(result.type_name)||"REG_NONE";
+        }
+
+        return result;
+    }
+
+    export function REG_VALUE(REG_VALUE:string):HMC2_MODE.REG_SZ_VALUE;
+    export function REG_VALUE(REG_VALUE:REG_VALUE):REG_VALUE;
+    export function REG_VALUE(REG_VALUE:number):HMC2_MODE.REG_DWORD_VALUE|HMC2_MODE.REG_QWORD_VALUE;
+    export function REG_VALUE(REG_VALUE:bigint):HMC2_MODE.REG_QWORD_VALUE;
+    export function REG_VALUE(REG_VALUE:string[]):HMC2_MODE.REG_MULTI_SZ_VALUE;
+
+    export function REG_VALUE(REG_VALUE:unknown):REG_VALUE|null{
+        if(is_REG_VALUE(REG_VALUE))return REG_VALUE;
+        
+        if(Buffer.isBuffer(REG_VALUE)){
+            return{
+                "data":REG_VALUE,
+                "type":main.HMC2_MODE.REG_TYPE.REG_BINARY,
+                "size":REG_VALUE.length,
+                "typeName":"REG_BINARY"
+            };
+        }
+
+        if(typeof REG_VALUE=="string"){
+            return{
+                "data":REG_VALUE,
+                "type":main.HMC2_MODE.REG_TYPE.REG_SZ,
+                "size":REG_VALUE.length,
+                "typeName":"REG_SZ"
+            };
+        }
+
+        if(typeof REG_VALUE == "bigint"){
+            return{
+                "data":REG_VALUE,
+                "type":main.HMC2_MODE.REG_TYPE.REG_QWORD,
+                "size":8,
+                "typeName":"REG_QWORD"
+            };
+        }
+
+        if(typeof REG_VALUE == "number"){
+            return (REG_VALUE<= 0xffffffff?
+            ({
+                "data":REG_VALUE,
+                "type":main.HMC2_MODE.REG_TYPE.REG_DWORD,
+                "size":4,
+                "typeName":"REG_DWORD"
+            } as HMC2_MODE.REG_DWORD_VALUE ):({
+                "data":BigInt(REG_VALUE),
+                "type":main.HMC2_MODE.REG_TYPE.REG_QWORD,
+                "size":8,
+                "typeName":"REG_QWORD"
+            } as HMC2_MODE.REG_QWORD_VALUE));
+        }
+
+        if (Array.isArray(REG_VALUE)) {
+            return {
+                "data":ref.is_stringArray(REG_VALUE)? REG_VALUE : ref.stringArray(REG_VALUE),
+                "type":main.HMC2_MODE.REG_TYPE.REG_MULTI_SZ,
+                "size":0,
+                "typeName":"REG_MULTI_SZ"
+            }
+        }
+
+        return null;
+    }
+
+    export function REG_TYPE(type:any):REG_TYPE|null{
+
+        if(typeof type =="string"){
+            for(let i in main.HMC2_MODE.REG_TYPE){
+                if(i?.toUpperCase() == type?.toUpperCase()){
+                    return main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE ];
+                }
+            }
+        }
+
+        if(typeof type =="number"){
+            for(let i in main.HMC2_MODE.REG_TYPE){
+              const at =  main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE ];
+              if(at==type){
+                return at;
+              }
+            }
+        }
+
+        return main.HMC2_MODE.REG_TYPE.REG_NONE;
+    }
+    
+    export function convertRegistrData(data: REG_VALUE_DATA_TYPE, type?: REG_TYPE|REG_VALUE_TYPE_NAME):REG_DATA_SEND;
+    export function convertRegistrData(data: REG_VALUE):REG_DATA_SEND;
+    export function convertRegistrData(data: unknown,type?:unknown):REG_DATA_SEND{
+        const data_copy = REG_VALUE(data as any);
+        const type_copy = REG_TYPE(type);
+
+        const send_data:REG_DATA_SEND = {
+            type:type_copy||data_copy?.type||HMC2_MODE.REG_TYPE.REG_NONE,
+            data:typeof data_copy?.data !="undefined"?data_copy.data:Buffer.alloc(0)
+        };
+
+        return send_data;
+    }
+
+    export  function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE_DATA_TYPE, type?: REG_TYPE|REG_VALUE_TYPE_NAME): boolean;
+    export  function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean;
+    
     /**
      * `同步` 设置注册表值
      * @param HKey - 注册表的根键
@@ -1074,7 +1224,9 @@ export module Registr {
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      * @param data - 要设置的注册表值
      */
-    function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: REG_VALUE): boolean {
+    export function setRegistrValue2Sync(HKey: HKEY, SubKey: string, key: string | null, data: unknown,type?:unknown): boolean {
+        
+        const send_data = convertRegistrData(data as any,type as any);
 
         if (!GetRegistrEnvInfoSync) return false;
         const data_2 = GetRegistrEnvInfoSync(
@@ -1082,7 +1234,8 @@ export module Registr {
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
-            data
+            send_data.data,
+            send_data.type
         );
         return ref.bool(data_2);
     }
@@ -1155,7 +1308,7 @@ export module Registr {
     }
 
     /**
-     * `同步` 清除注册表文件夹
+     * `同步` 清除注册表文件夹的所有值(不涉及子目录 并保留目录)
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息
@@ -1201,7 +1354,7 @@ export module Registr {
     }
 
     /**
-     * `同步` 删除注册表文件夹
+     * `同步` 删除注册表文件夹(无子目录)
      * @param HKey - 注册表的根键
      * - `HKEY_CLASSES_ROOT`   是与文档类型和 OLE\COM 相关的信息的支持键。
      * - `HKEY_CURRENT_USER`   管理系统当前的用户信息

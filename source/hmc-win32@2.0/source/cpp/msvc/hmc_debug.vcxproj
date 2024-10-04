@@ -296,6 +296,25 @@
     <ClCompile Include="..\win_delay_load_hook.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc-module.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_automation_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_byte_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_clip_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_json_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_napi_value_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_process_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_registr_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_screen_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_shell_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_sock_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_string_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_usb_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\hmc_windows_util.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\js_native_api.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\js_native_api_types.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\node_api.h" />
+    <ClInclude Include="..\..\..\..\..\hmc-module-static\include\node\node_api_types.h" />
     <ClInclude Include="..\export\export.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

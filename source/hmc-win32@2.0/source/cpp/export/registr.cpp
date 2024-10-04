@@ -3,6 +3,7 @@
 #include "hmc_util.h"
 #include "hmc_registr_util.h"
 
+
 namespace HR = hmc_registr_util;
 
 namespace HMC_GetRegistrEnvInfo
@@ -366,7 +367,7 @@ void HMC_GetRegistrEnvInfo::init_Arguments_EQ_type()
 
         auto temp = std::make_pair(2, std::vector<js_valuetype>({js_string}));
         auto temp2 = std::make_pair(3, std::vector<js_valuetype>({js_number}));
-        at.insert(temp); 
+        at.insert(temp);
         at.insert(temp2);
     }
 
@@ -377,8 +378,11 @@ void HMC_GetRegistrEnvInfo::init_Arguments_EQ_type()
         auto temp1 = std::make_pair(2, std::vector<js_valuetype>({js_string}));
         at.insert(temp1);
 
-        auto temp = std::make_pair(3, std::vector<js_valuetype>({js_object}));
+        auto temp = std::make_pair(3, std::vector<js_valuetype>({js_string, js_bigint, js_number, js_null, js_array, js_buffer}));
         at.insert(temp);
+
+        auto temp2 = std::make_pair(4, std::vector<js_valuetype>({js_number}));
+        at.insert(temp2);
     }
 
     if (ArgumentsEQ.find(ENV_INFO_COMMAND::COPY_REGISTR_VALUE) != ArgumentsEQ.end())
@@ -477,12 +481,12 @@ HMC_GetRegistrEnvInfo::EnvNextWorkData *HMC_GetRegistrEnvInfo::GetArguments(napi
         case ENV_INFO_COMMAND::REMOVE_REGISTR_VALUE:
 
         // set value  4 arg   (HKEY, string, string , any )
-        case ENV_INFO_COMMAND::SET_REGISTR_VALUE:
         case ENV_INFO_COMMAND::SET_REGISTR_BUFFER:
         case ENV_INFO_COMMAND::SET_REGISTR_STRING_LIST:
         case ENV_INFO_COMMAND::SET_REGISTR_STRING:
         case ENV_INFO_COMMAND::SET_REGISTR_DWORD:
         case ENV_INFO_COMMAND::SET_REGISTR_QWORD:
+        case ENV_INFO_COMMAND::SET_REGISTR_VALUE:
 
         // copy value  3 arg (HKey: HKEY, SourceSubKey: string, NewSubKey: string)
         case ENV_INFO_COMMAND::COPY_REGISTR_FOLDER:
@@ -557,14 +561,40 @@ HMC_GetRegistrEnvInfo::EnvNextWorkData *HMC_GetRegistrEnvInfo::GetArguments(napi
         // 复杂数值的寄存区
         switch (COMMAND)
         {
-            // set value  4 arg   (HKEY, string, string , any )
+
+        // set value  5 arg   (HKEY, string, string ,number|Buffer|null|string[]|bigint, number )
         case ENV_INFO_COMMAND::SET_REGISTR_VALUE:
         {
 
             if (workData->arguments != NULL)
             {
-                // workData->arguments->push_back(input.getStringWide(4, L""));
+                if (input.eq(3, {js_bigint, js_number}, false))
+                {
+                    auto value = input.getInt64(3);
+                    workData->arguments->push_back(value);
+                }
+                else if (input.eq(3, {js_string}, false))
+                {
+                    auto value = input.getStringWide(3);
+                    workData->arguments->push_back(value);
+                }
+                else if (input.eq(3, {js_array}, false))
+                {
+                    auto value = input.getArrayWstring(3);
+                    workData->arguments->push_back(value);
+                }
+                else
+                {
+                    workData->arguments->push_back(std::any());
+                }
+
+                if (input.eq(4, {js_number}, false))
+                {
+                    auto value = input.getInt64(3);
+                    workData->arguments->push_back(value);
+                }
             }
+
             break;
         }
         case ENV_INFO_COMMAND::SET_REGISTR_BUFFER:
@@ -1002,6 +1032,42 @@ void HMC_GetRegistrEnvInfo::fun_call(napi_env env, HMC_GetRegistrEnvInfo::EnvNex
 
     if (COMMAND == ENV_INFO_COMMAND::GET_REGISTR_VALUE)
     {
+
+        std::any value = std::any();
+        auto Stat = HR::getValueStat(HKey, SubKey, Key);
+
+        if (Stat.exists)
+        {
+            if (Stat.type == REG_QWORD || Stat.type == (REG_QWORD_LITTLE_ENDIAN))
+            {
+                auto temp = HR::GetRegistrInt64(HKey, SubKey, Key);
+                value = temp;
+            }
+            else if (Stat.type == (REG_DWORD) || Stat.type == (REG_DWORD_BIG_ENDIAN) || Stat.type == (REG_DWORD_LITTLE_ENDIAN))
+            {
+                auto temp = HR::GetRegistrInt32(HKey, SubKey, Key);
+                value = temp;
+            }
+            else if (Stat.type == REG_SZ || Stat.type == REG_EXPAND_SZ)
+            {
+                auto temp = HR::GetRegistrString(HKey, SubKey, Key, Stat.type == REG_EXPAND_SZ);
+                value = temp;
+            }
+            else if (Stat.type == REG_MULTI_SZ)
+            {
+                auto temp = HR::GetRegistrMulti(HKey, SubKey, Key);
+                value = temp;
+            }
+            else
+            {
+                auto temp = HR::getRegistrBuffer(HKey, SubKey, Key).value;
+                value = temp;
+            }
+        }
+
+        std::any temp_any = std::any(std::pair<std::any, hmc_registr_util::chValueStat>(value, Stat));
+        workData->result->reset();
+        workData->result->swap(temp_any);
     }
 
     //* export function copyRegistrValue(HKey: HKEY, SourceSubKey: string, Sourcekey: string | null, NewSubKey: string, Newkey: string | null): boolean;
@@ -1017,6 +1083,14 @@ void HMC_GetRegistrEnvInfo::fun_call(napi_env env, HMC_GetRegistrEnvInfo::EnvNex
             const std::wstring Newkey = std::any_cast<std::wstring>(arguments.get(3));
 
             auto temp = HR::copyRegistrValue(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey);
+            if (!temp)
+            {
+                if (!HR::hasRegistrFolder(HKey, NewSubKey))
+                {
+                    HR::createRegistrFolder(HKey, NewSubKey);
+                    temp = HR::copyRegistrValue(HKey, SourceSubKey, Sourcekey, NewSubKey, Newkey);
+                }
+            }
             std::any temp_any = std::any(temp);
             workData->result->reset();
             workData->result->swap(temp_any);
@@ -1037,6 +1111,52 @@ void HMC_GetRegistrEnvInfo::fun_call(napi_env env, HMC_GetRegistrEnvInfo::EnvNex
 
     if (COMMAND == ENV_INFO_COMMAND::SET_REGISTR_VALUE)
     {
+        if (arguments.exists(0, false) && arguments.exists(1, true))
+        {
+            bool result = false;
+            auto at_data = arguments.at(0);
+            DWORD at_type = arguments.at(1).get_uint32(0);
+
+            if (!at_data.is_value())
+            {
+                auto temp = HR::createRegistrValueKey(HKey, SubKey, Key, at_type);
+                result = temp;
+            }
+            else if (at_data.is_wstring())
+            {
+                auto temp = HR::SetRegistrString(HKey, SubKey, Key, at_data.get_wstring(std::wstring()), at_type == REG_EXPAND_SZ);
+                result = temp;
+            }
+            else if (at_data.is_int64())
+            {
+                if (at_type == REG_DWORD || at_type == REG_DWORD_BIG_ENDIAN)
+                {
+                    auto temp = HR::SetRegistrInt32(HKey, SubKey, Key, at_data.get_uint32(0));
+                    result = temp;
+                }
+                else
+                {
+                    auto temp = HR::SetRegistrInt64(HKey, SubKey, Key, at_data.get_uint64(0));
+                    result = temp;
+                }
+            }
+            else if (arguments.exists(0, true) && typeid(std::vector<std::wstring>) == arguments.get(0).type())
+            {
+                auto at = std::any_cast<std::vector<std::wstring>>(arguments.get(0));
+
+                auto temp = HR::SetRegistrMulti(HKey, SubKey, Key, at);
+                result = temp;
+            }
+            else if (at_data.is_buffer())
+            {
+                auto temp = HR::SetRegistrSourceValue(HKey, SubKey, Key, at_type, at_data.get_buffer({}));
+                result = temp;
+            }
+
+            std::any temp_any = std::any(result);
+            workData->result->reset();
+            workData->result->swap(temp_any);
+        }
     }
 
     //* export function getRegistrValueStat(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat;
@@ -1073,8 +1193,10 @@ void HMC_GetRegistrEnvInfo::fun_call(napi_env env, HMC_GetRegistrEnvInfo::EnvNex
 
     if (COMMAND == ENV_INFO_COMMAND::CLEAR_REGISTR_FOLDER)
     {
-        auto temp = HR::removeRegistrFolder(HKey, SubKey, Key, false);
-        std::any temp_any = std::any(temp);
+        auto temp = HR::queryRegistrFolderInfo(HKey, SubKey, false, true);
+        bool is_rm = HR::removeRegistrKey(HKey, SubKey, temp.getValueKeys());
+
+        std::any temp_any = std::any(is_rm);
         workData->result->reset();
         workData->result->swap(temp_any);
     }
@@ -1124,12 +1246,12 @@ void HMC_GetRegistrEnvInfo::fun_call(napi_env env, HMC_GetRegistrEnvInfo::EnvNex
 
     if (COMMAND == ENV_INFO_COMMAND::CREATE_REGISTR_VALUE_KEY)
     {
-          if (arguments.exists(0, true)&&arguments.exists(1, true))
+        if (arguments.exists(0, true) && arguments.exists(1, true))
         {
             auto key = arguments.at(0);
             auto type = arguments.at(1);
-            
-            auto temp = HR::createRegistrValueKey(HKey, SubKey,key.get_wstring(L""),(DWORD)type.get_uint32(0));
+
+            auto temp = HR::createRegistrValueKey(HKey, SubKey, key.get_wstring(L""), (DWORD)type.get_uint32(0));
             std::any temp_any = std::any(temp);
             workData->result->reset();
             workData->result->swap(temp_any);
@@ -1205,6 +1327,68 @@ napi_value HMC_GetRegistrEnvInfo::FormatToResult(napi_env env, HMC_GetRegistrEnv
         return temp.toValue();
     }
 
+    if (typeid(std::pair<std::any, hmc_registr_util::chValueStat>) == ResultPtr->type())
+    {
+
+        auto result = std::any_cast<std::pair<std::any, hmc_registr_util::chValueStat>>(ResultPtr);
+
+        auto temp = hmc_napi_create_value::jsObject(env);
+        auto first = result->first;
+        auto type = (int64_t)result->second.type;
+
+        temp.putString("type_name", hmc_registr_util::type_nameW(type));
+        temp.putBoolean("exists", result->second.exists);
+        temp.putNumber("size", (int64_t)result->second.size);
+        temp.putNumber("type", type);
+
+        if (!first.has_value())
+        {
+            temp.putNull("data");
+        }
+        else
+        {
+
+            auto at = hmc_util::anyCast(&first);
+
+            if (at.is_uint64())
+            {
+                auto data = at.get_uint64(0);
+                if (type == REG_QWORD || type == REG_QWORD_LITTLE_ENDIAN)
+                {
+                    temp.putValue("data", hmc_napi_create_value::Bigint(env, data));
+                }
+                else
+                {
+                    temp.putValue("data", hmc_napi_create_value::Number(env, data));
+                }
+            }
+            else if (at.is_wstring())
+            {
+                auto data = at.get_wstring(L"");
+                temp.putString("data", data, data.size());
+            }
+            else if (at.is_buffer())
+            {
+                auto buff = at.get_buffer({});
+                temp.putBuffer("data", buff);
+            }
+            else if (at.is_value() && first.type() == typeid(std::vector<std::wstring>))
+            {
+                auto Input = std::any_cast<std::vector<std::wstring>>(first);
+                auto array = hmc_napi_create_value::jsArray(env);
+
+                for (size_t i = 0; i < Input.size(); i++)
+                {
+                    auto &at = Input.at(i);
+                    array.putString(at, at.size());
+                }
+
+                temp.putValue("data", array.toValue());
+            }
+        }
+
+        return temp.toValue();
+    }
     if (typeid(hmc_registr_util::chQueryFolderInfoW) == ResultPtr->type())
     {
         auto Input = std::any_cast<hmc_registr_util::chQueryFolderInfoW>(ResultPtr);

@@ -28,23 +28,6 @@ extern std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vect
 extern std::any GetClipboardText2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
 extern std::any GetThumbnailPng2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
 
-// shell.cpp
-extern napi_value getTrayList(napi_env env, napi_callback_info info);
-extern napi_value trashFile(napi_env env, napi_callback_info info);
-extern napi_value copyFile(napi_env env, napi_callback_info info);
-extern napi_value moveFile(napi_env env, napi_callback_info info);
-extern napi_value clearTrash(napi_env env, napi_callback_info info);
-extern napi_value getThumbnailPng(napi_env env, napi_callback_info info);
-extern napi_value getLinkTarget(napi_env env, napi_callback_info info);
-extern napi_value setFolderIcon(napi_env env, napi_callback_info info);
-extern napi_value isLinkLink(napi_env env, napi_callback_info info);
-extern napi_value setShortcutLink(napi_env env, napi_callback_info info);
-extern napi_value createFsLink(napi_env env, napi_callback_info info);
-extern napi_value getSystemMetrics(napi_env env, napi_callback_info info);
-extern napi_value getShortcutLink(napi_env env, napi_callback_info info);
-extern napi_value showContextMenu(napi_env env, napi_callback_info info);
-extern napi_value setConversionStatus(napi_env env, napi_callback_info info);
-
 // screen.cpp
 extern napi_value captureBmpToBuff(napi_env env, napi_callback_info info);
 extern napi_value captureBmpToFile(napi_env env, napi_callback_info info);
@@ -62,6 +45,28 @@ namespace HMC_shell_startup
     extern napi_value has(napi_env env, napi_callback_info info);
     extern napi_value removeOnce(napi_env env, napi_callback_info info);
     extern napi_value hasOnce(napi_env env, napi_callback_info info);
+    extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_shell
+{
+
+    // shell.cpp
+    extern napi_value getTrayList(napi_env env, napi_callback_info info);
+    extern napi_value trashFile(napi_env env, napi_callback_info info);
+    extern napi_value copyFile(napi_env env, napi_callback_info info);
+    extern napi_value moveFile(napi_env env, napi_callback_info info);
+    extern napi_value clearTrash(napi_env env, napi_callback_info info);
+    extern napi_value getThumbnailPng(napi_env env, napi_callback_info info);
+    extern napi_value getLinkTarget(napi_env env, napi_callback_info info);
+    extern napi_value setFolderIcon(napi_env env, napi_callback_info info);
+    extern napi_value isLinkLink(napi_env env, napi_callback_info info);
+    extern napi_value setShortcutLink(napi_env env, napi_callback_info info);
+    extern napi_value createFsLink(napi_env env, napi_callback_info info);
+    extern napi_value getSystemMetrics(napi_env env, napi_callback_info info);
+    extern napi_value getShortcutLink(napi_env env, napi_callback_info info);
+    extern napi_value showContextMenu(napi_env env, napi_callback_info info);
+    extern napi_value setConversionStatus(napi_env env, napi_callback_info info);
     extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
 }
 
@@ -89,7 +94,6 @@ namespace HMC_GetRegistrEnvInfo
     napi_value StartAsyncTask(napi_env env, napi_callback_info info);
 }
 
-
 namespace HMC_Keyboard
 {
     extern napi_value initKeyboardEventHook(napi_env env, napi_callback_info info);
@@ -116,7 +120,6 @@ namespace HMC_mouse
     extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
 }
 
-
 class CaptureBmp2
 {
 public:
@@ -127,14 +130,15 @@ public:
     // 值自定义格式化
     static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *data_list);
     // 初始化函数
-    static void initialize(const int ID){
-        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,ResultFormat);
+    static void initialize(const int ID)
+    {
+        HMC_PromiseEval::append(ID, FormatArg, ExecuteWorkFun, ResultFormat);
     }
 };
 
 class CloseWindow2
 {
-public: 
+public:
     // 输入命令格式化或拒绝任务
     static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
     // 执行任务
@@ -142,15 +146,15 @@ public:
     // 值自定义格式化
     // static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *arguments_list);
     // 初始化函数
-    static void initialize(const int ID){
-        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,std::nullopt);
-        
+    static void initialize(const int ID)
+    {
+        HMC_PromiseEval::append(ID, FormatArg, ExecuteWorkFun, std::nullopt);
     }
 };
 
 class GetThumbnailPng2
 {
-public: 
+public:
     // 输入命令格式化或拒绝任务
     static bool FormatArg(napi_env env, napi_callback_info info, hmc_NodeArgsValue input, std::vector<std::any> *arguments_list);
     // 执行任务
@@ -158,8 +162,9 @@ public:
     // 值自定义格式化
     // static napi_value ResultFormat(napi_env env, napi_status status, std::any *ResultStore, std::vector<std::any> *arguments_list);
     // 初始化函数
-    static void initialize(const int ID){
-        HMC_PromiseEval::append(ID,FormatArg,ExecuteWorkFun,std::nullopt);
+    static void initialize(const int ID)
+    {
+        HMC_PromiseEval::append(ID, FormatArg, ExecuteWorkFun, std::nullopt);
     }
 };
 

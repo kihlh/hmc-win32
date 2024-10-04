@@ -7,7 +7,7 @@ import RegistrMain = require("./registr");
 
 
 interface Native {
-
+    HMC_SHELL_CLASS?():HMC2_MODE.HMC_SHELL_CLASS;
     /**
      * 执行命令代码 并且按照api内容返回 异步
      * @docs PromiseEval 是通过(hmc -> PromiseEval)生成的Promise / Sync 函数 他性能并不是特别出众 但是比编写一个标准化Promise 节省近百行C++代码
@@ -120,95 +120,6 @@ interface Native {
      */
     getClipboardHTML?: () => HMC2_MODE.CLIP_HTML_INFO | null;
 
-    /**
-     * 获取托盘图标列表
-     * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
-     */
-    getTrayList?: () => string;
-
-    /**
-     * 删除文件到垃圾桶
-     * @param trash_path 处理的路径
-     * @param is_Recycle 可以回收 
-     * @param isShow 显示窗口
-     */
-    trashFile?: (trash_path: string, is_Recycle: boolean, isShow: boolean) => boolean;
-
-    /**
-     * 清空回收站
-     * @param root_path 文件或者根目录 
-     * @param isShow 是否显示窗口
-     */
-    clearTrash?: (root_path: string, isShow: boolean) => boolean;
-    /**
-     * 
-     * @param filePath 
-     * @param newFilePath 
-     * @param isShowConfirm 
-     * @param isShow 
-     * @param isShowProgress 
-     * @param trash_ok 
-     * @returns 
-     */
-    copyFile?: (filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean, trash_ok: boolean) => boolean;
-
-    /**
-     * 
-     * @param filePath 
-     * @param newFilePath 
-     * @param isShowConfirm 
-     * @param isShow 
-     * @param isShowProgress 
-     * @param trash_ok 
-     * @returns 
-     */
-    moveFile?: (filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean, trash_ok: boolean) => boolean;
-
-    getThumbnailPng?: (...args: unknown[]) => unknown;
-
-    /**
-     * 获取 软/硬 链接的指向内容
-     * @param Linkath 
-     */
-    getLinkTarget?: (Linkath: string) => string | string[] | null;
-
-    /**
-     * 设置文件夹的缩略图
-     * @param folderPath 路径
-     * @param iconPath 图标路径
-     * @param iconIndex 图标索引 比如exe中的0
-     * @returns 
-     */
-    setFolderIcon?: (folderPath: string, iconPath: string, iconIndex?: number) => boolean;
-
-    /**
-     * 判断指定文件是否是 软链接/硬链接
-     * @param path 
-     * @returns 
-     */
-    isLinkLink?: (path: string) => boolean;
-
-    /**
-     * 创建 软链接/硬链接/目录连接点/文件夹链接
-     * @param targetType 创建类型
-     * - 文件夹链接 CREATE_DIR_SYMLINK = 166
-     * - 软链接 CREATE_SYMLINK = 168
-     * - 硬链接 CREATE_HARD_LINK = 170
-     * - 目录连接点 CREATE_SYMBOLIC_LINK = 172
-     * @param targetPath 目标位置
-     * @param sourcePath 源文件路径
-     * @returns 
-     */
-    createFsLink?: (targetType: HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) => boolean;
-
-    /**
-     * 弹出右键菜单的接口
-     * @param hwnd 调用窗口 / 允许为null
-     * @param file 指定需要被显示菜单的文件/文件夹/文件列表/ 为空 "" 为驱动器
-     * @param x 坐标 x+y=0的时候将会从鼠标所在的地方显示
-     * @param y 坐标
-     */
-    showContextMenu?: (hwnd: number | null, file: string | string[], x: number, y: number) => boolean;
 
     // 鼠标函数 懒构建体 请勿多次构建 因为此函数返回的函数集内容不会被v8回收
     HMC_MOUSE_CLASS?: () => HMC2_MODE.HMC_MOUSE_CLASS;
@@ -345,7 +256,7 @@ export module HMC2_MODE {
         /**此内容是否存在 */
         exists: boolean;
         /**类型 格式文本化*/
-        type_name:REG_VALUE_TYPE_NAME;
+        type_name: REG_VALUE_TYPE_NAME;
     };
 
 
@@ -408,24 +319,26 @@ export module HMC2_MODE {
 
     export type REG_VALUE = REG_SZ_VALUE | REG_EXPAND_SZ_VALUE | REG_DWORD_VALUE | REG_QWORD_VALUE | REG_BINARY_VALUE | REG_MULTI_SZ_VALUE | REG_ANY_VALUE;
 
-    export type REG_VALUE_TYPE_NAME =`${keyof typeof REG_TYPE}` ;//"REG_RESOURCE_REQUIREMENTS_LIST"|"REG_FULL_RESOURCE_DESCRIPTOR"|"REG_RESOURCE_LIST"|"REG_MULTI_SZ"|"REG_LINK"|"REG_QWORD"|"REG_DWORD"|"REG_BINARY"|"REG_EXPAND_SZ"|"REG_SZ"|"REG_NONE";
+    export type REG_VALUE_DATA_TYPE = REG_SZ_VALUE["data"] | REG_EXPAND_SZ_VALUE["data"] | REG_DWORD_VALUE["data"] | REG_QWORD_VALUE["data"] | REG_BINARY_VALUE["data"] | REG_MULTI_SZ_VALUE["data"] | REG_ANY_VALUE["data"];
+
+    export type REG_VALUE_TYPE_NAME = `${keyof typeof REG_TYPE}`;//"REG_RESOURCE_REQUIREMENTS_LIST"|"REG_FULL_RESOURCE_DESCRIPTOR"|"REG_RESOURCE_LIST"|"REG_MULTI_SZ"|"REG_LINK"|"REG_QWORD"|"REG_DWORD"|"REG_BINARY"|"REG_EXPAND_SZ"|"REG_SZ"|"REG_NONE";
 
     export type chQueryValueKeyItem = {
         /**名称 */
-        name:string;
+        name: string;
         /**类型 */
-		type:number;
-         /**类型 格式文本化*/
-        type_name:REG_VALUE_TYPE_NAME;
-		/**大小 */
-        size:number;
+        type: number;
+        /**类型 格式文本化*/
+        type_name: REG_VALUE_TYPE_NAME;
+        /**大小 */
+        size: number;
     };
 
     export type chQueryFolderKeyItem = {
         /**名称 */
-        name:string;
+        name: string;
         /**上次修订时间 */
-		time:number;
+        time: number;
     };
 
     export type chQueryFolderInfo = {
@@ -536,6 +449,99 @@ export module HMC2_MODE {
         removeOnce: (keyName: string) => boolean;
         set: (keyName: string, path: string, cmd: string) => boolean;
         setOnce: (keyName: string, path: string, cmd: string) => boolean;
+    }
+
+    export interface HMC_SHELL_CLASS {
+        /**
+        * 获取托盘图标列表
+        * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
+        */
+        getTrayList?: () => string;
+
+        /**
+         * 删除文件到垃圾桶
+         * @param trash_path 处理的路径
+         * @param is_Recycle 可以回收 
+         * @param isShow 显示窗口
+         */
+        trashFile?: (trash_path: string, is_Recycle: boolean, isShow: boolean) => boolean;
+
+        /**
+         * 清空回收站
+         * @param root_path 文件或者根目录 
+         * @param isShow 是否显示窗口
+         */
+        clearTrash?: (root_path: string, isShow: boolean) => boolean;
+        /**
+         * 
+         * @param filePath 
+         * @param newFilePath 
+         * @param isShowConfirm 
+         * @param isShow 
+         * @param isShowProgress 
+         * @param trash_ok 
+         * @returns 
+         */
+        copyFile?: (filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean, trash_ok: boolean) => boolean;
+
+        /**
+         * 
+         * @param filePath 
+         * @param newFilePath 
+         * @param isShowConfirm 
+         * @param isShow 
+         * @param isShowProgress 
+         * @param trash_ok 
+         * @returns 
+         */
+        moveFile?: (filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean, trash_ok: boolean) => boolean;
+
+        // getThumbnailPng?: (...args: unknown[]) => unknown;
+
+        /**
+         * 获取 软/硬 链接的指向内容
+         * @param Linkath 
+         */
+        getLinkTarget?: (Linkath: string) => string | string[] | null;
+
+        /**
+         * 设置文件夹的缩略图
+         * @param folderPath 路径
+         * @param iconPath 图标路径
+         * @param iconIndex 图标索引 比如exe中的0
+         * @returns 
+         */
+        setFolderIcon?: (folderPath: string, iconPath: string, iconIndex?: number) => boolean;
+
+        /**
+         * 判断指定文件是否是 软链接/硬链接
+         * @param path 
+         * @returns 
+         */
+        isLinkLink?: (path: string) => boolean;
+
+        /**
+         * 创建 软链接/硬链接/目录连接点/文件夹链接
+         * @param targetType 创建类型
+         * - 文件夹链接 CREATE_DIR_SYMLINK = 166
+         * - 软链接 CREATE_SYMLINK = 168
+         * - 硬链接 CREATE_HARD_LINK = 170
+         * - 目录连接点 CREATE_SYMBOLIC_LINK = 172
+         * @param targetPath 目标位置
+         * @param sourcePath 源文件路径
+         * @returns 
+         */
+        createFsLink?: (targetType: HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) => boolean;
+
+        /**
+         * 弹出右键菜单的接口
+         * @param hwnd 调用窗口 / 允许为null
+         * @param file 指定需要被显示菜单的文件/文件夹/文件列表/ 为空 "" 为驱动器
+         * @param x 坐标 x+y=0的时候将会从鼠标所在的地方显示
+         * @param y 坐标
+         */
+        showContextMenu?: (hwnd: number | null, file: string | string[], x: number, y: number) => boolean;
+
     }
 
     // 鼠标按钮变化
