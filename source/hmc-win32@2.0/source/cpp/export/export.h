@@ -70,6 +70,8 @@ namespace HMC_shell
     extern napi_value StartupClassConstructor(napi_env env, napi_callback_info info);
 }
 
+extern std::any GetTrayList(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list);
+
 namespace HMC_GetProcessName
 {
     napi_value ExecuteSync(napi_env env, napi_callback_info info);
@@ -89,6 +91,12 @@ namespace HMC_GetProcessEnvInfo
 }
 
 namespace HMC_GetRegistrEnvInfo
+{
+    napi_value ExecuteSync(napi_env env, napi_callback_info info);
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_GetShellEnvInfo
 {
     napi_value ExecuteSync(napi_env env, napi_callback_info info);
     napi_value StartAsyncTask(napi_env env, napi_callback_info info);

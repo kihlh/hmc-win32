@@ -6,8 +6,8 @@ import ProcessMain = require("./Process");
 import RegistrMain = require("./registr");
 
 
+
 interface Native {
-    HMC_SHELL_CLASS?():HMC2_MODE.HMC_SHELL_CLASS;
     /**
      * 执行命令代码 并且按照api内容返回 异步
      * @docs PromiseEval 是通过(hmc -> PromiseEval)生成的Promise / Sync 函数 他性能并不是特别出众 但是比编写一个标准化Promise 节省近百行C++代码
@@ -122,11 +122,19 @@ interface Native {
 
 
     // 鼠标函数 懒构建体 请勿多次构建 因为此函数返回的函数集内容不会被v8回收
-    HMC_MOUSE_CLASS?: () => HMC2_MODE.HMC_MOUSE_CLASS;
+    HMC_MOUSE_CLASS?: HMC2_MODE.HMC_MOUSE_CLASS | (() => HMC2_MODE.HMC_MOUSE_CLASS);
+    HMC_MOUSE_CLASS_LAZY?: null | HMC2_MODE.HMC_MOUSE_CLASS;
+
     // 键盘函数 懒构建体 请勿多次构建 因为此函数返回的函数集内容不会被v8回收
-    HMC_KEYBOARD_CLASS?: () => HMC2_MODE.HMC_KEYBOARD_CLASS;
+    HMC_KEYBOARD_CLASS?: HMC2_MODE.HMC_KEYBOARD_CLASS | (() => HMC2_MODE.HMC_KEYBOARD_CLASS);
+    HMC_KEYBOARD_CLASS_LAZY?: null | HMC2_MODE.HMC_KEYBOARD_CLASS;
+
     // shell函数 懒构建体 请勿多次构建 因为此函数返回的函数集内容不会被v8回收
-    HMC_SHELL_STARTUP_CLASS?: () => HMC2_MODE.HMC_SHELL_STARTUP_CLASS;
+    HMC_SHELL_STARTUP_CLASS?: HMC2_MODE.HMC_SHELL_STARTUP_CLASS | (() => HMC2_MODE.HMC_SHELL_STARTUP_CLASS);
+    HMC_SHELL_STARTUP_CLASS_LAZY?: null | HMC2_MODE.HMC_SHELL_STARTUP_CLASS;
+
+    HMC_SHELL_CLASS?: HMC2_MODE.HMC_SHELL_CLASS | (() => HMC2_MODE.HMC_SHELL_CLASS);
+    HMC_SHELL_CLASS_LAZY?: HMC2_MODE.HMC_SHELL_CLASS | null;
 
     /**
      * 获取指定进程的可执行文件路径
@@ -185,6 +193,9 @@ interface Native {
 }
 
 export module HMC2_MODE {
+
+    export function ALL_NONE_FUN_CALLBECK(...arg: any[]) { }
+
     /**注册表根目录 */
     export const Hkey = {
         /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -894,6 +905,15 @@ export module HMC2_MODE {
 
 }
 
+const HMC_LAZY_CLASS: { [key: string]: any } = {
+    ALL_LAZY_FUN_KEY: [
+        "HMC_KEYBOARD_CLASS",
+        "HMC_MOUSE_CLASS",
+        "HMC_SHELL_STARTUP_CLASS",
+        "HMC_SHELL_CLASS"
+    ]
+};
+
 export const Native = (() => {
     const run = {};
 
@@ -951,16 +971,53 @@ export const Native = (() => {
 
             if (!_Loaded) {
                 _Native = LoadNodeBin();
+                // @ts-ignore
+                _Native.HMC_LAZY_CLASS = HMC_LAZY_CLASS;
             }
 
             return _Native;
         },
-        set(v) { }
+        set: HMC2_MODE.ALL_NONE_FUN_CALLBECK
     });
 
-    return run as {
+    const result = run as {
         native: Native;
+        HMC_KEYBOARD_CLASS: Native["HMC_KEYBOARD_CLASS_LAZY"];
+        HMC_MOUSE_CLASS: Native["HMC_MOUSE_CLASS_LAZY"];
+        HMC_SHELL_STARTUP_CLASS: Native["HMC_SHELL_STARTUP_CLASS_LAZY"];
+        HMC_SHELL_CLASS: Native["HMC_SHELL_CLASS_LAZY"];
     };
+
+    function MAKE_HMC_LAZY_CLASS(Key: string) {
+
+        const FUN_LAZY_KEY = `${Key}_LAZY` as "HMC_SHELL_CLASS_LAZY";
+        const FUN_KEY = Key as "HMC_SHELL_CLASS_LAZY";
+
+        if (!_Native) {
+            return null;
+        }
+
+        if (!HMC_LAZY_CLASS[FUN_LAZY_KEY] && _Native[FUN_KEY]) {
+            if (typeof _Native.HMC_KEYBOARD_CLASS == "function") {
+                HMC_LAZY_CLASS[FUN_LAZY_KEY] = (_Native[FUN_KEY] as any)();
+            } else {
+                HMC_LAZY_CLASS[FUN_LAZY_KEY] = _Native[FUN_KEY];
+            }
+        }
+
+        return HMC_LAZY_CLASS[FUN_LAZY_KEY];
+    }
+
+    for (let index = 0; index < HMC_LAZY_CLASS.ALL_LAZY_FUN_KEY.length; index++) {
+        const key = HMC_LAZY_CLASS.ALL_LAZY_FUN_KEY[index] as "HMC_KEYBOARD_CLASS";
+        Object.defineProperty(run, key, {
+            enumerable: false,
+            get: () => MAKE_HMC_LAZY_CLASS(key),
+            set: HMC2_MODE.ALL_NONE_FUN_CALLBECK
+        });
+    }
+
+    return result;
 })();
 
 export const { ref } = UtilMain;

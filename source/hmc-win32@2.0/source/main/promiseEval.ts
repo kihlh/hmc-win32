@@ -1,4 +1,5 @@
 import main = require("./index");
+import { ref } from "./util";
 
 
 export enum HMC_PROMISEEVAL_TASK_TYPE {
@@ -7,6 +8,7 @@ export enum HMC_PROMISEEVAL_TASK_TYPE {
     closeWindow2 = 3,
     getClipboardText2 = 5,
     getThumbnailPng2 = 6,
+    getTrayList2 = 7,
 };
 
 export type HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_PROMISEEVAL_TASK_TYPE;
@@ -97,6 +99,33 @@ class HMC_PromiseeEvalTask {
         return data || [];
     }
 
+    async getTrayList2(): Promise<Array<main.HMC2_MODE.TRAY_ICON>> {
+        if (!promiseEvalTask?.async?.getTrayList2) {
+            return Promise.resolve([]);
+        }
+
+        let data: string | Array<main.HMC2_MODE.TRAY_ICON> = await (promiseEvalTask?.async?.getTrayList2() || null);
+
+        if (typeof data == "string") {
+            return ref.JSONP(data) as Array<main.HMC2_MODE.TRAY_ICON> || [];
+        }
+
+        return [];
+    }
+
+    getTrayList2Sync(): Array<main.HMC2_MODE.TRAY_ICON> {
+        if (!promiseEvalTask?.sync?.getTrayList2) {
+            return [];
+        }
+
+        let data: string | Array<main.HMC2_MODE.TRAY_ICON> = (promiseEvalTask?.sync?.getTrayList2() || null);
+
+        if (typeof data == "string") {
+            return ref.JSONP(data) as Array<main.HMC2_MODE.TRAY_ICON> || [];
+        }
+
+        return data || [];
+    }
 
 }
 
@@ -321,6 +350,7 @@ interface HMC_PromiseeEvalTask {
      * @default 256
      */
     getThumbnailPng2Sync(filePath: string, output?: string, img_size?: number): unknown;
+
 }
 
 export const promiseEvalTask = new HMC_PromiseeEvalTask();

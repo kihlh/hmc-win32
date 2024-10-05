@@ -200,14 +200,14 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function getRegistrKeys2(HKey: HKEY, SubKey: string, key: string | null): Promise<chQueryFolderInfo | null> {
+    export async function getRegistrKeys2(HKey: HKEY, SubKey: string): Promise<chQueryFolderInfo | null> {
 
 
         const data = await GetRegistrEnvInfo(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
-            ref.string(key || "")
+            ""
         );
         return data ? JSON.parse(String(data)) as chQueryFolderInfo : null;
     }
@@ -871,14 +871,14 @@ export module Registr {
      * @param SubKey - 子键路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function getRegistrKeys2Sync(HKey: HKEY, SubKey: string, key: string | null): chQueryFolderInfo | null {
+    export function getRegistrKeys2Sync(HKey: HKEY, SubKey: string): chQueryFolderInfo | null {
 
 
         const data = GetRegistrEnvInfoSync(
             HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
-            ref.string(key || "")
+            ""
         );
         return data ? JSON.parse(String(data)) : null;
     }

@@ -11,11 +11,11 @@
 namespace HMC_shell
 {
 
-    // 获取托盘图标
-    napi_value getTrayList(napi_env env, napi_callback_info info)
-    {
-        return hmc_napi_create_value::String(env, hmc_shell_util::GetTaryIconList::getTrayListJsonW());
-    }
+    // // 获取托盘图标
+    // napi_value getTrayList(napi_env env, napi_callback_info info)
+    // {
+    //     return hmc_napi_create_value::String(env, hmc_shell_util::GetTaryIconList::getTrayListJsonW());
+    // }
 
     napi_value trashFile(napi_env env, napi_callback_info info)
     {
@@ -502,7 +502,7 @@ namespace HMC_shell
         // DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
         // DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
         // DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
-        napi_set_named_property(env, result, as_ExFunctionNameAp(getTrayList));
+        // napi_set_named_property(env, result, as_ExFunctionNameAp(getTrayList));
         napi_set_named_property(env, result, as_ExFunctionNameAp(trashFile));
         napi_set_named_property(env, result, as_ExFunctionNameAp(clearTrash));
         napi_set_named_property(env, result, as_ExFunctionNameAp(copyFile));
@@ -749,4 +749,186 @@ bool GetThumbnailPng2::FormatArg(napi_env env, napi_callback_info info, hmc_Node
     }
 
     return result;
+}
+
+std::any GetTrayList(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list)
+{
+    std::wstring result = hmc_shell_util::GetTaryIconList::getTrayListJsonW();
+    return result;
+}
+
+namespace HMC_GetShellEnvInfo
+{
+
+    struct EnvNextWorkData
+    {
+        napi_deferred deferred;
+        napi_async_work work;
+        std::vector<js_variant_value> *arguments;
+        // js_variant_value *index1;
+        // js_variant_value *index2;
+        // js_variant_value *index3;
+        js_variant_value *Result;
+        std::uint8_t TAKE_TYPE;
+
+        static void gc(EnvNextWorkData *work)
+        {
+            if (work == NULL)
+                return;
+
+            if (work->arguments!=NULL)
+            {
+                work->arguments->clear();
+                //work->arguments->shrink_to_fit();
+                delete work->arguments;
+                work->arguments = nullptr;
+            }
+
+            // HMC_GC_CPP_BASIC_PTR(work->index1);
+            // HMC_GC_CPP_BASIC_PTR(work->index2);
+            // HMC_GC_CPP_BASIC_PTR(work->index3);
+            HMC_GC_CPP_BASIC_PTR(work->Result);
+            ::VirtualFree(work, 0, 0x00008000);
+        }
+
+        static EnvNextWorkData *make()
+        {
+            EnvNextWorkData *workData = HMC_VcAllocAutoLength(EnvNextWorkData);
+
+            if (workData != NULL)
+            {
+                // workData->index1 = new js_variant_value();
+                // workData->index2 = new js_variant_value();
+                // workData->index3 = new js_variant_value();
+                // workData->arguments->push_back();
+
+                workData->arguments = new std::vector<js_variant_value>();
+                workData->Result = new js_variant_value();
+                workData->TAKE_TYPE = 0;
+            }
+
+            return workData;
+        }
+    };
+
+    bool get_arguments(napi_env env, hmc_NodeArgsValue input, EnvNextWorkData *work)
+    {
+        if (!input.eq(0, js_number, true))
+        {
+            return false;
+        }
+
+        work->TAKE_TYPE = at_Number32Or(0, 0);
+
+        if (input.exists(1))
+        {
+            auto temp = input.get_variant(1);
+            work->arguments->push_back(temp);
+        }
+
+        if (input.exists(2))
+        {
+            auto temp = input.get_variant(2);
+            work->arguments->push_back(temp);
+        }
+
+        if (input.exists(3))
+        {
+            auto temp2 = hmc_napi_get_value::get_object_variant_utf16(env, input.at(3));
+            auto temp3 = hmc_napi_get_value::get_array_variant(env, input.at(3));
+            auto temp = input.get_variant(3);
+            work->arguments->push_back(temp);
+        }
+
+        return true;
+    }
+
+    void main(EnvNextWorkData *workData)
+    {
+        Sleep(5000);
+        
+        auto temp = workData->arguments->at(2);
+
+    }
+
+    // async
+    void ExecuteAsyncWork(napi_env env, void *data)
+    {
+        EnvNextWorkData *workData = (EnvNextWorkData *)data;
+        main(workData);
+    }
+
+    napi_value ExecuteSync(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Null();
+
+        auto input = hmc_NodeArgsValue(env, info);
+        auto *workData = EnvNextWorkData::make();
+
+        HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
+
+        if (!get_arguments(env, input, workData))
+        {
+            return result;
+        }
+
+        main(workData);
+
+        result = hmc_napi_create_value::Variant(env, *workData->Result);
+
+        return result;
+    }
+
+    // 异步任务完成后的回调函数
+    void ResolveWork(napi_env env, napi_status status, void *data)
+    {
+        EnvNextWorkData *workData = (EnvNextWorkData *)data;
+        HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
+
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (workData == NULL || workData->Result == NULL || workData->Result->index() == 0)
+        {
+            if (workData != NULL)
+            {
+                napi_resolve_deferred(env, workData->deferred, result);
+                napi_delete_async_work(env, workData->work);
+            }
+            return;
+        }
+
+        result = hmc_napi_create_value::Variant(env, *workData->Result);
+
+        if (result == NULL)
+        {
+            napi_get_null(env, &result);
+        }
+
+        napi_resolve_deferred(env, workData->deferred, result);
+        napi_delete_async_work(env, workData->work);
+    }
+
+    // 启动异步任务的函数
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info)
+    {
+        napi_value promise;
+        napi_value resourceName;
+        napi_create_string_utf8(env, __FUNCSIG__, NAPI_AUTO_LENGTH, &resourceName);
+
+        auto *workData = EnvNextWorkData::make();
+
+        auto input = hmc_NodeArgsValue(env, info);
+        if (!get_arguments(env, input, workData))
+        {
+            EnvNextWorkData::gc(workData);
+            return as_Null();
+        }
+
+        napi_create_promise(env, &workData->deferred, &promise);
+        napi_create_async_work(env, nullptr, resourceName, ExecuteAsyncWork, ResolveWork, workData, &workData->work);
+        napi_queue_async_work(env, workData->work);
+        return promise;
+    }
+
 }

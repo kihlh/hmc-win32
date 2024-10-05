@@ -156,6 +156,6 @@ std::any GetClipboardFilePaths2(napi_env env, size_t TASK_TYPE, std::vector<std:
 std::any GetClipboardText2(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data_list)
 {
     std::wstring result = hmc_clip_util::GetClipboardTextW();
-
+    
     return result;
 }

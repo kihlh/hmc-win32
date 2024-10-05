@@ -5,94 +5,65 @@ const { ref } = util;
 
 
 class HMC_MOUSE_CLASS {
-    #fun: null | main.HMC2_MODE.HMC_MOUSE_CLASS = null;
-
-    #initialize() {
-        if (!this.#fun && main.Native.native.HMC_MOUSE_CLASS) {
-            this.#fun = main.Native.native.HMC_MOUSE_CLASS();
-        }
-    }
-
     constructor() { }
 
     initMouseEventHook() {
-        this.#initialize();
-        return this.#fun?.initMouseEventHook() || false;
+        return main.Native.HMC_MOUSE_CLASS?.initMouseEventHook() || false;
     }
 
     isValidHookMouse() {
-        this.#initialize();
-        return this.#fun?.isValidHookMouse() || false;
+        return main.Native.HMC_MOUSE_CLASS?.isValidHookMouse() || false;
     }
 
     getMouseEventListJson() {
-        this.#initialize();
-        return this.#fun?.getMouseEventListJson() || false;
+        return main.Native.HMC_MOUSE_CLASS?.getMouseEventListJson() || false;
     }
 
     stopHookMouse() {
-        this.#initialize();
-        return this.#fun?.stopHookMouse() || false;
+        return main.Native.HMC_MOUSE_CLASS?.stopHookMouse() || false;
     }
 
     setLimitMouseRange(ms: number, x: number, y: number, right: number, bottom: number) {
-        this.#initialize();
-        return this.#fun?.setLimitMouseRange(ref.int(ms), ref.int(x), ref.int(y), ref.int(right), ref.int(bottom)) || false;
+        return main.Native.HMC_MOUSE_CLASS?.setLimitMouseRange(ref.int(ms), ref.int(x), ref.int(y), ref.int(right), ref.int(bottom)) || false;
     }
 
     setShakeEventTime(ms: number) {
-        this.#initialize();
-        return this.#fun?.setShakeEventTime(ref.int(ms)) || false;
+        return main.Native.HMC_MOUSE_CLASS?.setShakeEventTime(ref.int(ms)) || false;
     }
 
     hasLimitMouseRangeWorker() {
-        this.#initialize();
-        return this.#fun?.hasLimitMouseRangeWorker() || false;
+        return main.Native.HMC_MOUSE_CLASS?.hasLimitMouseRangeWorker() || false;
     }
 
     stopLimitMouseRangeWorker() {
-        this.#initialize();
-        return this.#fun?.stopLimitMouseRangeWorker() || false;
+        return main.Native.HMC_MOUSE_CLASS?.stopLimitMouseRangeWorker() || false;
     }
 
 }
 
-export const HmcMouseClass = new HMC_MOUSE_CLASS();
+const HmcMouseClass = new HMC_MOUSE_CLASS();
 
 class HMC_KEYBOARD_CLASS {
-    #fun: null | main.HMC2_MODE.HMC_KEYBOARD_CLASS = null;
-
-    #initialize() {
-        if (!this.#fun && main.Native.native.HMC_KEYBOARD_CLASS) {
-            this.#fun = main.Native.native.HMC_KEYBOARD_CLASS();
-        }
-    }
-
     constructor() { }
 
     initKeyboardEventHook() {
-        this.#initialize();
-        return this.#fun?.initKeyboardEventHook() || false;
+        return main.Native.HMC_KEYBOARD_CLASS?.initKeyboardEventHook() || false;
     }
 
     isValidHookKeyboard() {
-        this.#initialize();
-        return this.#fun?.isValidHookKeyboard() || false;
+        return main.Native.HMC_KEYBOARD_CLASS?.isValidHookKeyboard() || false;
     }
 
     getAllKeyboardEventJson(): main.HMC2_MODE.KeyboardEvent[] {
-        this.#initialize();
-        return JSON.parse(this.#fun?.getAllKeyboardEventJson() || "[]");
+        return JSON.parse(main.Native.HMC_KEYBOARD_CLASS?.getAllKeyboardEventJson() || "[]");
     }
 
     stopHookKeyboard() {
-        this.#initialize();
-        return this.#fun?.stopHookKeyboard() || false;
+        return main.Native.HMC_KEYBOARD_CLASS?.stopHookKeyboard() || false;
     }
 
     hasKeysBasic() {
-        this.#initialize();
-        return this.#fun?.hasKeysBasic() || {
+        return main.Native.HMC_KEYBOARD_CLASS?.hasKeysBasic() || {
             "alt": false,
             "ctrl": false,
             "shift": false,
@@ -101,13 +72,12 @@ class HMC_KEYBOARD_CLASS {
     }
 
     hasKeyActivate(KeysEvent: number) {
-        this.#initialize();
-        return this.#fun?.hasKeyActivate(ref.int(KeysEvent)) || false;
+        return main.Native.HMC_KEYBOARD_CLASS?.hasKeyActivate(ref.int(KeysEvent)) || false;
     }
 
 }
 
-export const HmcKeyboardClass = new HMC_KEYBOARD_CLASS();
+const HmcKeyboardClass = new HMC_KEYBOARD_CLASS();
 
 
 

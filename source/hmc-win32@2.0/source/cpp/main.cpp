@@ -46,49 +46,53 @@ static napi_value Init(napi_env env, napi_value exports)
         DECLARE_NAPI_METHODRM("getClipboardHTML", getClipboardHTML),
 
         // shell.cpp
-        // DECLARE_NAPI_METHODRM("getTrayList", getTrayList),
-        // DECLARE_NAPI_METHODRM("trashFile", trashFile),
-        // DECLARE_NAPI_METHODRM("clearTrash", clearTrash),
-        // DECLARE_NAPI_METHODRM("copyFile", copyFile),
-        // DECLARE_NAPI_METHODRM("moveFile", moveFile),
-        // DECLARE_NAPI_METHODRM("getThumbnailPng", getThumbnailPng),
-        // DECLARE_NAPI_METHODRM("getLinkTarget", getLinkTarget),
-        // DECLARE_NAPI_METHODRM("setFolderIcon", setFolderIcon),
-        // DECLARE_NAPI_METHODRM("isLinkLink", isLinkLink),
-        // DECLARE_NAPI_METHODRM("setShortcutLink", setShortcutLink),
-        // DECLARE_NAPI_METHODRM("createFsLink", createFsLink),
-        // DECLARE_NAPI_METHODRM("getSystemMetrics", getSystemMetrics),
-        // DECLARE_NAPI_METHODRM("getShortcutLink", getShortcutLink),
-        // DECLARE_NAPI_METHODRM("showContextMenu", showContextMenu),
-        // DECLARE_NAPI_METHODRM("setConversionStatus", setConversionStatus),
+        //  DECLARE_NAPI_METHODRM("getTrayList", HMC_shell::getTrayList),
+        //  DECLARE_NAPI_METHODRM("trashFile", HMC_shell::trashFile),
+        //  DECLARE_NAPI_METHODRM("clearTrash", HMC_shell::clearTrash),
+        //  DECLARE_NAPI_METHODRM("copyFile", HMC_shell::copyFile),
+        //  DECLARE_NAPI_METHODRM("moveFile", HMC_shell::moveFile),
+        //  DECLARE_NAPI_METHODRM("getThumbnailPng", HMC_shell::getThumbnailPng),
+        //  DECLARE_NAPI_METHODRM("getLinkTarget", HMC_shell::getLinkTarget),
+        //  DECLARE_NAPI_METHODRM("setFolderIcon", HMC_shell::setFolderIcon),
+        //  DECLARE_NAPI_METHODRM("isLinkLink", HMC_shell::isLinkLink),
+        //  DECLARE_NAPI_METHODRM("setShortcutLink", HMC_shell::setShortcutLink),
+        //  DECLARE_NAPI_METHODRM("createFsLink", HMC_shell::createFsLink),
+        //  DECLARE_NAPI_METHODRM("getSystemMetrics", HMC_shell::getSystemMetrics),
+        //  DECLARE_NAPI_METHODRM("getShortcutLink", HMC_shell::getShortcutLink),
+        //  DECLARE_NAPI_METHODRM("showContextMenu", HMC_shell::showContextMenu),
+        //  DECLARE_NAPI_METHODRM("setConversionStatus", HMC_shell::setConversionStatus),
         DECLARE_NAPI_METHODRM("HMC_SHELL_CLASS", HMC_shell::StartupClassConstructor),
-        DECLARE_NAPI_METHODRM("HMC_SHELL_STARTUP_CLASS", HMC_shell_startup::StartupClassConstructor),
 
+        DECLARE_NAPI_METHODRM("HMC_SHELL_STARTUP_CLASS", HMC_shell_startup::StartupClassConstructor),
         // auto.cpp
         DECLARE_NAPI_METHODRM("HMC_KEYBOARD_CLASS", HMC_Keyboard::StartupClassConstructor),
         DECLARE_NAPI_METHODRM("HMC_MOUSE_CLASS", HMC_mouse::StartupClassConstructor),
     };
 
     napi_define_properties(env, exports, sizeof(BIND_NAPI_METHOD) / sizeof(BIND_NAPI_METHOD[0]), BIND_NAPI_METHOD);
-
-    // Promise 高性能要求的
+    
+    //::..........................................................................................................................................................................
+    //:: Promise 高性能要求的
 
     InitAsyncFunction(env, exports, "getProcessName2", HMC_GetProcessName::StartAsyncTask, HMC_GetProcessName::ExecuteSync);
     InitAsyncFunction(env, exports, "getProcessFilePath2", HMC_GetProcessFilePath::StartAsyncTask, HMC_GetProcessFilePath::ExecuteSync);
     InitAsyncFunction(env, exports, "getProcessEnvInfo2", HMC_GetProcessEnvInfo::StartAsyncTask, HMC_GetProcessEnvInfo::ExecuteSync);
     InitAsyncFunction(env, exports, "GetRegistrEnvInfo", HMC_GetRegistrEnvInfo::StartAsyncTask, HMC_GetRegistrEnvInfo::ExecuteSync);
     InitAsyncFunction(env, exports, "HMC_PromiseEval", HMC_PromiseEval::StartAsyncTask, HMC_PromiseEval::ExecuteSync);
+    InitAsyncFunction(env, exports, "HMC_GetShellEnvInfo", HMC_GetShellEnvInfo::StartAsyncTask, HMC_GetShellEnvInfo::ExecuteSync);
 
-    // Promise 低调用量 低性能要求的
-    HMC_PromiseEval::append(HMC_PromiseStore::getClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
-    HMC_PromiseEval::append(HMC_PromiseStore::getClipboardText2, std::nullopt, GetClipboardText2, std::nullopt);
-    // HMC_PromiseEval::append(HMC_PromiseStore::getThumbnailPng2, std::nullopt, GetThumbnailPng2, std::nullopt);
+    //::..........................................................................................................................................................................
+    //:: Promise 低调用量 低性能要求的
+    HMC_PromiseEval::append(PROMISEEVAL_TOKEN::getClipboardFilePaths2, std::nullopt, GetClipboardFilePaths2, std::nullopt);
+    HMC_PromiseEval::append(PROMISEEVAL_TOKEN::getClipboardText2, std::nullopt, GetClipboardText2, std::nullopt);
+    HMC_PromiseEval::append(PROMISEEVAL_TOKEN::getTrayList, std::nullopt, GetTrayList, std::nullopt);
 
-    CaptureBmp2::initialize(HMC_PromiseStore::captureBmp2);
-    CloseWindow2::initialize(HMC_PromiseStore::closeWindow2);
-    GetThumbnailPng2::initialize(HMC_PromiseStore::getThumbnailPng2);
+    CaptureBmp2::initialize(PROMISEEVAL_TOKEN::captureBmp2);
+    CloseWindow2::initialize(PROMISEEVAL_TOKEN::closeWindow2);
+    GetThumbnailPng2::initialize(PROMISEEVAL_TOKEN::getThumbnailPng2);
 
-    atexit(hmc_gc_func);
+
+    ::atexit(hmc_gc_func);
 
     return exports;
 }
