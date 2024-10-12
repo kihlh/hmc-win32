@@ -277,13 +277,22 @@ var init_util = __esm({
         return ResponseData;
       }
       ref6.concatBuff = concatBuff;
-      function JSONP(...input) {
+      function JSONP(..._input) {
+        const result = {
+          input: _input[0],
+          is_or: _input.length >= 2,
+          orData: _input.length >= 2 ? _input[1] : null
+        };
+        const { input } = result;
+        if (input && (typeof input == "object" || Array.isArray(input))) {
+          return input;
+        }
         try {
-          return JSON.parse(input[0]);
+          return JSON.parse(input);
         } catch (error) {
         }
-        if (input.length >= 2) {
-          return input[1];
+        if (result.is_or) {
+          return result.orData;
         }
         return null;
       }
@@ -304,14 +313,14 @@ var init_promiseEval = __esm({
     "use strict";
     init_util();
     main = (init_main(), __toCommonJS(main_exports));
-    HMC_PROMISEEVAL_TASK_TYPE = /* @__PURE__ */ ((HMC_PROMISEEVAL_TASK_TYPE2) => {
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getClipboardFilePaths2"] = 1] = "getClipboardFilePaths2";
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["captureBmp2"] = 2] = "captureBmp2";
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["closeWindow2"] = 3] = "closeWindow2";
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getClipboardText2"] = 5] = "getClipboardText2";
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getThumbnailPng2"] = 6] = "getThumbnailPng2";
-      HMC_PROMISEEVAL_TASK_TYPE2[HMC_PROMISEEVAL_TASK_TYPE2["getTrayList2"] = 7] = "getTrayList2";
-      return HMC_PROMISEEVAL_TASK_TYPE2;
+    HMC_PROMISEEVAL_TASK_TYPE = /* @__PURE__ */ ((HMC_PROMISEEVAL_TASK_TYPE3) => {
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getClipboardFilePaths2"] = 1] = "getClipboardFilePaths2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["captureBmp2"] = 2] = "captureBmp2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["closeWindow2"] = 3] = "closeWindow2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getClipboardText2"] = 5] = "getClipboardText2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getThumbnailPng2"] = 6] = "getThumbnailPng2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getTrayList2"] = 7] = "getTrayList2";
+      return HMC_PROMISEEVAL_TASK_TYPE3;
     })(HMC_PROMISEEVAL_TASK_TYPE || {});
     HMC_PromiseeEvalTask = class {
       constructor() {
@@ -320,6 +329,8 @@ var init_promiseEval = __esm({
         const TASK_TYPE_LIST = Object.keys(HMC_PROMISEEVAL_TASK_TYPE);
         for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
           const TASK_TYPE = TASK_TYPE_LIST[index];
+          if (!TASK_TYPE || (TASK_TYPE == null ? void 0 : TASK_TYPE.match(/^\d+/)))
+            continue;
           const TASK_ID = HMC_PROMISEEVAL_TASK_TYPE[TASK_TYPE];
           this.async[TASK_TYPE] = (...arg) => {
             var _a;
@@ -627,12 +638,15 @@ var init_registr = __esm({
         return data ? data : null;
       }
       Registr3.getRegistrValueStat2 = getRegistrValueStat2;
-      async function getRegistrFolderStat2(HKey, SubKey, key) {
+      async function getRegistrFolderStat2(HKey, SubKey, isQuerykey) {
+        if (isQuerykey) {
+          return getRegistrKeys2(HKey, SubKey);
+        }
         const data = await GetRegistrEnvInfo(
           HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
           ref6.string(HKey),
           ref6.string(SubKey),
-          ref6.string(key || "")
+          ""
         );
         return data ? JSON.parse(String(data)) : null;
       }
@@ -1050,12 +1064,15 @@ var init_registr = __esm({
         return data || null;
       }
       Registr3.getRegistrValueStat2Sync = getRegistrValueStat2Sync;
-      function getRegistrFolderStat2Sync(HKey, SubKey, key) {
+      function getRegistrFolderStat2Sync(HKey, SubKey, isQuerykey) {
+        if (isQuerykey) {
+          return getRegistrKeys2Sync(HKey, SubKey);
+        }
         const data = GetRegistrEnvInfoSync(
           HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
           ref6.string(HKey),
           ref6.string(SubKey),
-          ref6.string(key || "")
+          ""
         );
         return data ? JSON.parse(String(data)) : null;
       }
@@ -1191,20 +1208,184 @@ var init_registr = __esm({
   }
 });
 
+// source/hmc-win32@2.0/source/main/ShellPromiseEval.ts
+var ShellPromiseEval_exports = {};
+__export(ShellPromiseEval_exports, {
+  HMC_PROMISEEVAL_TASK_TYPE: () => HMC_PROMISEEVAL_TASK_TYPE2,
+  promiseEvalTask: () => promiseEvalTask2
+});
+var main3, HMC_PROMISEEVAL_TASK_TYPE2, HMC_PromiseeEvalTask2, promiseEvalTask2;
+var init_ShellPromiseEval = __esm({
+  "source/hmc-win32@2.0/source/main/ShellPromiseEval.ts"() {
+    "use strict";
+    init_util();
+    main3 = (init_main(), __toCommonJS(main_exports));
+    HMC_PROMISEEVAL_TASK_TYPE2 = /* @__PURE__ */ ((HMC_PROMISEEVAL_TASK_TYPE3) => {
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getLinkTarget2"] = 1] = "getLinkTarget2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getFileAttributes2"] = 2] = "getFileAttributes2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getVolumeList2"] = 3] = "getVolumeList2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["formatVolumePath2"] = 5] = "formatVolumePath2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["formatVolumeName2"] = 6] = "formatVolumeName2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["formatVolumeNtName2"] = 7] = "formatVolumeNtName2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getLinkPath2"] = 8] = "getLinkPath2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["hasFileSymbolicLink2"] = 9] = "hasFileSymbolicLink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["hasFileHardLink2"] = 10] = "hasFileHardLink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["hasDirSymbolicLink2"] = 12] = "hasDirSymbolicLink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["hasDirJunctionPoint2"] = 13] = "hasDirJunctionPoint2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getLinkType2"] = 15] = "getLinkType2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["createLink"] = 16] = "createLink";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["createDirJunctionPoint2"] = 17] = "createDirJunctionPoint2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["createHardLink2"] = 18] = "createHardLink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["createSymlink2"] = 19] = "createSymlink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["createDirSymlink2"] = 20] = "createDirSymlink2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["setFolderIcon2"] = 21] = "setFolderIcon2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["setExtensionIcon2"] = 22] = "setExtensionIcon2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["setAppURLProtocol2"] = 23] = "setAppURLProtocol2";
+      HMC_PROMISEEVAL_TASK_TYPE3[HMC_PROMISEEVAL_TASK_TYPE3["getShortcutLink"] = 25] = "getShortcutLink";
+      return HMC_PROMISEEVAL_TASK_TYPE3;
+    })(HMC_PROMISEEVAL_TASK_TYPE2 || {});
+    HMC_PromiseeEvalTask2 = class {
+      constructor() {
+        this.async = {};
+        this.sync = {};
+        const TASK_TYPE_LIST = Object.keys(HMC_PROMISEEVAL_TASK_TYPE2);
+        const _this = this;
+        for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
+          const TASK_TYPE = TASK_TYPE_LIST[index];
+          if (!TASK_TYPE || (TASK_TYPE == null ? void 0 : TASK_TYPE.match(/^\d+/)))
+            continue;
+          const TASK_ID = HMC_PROMISEEVAL_TASK_TYPE2[TASK_TYPE];
+          _this.async[TASK_TYPE] = (...arg) => {
+            var _a;
+            try {
+              if (!((_a = main3.Native.native) == null ? void 0 : _a.HMC_GetShellEnvInfo)) {
+                return Promise.reject(main3.HMC2_MODE.HMCNotPlatform);
+              }
+              if (arg.length >= 1) {
+                return main3.Native.native.HMC_GetShellEnvInfo(TASK_ID, ...arg);
+              }
+              return main3.Native.native.HMC_GetShellEnvInfo(TASK_ID);
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          };
+          _this.sync[TASK_TYPE] = (...arg) => {
+            var _a;
+            if (!((_a = main3.Native.native) == null ? void 0 : _a.HMC_GetShellEnvInfoSync)) {
+              return null;
+            }
+            if (arg.length >= 1) {
+              return main3.Native.native.HMC_GetShellEnvInfoSync(TASK_ID, ...arg) || null;
+            }
+            return main3.Native.native.HMC_GetShellEnvInfoSync(TASK_ID);
+          };
+          if (!_this[TASK_TYPE]) {
+            _this[TASK_TYPE] = _this.async[TASK_TYPE];
+          }
+          const KEY = "".concat(TASK_TYPE, "Sync");
+          if (!_this[KEY]) {
+            _this[KEY] = _this.sync[TASK_TYPE];
+          }
+        }
+      }
+      async getLinkTarget2(targetPath) {
+        if (!promiseEvalTask2.async.getLinkTarget2) {
+          return Promise.resolve(null);
+        }
+        return await promiseEvalTask2.async.getLinkTarget2(targetPath).then((data) => {
+          if (typeof data == "string") {
+            data = ref.JSONP(data);
+            if ((data == null ? void 0 : data.type) == "HARD_LINK_FILE" && (data == null ? void 0 : data.volume)) {
+              data.volume = ref.JSONP(data.volume);
+            }
+          }
+          return data || null;
+        });
+      }
+      getLinkTarget2Sync(targetPath) {
+        if (!promiseEvalTask2.sync.getLinkTarget2) {
+          return null;
+        }
+        let data = promiseEvalTask2.sync.getLinkTarget2(targetPath);
+        if (typeof data == "string") {
+          data = ref.JSONP(data);
+          if ((data == null ? void 0 : data.type) == "HARD_LINK_FILE" && (data == null ? void 0 : data.volume)) {
+            data.volume = ref.JSONP(data.volume);
+          }
+        }
+        return data || null;
+      }
+      async getFileAttributes2(targetPath) {
+        if (!promiseEvalTask2.async.getFileAttributes2) {
+          return null;
+        }
+        let data = await promiseEvalTask2.async.getFileAttributes2(targetPath);
+        const attributes_list = typeof data == "string" ? ref.JSONP(data) : data;
+        if (attributes_list == null ? void 0 : attributes_list.length) {
+          return {
+            "attributes": attributes_list[0],
+            "list": attributes_list.length == 1 ? attributes_list : attributes_list.slice(1)
+          };
+        }
+        return null;
+      }
+      getFileAttributes2Sync(targetPath) {
+        if (!promiseEvalTask2.sync.getFileAttributes2) {
+          return null;
+        }
+        let data = promiseEvalTask2.sync.getFileAttributes2(targetPath);
+        const attributes_list = typeof data == "string" ? ref.JSONP(data) : data;
+        if (attributes_list == null ? void 0 : attributes_list.length) {
+          return {
+            "attributes": attributes_list[0],
+            "list": attributes_list.length == 1 ? attributes_list : attributes_list.slice(1)
+          };
+        }
+        return null;
+      }
+      async getVolumeList2() {
+        if (!promiseEvalTask2.async.getVolumeList2) {
+          return Promise.resolve(null);
+        }
+        return await promiseEvalTask2.async.getVolumeList2().then((data) => {
+          if (typeof data == "string") {
+            data = ref.JSONP(data);
+          }
+          return data || null;
+        });
+      }
+      getVolumeList2Sync() {
+        if (!promiseEvalTask2.sync.getVolumeList2) {
+          return null;
+        }
+        let data = promiseEvalTask2.sync.getVolumeList2();
+        if (typeof data == "string") {
+          data = ref.JSONP(data);
+        }
+        return data || null;
+      }
+    };
+    promiseEvalTask2 = new HMC_PromiseeEvalTask2();
+  }
+});
+
 // source/hmc-win32@2.0/source/main/shell.ts
 var shell_exports = {};
 __export(shell_exports, {
-  Shell: () => Shell
+  Shell: () => Shell,
+  ShellPromise: () => ShellPromise
 });
-var main3, util2, PromiseEval, ref2, REG_KEY_EM, StartupConstructor, Shell;
+var main4, util2, PromiseEval, ShellPromiseEvalMain, ShellPromise, ref2, REG_KEY_EM, StartupConstructor, Shell;
 var init_shell = __esm({
   "source/hmc-win32@2.0/source/main/shell.ts"() {
     "use strict";
     init_registr();
     init_promiseEval();
-    main3 = (init_main(), __toCommonJS(main_exports));
+    main4 = (init_main(), __toCommonJS(main_exports));
     util2 = (init_util(), __toCommonJS(util_exports));
     PromiseEval = (init_promiseEval(), __toCommonJS(promiseEval_exports));
+    ShellPromiseEvalMain = (init_ShellPromiseEval(), __toCommonJS(ShellPromiseEval_exports));
+    ShellPromise = ShellPromiseEvalMain.promiseEvalTask;
     ({ ref: ref2 } = util2);
     REG_KEY_EM = {
       HKEY_LOCAL_MACHINE: "HKEY_LOCAL_MACHINE",
@@ -1216,32 +1397,32 @@ var init_shell = __esm({
       }
       has(keyName) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.has(ref2.string(keyName))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.has(ref2.string(keyName))) || false;
       }
       hasOnce(keyName) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.hasOnce(ref2.string(keyName))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.hasOnce(ref2.string(keyName))) || false;
       }
       remove(keyName) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.remove(ref2.string(keyName))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.remove(ref2.string(keyName))) || false;
       }
       removeOnce(keyName) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
       }
       set(keyName, path, cmd) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
       setOnce(keyName, path, cmd) {
         var _a;
-        return ((_a = main3.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
       }
       async enum2() {
         const obj = {};
         const keys = await this.keys2();
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         for (let index = 0; index < keys.length; index++) {
           let at = keys[index];
           obj[at] = await Registr.getRegistrString2(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRun, at);
@@ -1251,7 +1432,7 @@ var init_shell = __esm({
       enum2Sync() {
         const obj = {};
         const keys = this.keys2Sync();
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         for (let index = 0; index < keys.length; index++) {
           let at = keys[index];
           obj[at] = Registr.getRegistrString2Sync(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRun, at);
@@ -1261,7 +1442,7 @@ var init_shell = __esm({
       async enumOnce2() {
         const obj = {};
         const keys = await this.keysOnce2();
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         for (let index = 0; index < keys.length; index++) {
           let at = keys[index];
           obj[at] = await Registr.getRegistrString2(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce, at);
@@ -1271,7 +1452,7 @@ var init_shell = __esm({
       enumOnce2Sync() {
         const obj = {};
         const keys = this.keysOnce2Sync();
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         for (let index = 0; index < keys.length; index++) {
           let at = keys[index];
           obj[at] = Registr.getRegistrString2Sync(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce, at);
@@ -1280,23 +1461,23 @@ var init_shell = __esm({
       }
       async keys2() {
         var _a;
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         const key = Registr.getRegistrKeys2(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRun);
         return ((_a = await key) == null ? void 0 : _a.valueKeyList.map((_) => _.name)) || [];
       }
       keys2Sync() {
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         const key = Registr.getRegistrKeys2Sync(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRun);
         return (key == null ? void 0 : key.valueKeyList.map((_) => _.name)) || [];
       }
       async keysOnce2() {
         var _a;
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         const key = Registr.getRegistrKeys2(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce);
         return ((_a = await key) == null ? void 0 : _a.valueKeyList.map((_) => _.name)) || [];
       }
       keysOnce2Sync() {
-        const { HKEY_LOCAL_MACHINE } = main3.HMC2_MODE.Hkey;
+        const { HKEY_LOCAL_MACHINE } = main4.HMC2_MODE.Hkey;
         const key = Registr.getRegistrKeys2Sync(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce);
         return (key == null ? void 0 : key.valueKeyList.map((_) => _.name)) || [];
       }
@@ -1305,7 +1486,7 @@ var init_shell = __esm({
       Shell3.Startup = new StartupConstructor();
       function showContextMenu(hwnd, file, x, y) {
         var _a, _b;
-        return ((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.showContextMenu) ? (_b = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _b.showContextMenu(
+        return ((_a = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.showContextMenu) ? (_b = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _b.showContextMenu(
           ref2.int(hwnd || 0),
           Array.isArray(file) ? file : ref2.string(file),
           ref2.int(x || 0),
@@ -1321,68 +1502,217 @@ var init_shell = __esm({
         return promiseEvalTask.getTrayList2Sync();
       }
       Shell3.getTrayList2Sync = getTrayList2Sync;
-      function setFolderIcon(folderPath, iconPath, iconIndex) {
-        var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.setFolderIcon))
-          return false;
-        return main3.Native.HMC_SHELL_CLASS.setFolderIcon(ref2.string(folderPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
-      }
-      Shell3.setFolderIcon = setFolderIcon;
       function trashFile(trash_path, is_Recycle, isShow) {
         var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.trashFile))
+        if (!((_a = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.trashFile))
           return false;
-        return main3.Native.HMC_SHELL_CLASS.trashFile(ref2.string(trash_path), ref2.bool(is_Recycle), ref2.bool(isShow));
+        return main4.Native.HMC_SHELL_CLASS.trashFile(ref2.string(trash_path), ref2.bool(is_Recycle), ref2.bool(isShow));
       }
       Shell3.trashFile = trashFile;
       function clearTrash(root_path, isShow) {
         var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.clearTrash))
+        if (!((_a = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.clearTrash))
           return false;
-        return main3.Native.HMC_SHELL_CLASS.clearTrash(ref2.string(root_path), ref2.bool(isShow));
+        return main4.Native.HMC_SHELL_CLASS.clearTrash(ref2.string(root_path), ref2.bool(isShow));
       }
       Shell3.clearTrash = clearTrash;
       function copyFile(filePath, newFilePath, isShowConfirm, isShow, isShowProgress, trash_ok) {
         var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.copyFile))
+        if (!((_a = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.copyFile))
           return false;
-        return main3.Native.HMC_SHELL_CLASS.copyFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
+        return main4.Native.HMC_SHELL_CLASS.copyFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
       }
       Shell3.copyFile = copyFile;
       function moveFile(filePath, newFilePath, isShowConfirm, isShow, isShowProgress, trash_ok) {
         var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.moveFile))
+        if (!((_a = main4.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.moveFile))
           return false;
-        return main3.Native.HMC_SHELL_CLASS.moveFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
+        return main4.Native.HMC_SHELL_CLASS.moveFile(ref2.string(filePath), ref2.string(newFilePath), ref2.bool(isShowConfirm), ref2.bool(isShow), ref2.bool(isShowProgress), ref2.bool(trash_ok));
       }
       Shell3.moveFile = moveFile;
-      function getLinkTarget(Linkath) {
-        var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.getLinkTarget))
-          return false;
-        return main3.Native.HMC_SHELL_CLASS.getLinkTarget(ref2.string(Linkath));
-      }
-      Shell3.getLinkTarget = getLinkTarget;
-      function isLinkLink(path) {
-        var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.isLinkLink))
-          return false;
-        return main3.Native.HMC_SHELL_CLASS.isLinkLink(ref2.string(path));
-      }
-      Shell3.isLinkLink = isLinkLink;
-      function createFsLink(targetType, targetPath, sourcePath) {
-        var _a;
-        if (!((_a = main3.Native.HMC_SHELL_CLASS) == null ? void 0 : _a.createFsLink))
-          return false;
-        return main3.Native.HMC_SHELL_CLASS.createFsLink(ref2.int(targetType), ref2.string(targetPath), ref2.string(sourcePath));
-      }
-      Shell3.createFsLink = createFsLink;
       Shell3.captureBmp2 = PromiseEval.promiseEvalTask.captureBmp2;
       Shell3.captureBmp2Sync = PromiseEval.promiseEvalTask.captureBmp2Sync;
       Shell3.getThumbnailPng2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
       Shell3.getThumbnailPng2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
       Shell3.getFileIcon2 = PromiseEval.promiseEvalTask.getThumbnailPng2;
       Shell3.getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
+      let Symlink2;
+      ((Symlink3) => {
+        async function hasLink2(targetPath) {
+          return await getLinkPath2(targetPath) ? true : false;
+        }
+        Symlink3.hasLink2 = hasLink2;
+        function hasLink2Sync(targetPath) {
+          return getLinkPath2Sync(targetPath) ? true : false;
+        }
+        Symlink3.hasLink2Sync = hasLink2Sync;
+        async function getLinkType2(targetPath) {
+          const data = await ShellPromise.getLinkType2(ref2.string(targetPath));
+          return ref2.JSONP(data, null);
+        }
+        Symlink3.getLinkType2 = getLinkType2;
+        function getLinkType2Sync(targetPath) {
+          const data = ShellPromise.getLinkType2Sync(ref2.string(targetPath));
+          return ref2.JSONP(data, null);
+        }
+        Symlink3.getLinkType2Sync = getLinkType2Sync;
+        function getLinkPath2(targetPath) {
+          return ShellPromise.getLinkPath2(ref2.string(targetPath));
+        }
+        Symlink3.getLinkPath2 = getLinkPath2;
+        function getLinkPath2Sync(targetPath) {
+          return ShellPromise.getLinkPath2Sync(ref2.string(targetPath));
+        }
+        Symlink3.getLinkPath2Sync = getLinkPath2Sync;
+        function hasFileSymbolicLink2(targetPath) {
+          return ShellPromise.hasFileSymbolicLink2(ref2.string(targetPath));
+        }
+        Symlink3.hasFileSymbolicLink2 = hasFileSymbolicLink2;
+        function hasFileSymbolicLink2Sync(targetPath) {
+          return ShellPromise.hasFileSymbolicLink2Sync(ref2.string(targetPath));
+        }
+        Symlink3.hasFileSymbolicLink2Sync = hasFileSymbolicLink2Sync;
+        function hasFileHardLink2(targetPath) {
+          return ShellPromise.hasFileHardLink2(ref2.string(targetPath));
+        }
+        Symlink3.hasFileHardLink2 = hasFileHardLink2;
+        function hasFileHardLink2Sync(targetPath) {
+          return ShellPromise.hasFileHardLink2Sync(ref2.string(targetPath));
+        }
+        Symlink3.hasFileHardLink2Sync = hasFileHardLink2Sync;
+        function hasDirSymbolicLink2(targetPath) {
+          return ShellPromise.hasDirSymbolicLink2(ref2.string(targetPath));
+        }
+        Symlink3.hasDirSymbolicLink2 = hasDirSymbolicLink2;
+        function hasDirSymbolicLink2Sync(targetPath) {
+          return ShellPromise.hasDirSymbolicLink2Sync(ref2.string(targetPath));
+        }
+        Symlink3.hasDirSymbolicLink2Sync = hasDirSymbolicLink2Sync;
+        function hasDirJunctionPoint2(targetPath) {
+          return ShellPromise.hasDirJunctionPoint2(ref2.string(targetPath));
+        }
+        Symlink3.hasDirJunctionPoint2 = hasDirJunctionPoint2;
+        function hasDirJunctionPoint2Sync(targetPath) {
+          return ShellPromise.hasDirJunctionPoint2Sync(ref2.string(targetPath));
+        }
+        Symlink3.hasDirJunctionPoint2Sync = hasDirJunctionPoint2Sync;
+        function createLink(targetType, targetPath, sourcePath) {
+          return ShellPromise.createLink(ref2.int(targetType), ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createLink = createLink;
+        function createLinkSync(targetType, targetPath, sourcePath) {
+          return ShellPromise.createLinkSync(ref2.int(targetType), ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createLinkSync = createLinkSync;
+        function createDirJunctionPoint2(targetPath, sourcePath) {
+          return ShellPromise.createDirJunctionPoint2(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createDirJunctionPoint2 = createDirJunctionPoint2;
+        function createDirJunctionPoint2Sync(targetPath, sourcePath) {
+          return ShellPromise.createDirJunctionPoint2Sync(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createDirJunctionPoint2Sync = createDirJunctionPoint2Sync;
+        function createHardLink2(targetPath, sourcePath) {
+          return ShellPromise.createHardLink2(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createHardLink2 = createHardLink2;
+        function createHardLink2Sync(targetPath, sourcePath) {
+          return ShellPromise.createHardLink2Sync(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createHardLink2Sync = createHardLink2Sync;
+        function createSymlink2(targetPath, sourcePath) {
+          return ShellPromise.createSymlink2(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createSymlink2 = createSymlink2;
+        function createSymlink2Sync(targetPath, sourcePath) {
+          return ShellPromise.createSymlink2Sync(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createSymlink2Sync = createSymlink2Sync;
+        function createDirSymlink2(targetPath, sourcePath) {
+          return ShellPromise.createDirSymlink2(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createDirSymlink2 = createDirSymlink2;
+        function createDirSymlink2Sync(targetPath, sourcePath) {
+          return ShellPromise.createDirSymlink2Sync(ref2.string(targetPath), ref2.string(sourcePath));
+        }
+        Symlink3.createDirSymlink2Sync = createDirSymlink2Sync;
+      })(Symlink2 = Shell3.Symlink || (Shell3.Symlink = {}));
+      function getFileAttributes2(targetPath) {
+        return ShellPromise.getFileAttributes2(ref2.string(targetPath));
+      }
+      Shell3.getFileAttributes2 = getFileAttributes2;
+      function getFileAttributes2Sync(targetPath) {
+        return ShellPromise.getFileAttributes2Sync(ref2.string(targetPath));
+      }
+      Shell3.getFileAttributes2Sync = getFileAttributes2Sync;
+      function setFolderIcon2(targetPath, iconPath, iconIndex) {
+        return ShellPromise.setFolderIcon2(ref2.string(targetPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
+      }
+      Shell3.setFolderIcon2 = setFolderIcon2;
+      function setFolderIcon2Sync(targetPath, iconPath, iconIndex) {
+        return ShellPromise.setFolderIcon2Sync(ref2.string(targetPath), ref2.string(iconPath), ref2.int(iconIndex || 0));
+      }
+      Shell3.setFolderIcon2Sync = setFolderIcon2Sync;
+      async function setExtensionIcon2(extensionName, typeName, iconPath, iconIndex) {
+        return await ShellPromise.setExtensionIcon2(ref2.string(extensionName), ref2.string(typeName), ref2.string(iconPath), ref2.int(iconIndex || 0)) || false;
+      }
+      Shell3.setExtensionIcon2 = setExtensionIcon2;
+      function setExtensionIcon2Sync(extensionName, typeName, iconPath, iconIndex) {
+        return ShellPromise.setExtensionIcon2Sync(ref2.string(extensionName), ref2.string(typeName), ref2.string(iconPath), ref2.int(iconIndex || 0)) || false;
+      }
+      Shell3.setExtensionIcon2Sync = setExtensionIcon2Sync;
+      function setAppURLProtocol2Sync(protocolName, appPath, command) {
+        if (Array.isArray(command)) {
+          let command_list = "";
+          for (let index = 0; index < command.length; index++) {
+            const command_ = command[index];
+            command_list = command_list + ' "'.concat(command_, '"');
+          }
+          command = command_list;
+        }
+        return ShellPromise.setAppURLProtocol2Sync(ref2.string(protocolName), ref2.string(appPath), ref2.string(command));
+      }
+      Shell3.setAppURLProtocol2Sync = setAppURLProtocol2Sync;
+      function setAppURLProtocol2(protocolName, appPath, command) {
+        if (Array.isArray(command)) {
+          let command_list = "";
+          for (let index = 0; index < command.length; index++) {
+            const command_ = command[index];
+            command_list = command_list + ' "'.concat(command_, '"');
+          }
+          command = command_list;
+        }
+        if (!command) {
+          command = "%1";
+        }
+        return ShellPromise.setAppURLProtocol2(ref2.string(protocolName), ref2.string(appPath), ref2.string(command));
+      }
+      Shell3.setAppURLProtocol2 = setAppURLProtocol2;
+      async function getShortcutLink2(targetPath, QueryDetaile) {
+        const _QueryDetaile = typeof QueryDetaile == "boolean" ? QueryDetaile : ref2.bool(QueryDetaile || true);
+        const data = await ShellPromise.getShortcutLink(ref2.string(targetPath), _QueryDetaile);
+        if (typeof data == "string") {
+          if (_QueryDetaile) {
+            return ref2.JSONP(data, null);
+          }
+          return data;
+        }
+        return data;
+      }
+      Shell3.getShortcutLink2 = getShortcutLink2;
+      function getShortcutLink2Sync(targetPath, QueryDetaile) {
+        const _QueryDetaile = typeof QueryDetaile == "boolean" ? QueryDetaile : ref2.bool(QueryDetaile || true);
+        const data = ShellPromise.getShortcutLink(ref2.string(targetPath), _QueryDetaile);
+        if (typeof data == "string") {
+          if (_QueryDetaile) {
+            return ref2.JSONP(data, null);
+          }
+          return data;
+        }
+        return data;
+      }
+      Shell3.getShortcutLink2Sync = getShortcutLink2Sync;
+      Shell3.HMC_GetShellEnvInfo = ShellPromise;
     })(Shell || (Shell = {}));
   }
 });
@@ -1616,12 +1946,12 @@ function setLimitMouseRange(ms, x, y, right = 1, bottom = 1) {
   };
   return res;
 }
-var main4, util3, ref3, HMC_MOUSE_CLASS, HmcMouseClass, HMC_KEYBOARD_CLASS, HmcKeyboardClass, Keyboard, Iohook_Keyboard, keyboardHook;
+var main5, util3, ref3, HMC_MOUSE_CLASS, HmcMouseClass, HMC_KEYBOARD_CLASS, HmcKeyboardClass, Keyboard, Iohook_Keyboard, keyboardHook;
 var init_auto = __esm({
   "source/hmc-win32@2.0/source/main/auto.ts"() {
     "use strict";
     init_vkKey();
-    main4 = (init_main(), __toCommonJS(main_exports));
+    main5 = (init_main(), __toCommonJS(main_exports));
     util3 = (init_util(), __toCommonJS(util_exports));
     ({ ref: ref3 } = util3);
     HMC_MOUSE_CLASS = class {
@@ -1629,35 +1959,35 @@ var init_auto = __esm({
       }
       initMouseEventHook() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.initMouseEventHook()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.initMouseEventHook()) || false;
       }
       isValidHookMouse() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.isValidHookMouse()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.isValidHookMouse()) || false;
       }
       getMouseEventListJson() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.getMouseEventListJson()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.getMouseEventListJson()) || false;
       }
       stopHookMouse() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.stopHookMouse()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.stopHookMouse()) || false;
       }
       setLimitMouseRange(ms, x, y, right, bottom) {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.setLimitMouseRange(ref3.int(ms), ref3.int(x), ref3.int(y), ref3.int(right), ref3.int(bottom))) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.setLimitMouseRange(ref3.int(ms), ref3.int(x), ref3.int(y), ref3.int(right), ref3.int(bottom))) || false;
       }
       setShakeEventTime(ms) {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.setShakeEventTime(ref3.int(ms))) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.setShakeEventTime(ref3.int(ms))) || false;
       }
       hasLimitMouseRangeWorker() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.hasLimitMouseRangeWorker()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.hasLimitMouseRangeWorker()) || false;
       }
       stopLimitMouseRangeWorker() {
         var _a;
-        return ((_a = main4.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.stopLimitMouseRangeWorker()) || false;
+        return ((_a = main5.Native.HMC_MOUSE_CLASS) == null ? void 0 : _a.stopLimitMouseRangeWorker()) || false;
       }
     };
     HmcMouseClass = new HMC_MOUSE_CLASS();
@@ -1666,23 +1996,23 @@ var init_auto = __esm({
       }
       initKeyboardEventHook() {
         var _a;
-        return ((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.initKeyboardEventHook()) || false;
+        return ((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.initKeyboardEventHook()) || false;
       }
       isValidHookKeyboard() {
         var _a;
-        return ((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.isValidHookKeyboard()) || false;
+        return ((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.isValidHookKeyboard()) || false;
       }
       getAllKeyboardEventJson() {
         var _a;
-        return JSON.parse(((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.getAllKeyboardEventJson()) || "[]");
+        return JSON.parse(((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.getAllKeyboardEventJson()) || "[]");
       }
       stopHookKeyboard() {
         var _a;
-        return ((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.stopHookKeyboard()) || false;
+        return ((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.stopHookKeyboard()) || false;
       }
       hasKeysBasic() {
         var _a;
-        return ((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.hasKeysBasic()) || {
+        return ((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.hasKeysBasic()) || {
           "alt": false,
           "ctrl": false,
           "shift": false,
@@ -1691,7 +2021,7 @@ var init_auto = __esm({
       }
       hasKeyActivate(KeysEvent) {
         var _a;
-        return ((_a = main4.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.hasKeyActivate(ref3.int(KeysEvent))) || false;
+        return ((_a = main5.Native.HMC_KEYBOARD_CLASS) == null ? void 0 : _a.hasKeyActivate(ref3.int(KeysEvent))) || false;
       }
     };
     HmcKeyboardClass = new HMC_KEYBOARD_CLASS();
@@ -1829,7 +2159,7 @@ var init_auto = __esm({
           while (true) {
             if (this._hook_Task_id != _hook_Task_id || keyboardHook._Close)
               return;
-            await main4.Sleep(this._next_Sleep);
+            await main5.Sleep(this._next_Sleep);
             emit_getKeyboardNextSession();
           }
         })();
@@ -1942,24 +2272,24 @@ __export(Process_exports, {
 });
 function GetProcessEnvInfo2Clone(pid, command) {
   var _a;
-  if (!((_a = main5.Native.native) == null ? void 0 : _a["getProcessEnvInfo2"])) {
+  if (!((_a = main6.Native.native) == null ? void 0 : _a["getProcessEnvInfo2"])) {
     return Promise.resolve(null);
   }
-  return main5.Native.native["getProcessEnvInfo2"](pid, command);
+  return main6.Native.native["getProcessEnvInfo2"](pid, command);
 }
 function GetProcessEnvInfo2SyncClone(pid, command) {
   var _a;
-  if (!((_a = main5.Native.native) == null ? void 0 : _a["getProcessEnvInfo2Sync"])) {
+  if (!((_a = main6.Native.native) == null ? void 0 : _a["getProcessEnvInfo2Sync"])) {
     return null;
   }
-  return main5.Native.native["getProcessEnvInfo2Sync"](pid, command);
+  return main6.Native.native["getProcessEnvInfo2Sync"](pid, command);
 }
-var main5, util4, ref4, Process;
+var main6, util4, ref4, Process;
 var init_Process = __esm({
   "source/hmc-win32@2.0/source/main/Process.ts"() {
     "use strict";
     init_main();
-    main5 = (init_main(), __toCommonJS(main_exports));
+    main6 = (init_main(), __toCommonJS(main_exports));
     util4 = (init_util(), __toCommonJS(util_exports));
     ({ ref: ref4 } = util4);
     ((Process3) => {
@@ -2219,13 +2549,13 @@ var init_Process = __esm({
       }
       Process3.getExecutableCwdList2Sync = getExecutableCwdList2Sync;
       async function getProcessName2(pid, type) {
-        if (!main5.Native.native.getProcessName2) {
+        if (!main6.Native.native.getProcessName2) {
           if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
             return Promise.resolve([]);
           }
           return Promise.resolve(null);
         }
-        const data = await main5.Native.native.getProcessName2(ref4.int(pid), type ? ref4.int(type) : void 0);
+        const data = await main6.Native.native.getProcessName2(ref4.int(pid), type ? ref4.int(type) : void 0);
         if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
           const data_list = data ? Array.isArray(data) ? data : data == null ? void 0 : data.split("\0") : [];
           return data_list.filter((item) => item);
@@ -2234,13 +2564,13 @@ var init_Process = __esm({
       }
       Process3.getProcessName2 = getProcessName2;
       function getProcessName2Sync(pid, type) {
-        if (!main5.Native.native.getProcessName2Sync) {
+        if (!main6.Native.native.getProcessName2Sync) {
           if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
             return [];
           }
           return null;
         }
-        const data = main5.Native.native.getProcessName2Sync(ref4.int(pid), type ? ref4.int(type) : void 0);
+        const data = main6.Native.native.getProcessName2Sync(ref4.int(pid), type ? ref4.int(type) : void 0);
         if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
           const data_list = data ? Array.isArray(data) ? data : data == null ? void 0 : data.split("\0") : [];
           return data_list.filter((item) => item);
@@ -2249,11 +2579,11 @@ var init_Process = __esm({
       }
       Process3.getProcessName2Sync = getProcessName2Sync;
       function getProcessFilePath2(pid, isEnumListExists, isSnapshotName) {
-        return main5.Native.native.getProcessFilePath2 ? main5.Native.native.getProcessFilePath2(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : Promise.resolve(null);
+        return main6.Native.native.getProcessFilePath2 ? main6.Native.native.getProcessFilePath2(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : Promise.resolve(null);
       }
       Process3.getProcessFilePath2 = getProcessFilePath2;
       function getProcessFilePath2Sync(pid, isEnumListExists, isSnapshotName) {
-        return main5.Native.native.getProcessFilePath2Sync ? main5.Native.native.getProcessFilePath2Sync(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : null;
+        return main6.Native.native.getProcessFilePath2Sync ? main6.Native.native.getProcessFilePath2Sync(ref4.int(pid), ...[...isEnumListExists ? [true] : [], ...isSnapshotName ? [true] : []]) : null;
       }
       Process3.getProcessFilePath2Sync = getProcessFilePath2Sync;
       function getProcessParentProcessMatch2(Process4) {
@@ -2379,12 +2709,13 @@ __export(main_exports, {
   Shell: () => Shell2,
   Sleep: () => Sleep,
   Startup: () => Startup,
+  Symlink: () => Symlink,
   Window: () => Window,
   ref: () => ref5,
   sleep: () => sleep
 });
 module.exports = __toCommonJS(main_exports);
-var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, RegistrMain, HMC2_MODE, HMC_LAZY_CLASS, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Registr2, Window;
+var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, RegistrMain, ShellPromiseEvalMain2, HMC2_MODE, HMC_LAZY_CLASS, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Registr2, Window, Symlink;
 var init_main = __esm({
   "source/hmc-win32@2.0/source/main/index.ts"() {
     PromiseEval2 = (init_promiseEval(), __toCommonJS(promiseEval_exports));
@@ -2393,6 +2724,7 @@ var init_main = __esm({
     UtilMain = (init_util(), __toCommonJS(util_exports));
     ProcessMain = (init_Process(), __toCommonJS(Process_exports));
     RegistrMain = (init_registr(), __toCommonJS(registr_exports));
+    ShellPromiseEvalMain2 = (init_ShellPromiseEval(), __toCommonJS(ShellPromiseEval_exports));
     ((HMC2_MODE2) => {
       function ALL_NONE_FUN_CALLBECK(...arg) {
       }
@@ -2426,13 +2758,55 @@ var init_main = __esm({
         REG_TYPE2[REG_TYPE2["REG_QWORD"] = 11] = "REG_QWORD";
         REG_TYPE2[REG_TYPE2["REG_QWORD_LITTLE_ENDIAN"] = 11] = "REG_QWORD_LITTLE_ENDIAN";
       })(REG_TYPE = HMC2_MODE2.REG_TYPE || (HMC2_MODE2.REG_TYPE = {}));
+      let LINK_TYPE_INFO;
+      ((LINK_TYPE_INFO2) => {
+        LINK_TYPE_INFO2[LINK_TYPE_INFO2["HARD_LINK_FILE"] = 170] = "HARD_LINK_FILE";
+        LINK_TYPE_INFO2[LINK_TYPE_INFO2["SOFT_LINK_FILE"] = 168] = "SOFT_LINK_FILE";
+        LINK_TYPE_INFO2[LINK_TYPE_INFO2["SOFT_LINK_DIR"] = 166] = "SOFT_LINK_DIR";
+        LINK_TYPE_INFO2[LINK_TYPE_INFO2["SYMBOLIC_LINK_DIR"] = 172] = "SYMBOLIC_LINK_DIR";
+        LINK_TYPE_INFO2[LINK_TYPE_INFO2["UNKNOWN"] = 0] = "UNKNOWN";
+      })(LINK_TYPE_INFO || (LINK_TYPE_INFO = {}));
+      ;
+      ;
       let FS_MK_LINK_TARGET_TYPE;
       ((FS_MK_LINK_TARGET_TYPE2) => {
         FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_DIR_SYMLINK"] = 166] = "CREATE_DIR_SYMLINK";
         FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_SYMLINK"] = 168] = "CREATE_SYMLINK";
         FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_HARD_LINK"] = 170] = "CREATE_HARD_LINK";
-        FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_SYMBOLIC_LINK"] = 172] = "CREATE_SYMBOLIC_LINK";
+        FS_MK_LINK_TARGET_TYPE2[FS_MK_LINK_TARGET_TYPE2["CREATE_JUNCTION_POINT_LINK"] = 172] = "CREATE_JUNCTION_POINT_LINK";
       })(FS_MK_LINK_TARGET_TYPE = HMC2_MODE2.FS_MK_LINK_TARGET_TYPE || (HMC2_MODE2.FS_MK_LINK_TARGET_TYPE = {}));
+      let LINK_TYPE;
+      ((LINK_TYPE2) => {
+        LINK_TYPE2[LINK_TYPE2["HARD_LINK_FILE"] = 170] = "HARD_LINK_FILE";
+        LINK_TYPE2[LINK_TYPE2["SOFT_LINK_FILE"] = 168] = "SOFT_LINK_FILE";
+        LINK_TYPE2[LINK_TYPE2["SOFT_LINK_DIR"] = 166] = "SOFT_LINK_DIR";
+        LINK_TYPE2[LINK_TYPE2["JUNCTION_POINT_DIR"] = 172] = "JUNCTION_POINT_DIR";
+        LINK_TYPE2[LINK_TYPE2["UNKNOWN"] = 0] = "UNKNOWN";
+      })(LINK_TYPE = HMC2_MODE2.LINK_TYPE || (HMC2_MODE2.LINK_TYPE = {}));
+      ;
+      let FILE_ATTRIBUTE_INFO_LIST;
+      ((FILE_ATTRIBUTE_INFO_LIST2) => {
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_READONLY"] = 1] = "FILE_ATTRIBUTE_READONLY";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_HIDDEN"] = 2] = "FILE_ATTRIBUTE_HIDDEN";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_SYSTEM"] = 4] = "FILE_ATTRIBUTE_SYSTEM";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_DIRECTORY"] = 16] = "FILE_ATTRIBUTE_DIRECTORY";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_ARCHIVE"] = 32] = "FILE_ATTRIBUTE_ARCHIVE";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_DEVICE"] = 64] = "FILE_ATTRIBUTE_DEVICE";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_NORMAL"] = 128] = "FILE_ATTRIBUTE_NORMAL";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_TEMPORARY"] = 256] = "FILE_ATTRIBUTE_TEMPORARY";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_SPARSE_FILE"] = 512] = "FILE_ATTRIBUTE_SPARSE_FILE";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_REPARSE_POINT"] = 1024] = "FILE_ATTRIBUTE_REPARSE_POINT";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_COMPRESSED"] = 2048] = "FILE_ATTRIBUTE_COMPRESSED";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_OFFLINE"] = 4096] = "FILE_ATTRIBUTE_OFFLINE";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_NOT_CONTENT_INDEXED"] = 8192] = "FILE_ATTRIBUTE_NOT_CONTENT_INDEXED";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_ENCRYPTED"] = 16384] = "FILE_ATTRIBUTE_ENCRYPTED";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_VIRTUAL"] = 65536] = "FILE_ATTRIBUTE_VIRTUAL";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_INTEGRITY_STREAM"] = 32768] = "FILE_ATTRIBUTE_INTEGRITY_STREAM";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_NO_SCRUB_DATA"] = 131072] = "FILE_ATTRIBUTE_NO_SCRUB_DATA";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_EA"] = 262144] = "FILE_ATTRIBUTE_EA";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_PINNED"] = 524288] = "FILE_ATTRIBUTE_PINNED";
+        FILE_ATTRIBUTE_INFO_LIST2[FILE_ATTRIBUTE_INFO_LIST2["FILE_ATTRIBUTE_UNPINNED"] = 1048576] = "FILE_ATTRIBUTE_UNPINNED";
+      })(FILE_ATTRIBUTE_INFO_LIST = HMC2_MODE2.FILE_ATTRIBUTE_INFO_LIST || (HMC2_MODE2.FILE_ATTRIBUTE_INFO_LIST = {}));
       HMC2_MODE2.HMCNotPlatform = "HMC::HMC current method only supports win32 platform";
       let MouseKeyName;
       ((MouseKeyName2) => {
@@ -2631,6 +3005,7 @@ var init_main = __esm({
       }
       Window2.readElectronHandle = readElectronHandle;
     })(Window || (Window = {}));
+    Symlink = ShellMain.Shell.Symlink;
   }
 });
 init_main();
@@ -2644,6 +3019,7 @@ init_main();
   Shell,
   Sleep,
   Startup,
+  Symlink,
   Window,
   ref,
   sleep

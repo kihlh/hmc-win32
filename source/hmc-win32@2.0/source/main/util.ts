@@ -18,7 +18,7 @@ export module ref {
      * @returns
      */
     export function bool(bool: any) {
-        if (bool&&typeof bool == "string") {
+        if (bool && typeof bool == "string") {
 
             const TEMP = bool.toUpperCase();
 
@@ -37,15 +37,15 @@ export module ref {
      * @returns
      */
     export function string(Str: any) {
-        if(!Str&&typeof Str == "object"){
+        if (!Str && typeof Str == "object") {
             return "null";
         }
         if (typeof Str == "object" && Str instanceof String) {
-            Str = Str?.toString()||String(Str);
+            Str = Str?.toString() || String(Str);
             return Str;
         }
 
-        if (typeof Str == "object" ||Array.isArray(Str)) {
+        if (typeof Str == "object" || Array.isArray(Str)) {
             try {
                 return JSON.stringify(Str)
             } catch (error) {
@@ -59,7 +59,7 @@ export module ref {
         }
 
         if (typeof Str == "boolean") {
-            Str = Str? "true" : "false";
+            Str = Str ? "true" : "false";
             return Str;
         }
 
@@ -123,8 +123,8 @@ export module ref {
         if (typeof Num == "object" && Num instanceof Number) {
             Num = Num?.valueOf();
         }
-        
-        if(typeof Num == "bigint"){
+
+        if (typeof Num == "bigint") {
             Num = Number(Num);
         }
         // 取整
@@ -159,7 +159,7 @@ export module ref {
         if (typeof Num == "object" && Num instanceof Number) {
             Num = Num?.valueOf();
         }
-        if(typeof Num == "bigint"){
+        if (typeof Num == "bigint") {
             Num = Number(Num);
         }
         // 取整
@@ -206,17 +206,17 @@ export module ref {
         return dataList;
     }
 
-    export function is_stringArray(array: Array<any>):array is Array<string> {
+    export function is_stringArray(array: Array<any>): array is Array<string> {
         if (Array.isArray(array)) {
             for (let index = 0; index < array.length; index++) {
                 const cout = array[index];
-                if(typeof cout != "string"){
+                if (typeof cout != "string") {
                     return false;
                 }
-          
+
             }
-        }else{return false;}
-        
+        } else { return false; }
+
         return true;
     }
     export function convertMultiStringArray(input: string): string[];
@@ -228,13 +228,13 @@ export module ref {
      */
     export function convertMultiStringArray(input: unknown): unknown {
         if (typeof input == "string") {
-            const temp = input.replace(/[\0]+$/,'').split("\0");
-            
+            const temp = input.replace(/[\0]+$/, '').split("\0");
+
             for (let index = 0; index < 2; index++) {
                 if (temp.at(-1)) {
                     return temp;
                 }
-                temp&&temp.pop();
+                temp && temp.pop();
             }
         }
 
@@ -245,7 +245,7 @@ export module ref {
                 temp += string(element) + "\0";
             }
 
-            return temp.replace(/[\0]+$/,'\0\0');
+            return temp.replace(/[\0]+$/, '\0\0');
         }
 
         if (input && input instanceof Set) {
@@ -253,10 +253,10 @@ export module ref {
             for (const element of input) {
                 temp += string(element) + "\0";
             }
-            return temp.replace(/[\0]+$/,'\0\0');
+            return temp.replace(/[\0]+$/, '\0\0');
         }
-        
-        return[]
+
+        return []
     }
 
 
@@ -335,20 +335,34 @@ export module ref {
         return ResponseData;
     }
 
-    export function JSONP<T>(input: any,orData:T): T ;
-    export function JSONP(input: any): { [key: string | number]: any } | Array<any> | null ;
+    export function JSONP<T>(input: any, orData: T): T;
+    export function JSONP(input: any): { [key: string | number]: any } | Array<any> | null;
     /**
      * 格式化json文本
      * @param input 
      * @returns 
      */
-    export function JSONP(...input: any[]): { [key: string | number]: any } | Array<any> | null {
+    export function JSONP(..._input: any[]): { [key: string | number]: any } | Array<any> | null {
+
+        const result = {
+            input: _input[0],
+            is_or: _input.length >= 2,
+            orData: _input.length >= 2 ? _input[1] : null,
+        };
+
+        const { input } = result;
+
+        if (input && (typeof input == "object" || Array.isArray(input))) {
+            return input;
+        }
+
         try {
-            return JSON.parse(input[0]);
+            return JSON.parse(input);
         } catch (error) { }
-        
-        if(input.length>=2){
-            return input[1];
+
+
+        if (result.is_or) {
+            return result.orData;
         }
 
         return null;

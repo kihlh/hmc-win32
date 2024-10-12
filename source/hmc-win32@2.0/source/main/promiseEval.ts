@@ -22,6 +22,7 @@ class HMC_PromiseeEvalTask {
 
         for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
             const TASK_TYPE: HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = TASK_TYPE_LIST[index];
+            if(!TASK_TYPE||TASK_TYPE?.match(/^\d+/)) continue;
             const TASK_ID = HMC_PROMISEEVAL_TASK_TYPE[TASK_TYPE];
 
             this.async[TASK_TYPE] = (...arg: any[]) => {

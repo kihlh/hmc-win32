@@ -4,6 +4,9 @@
 #include "hmc_string_util.h"
 #include "hmc_shell_util.h"
 #include "hmc_process_util.h"
+#include "hmc_usb_util.h"
+#include "hmc_path_util.h"
+
 #include "hmc_util.h"
 
 #include <ShlObj.h>
@@ -760,123 +763,263 @@ std::any GetTrayList(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data
 namespace HMC_GetShellEnvInfo
 {
 
-    struct EnvNextWorkData
+    enum GET_SHELL_ENV_INFO_ID
     {
-        napi_deferred deferred;
-        napi_async_work work;
-        std::vector<js_variant_value> *arguments;
-        // js_variant_value *index1;
-        // js_variant_value *index2;
-        // js_variant_value *index3;
-        js_variant_value *Result;
-        std::uint8_t TAKE_TYPE;
+        NONE = 0,
+        getLinkTarget = 1,
+        getFileAttributes = 2,
 
-        static void gc(EnvNextWorkData *work)
-        {
-            if (work == NULL)
-                return;
+        getVolumeList = 3,
+        formatVolumePath = 5,
+        formatVolumeName = 6,
+        formatVolumeNtName = 7,
 
-            if (work->arguments!=NULL)
-            {
-                work->arguments->clear();
-                //work->arguments->shrink_to_fit();
-                delete work->arguments;
-                work->arguments = nullptr;
-            }
+        getLinkPath = 8,
+        hasFsLink = 9,
+        hasHardLink = 10,
+        hasDirLink = 12,
+        hasSymbolicDirLink = 13,
+        getLinkType = 15,
 
-            // HMC_GC_CPP_BASIC_PTR(work->index1);
-            // HMC_GC_CPP_BASIC_PTR(work->index2);
-            // HMC_GC_CPP_BASIC_PTR(work->index3);
-            HMC_GC_CPP_BASIC_PTR(work->Result);
-            ::VirtualFree(work, 0, 0x00008000);
-        }
+        createFsLink = 16,
+        createSymbolicLink = 17,
+        createHardLink = 18,
+        createSymlink = 19,
+        createDirSymlink = 20,
 
-        static EnvNextWorkData *make()
-        {
-            EnvNextWorkData *workData = HMC_VcAllocAutoLength(EnvNextWorkData);
+        setFolderIcon = 21,
+        setExtensionIcon = 22,
+        setAppURLProtocol = 23,
 
-            if (workData != NULL)
-            {
-                // workData->index1 = new js_variant_value();
-                // workData->index2 = new js_variant_value();
-                // workData->index3 = new js_variant_value();
-                // workData->arguments->push_back();
-
-                workData->arguments = new std::vector<js_variant_value>();
-                workData->Result = new js_variant_value();
-                workData->TAKE_TYPE = 0;
-            }
-
-            return workData;
-        }
+        getShortcutLink = 25,
     };
 
-    bool get_arguments(napi_env env, hmc_NodeArgsValue input, EnvNextWorkData *work)
+    const std::map<GET_SHELL_ENV_INFO_ID, std::vector<std::tuple<size_t, js_valuetype>>> GET_SHELL_EQ_TYPE_LIST = {
+        {GET_SHELL_ENV_INFO_ID::getLinkTarget, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::getFileAttributes, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::getVolumeList, {}},
+        {GET_SHELL_ENV_INFO_ID::formatVolumePath, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::formatVolumeName, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::formatVolumeNtName, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::getLinkPath, {{0, js_string}}},
+
+        {GET_SHELL_ENV_INFO_ID::hasFsLink, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::hasHardLink, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::hasDirLink, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::hasSymbolicDirLink, {{0, js_string}}},
+
+        {GET_SHELL_ENV_INFO_ID::createFsLink, {{0, js_number}, {1, js_string}, {2, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::createSymbolicLink, {{0, js_string}, {1, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::createHardLink, {{0, js_string}, {1, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::createSymlink, {{0, js_string}, {1, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::createDirSymlink, {{0, js_string}, {1, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::setFolderIcon, {{0, js_string}, {1, js_string}, {2, js_number}}},
+        {GET_SHELL_ENV_INFO_ID::setExtensionIcon, {{0, js_string}, {1, js_string}, {2, js_string}, {3, js_number}}},
+        {GET_SHELL_ENV_INFO_ID::setAppURLProtocol, {{0, js_string}, {1, js_string}, {2, js_string}}},
+
+        {GET_SHELL_ENV_INFO_ID::getLinkTarget, {{0, js_string}}},
+        {GET_SHELL_ENV_INFO_ID::getShortcutLink, {{0, js_string}}},
+    };
+
+    struct EnvNextWorkData : public HMC_PromiseUtilV2::EnvNextWorkDataTemplate<GET_SHELL_ENV_INFO_ID>
     {
-        if (!input.eq(0, js_number, true))
-        {
-            return false;
-        }
+    };
 
-        work->TAKE_TYPE = at_Number32Or(0, 0);
+    void GetLinkTarget(EnvNextWorkData *workData);
+    void HasFsLink(EnvNextWorkData *workData);
+    void CreateFsLink(EnvNextWorkData *workData);
 
-        if (input.exists(1))
-        {
-            auto temp = input.get_variant(1);
-            work->arguments->push_back(temp);
-        }
+    const std::map<GET_SHELL_ENV_INFO_ID, std::function<void(EnvNextWorkData *workData)>> GET_SHELL_FUNC_LIST = {
+        {GET_SHELL_ENV_INFO_ID::getLinkTarget, GetLinkTarget},
+        {GET_SHELL_ENV_INFO_ID::getLinkPath, GetLinkTarget},
+        {GET_SHELL_ENV_INFO_ID::hasFsLink, HasFsLink},
+        {GET_SHELL_ENV_INFO_ID::hasHardLink, HasFsLink},
+        {GET_SHELL_ENV_INFO_ID::hasDirLink, HasFsLink},
+        {GET_SHELL_ENV_INFO_ID::hasSymbolicDirLink, HasFsLink},
+        {GET_SHELL_ENV_INFO_ID::getLinkType, HasFsLink},
 
-        if (input.exists(2))
-        {
-            auto temp = input.get_variant(2);
-            work->arguments->push_back(temp);
-        }
+        {GET_SHELL_ENV_INFO_ID::createFsLink, CreateFsLink},
+        {GET_SHELL_ENV_INFO_ID::createSymbolicLink, CreateFsLink},
+        {GET_SHELL_ENV_INFO_ID::createHardLink, CreateFsLink},
+        {GET_SHELL_ENV_INFO_ID::createSymlink, CreateFsLink},
+        {GET_SHELL_ENV_INFO_ID::createDirSymlink, CreateFsLink},
+        // {GET_SHELL_ENV_INFO_ID::setFolderIcon, setFolderIcon},
 
-        if (input.exists(3))
-        {
-            auto temp2 = hmc_napi_get_value::get_object_variant_utf16(env, input.at(3));
-            auto temp3 = hmc_napi_get_value::get_array_variant(env, input.at(3));
-            auto temp = input.get_variant(3);
-            work->arguments->push_back(temp);
-        }
+    };
 
-        return true;
-    }
-
-    void main(EnvNextWorkData *workData)
+    void main(void *Work)
     {
-        Sleep(5000);
-        
-        auto temp = workData->arguments->at(2);
 
+        EnvNextWorkData *work = (EnvNextWorkData *)Work;
+
+        const GET_SHELL_ENV_INFO_ID TAKE_TYPE = work->TAKE_TYPE;
+
+        // 优先查找可引用函数列表
+        if (GET_SHELL_FUNC_LIST.find(TAKE_TYPE) != GET_SHELL_FUNC_LIST.end())
+        {
+
+            for (auto &&GET_SHELL_FUNC : GET_SHELL_FUNC_LIST)
+            {
+
+                if (GET_SHELL_FUNC.first == work->TAKE_TYPE)
+                {
+                    auto fun = GET_SHELL_FUNC.second;
+                    fun(work);
+                    return;
+                }
+            }
+        }
+
+        const bool FORMAT_VOLUME_ANY = TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumePath || TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumeNtName || TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumeName;
+
+        if (FORMAT_VOLUME_ANY)
+        {
+            if (std::wstring *_LinkPath = std::get_if<std::wstring>(&work->arguments->at(0)))
+            {
+                std::wstring result;
+
+                if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumePath)
+                {
+                    result = hmc_usb_util::formatVolumePath(*_LinkPath);
+                }
+
+                if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumeNtName)
+                {
+                    result = hmc_usb_util::formatVolumeNtName(*_LinkPath);
+                }
+
+                if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::formatVolumeName)
+                {
+                    result = hmc_usb_util::formatVolumeName(*_LinkPath);
+                }
+
+                *work->Result = result;
+                return;
+            }
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::getFileAttributes)
+        {
+            if (std::wstring *_LinkPath = std::get_if<std::wstring>(&work->arguments->at(0)))
+            {
+                auto temp = hmc_shell_util::getFileAttributesInfoList(*_LinkPath);
+                std::vector<int64_t> temp2;
+                for (auto &&i : temp)
+                {
+                    temp2.push_back(static_cast<int64_t>(i));
+                }
+                *work->Result = temp2;
+                return;
+            }
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::getVolumeList)
+        {
+            auto volumeList = hmc_usb_util::getVolumeList();
+            std::wstring volumeListResult = hmc_usb_util::chVolume::to_json(volumeList);
+            *work->Result = volumeListResult;
+            return;
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::setFolderIcon)
+        {
+            std::wstring targetPath = std::get<std::wstring>(work->arguments->at(0));
+            std::wstring iconPath = std::get<std::wstring>(work->arguments->at(1));
+            int64_t iconIndex = std::get<int64_t>(work->arguments->at(2));
+            bool result = hmc_shell_util::SetFolderIcon(targetPath, iconPath, iconIndex);
+            *work->Result = result;
+            return;
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::setExtensionIcon)
+        {
+
+            std::wstring extensionName = std::get<std::wstring>(work->arguments->at(0));
+            std::wstring typeName = std::get<std::wstring>(work->arguments->at(1));
+            std::wstring iconPath = std::get<std::wstring>(work->arguments->at(2));
+            int64_t iconIndex = std::get<int64_t>(work->arguments->at(3));
+            bool result = hmc_shell_util::SetExtensionIcon(extensionName, typeName, iconPath, iconIndex);
+            *work->Result = result;
+            return;
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::setAppURLProtocol)
+        {
+
+            std::wstring protocolName = std::get<std::wstring>(work->arguments->at(0));
+            std::wstring appPath = std::get<std::wstring>(work->arguments->at(1));
+            std::wstring command = std::get<std::wstring>(work->arguments->at(2));
+
+            bool result = hmc_shell_util::SetAppURLProtocol(protocolName, appPath, command);
+            *work->Result = result;
+            return;
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::getShortcutLink)
+        {
+
+            std::wstring targetPath = std::get<std::wstring>(work->arguments->at(0));
+            bool QueryDetaile = true;
+
+            work->get_if<bool>(1,&QueryDetaile);
+            
+            if (QueryDetaile)
+            {
+
+                auto result = hmc_shell_util::getShortcutLink(targetPath);
+                if (result.isValid())
+                {
+
+                    *work->Result = result.to_json();
+                }
+                return;
+            }
+
+            std::wstring ouput;
+            auto result = hmc_shell_util::getShortcutLink(targetPath, &ouput);
+            if (result)
+            {
+                *work->Result = ouput;
+            }
+            return;
+        }
     }
 
     // async
     void ExecuteAsyncWork(napi_env env, void *data)
     {
         EnvNextWorkData *workData = (EnvNextWorkData *)data;
-        main(workData);
+        try
+        {
+            main(workData);
+        }
+        HMC_CATCH_ALL;
     }
 
     napi_value ExecuteSync(napi_env env, napi_callback_info info)
     {
         napi_value result = as_Null();
 
-        auto input = hmc_NodeArgsValue(env, info);
-        auto *workData = EnvNextWorkData::make();
-
-        HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
-
-        if (!get_arguments(env, input, workData))
+        try
         {
+            auto input = hmc_NodeArgsValue(env, info);
+            auto *workData = EnvNextWorkData::make();
+
+            HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
+
+            bool is_eq_args = HMC_PromiseUtilV2::get_argumentsTemplate<GET_SHELL_ENV_INFO_ID, EnvNextWorkData>(env, input, workData, GET_SHELL_EQ_TYPE_LIST);
+            if (workData == NULL || !is_eq_args)
+            {
+                return result;
+            }
+
+            main(workData);
+
+            result = hmc_napi_create_value::Variant(env, *workData->Result);
             return result;
         }
-
-        main(workData);
-
-        result = hmc_napi_create_value::Variant(env, *workData->Result);
-
-        return result;
+        HMC_CATCH_ALL;
+        return hmc_napi_create_value::Error(env, "A fatal error occurred unexpectedly.", __FUNCSIG__, "HMC_SHELL_API_CATCH");
     }
 
     // 异步任务完成后的回调函数
@@ -913,22 +1056,381 @@ namespace HMC_GetShellEnvInfo
     napi_value StartAsyncTask(napi_env env, napi_callback_info info)
     {
         napi_value promise;
-        napi_value resourceName;
-        napi_create_string_utf8(env, __FUNCSIG__, NAPI_AUTO_LENGTH, &resourceName);
-
-        auto *workData = EnvNextWorkData::make();
-
-        auto input = hmc_NodeArgsValue(env, info);
-        if (!get_arguments(env, input, workData))
+        try
         {
-            EnvNextWorkData::gc(workData);
-            return as_Null();
-        }
+            napi_value resourceName;
+            napi_create_string_utf8(env, __FUNCSIG__, NAPI_AUTO_LENGTH, &resourceName);
 
-        napi_create_promise(env, &workData->deferred, &promise);
-        napi_create_async_work(env, nullptr, resourceName, ExecuteAsyncWork, ResolveWork, workData, &workData->work);
-        napi_queue_async_work(env, workData->work);
-        return promise;
+            auto *workData = EnvNextWorkData::make();
+
+            auto input = hmc_NodeArgsValue(env, info);
+            bool is_eq_args = HMC_PromiseUtilV2::get_argumentsTemplate<GET_SHELL_ENV_INFO_ID, EnvNextWorkData>(env, input, workData, GET_SHELL_EQ_TYPE_LIST);
+            if (workData == NULL || !is_eq_args)
+            {
+                EnvNextWorkData::gc(workData);
+                return as_Null();
+            }
+
+            napi_create_promise(env, &workData->deferred, &promise);
+            napi_create_async_work(env, nullptr, resourceName, ExecuteAsyncWork, ResolveWork, workData, &workData->work);
+            napi_queue_async_work(env, workData->work);
+            return promise;
+        }
+        HMC_CATCH_ALL;
+        return hmc_napi_create_value::Error(env, "A fatal error occurred unexpectedly.", __FUNCSIG__, "HMC_SHELL_API_CATCH");
     }
 
+}
+
+void HMC_GetShellEnvInfo::GetLinkTarget(EnvNextWorkData *work)
+{
+
+    if (work == nullptr)
+    {
+        return;
+    }
+
+    using SYMLINK_LINK_TYPE = hmc_shell_util::Symlink::LINK_TYPE;
+
+    HMC_GetShellEnvInfo::GET_SHELL_ENV_INFO_ID TAKE_TYPE = work->TAKE_TYPE;
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::getLinkPath)
+    {
+
+        if (std::wstring *_LinkPath = std::get_if<std::wstring>(&work->arguments->at(0)))
+        {
+            std::wstring LinkPath = *_LinkPath;
+
+            auto attributesInfo = hmc_shell_util::getFileAttributesInfo(*_LinkPath);
+
+            SYMLINK_LINK_TYPE LINK_TYPE = hmc_shell_util::Symlink::getLinkType(LinkPath);
+
+            bool isValid = LINK_TYPE != SYMLINK_LINK_TYPE::UNKNOWN;
+            bool isdir = attributesInfo & FILE_ATTRIBUTE_DIRECTORY;
+
+            if (isValid)
+            {
+
+                if (!isdir)
+                {
+                    // 硬链接·
+                    if (LINK_TYPE == SYMLINK_LINK_TYPE::HARD_LINK_FILE)
+                    {
+                        std::vector<std::wstring> HardLinkList = hmc_shell_util::Symlink::getHardLinkList(LinkPath);
+                        *work->Result = HardLinkList;
+                        return;
+                    }
+                }
+
+                // 软链接
+                if (LINK_TYPE == SYMLINK_LINK_TYPE::SOFT_LINK_FILE)
+                {
+                    auto linkPath = hmc_shell_util::Symlink::getSymbolicLinkTarget(LinkPath);
+                    *work->Result = linkPath;
+                    return;
+                }
+
+                return;
+            }
+        }
+
+        return;
+    }
+
+    std::map<std::wstring, js_variant_value> result;
+
+    if (std::wstring *_LinkPath = std::get_if<std::wstring>(&work->arguments->at(0)))
+    {
+        std::wstring LinkPath = *_LinkPath;
+
+        auto attributesInfo = hmc_shell_util::getFileAttributesInfo(*_LinkPath);
+
+        SYMLINK_LINK_TYPE LINK_TYPE = hmc_shell_util::Symlink::getLinkType(LinkPath);
+
+        bool isValid = LINK_TYPE != SYMLINK_LINK_TYPE::UNKNOWN;
+        bool isdir = attributesInfo & FILE_ATTRIBUTE_DIRECTORY;
+
+        result.insert(std::make_pair(L"valid", isValid));
+        result.insert(std::make_pair(L"isdir", isdir));
+
+        if (!isValid)
+        {
+            result.insert(std::make_pair(L"path", std::monostate()));
+            result.insert(std::make_pair(L"type", std::wstring(L"UNKNOWN")));
+            result.insert(std::make_pair(L"size", 0));
+
+            goto go_return;
+            return;
+        }
+
+        if (!isdir)
+        {
+            // 硬链接·
+            if (LINK_TYPE == SYMLINK_LINK_TYPE::HARD_LINK_FILE)
+            {
+                result.insert(std::make_pair(L"type", std::wstring(L"HARD_LINK_FILE")));
+
+                std::vector<std::wstring> HardLinkList = hmc_shell_util::Symlink::getHardLinkList(LinkPath);
+
+                result.insert(std::make_pair(L"size", static_cast<int64_t>(HardLinkList.size())));
+
+                result.insert(std::make_pair(L"path", HardLinkList));
+
+                if (!HardLinkList.empty())
+                {
+
+                    auto volumeList = hmc_usb_util::getVolumeList();
+                    auto hardLink_0 = HardLinkList.at(0);
+
+                    if (hardLink_0.empty() || volumeList.empty())
+                    {
+                        result.insert(std::make_pair(L"volume", std::monostate()));
+                        goto go_return;
+                        return;
+                    }
+
+                    for (size_t i = 0; i < volumeList.size(); i++)
+                    {
+                        auto at = volumeList.at(i);
+
+                        if (at.path.empty() || hardLink_0.empty())
+                            continue;
+
+                        auto p = at.path[0];
+                        auto hl = hardLink_0[0];
+
+                        if (
+                            (hmc_string_util::is_letter(p) && hmc_string_util::is_letter(hl)) &&
+                            std::toupper(p) == std::toupper(hl))
+                        {
+                            result.insert(std::make_pair(L"volume", at.to_json()));
+
+                            goto go_return;
+                            return;
+                        }
+                    }
+
+                    result.insert(std::make_pair(L"volume", std::monostate()));
+                }
+
+                result.insert(std::make_pair(L"volume", std::monostate()));
+
+                goto go_return;
+                return;
+            }
+
+            // 软链接
+            if (LINK_TYPE == SYMLINK_LINK_TYPE::SOFT_LINK_FILE)
+            {
+                auto linkPath = hmc_shell_util::Symlink::getSymbolicLinkTarget(LinkPath);
+
+                result.insert(std::make_pair(L"type", std::wstring(L"SOFT_LINK_FILE")));
+
+                result.insert(std::make_pair(L"size", 1));
+
+                result.insert(std::make_pair(L"path", linkPath));
+
+                goto go_return;
+                return;
+            }
+        }
+
+        // 文件夹软链接
+        if (LINK_TYPE == SYMLINK_LINK_TYPE::SOFT_LINK_DIR)
+        {
+            auto linkPath = hmc_shell_util::Symlink::getSymbolicLinkTarget(LinkPath);
+
+            result.insert(std::make_pair(L"type", std::wstring(L"SOFT_LINK_DIR")));
+
+            result.insert(std::make_pair(L"size", 1));
+
+            result.insert(std::make_pair(L"path", linkPath));
+
+            goto go_return;
+            return;
+        }
+
+        // 目录连接点
+        if (LINK_TYPE == SYMLINK_LINK_TYPE::JUNCTION_POINT_DIR)
+        {
+            auto linkPath = hmc_shell_util::Symlink::getSymbolicLinkTarget(LinkPath);
+
+            result.insert(std::make_pair(L"type", std::wstring(L"SYMBOLIC_LINK_DIR")));
+
+            result.insert(std::make_pair(L"size", 1));
+
+            result.insert(std::make_pair(L"path", linkPath));
+
+            goto go_return;
+            return;
+        }
+    }
+
+go_return:
+    *work->Result = formatVariantJSONStr_utf16(result);
+    return;
+}
+
+void HMC_GetShellEnvInfo::HasFsLink(EnvNextWorkData *work)
+{
+
+    if (work == nullptr)
+    {
+        return;
+    }
+
+    GET_SHELL_ENV_INFO_ID TAKE_TYPE = work->TAKE_TYPE;
+
+    if (std::wstring *_LinkPath = std::get_if<std::wstring>(&work->arguments->at(0)))
+    {
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::hasFsLink)
+        {
+
+            bool result = hmc_shell_util::Symlink::isLink(*_LinkPath);
+            *work->Result = result;
+            return;
+        }
+
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::hasHardLink)
+        {
+
+            bool result = hmc_shell_util::Symlink::isHardLink(*_LinkPath);
+            *work->Result = result;
+            return;
+        }
+
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::hasSymbolicDirLink)
+        {
+
+            bool result = hmc_shell_util::Symlink::isSymbolicDirLink(*_LinkPath);
+            *work->Result = result;
+            return;
+        }
+
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::getLinkType)
+        {
+            using LINK_TYPE_T = hmc_shell_util::Symlink::LINK_TYPE;
+
+            std::map<std::wstring, js_variant_value> result;
+
+            auto LINK_TYPE = hmc_shell_util::Symlink::getLinkType(*_LinkPath);
+
+            bool isdir = LINK_TYPE == LINK_TYPE_T::JUNCTION_POINT_DIR || LINK_TYPE == LINK_TYPE_T::SOFT_LINK_DIR;
+
+            result.insert(std::make_pair(L"type", static_cast<int64_t>(LINK_TYPE)));
+            result.insert(std::make_pair(L"isdir", isdir));
+
+            switch (LINK_TYPE)
+            {
+            case LINK_TYPE_T::HARD_LINK_FILE:
+                result.insert(std::make_pair(L"type_name", std::wstring(L"HARD_LINK_FILE")));
+                break;
+
+            case LINK_TYPE_T::JUNCTION_POINT_DIR:
+                result.insert(std::make_pair(L"type_name", std::wstring(L"JUNCTION_POINT_DIR")));
+                break;
+
+            case LINK_TYPE_T::SOFT_LINK_DIR:
+                result.insert(std::make_pair(L"type_name", std::wstring(L"SOFT_LINK_DIR")));
+                break;
+
+            case LINK_TYPE_T::SOFT_LINK_FILE:
+                result.insert(std::make_pair(L"type_name", std::wstring(L"SOFT_LINK_FILE")));
+                break;
+            }
+
+            if (LINK_TYPE != LINK_TYPE_T::UNKNOWN)
+            {
+                *work->Result = formatVariantJSONStr_utf16(result);
+            }
+
+            return;
+        }
+
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::hasDirLink)
+        {
+
+            bool result = hmc_shell_util::Symlink::isDirLink(*_LinkPath);
+            *work->Result = result;
+            return;
+        }
+    }
+}
+
+void HMC_GetShellEnvInfo::CreateFsLink(EnvNextWorkData *work)
+{
+    if (work == nullptr)
+    {
+        return;
+    }
+
+    GET_SHELL_ENV_INFO_ID TAKE_TYPE = work->TAKE_TYPE;
+
+    // 这里是三个参数 (唯一一个)
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::createFsLink)
+    {
+        if (work->arguments->size() < 3)
+        {
+            return;
+        }
+
+        int64_t targetType = std::get<int64_t>(work->arguments->at(0));
+
+        // 文件夹链接
+        const int CREATE_DIR_SYMLINK = 166;
+        // 软链接
+        const int CREATE_SYMLINK = 168;
+        // 硬链接
+        const int CREATE_HARD_LINK = 170;
+        // 目录连接点
+        const int CREATE_SYMBOLIC_LINK = 172;
+
+        std::wstring targetPath = std::get<std::wstring>(work->arguments->at(1));
+        std::wstring sourcePath = std::get<std::wstring>(work->arguments->at(2));
+
+        switch (targetType)
+        {
+        case CREATE_DIR_SYMLINK:
+            *(work->Result) = hmc_shell_util::Symlink::createDirSymlink(targetPath, sourcePath);
+            return;
+        case CREATE_SYMLINK:
+            *(work->Result) = hmc_shell_util::Symlink::createSymlink(targetPath, sourcePath);
+            return;
+        case CREATE_HARD_LINK:
+            *(work->Result) = hmc_shell_util::Symlink::createHardLink(targetPath, sourcePath);
+            return;
+        case CREATE_SYMBOLIC_LINK:
+            *(work->Result) = hmc_shell_util::Symlink::createSymbolicLink(targetPath, sourcePath);
+            return;
+        }
+
+        return;
+    }
+
+    std::wstring targetPath = std::get<std::wstring>(work->arguments->at(0));
+    std::wstring sourcePath = std::get<std::wstring>(work->arguments->at(1));
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::createSymbolicLink)
+    {
+        *(work->Result) = hmc_shell_util::Symlink::createSymbolicLink(targetPath, sourcePath);
+        return;
+    }
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::createHardLink)
+    {
+        *(work->Result) = hmc_shell_util::Symlink::createHardLink(targetPath, sourcePath);
+        return;
+    }
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::createSymlink)
+    {
+        *(work->Result) = hmc_shell_util::Symlink::createSymlink(targetPath, sourcePath);
+        return;
+    }
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::createDirSymlink)
+    {
+        *(work->Result) = hmc_shell_util::Symlink::createDirSymlink(targetPath, sourcePath);
+        return;
+    }
 }

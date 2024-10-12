@@ -1,0 +1,202 @@
+
+namespace HMC_GetShellEnvInfo
+{
+
+    enum class GET_SHELL_ENV_INFO_ID
+    {
+        NONE = 0,
+        GET_LINK_TARGET = 1,
+    };
+
+    const std::map<GET_SHELL_ENV_INFO_ID, std::vector<std::tuple<size_t, js_valuetype>>> GET_SHELL_EQ_TYPE_LIST = {
+        {GET_SHELL_ENV_INFO_ID::GET_LINK_TARGET, {{0, js_string}}},
+        // {GET_SHELL_ENV_INFO_ID::GET_LINK_TARGET, {{0, js_string}}},
+    };
+
+    struct EnvNextWorkData
+    {
+        napi_deferred deferred;
+        napi_async_work work;
+        std::vector<js_variant_value> *arguments;
+        // js_variant_value *index1;
+        js_variant_value *Result;
+        GET_SHELL_ENV_INFO_ID TAKE_TYPE;
+
+        static void gc(EnvNextWorkData *work)
+        {
+            if (work == NULL)
+                return;
+
+            if (work->arguments != NULL)
+            {
+                work->arguments->clear();
+                work->arguments->shrink_to_fit();
+                delete work->arguments;
+                work->arguments = nullptr;
+            }
+
+            HMC_GC_CPP_BASIC_PTR(work->Result);
+            ::VirtualFree(work, 0, 0x00008000);
+        }
+
+        static EnvNextWorkData *make()
+        {
+            EnvNextWorkData *workData = HMC_VcAllocAutoLength(EnvNextWorkData);
+
+            if (workData != NULL)
+            {
+                workData->arguments = new std::vector<js_variant_value>();
+                workData->Result = new js_variant_value();
+                workData->TAKE_TYPE = GET_SHELL_ENV_INFO_ID::NONE;
+            }
+
+            return workData;
+        }
+    };
+
+    void GetLinkTarget(EnvNextWorkData *workData);
+
+    const std::map<GET_SHELL_ENV_INFO_ID, std::function<void(EnvNextWorkData *workData)> > GET_SHELL_FUNC_LIST = {
+        {GET_SHELL_ENV_INFO_ID::GET_LINK_TARGET, GetLinkTarget},
+    };
+
+    bool get_arguments(napi_env env, hmc_NodeArgsValue input, EnvNextWorkData *work)
+    {
+        if (!input.eq(0, js_number, true))
+        {
+            return false;
+        }
+
+        work->TAKE_TYPE = (GET_SHELL_ENV_INFO_ID)at_Number32Or(0, 0);
+        input.removeIndex(0);
+        for (auto &&EQ_TYPE : GET_SHELL_EQ_TYPE_LIST)
+        {
+            if (EQ_TYPE.first == work->TAKE_TYPE)
+            {
+
+                auto second = EQ_TYPE.second;
+                if (!input.eq(second, true))
+                {
+                    return false;
+                }
+                
+                break;
+            }
+        }
+
+        for (size_t index = 0; index < input.size(); index++)
+        {
+            if (input.exists(index))
+            {
+                auto temp = input.get_variant(index);
+                work->arguments->push_back(temp);
+            }
+        }
+
+        return true;
+    }
+
+    void main(EnvNextWorkData *workData)
+    {
+        for (auto &&GET_SHELL_FUNC : GET_SHELL_FUNC_LIST){
+
+            if (GET_SHELL_FUNC.first == workData->TAKE_TYPE)
+            {
+                auto fun = GET_SHELL_FUNC.second;
+                fun(workData);
+                return;
+            }
+        }
+
+    }
+
+    // async
+    void ExecuteAsyncWork(napi_env env, void *data)
+    {
+        EnvNextWorkData *workData = (EnvNextWorkData *)data;
+        main(workData);
+    }
+
+    napi_value ExecuteSync(napi_env env, napi_callback_info info)
+    {
+        napi_value result = as_Null();
+
+        try
+        {
+            auto input = hmc_NodeArgsValue(env, info);
+            auto *workData = EnvNextWorkData::make();
+
+            HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
+
+            if (workData == NULL || !get_arguments(env, input, workData))
+            {
+                return result;
+            }
+
+            main(workData);
+
+            result = hmc_napi_create_value::Variant(env, *workData->Result);
+            return result;
+        }
+        HMC_CATCH_ALL;
+        return hmc_napi_create_value::Error(env, "A fatal error occurred unexpectedly.", __FUNCSIG__, "HMC_SHELL_API_CATCH");
+    }
+
+    // 异步任务完成后的回调函数
+    void ResolveWork(napi_env env, napi_status status, void *data)
+    {
+        EnvNextWorkData *workData = (EnvNextWorkData *)data;
+        HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
+
+        napi_value result;
+        napi_get_null(env, &result);
+
+        if (workData == NULL || workData->Result == NULL || workData->Result->index() == 0)
+        {
+            if (workData != NULL)
+            {
+                napi_resolve_deferred(env, workData->deferred, result);
+                napi_delete_async_work(env, workData->work);
+            }
+            return;
+        }
+
+        result = hmc_napi_create_value::Variant(env, *workData->Result);
+
+        if (result == NULL)
+        {
+            napi_get_null(env, &result);
+        }
+
+        napi_resolve_deferred(env, workData->deferred, result);
+        napi_delete_async_work(env, workData->work);
+    }
+
+    // 启动异步任务的函数
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info)
+    {
+        napi_value promise;
+        try
+        {
+            napi_value resourceName;
+            napi_create_string_utf8(env, __FUNCSIG__, NAPI_AUTO_LENGTH, &resourceName);
+
+            auto *workData = EnvNextWorkData::make();
+
+            auto input = hmc_NodeArgsValue(env, info);
+            if (workData == NULL || !get_arguments(env, input, workData))
+            {
+                EnvNextWorkData::gc(workData);
+                return as_Null();
+            }
+
+            napi_create_promise(env, &workData->deferred, &promise);
+            napi_create_async_work(env, nullptr, resourceName, ExecuteAsyncWork, ResolveWork, workData, &workData->work);
+            napi_queue_async_work(env, workData->work);
+            return promise;
+        }
+        HMC_CATCH_ALL;
+        return hmc_napi_create_value::Error(env, "A fatal error occurred unexpectedly.", __FUNCSIG__, "HMC_SHELL_API_CATCH");
+    }
+
+}

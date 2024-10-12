@@ -4,8 +4,7 @@ import AutoMain = require("./auto");
 import UtilMain = require("./util");
 import ProcessMain = require("./Process");
 import RegistrMain = require("./registr");
-
-
+import ShellPromiseEvalMain = require("./ShellPromiseEval");
 
 interface Native {
     /**
@@ -23,6 +22,22 @@ interface Native {
      * @param command 命令
      */
     HMC_PromiseEvalSync?(command: PromiseEval.HMC_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): unknown;
+
+    /**
+     * 执行Shell命令代码 并且按照api内容返回 异步
+     * @docs GetShellEnvInfo 是通过(hmc -> GetShellEnvInfo)生成的Promise / Sync 函数 他性能比PromiseEval更好 因为他并未使用any泛型 仅使用了精简的 数据类型
+     * @param pid 进程id
+     * @param command 命令
+     */
+    HMC_GetShellEnvInfo?(command: ShellPromiseEvalMain.HMC_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): Promise<unknown>;
+
+    /**
+     * 执行Shell命令代码 并且按照api内容返回 同步
+     * @docs GetShellEnvInfo 是通过(hmc -> GetShellEnvInfo)生成的Promise / Sync 函数 他性能比PromiseEval更好 因为他并未使用any泛型 仅使用了精简的 数据类型
+     * @param pid 进程id
+     * @param command 命令
+     */
+    HMC_GetShellEnvInfoSync?(command: ShellPromiseEvalMain.HMC_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): unknown;
 
     /**
      * 执行进程环境获取 需要配合命令代码
@@ -195,7 +210,27 @@ interface Native {
 export module HMC2_MODE {
 
     export function ALL_NONE_FUN_CALLBECK(...arg: any[]) { }
-
+    
+    // 快捷方式的信息
+    export interface SHORTCUT_LINK {
+        /** 工作环境文件夹**/
+        cwd: string;
+        /** 进程图标(例如来自1.dll)**/
+        icon: string;
+        /**图标索引位置 */
+        iconIndex: number;
+        /** 描述**/
+        desc: string;
+        /** 启动命令**/
+        args: string;
+        /** 启动属性**/
+        showCmd: number;
+        /** hotkey**/
+        hotkey: number;
+        /** 目标路径**/
+        path: string;
+    }
+    
     /**注册表根目录 */
     export const Hkey = {
         /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -390,6 +425,92 @@ export module HMC2_MODE {
         Version: number;
     }
 
+    export type Volume = {
+        // 卷的路径 如 F:\\
+        path: string;
+        // Volume名称 如 "\\\\?\\Volume{00000000-000000-000000-0000-000000}\\"
+        name: string;
+        // 内核驱动器名称 如 "\\Device\\HarddiskVolume6"
+        device: string;
+        // HarddiskVolume6
+        device_id:string;
+        // 00000000-000000-000000-0000-000000
+        volume_id:string;
+    };
+
+    enum LINK_TYPE_INFO {
+        /**硬链接*/
+        HARD_LINK_FILE = 170,
+        /**软链接*/
+        SOFT_LINK_FILE = 168,
+        /**目录软链接*/
+        SOFT_LINK_DIR = 166,
+        /**目录链接点*/
+        SYMBOLIC_LINK_DIR = 172,
+        /**是个未知的类型 */
+        UNKNOWN = 0
+    };
+
+    export type Link_TYPE_NAME = keyof typeof LINK_TYPE_INFO;
+
+    export type LINK_FOR_FILE = {
+        "isdir": boolean,
+        "path": null,
+        "size": 0,
+        "type": "UNKNOWN",
+        "valid": false
+    };
+
+    export type LINK_FOR_DIR = {
+        "isdir": boolean,
+        "path": null,
+        "size": 0,
+        "type": "UNKNOWN",
+        "valid": false
+    };
+
+    export type LINK_FOR_SYMBOLIC_LINK_DIR = {
+        "isdir": true,
+        "path": string | null,
+        "size": 1,
+        "type": "SYMBOLIC_LINK_DIR",
+        "valid": true
+    };
+
+    export type LINK_FOR_LINK_DIR = {
+        "isdir": true,
+        "path": string | null,
+        "size": 1,
+        "type": "SOFT_LINK_DIR",
+        "valid": true
+    };
+
+    export type LINK_FOR_SOFT_LINK_FILER = {
+        "isdir": false,
+        "path": string | null,
+        "size": 1,
+        "type": "SOFT_LINK_FILE",
+        "valid": true
+    };
+
+    export type LINK_FOR_HARD_LINK_FILER = {
+        "isdir": false,
+        "path": string | null,
+        "size": number,
+        "type": "HARD_LINK_FILE",
+        "valid": true,
+        "volume": null | Volume
+    };
+
+    export type LINK_TARGET = LINK_FOR_FILE | LINK_FOR_DIR | LINK_FOR_SYMBOLIC_LINK_DIR | LINK_FOR_LINK_DIR | LINK_FOR_SOFT_LINK_FILER | LINK_FOR_HARD_LINK_FILER;
+
+    export interface FileAttributesStat {
+        // 文件属性 的源位运算值
+        attributes: number;
+        // 其中包含的值 运算值 列表
+        list: FILE_ATTRIBUTE_INFO_LIST[];
+    };
+
     export enum FS_MK_LINK_TARGET_TYPE {
         /**
          * 文件夹链接
@@ -406,7 +527,91 @@ export module HMC2_MODE {
         /**
          * 目录连接点
          */
-        CREATE_SYMBOLIC_LINK = 172
+        CREATE_JUNCTION_POINT_LINK = 172
+    }
+
+    export enum LINK_TYPE {
+        /**硬链接*/
+        HARD_LINK_FILE = 170,
+        /**软链接*/
+        SOFT_LINK_FILE = 168,
+        /**目录软链接*/
+        SOFT_LINK_DIR = 166,
+        /**目录链接点*/
+        JUNCTION_POINT_DIR = 172,
+        /**是个未知的类型 */
+        UNKNOWN = 0
+    };
+
+    export interface LINK_TYPE_EQ {
+        // 类型id
+        type: LINK_TYPE;
+        // 类型名称
+        type_name: keyof typeof LINK_TYPE;
+        // 是否是基于文件夹
+        isDir:boolean;
+    }
+
+    export enum FILE_ATTRIBUTE_INFO_LIST {
+        /** 文件是只读的 */
+        FILE_ATTRIBUTE_READONLY = 0x00000001,
+
+        /** 文件是隐藏的 */
+        FILE_ATTRIBUTE_HIDDEN = 0x00000002,
+
+        /** 文件是系统文件 */
+        FILE_ATTRIBUTE_SYSTEM = 0x00000004,
+
+        /** 文件是一个目录 */
+        FILE_ATTRIBUTE_DIRECTORY = 0x00000010,
+
+        /** 文件将被备份或归档 */
+        FILE_ATTRIBUTE_ARCHIVE = 0x00000020,
+
+        /** 保留，不用于文件 */
+        FILE_ATTRIBUTE_DEVICE = 0x00000040,
+
+        /** 文件没有其他属性集 */
+        FILE_ATTRIBUTE_NORMAL = 0x00000080,
+
+        /** 文件用于临时存储，尽快删除 */
+        FILE_ATTRIBUTE_TEMPORARY = 0x00000100,
+
+        /** 文件是稀疏文件，节省磁盘空间 */
+        FILE_ATTRIBUTE_SPARSE_FILE = 0x00000200,
+
+        /** 文件或目录具有重解析点 */
+        FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400,
+
+        /** 文件或目录是压缩的 */
+        FILE_ATTRIBUTE_COMPRESSED = 0x00000800,
+
+        /** 文件的数据没有立即可用 */
+        FILE_ATTRIBUTE_OFFLINE = 0x00001000,
+
+        /** 文件或目录不被内容索引 */
+        FILE_ATTRIBUTE_NOT_CONTENT_INDEXED = 0x00002000,
+
+        /** 文件或目录是加密的 */
+        FILE_ATTRIBUTE_ENCRYPTED = 0x00004000,
+
+        /** 保留，供未来使用 */
+        FILE_ATTRIBUTE_VIRTUAL = 0x00010000,
+
+        /** 文件包含完整性流 */
+        FILE_ATTRIBUTE_INTEGRITY_STREAM = 0x00008000,
+
+        /** 文件禁止自动数据擦除功能 */
+        FILE_ATTRIBUTE_NO_SCRUB_DATA = 0x00020000,
+
+        /** 文件包含扩展属性 (EA) */
+        FILE_ATTRIBUTE_EA = 0x00040000,
+
+        /** 文件为固定文件 */
+        FILE_ATTRIBUTE_PINNED = 0x00080000,
+
+        /** 文件为未固定文件 */
+        FILE_ATTRIBUTE_UNPINNED = 0x00100000
     }
 
     // 托盘图标信息
@@ -463,11 +668,6 @@ export module HMC2_MODE {
     }
 
     export interface HMC_SHELL_CLASS {
-        /**
-        * 获取托盘图标列表
-        * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
-        */
-        getTrayList?: () => string;
 
         /**
          * 删除文件到垃圾桶
@@ -506,43 +706,6 @@ export module HMC2_MODE {
          * @returns 
          */
         moveFile?: (filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean, trash_ok: boolean) => boolean;
-
-        // getThumbnailPng?: (...args: unknown[]) => unknown;
-
-        /**
-         * 获取 软/硬 链接的指向内容
-         * @param Linkath 
-         */
-        getLinkTarget?: (Linkath: string) => string | string[] | null;
-
-        /**
-         * 设置文件夹的缩略图
-         * @param folderPath 路径
-         * @param iconPath 图标路径
-         * @param iconIndex 图标索引 比如exe中的0
-         * @returns 
-         */
-        setFolderIcon?: (folderPath: string, iconPath: string, iconIndex?: number) => boolean;
-
-        /**
-         * 判断指定文件是否是 软链接/硬链接
-         * @param path 
-         * @returns 
-         */
-        isLinkLink?: (path: string) => boolean;
-
-        /**
-         * 创建 软链接/硬链接/目录连接点/文件夹链接
-         * @param targetType 创建类型
-         * - 文件夹链接 CREATE_DIR_SYMLINK = 166
-         * - 软链接 CREATE_SYMLINK = 168
-         * - 硬链接 CREATE_HARD_LINK = 170
-         * - 目录连接点 CREATE_SYMBOLIC_LINK = 172
-         * @param targetPath 目标位置
-         * @param sourcePath 源文件路径
-         * @returns 
-         */
-        createFsLink?: (targetType: HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) => boolean;
 
         /**
          * 弹出右键菜单的接口
@@ -1028,7 +1191,7 @@ export const Auto = AutoMain;
 // 启动项管理
 export const Startup = ShellMain.Shell.Startup;
 
-// win32 shell(壳) api 继承
+// win32 shell(壳) api 功能集
 export const Shell = ShellMain.Shell;
 
 // 进程操作功能集
@@ -1071,4 +1234,7 @@ export module Window {
 
 
 }
+
+// 软硬链接相关
+export const Symlink =  ShellMain.Shell.Symlink;
 

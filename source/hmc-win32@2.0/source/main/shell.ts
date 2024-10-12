@@ -3,6 +3,9 @@ import util = require("./util");
 import PromiseEval = require("./promiseEval");
 import { Registr } from "./registr";
 import { promiseEvalTask } from "./promiseEval";
+import ShellPromiseEvalMain = require("./ShellPromiseEval");
+export const ShellPromise = ShellPromiseEvalMain.promiseEvalTask;
+import fs from "fs";
 
 
 const { ref } = util;
@@ -114,12 +117,14 @@ class StartupConstructor {
         const key = Registr.getRegistrKeys2(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce);
         return (await key)?.valueKeyList.map(_ => _.name) || [];
     }
+
     keysOnce2Sync() {
         // return [];
         const { HKEY_LOCAL_MACHINE } = main.HMC2_MODE.Hkey;
         const key = Registr.getRegistrKeys2Sync(HKEY_LOCAL_MACHINE, REG_KEY_EM.pathRunOnce);
         return (key)?.valueKeyList.map(_ => _.name) || [];
     }
+
 }
 
 export module Shell {
@@ -152,7 +157,7 @@ export module Shell {
      * 1.4.6 起返回json文本
      * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
      */
-    export function getTrayList2(){
+    export function getTrayList2() {
         return promiseEvalTask.getTrayList2();
     }
 
@@ -161,21 +166,10 @@ export module Shell {
      * 1.4.6 起返回json文本
      * ? win11 在22621.1000版本之后失效 具体原因查看https://github.com/kihlh/hmc-win32/issues/36
      */
-    export function getTrayList2Sync(){
+    export function getTrayList2Sync() {
         return promiseEvalTask.getTrayList2Sync();
     }
 
-    /**
-     * 设置文件夹的缩略图
-     * @param folderPath 路径
-     * @param iconPath 图标路径
-     * @param iconIndex 图标索引 比如exe中的0
-     * @returns 
-     */
-    export function setFolderIcon(folderPath: string, iconPath: string, iconIndex?: number) {
-        if (!main.Native.HMC_SHELL_CLASS?.setFolderIcon) return false;
-        return main.Native.HMC_SHELL_CLASS.setFolderIcon(ref.string(folderPath), ref.string(iconPath), ref.int(iconIndex || 0));
-    }
 
     /**
       * 删除文件到垃圾桶
@@ -230,42 +224,6 @@ export module Shell {
     }
 
     /**
-     * 获取 软/硬 链接的指向内容
-     * @param Linkath 
-     */
-    export function getLinkTarget(Linkath: string) {
-        if (!main.Native.HMC_SHELL_CLASS?.getLinkTarget) return false;
-        return main.Native.HMC_SHELL_CLASS.getLinkTarget(ref.string(Linkath));
-    }
-
-    /**
-     * 判断指定文件是否是 软链接/硬链接
-     * @param path 
-     * @returns 
-     */
-    export function isLinkLink(path: string) {
-        if (!main.Native.HMC_SHELL_CLASS?.isLinkLink) return false;
-        return main.Native.HMC_SHELL_CLASS.isLinkLink(ref.string(path));
-    }
-
-    /**
-     * 创建 软链接/硬链接/目录连接点/文件夹链接
-     * @param targetType 创建类型
-     * - 文件夹链接 CREATE_DIR_SYMLINK = 166
-     * - 软链接 CREATE_SYMLINK = 168
-     * - 硬链接 CREATE_HARD_LINK = 170
-     * - 目录连接点 CREATE_SYMBOLIC_LINK = 172
-     * @param targetPath 目标位置
-     * @param sourcePath 源文件路径
-     * @returns 
-     */
-    export function createFsLink(targetType: main.HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) {
-        if (!main.Native.HMC_SHELL_CLASS?.createFsLink) return false;
-        return main.Native.HMC_SHELL_CLASS.createFsLink(ref.int(targetType), ref.string(targetPath), ref.string(sourcePath));
-    }
-
-
-    /**
      * 截图为Bmp 文件/Buffer
      */
     export const captureBmp2 = PromiseEval.promiseEvalTask.captureBmp2;
@@ -287,6 +245,451 @@ export module Shell {
     // 获取 文件 / EXE / icon / folder /img 的缩略图 (png格式)
     export const getFileIcon2Sync = PromiseEval.promiseEvalTask.getThumbnailPng2Sync;
 
+    export module Symlink {
 
+        /**
+         * 判断所有链接类型
+         * - 适用 -> [文件]硬链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * - 适用 -> [文件夹]文件夹连接点
+         * @param targetPath 目标路径
+         * @returns 
+         */
+        export async function hasLink2(targetPath: string): Promise<boolean> {
+            return (await getLinkPath2(targetPath)) ? true : false;
+        }
 
+        /**
+         * 判断所有链接类型
+         * - 适用 -> [文件]硬链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * - 适用 -> [文件夹]文件夹连接点
+         * @param targetPath 目标路径
+         * @returns 
+         */
+        export function hasLink2Sync(targetPath: string): boolean {
+            return (getLinkPath2Sync(targetPath)) ? true : false;
+        }
+
+        /**
+         * 判断软硬链接类型
+         * - 适用 -> [文件]硬链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * - 适用 -> [文件夹]文件夹连接点
+         * 
+         * @param Path2 
+         * @returns 
+         */
+        export async function getLinkType2(targetPath: string): Promise<main.HMC2_MODE.LINK_TYPE_EQ | null> {
+
+            const data = await ShellPromise.getLinkType2(ref.string(targetPath));
+
+            return ref.JSONP<main.HMC2_MODE.LINK_TYPE_EQ | null>(data, null);
+        }
+
+        /**
+         * 判断软硬链接类型
+         * - 适用 -> [文件]硬链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * - 适用 -> [文件夹]文件夹连接点
+         * 
+         * @param Path2 
+         * @returns 
+         */
+        export function getLinkType2Sync(targetPath: string): main.HMC2_MODE.LINK_TYPE_EQ | null {
+
+            const data = ShellPromise.getLinkType2Sync(ref.string(targetPath));
+            return ref.JSONP<main.HMC2_MODE.LINK_TYPE_EQ | null>(data, null);
+        }
+
+        /**
+         * 获取 软链接/ 硬链接 指向的路径
+         * @param targetPath 目标路径
+         */
+        export function getLinkPath2(targetPath: string) {
+            return ShellPromise.getLinkPath2(ref.string(targetPath));
+        }
+        /**
+         * 获取 软链接/ 硬链接 指向的路径
+         * @param targetPath 目标路径
+         */
+        export function getLinkPath2Sync(targetPath: string) {
+            return ShellPromise.getLinkPath2Sync(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是符号链接
+         * @example 适用 -> [文件]符号连接
+         * @example 适用 -> [文件夹]符号连接
+         * @example 适用 -> [文件夹]文件夹符号链接
+         * @param targetPath 目标路径
+         */
+        export function hasFileSymbolicLink2(targetPath: string) {
+            return ShellPromise.hasFileSymbolicLink2(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是符号链接
+         * @example 适用 -> [文件]符号连接
+         * @example 适用 -> [文件夹]符号连接
+         * @example 适用 -> [文件夹]文件夹符号链接
+         * @param targetPath 目标路径
+         */
+        export function hasFileSymbolicLink2Sync(targetPath: string) {
+            return ShellPromise.hasFileSymbolicLink2Sync(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是硬链接
+         * @example 仅适用 -> [文件]硬链接
+         * @param targetPath 目标路径
+         */
+        export function hasFileHardLink2(targetPath: string) {
+            return ShellPromise.hasFileHardLink2(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是硬链接
+         * @example 仅适用 -> [文件]硬链接
+         * @param targetPath 目标路径
+         */
+        export function hasFileHardLink2Sync(targetPath: string) {
+            return ShellPromise.hasFileHardLink2Sync(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是文件夹符号链接
+         * @example 适用 -> [文件夹]符号连接
+         * @param targetPath 目标路径
+         */
+        export function hasDirSymbolicLink2(targetPath: string) {
+            return ShellPromise.hasDirSymbolicLink2(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是文件夹符号链接
+         * @example 适用 -> [文件夹]符号连接
+         * @param targetPath 目标路径
+         */
+        export function hasDirSymbolicLink2Sync(targetPath: string) {
+            return ShellPromise.hasDirSymbolicLink2Sync(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是 文件夹链接连接点
+         * @example 仅适用 -> [文件夹]文件夹连接点
+         * @param targetPath 目标路径
+         */
+        export function hasDirJunctionPoint2(targetPath: string) {
+            return ShellPromise.hasDirJunctionPoint2(ref.string(targetPath));
+        }
+        /**
+         * 判断是否是 文件夹链接连接点
+         * @example 仅适用 -> [文件夹]文件夹连接点
+         * @param targetPath 目标路径
+         */
+        export function hasDirJunctionPoint2Sync(targetPath: string) {
+            return ShellPromise.hasDirJunctionPoint2Sync(ref.string(targetPath));
+        }
+        /**
+         * 创建链接
+         * @param targetType 创建类型 
+         * - CREATE_HARD_LINK -> [文件]硬链接
+         * - CREATE_SYMLINK -> [文件]符号连接
+         * - CREATE_DIR_SYMLINK -> [文件夹]符号连接
+         * - CREATE_JUNCTION_POINT_LINK -> [文件夹]目录连接点
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createLink(targetType: main.HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) {
+            return ShellPromise.createLink(ref.int(targetType), ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建链接
+         * @param targetType 创建类型 
+         * - CREATE_HARD_LINK -> [文件]硬链接
+         * - CREATE_SYMLINK -> [文件]符号连接
+         * - CREATE_DIR_SYMLINK -> [文件夹]符号连接
+         * - CREATE_JUNCTION_POINT_LINK -> [文件夹]目录连接点
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createLinkSync(targetType: main.HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string) {
+            return ShellPromise.createLinkSync(ref.int(targetType), ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建目录连接点
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createDirJunctionPoint2(targetPath: string, sourcePath: string) {
+            return ShellPromise.createDirJunctionPoint2(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建目录连接点
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createDirJunctionPoint2Sync(targetPath: string, sourcePath: string) {
+            return ShellPromise.createDirJunctionPoint2Sync(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建硬链接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createHardLink2(targetPath: string, sourcePath: string) {
+            return ShellPromise.createHardLink2(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建硬链接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createHardLink2Sync(targetPath: string, sourcePath: string) {
+            return ShellPromise.createHardLink2Sync(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建软链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createSymlink2(targetPath: string, sourcePath: string) {
+            return ShellPromise.createSymlink2(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建软链接
+         * - 适用 -> [文件]符号连接
+         * - 适用 -> [文件夹]符号连接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createSymlink2Sync(targetPath: string, sourcePath: string) {
+            return ShellPromise.createSymlink2Sync(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建目录符号链接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createDirSymlink2(targetPath: string, sourcePath: string) {
+            return ShellPromise.createDirSymlink2(ref.string(targetPath), ref.string(sourcePath));
+        }
+        /**
+         * 创建目录符号链接
+         * @param targetPath 目标路径
+         * @param sourcePath 原始文件路径
+         * @returns 
+         */
+        export function createDirSymlink2Sync(targetPath: string, sourcePath: string) {
+            return ShellPromise.createDirSymlink2Sync(ref.string(targetPath), ref.string(sourcePath));
+        }
+
+    }
+
+    /**
+     * 检索指定文件或目录的文件系统属性
+     * @param targetPath 指定文件或目录
+     * @returns 
+     */
+    export function getFileAttributes2(targetPath: string) {
+        return ShellPromise.getFileAttributes2(ref.string(targetPath));
+    }
+
+    /**
+     * 检索指定文件或目录的文件系统属性
+     * @param targetPath 指定文件或目录
+     * @returns 
+     */
+    export function getFileAttributes2Sync(targetPath: string) {
+        return ShellPromise.getFileAttributes2Sync(ref.string(targetPath));
+    }
+
+    /**
+     * 设置文件夹图标
+     * @param targetPath 目标 文件/目录 路径 
+     * @param iconPath 图标路径
+     * - .exe 可执行文件
+     * - .ico 图标文件
+     * - .png 图片文件
+     * - *.* 任意文件
+     * @param iconIndex 图标索引 比如exe中的0 默认是0
+     * @returns 
+     */
+    export function setFolderIcon2(targetPath: string, iconPath: string, iconIndex?: number): Promise<boolean> {
+        return ShellPromise.setFolderIcon2(ref.string(targetPath), ref.string(iconPath), ref.int(iconIndex || 0));
+    }
+
+    /**
+     * 设置文件夹图标
+     * @param targetPath 目标 文件/目录 路径 
+     * @param iconPath 图标路径
+     * - .exe 可执行文件
+     * - .ico 图标文件
+     * - .png 图片文件
+     * - *.* 任意文件
+     * @param iconIndex 图标索引 比如exe中的0 默认是0
+     * @returns 
+     */
+    export function setFolderIcon2Sync(targetPath: string, iconPath: string, iconIndex?: number): boolean {
+        return ShellPromise.setFolderIcon2Sync(ref.string(targetPath), ref.string(iconPath), ref.int(iconIndex || 0));
+    }
+
+    /**
+     * 设置指定扩展名的 图标
+     * @param extensionName 扩展名
+     * @example .mp3 , .cpp , .js 
+     * @param typeName 类型名字 比如 HMC打包的音频文件扩展
+     * @param iconPath 图标路径
+     * - .exe 可执行文件
+     * - .ico 图标文件
+     * - .png 图片文件
+     * - *.* 任意文件
+     * @param iconIndex 图标索引 比如exe中的0 默认是0
+     * @returns 
+     */
+    export async function setExtensionIcon2(extensionName: string, typeName: string, iconPath: string, iconIndex?: number): Promise<boolean> {
+        return (await ShellPromise.setExtensionIcon2(ref.string(extensionName), ref.string(typeName), ref.string(iconPath), ref.int(iconIndex || 0))) || false;
+    }
+
+    /**
+     * 设置指定扩展名的 图标
+     * @param extensionName 扩展名
+     * @example .mp3 , .cpp , .js 
+     * @param typeName 类型名字 比如 HMC打包的音频文件扩展
+     * @param iconPath 图标路径
+     * - .exe 可执行文件
+     * - .ico 图标文件
+     * - .png 图片文件
+     * - *.* 任意文件
+     * @param iconIndex 图标索引 比如exe中的0 默认是0
+     * @returns 
+     */
+    export function setExtensionIcon2Sync(extensionName: string, typeName: string, iconPath: string, iconIndex: number): boolean {
+        return ShellPromise.setExtensionIcon2Sync(ref.string(extensionName), ref.string(typeName), ref.string(iconPath), ref.int(iconIndex || 0)) || false;
+    }
+
+    /**
+     * 设置url 启动协议 比如 vscode:// 启动应用vscode
+     * @param protocolName 协议名 不能带有只允许字母与数字
+     * @param appPath 应用路径
+     * @param command 启动命令 默认 %1
+     * @returns 
+     */
+    export function setAppURLProtocol2Sync(protocolName: string, appPath: string, command?: string | string[]) {
+        if (Array.isArray(command)) {
+            let command_list = "";
+            for (let index = 0; index < command.length; index++) {
+                const command_ = command[index];
+                command_list = command_list + ` "${command_}"`;
+            }
+
+            command = command_list;
+        }
+        return ShellPromise.setAppURLProtocol2Sync(ref.string(protocolName), ref.string(appPath), ref.string(command));
+    }
+
+    /**
+     * 设置url 启动协议 比如 vscode:// 启动应用vscode
+     * @param protocolName 协议名 不能带有只允许字母与数字
+     * @param appPath 应用路径
+     * @param command 启动命令 默认 %1
+     * @returns 
+     */
+    export function setAppURLProtocol2(protocolName: string, appPath: string, command?: string | string[]) {
+        if (Array.isArray(command)) {
+            let command_list = "";
+            for (let index = 0; index < command.length; index++) {
+                const command_ = command[index];
+                command_list = command_list + ` "${command_}"`;
+            }
+
+            command = command_list;
+        }
+        if (!command) {
+            command = "%1";
+        }
+
+        return ShellPromise.setAppURLProtocol2(ref.string(protocolName), ref.string(appPath), ref.string(command));
+    }
+
+    /**
+     * 查询 快捷方式 目标路径 及 详细信息
+     * @param targetPath 快捷方式路径
+     * @param QueryDetaile 是否查询详细信息
+     */
+    export async function getShortcutLink2(targetPath: string, QueryDetaile: true): Promise<main.HMC2_MODE.SHORTCUT_LINK | null>;
+
+    /**
+     * 查询 快捷方式 目标路径 [仅路径]
+     * @param targetPath 快捷方式路径
+     * @param QueryDetaile 是否查询详细信息
+     */
+    export async function getShortcutLink2(targetPath: string, QueryDetaile: false): Promise<string | null>;
+
+    /**
+     * 查询 快捷方式 目标路径 [仅路径]
+     * @param targetPath 快捷方式路径
+     */
+    export async function getShortcutLink2(targetPath: string): Promise<main.HMC2_MODE.SHORTCUT_LINK | null>;
+
+    export async function getShortcutLink2(targetPath: string, QueryDetaile?: boolean): Promise<unknown> {
+
+        const _QueryDetaile = typeof QueryDetaile == "boolean" ? QueryDetaile : ref.bool(QueryDetaile || true);
+        const data = await ShellPromise.getShortcutLink(ref.string(targetPath), _QueryDetaile);
+
+        if (typeof data == "string") {
+            if (_QueryDetaile) {
+                return ref.JSONP<main.HMC2_MODE.SHORTCUT_LINK | null>(data, null);
+            }
+
+            return data;
+
+        }
+
+        return data;
+    }
+
+    /**
+     * 查询 快捷方式 目标路径 及 详细信息
+     * @param targetPath 快捷方式路径
+     * @param QueryDetaile 是否查询详细信息
+     */
+    export function getShortcutLink2Sync(targetPath: string, QueryDetaile: true): main.HMC2_MODE.SHORTCUT_LINK | null;
+    /**
+     * 查询 快捷方式 目标路径 [仅路径]
+     * @param targetPath 快捷方式路径
+     */
+    export function getShortcutLink2Sync(targetPath: string, QueryDetaile: false): string | null;
+
+    /**
+     * 查询 快捷方式 目标路径 [仅路径]
+     * @param targetPath 快捷方式路径
+     * @param QueryDetaile 是否查询详细信息
+     */
+    export function getShortcutLink2Sync(targetPath: string): main.HMC2_MODE.SHORTCUT_LINK | null;
+    export function getShortcutLink2Sync(targetPath: string, QueryDetaile?: boolean): unknown {
+
+        const _QueryDetaile = typeof QueryDetaile == "boolean" ? QueryDetaile : ref.bool(QueryDetaile || true);
+        const data = ShellPromise.getShortcutLink(ref.string(targetPath), _QueryDetaile);
+
+        if (typeof data == "string") {
+            if (_QueryDetaile) {
+                return ref.JSONP<main.HMC2_MODE.SHORTCUT_LINK | null>(data, null);
+            }
+            return data;
+        }
+
+        return data;
+    }
+
+    export const HMC_GetShellEnvInfo = ShellPromise;
 }
