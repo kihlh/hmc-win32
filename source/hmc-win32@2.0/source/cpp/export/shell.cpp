@@ -763,7 +763,7 @@ std::any GetTrayList(napi_env env, size_t TASK_TYPE, std::vector<std::any> *data
 namespace HMC_GetShellEnvInfo
 {
 
-    enum GET_SHELL_ENV_INFO_ID
+    enum class GET_SHELL_ENV_INFO_ID
     {
         NONE = 0,
         getLinkTarget = 1,
@@ -792,6 +792,12 @@ namespace HMC_GetShellEnvInfo
         setAppURLProtocol = 23,
 
         getShortcutLink = 25,
+        trashFile = 26,
+        clearTrash = 27,
+        copyFile = 28,
+        moveFile = 29,
+
+        setShortcutLink = 30,
     };
 
     const std::map<GET_SHELL_ENV_INFO_ID, std::vector<std::tuple<size_t, js_valuetype>>> GET_SHELL_EQ_TYPE_LIST = {
@@ -801,8 +807,8 @@ namespace HMC_GetShellEnvInfo
         {GET_SHELL_ENV_INFO_ID::formatVolumePath, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::formatVolumeName, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::formatVolumeNtName, {{0, js_string}}},
-        {GET_SHELL_ENV_INFO_ID::getLinkPath, {{0, js_string}}},
 
+        {GET_SHELL_ENV_INFO_ID::getLinkPath, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::hasFsLink, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::hasHardLink, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::hasDirLink, {{0, js_string}}},
@@ -819,6 +825,12 @@ namespace HMC_GetShellEnvInfo
 
         {GET_SHELL_ENV_INFO_ID::getLinkTarget, {{0, js_string}}},
         {GET_SHELL_ENV_INFO_ID::getShortcutLink, {{0, js_string}}},
+
+        {GET_SHELL_ENV_INFO_ID::trashFile, {{0, js_string}, {1, js_boolean}, {2, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::clearTrash, {{0, js_string}, {1, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::copyFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}, {5, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::moveFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}, {5, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::setShortcutLink, {{0, js_string}, {1, js_string}, {2, js_string}, {3, js_string}, {4, js_string}, {5, js_number}, {6, js_string}, {7, js_number}}},
     };
 
     struct EnvNextWorkData : public HMC_PromiseUtilV2::EnvNextWorkDataTemplate<GET_SHELL_ENV_INFO_ID>
@@ -828,6 +840,7 @@ namespace HMC_GetShellEnvInfo
     void GetLinkTarget(EnvNextWorkData *workData);
     void HasFsLink(EnvNextWorkData *workData);
     void CreateFsLink(EnvNextWorkData *workData);
+    void ExplorerShell(EnvNextWorkData *workData);
 
     const std::map<GET_SHELL_ENV_INFO_ID, std::function<void(EnvNextWorkData *workData)>> GET_SHELL_FUNC_LIST = {
         {GET_SHELL_ENV_INFO_ID::getLinkTarget, GetLinkTarget},
@@ -843,7 +856,11 @@ namespace HMC_GetShellEnvInfo
         {GET_SHELL_ENV_INFO_ID::createHardLink, CreateFsLink},
         {GET_SHELL_ENV_INFO_ID::createSymlink, CreateFsLink},
         {GET_SHELL_ENV_INFO_ID::createDirSymlink, CreateFsLink},
-        // {GET_SHELL_ENV_INFO_ID::setFolderIcon, setFolderIcon},
+
+        {GET_SHELL_ENV_INFO_ID::trashFile, ExplorerShell},
+        {GET_SHELL_ENV_INFO_ID::clearTrash, ExplorerShell},
+        {GET_SHELL_ENV_INFO_ID::copyFile, ExplorerShell},
+        {GET_SHELL_ENV_INFO_ID::moveFile, ExplorerShell},
 
     };
 
@@ -961,8 +978,8 @@ namespace HMC_GetShellEnvInfo
             std::wstring targetPath = std::get<std::wstring>(work->arguments->at(0));
             bool QueryDetaile = true;
 
-            work->get_if<bool>(1,&QueryDetaile);
-            
+            work->get_if<bool>(1, &QueryDetaile);
+
             if (QueryDetaile)
             {
 
@@ -982,6 +999,24 @@ namespace HMC_GetShellEnvInfo
                 *work->Result = ouput;
             }
             return;
+        }
+
+        if (work->TAKE_TYPE == GET_SHELL_ENV_INFO_ID::setShortcutLink)
+        {
+
+            std::wstring none = std::wstring();
+
+            std::wstring lnkPath = work->get<std::wstring>(0, none);
+            std::wstring FilePath = work->get<std::wstring>(1, none);
+            std::wstring work_dir = work->get<std::wstring>(2, none);
+            std::wstring desc = work->get<std::wstring>(3, none);
+            std::wstring args = work->get<std::wstring>(4, none);
+            DWORD iShowCmd = work->get<int64_t>(5, SW_SHOW);
+            std::wstring icon = work->get<std::wstring>(6, none);
+            DWORD iconIndex = work->get<int64_t>(7, 0);
+
+            bool c_result = hmc_shell_util::setShortcutLink(lnkPath, FilePath, work_dir, desc, args, iShowCmd, icon, iconIndex);
+            (*work->Result) = c_result;
         }
     }
 
@@ -1080,6 +1115,57 @@ namespace HMC_GetShellEnvInfo
         return hmc_napi_create_value::Error(env, "A fatal error occurred unexpectedly.", __FUNCSIG__, "HMC_SHELL_API_CATCH");
     }
 
+}
+
+void HMC_GetShellEnvInfo::ExplorerShell(EnvNextWorkData *work)
+{
+    if (work == nullptr)
+    {
+        return;
+    }
+
+    HMC_GetShellEnvInfo::GET_SHELL_ENV_INFO_ID TAKE_TYPE = work->TAKE_TYPE;
+    std::wstring none = std::wstring();
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::clearTrash)
+    {
+        bool trash_ok = false;
+
+        std::wstring RootPath = work->get<std::wstring>(0, none);
+        hmc_string_util::formatCStr(RootPath);
+        bool isShow = work->get<bool>(1, true);
+
+        DWORD show_flag = isShow ? 0 : (SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND);
+
+        trash_ok = hmc_shell_util::clearTrash(NULL, RootPath, show_flag);
+        (*work->Result) = trash_ok;
+    }
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::trashFile)
+    {
+        std::wstring trash_path = work->get<std::wstring>(0, none);
+        hmc_string_util::formatCStr(trash_path);
+        bool is_Recycle = work->get<bool>(1, true);
+        bool isShow = work->get<bool>(2, true);
+
+        int trash_ok = hmc_shell_util::trashFile(trash_path, is_Recycle, isShow);
+        (*work->Result) = trash_ok;
+    }
+
+    if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::copyFile || TAKE_TYPE == GET_SHELL_ENV_INFO_ID::moveFile)
+    {
+        std::wstring sourcePath = work->get<std::wstring>(0, none);
+        std::wstring targetPath = work->get<std::wstring>(1, none);
+        hmc_string_util::formatCStr(sourcePath);
+        hmc_string_util::formatCStr(targetPath);
+        bool isShowConfirm = work->get<bool>(2, true);
+        bool isShow = work->get<bool>(3, true);
+        bool isShowProgress = work->get<bool>(4, true);
+
+        bool trash_ok = hmc_shell_util::moveFile(sourcePath, targetPath, isShowConfirm, isShow, isShowProgress);
+
+        (*work->Result) = trash_ok;
+    }
 }
 
 void HMC_GetShellEnvInfo::GetLinkTarget(EnvNextWorkData *work)

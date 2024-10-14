@@ -13,45 +13,8 @@ namespace HMC_GetShellEnvInfo
         // {GET_SHELL_ENV_INFO_ID::GET_LINK_TARGET, {{0, js_string}}},
     };
 
-    struct EnvNextWorkData
+    struct EnvNextWorkData : public HMC_PromiseUtilV2::EnvNextWorkDataTemplate<GET_SHELL_ENV_INFO_ID>
     {
-        napi_deferred deferred;
-        napi_async_work work;
-        std::vector<js_variant_value> *arguments;
-        // js_variant_value *index1;
-        js_variant_value *Result;
-        GET_SHELL_ENV_INFO_ID TAKE_TYPE;
-
-        static void gc(EnvNextWorkData *work)
-        {
-            if (work == NULL)
-                return;
-
-            if (work->arguments != NULL)
-            {
-                work->arguments->clear();
-                work->arguments->shrink_to_fit();
-                delete work->arguments;
-                work->arguments = nullptr;
-            }
-
-            HMC_GC_CPP_BASIC_PTR(work->Result);
-            ::VirtualFree(work, 0, 0x00008000);
-        }
-
-        static EnvNextWorkData *make()
-        {
-            EnvNextWorkData *workData = HMC_VcAllocAutoLength(EnvNextWorkData);
-
-            if (workData != NULL)
-            {
-                workData->arguments = new std::vector<js_variant_value>();
-                workData->Result = new js_variant_value();
-                workData->TAKE_TYPE = GET_SHELL_ENV_INFO_ID::NONE;
-            }
-
-            return workData;
-        }
     };
 
     void GetLinkTarget(EnvNextWorkData *workData);
@@ -114,7 +77,11 @@ namespace HMC_GetShellEnvInfo
     void ExecuteAsyncWork(napi_env env, void *data)
     {
         EnvNextWorkData *workData = (EnvNextWorkData *)data;
-        main(workData);
+        try
+        {
+            main(workData);
+        }
+        HMC_CATCH_ALL;
     }
 
     napi_value ExecuteSync(napi_env env, napi_callback_info info)
@@ -128,7 +95,8 @@ namespace HMC_GetShellEnvInfo
 
             HMC_FreeAnyAuto(EnvNextWorkData::gc(workData););
 
-            if (workData == NULL || !get_arguments(env, input, workData))
+            bool is_eq_args = HMC_PromiseUtilV2::get_argumentsTemplate<GET_SHELL_ENV_INFO_ID, EnvNextWorkData>(env, input, workData, GET_SHELL_EQ_TYPE_LIST);
+            if (workData == NULL || !is_eq_args)
             {
                 return result;
             }
@@ -184,7 +152,8 @@ namespace HMC_GetShellEnvInfo
             auto *workData = EnvNextWorkData::make();
 
             auto input = hmc_NodeArgsValue(env, info);
-            if (workData == NULL || !get_arguments(env, input, workData))
+            bool is_eq_args = HMC_PromiseUtilV2::get_argumentsTemplate<GET_SHELL_ENV_INFO_ID, EnvNextWorkData>(env, input, workData, GET_SHELL_EQ_TYPE_LIST);
+            if (workData == NULL || !is_eq_args)
             {
                 EnvNextWorkData::gc(workData);
                 return as_Null();

@@ -31,10 +31,10 @@ var init_util = __esm({
     "use strict";
     _path = require("path");
     ((ref6) => {
-      function path(Str) {
+      function path2(Str) {
         return _path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, "\0");
       }
-      ref6.path = path;
+      ref6.path = path2;
       function bool(bool2) {
         if (bool2 && typeof bool2 == "string") {
           const TEMP = bool2.toUpperCase();
@@ -1411,13 +1411,13 @@ var init_shell = __esm({
         var _a;
         return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.removeOnce(ref2.string(keyName))) || false;
       }
-      set(keyName, path, cmd) {
+      set(keyName, path2, cmd) {
         var _a;
-        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.set(ref2.string(keyName), ref2.string(path2), ref2.string(cmd || ""))) || false;
       }
-      setOnce(keyName, path, cmd) {
+      setOnce(keyName, path2, cmd) {
         var _a;
-        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path), ref2.string(cmd || ""))) || false;
+        return ((_a = main4.Native.HMC_SHELL_STARTUP_CLASS) == null ? void 0 : _a.setOnce(ref2.string(keyName), ref2.string(path2), ref2.string(cmd || ""))) || false;
       }
       async enum2() {
         const obj = {};
@@ -2639,9 +2639,9 @@ var init_Process = __esm({
               }
             } else if (typeof ProcessName == "number") {
               if (Process4.pid == ProcessName) {
-                let path = await getProcessFilePath2(ProcessName).catch(reject);
-                Process4.path = path || null;
-                Process4.name = (path == null ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
+                let path2 = await getProcessFilePath2(ProcessName).catch(reject);
+                Process4.path = path2 || null;
+                Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
                 result.push(Process4);
               }
             } else {
@@ -2667,9 +2667,9 @@ var init_Process = __esm({
             }
           } else if (typeof ProcessName == "number") {
             if (Process4.pid == ProcessName) {
-              let path = getProcessFilePath2Sync(ProcessName);
-              Process4.path = path || null;
-              Process4.name = (path == null ? void 0 : path.split(/[\\\/]+/).at(-1)) || null;
+              let path2 = getProcessFilePath2Sync(ProcessName);
+              Process4.path = path2 || null;
+              Process4.name = (path2 == null ? void 0 : path2.split(/[\\\/]+/).at(-1)) || null;
               result.push(Process4);
             }
           } else {
@@ -2698,12 +2698,355 @@ var init_Process = __esm({
   }
 });
 
+// source/hmc-win32@2.0/source/main/Sock.ts
+var Sock_exports = {};
+__export(Sock_exports, {
+  HMC_SOKE_PROMISEEVAL_TASK_TYPE: () => HMC_SOKE_PROMISEEVAL_TASK_TYPE,
+  Network: () => Network
+});
+var path, os, https, http, dgram, net, main7, HMC_SOKE_PROMISEEVAL_TASK_TYPE, HMC_PromiseeEvalTask3, Network;
+var init_Sock = __esm({
+  "source/hmc-win32@2.0/source/main/Sock.ts"() {
+    "use strict";
+    init_util();
+    path = require("path");
+    os = require("os");
+    https = require("https");
+    http = require("http");
+    dgram = require("dgram");
+    net = require("net");
+    main7 = (init_main(), __toCommonJS(main_exports));
+    HMC_SOKE_PROMISEEVAL_TASK_TYPE = /* @__PURE__ */ ((HMC_SOKE_PROMISEEVAL_TASK_TYPE2) => {
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["ipv4"] = 1] = "ipv4";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getIpaddressList"] = 1] = "getIpaddressList";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["ip"] = 2] = "ip";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getAdapterIP2"] = 3] = "getAdapterIP2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getNetParams2"] = 8] = "getNetParams2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getSystemProxyServer2"] = 14] = "getSystemProxyServer2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getSystemProxyPac2"] = 15] = "getSystemProxyPac2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getDomainIPaddress2"] = 17] = "getDomainIPaddress2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getHostsPath2"] = 18] = "getHostsPath2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getTCPv6PortProcessID2"] = 19] = "getTCPv6PortProcessID2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getUDPv6PortProcessID2"] = 25] = "getUDPv6PortProcessID2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getUDPv4PortProcessID2"] = 26] = "getUDPv4PortProcessID2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getTCPv4PortProcessID2"] = 27] = "getTCPv4PortProcessID2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getConnectNetList2"] = 29] = "getConnectNetList2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["isAdmin2"] = 32] = "isAdmin2";
+      HMC_SOKE_PROMISEEVAL_TASK_TYPE2[HMC_SOKE_PROMISEEVAL_TASK_TYPE2["getMacAddresses2"] = 33] = "getMacAddresses2";
+      return HMC_SOKE_PROMISEEVAL_TASK_TYPE2;
+    })(HMC_SOKE_PROMISEEVAL_TASK_TYPE || {});
+    HMC_PromiseeEvalTask3 = class {
+      constructor() {
+        this.async = {};
+        this.sync = {};
+        const TASK_TYPE_LIST = Object.keys(HMC_SOKE_PROMISEEVAL_TASK_TYPE);
+        const _this = this;
+        for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
+          const TASK_TYPE = TASK_TYPE_LIST[index];
+          if (!TASK_TYPE || (TASK_TYPE == null ? void 0 : TASK_TYPE.match(/^\d+/)))
+            continue;
+          const TASK_ID = HMC_SOKE_PROMISEEVAL_TASK_TYPE[TASK_TYPE];
+          _this.async[TASK_TYPE] = (...arg) => {
+            var _a;
+            try {
+              if (!((_a = main7.Native.native) == null ? void 0 : _a.HMC_GetSockEnvInfo)) {
+                return Promise.reject(main7.HMC2_MODE.HMCNotPlatform);
+              }
+              if (arg.length >= 1) {
+                return main7.Native.native.HMC_GetSockEnvInfo(TASK_ID, ...arg);
+              }
+              return main7.Native.native.HMC_GetSockEnvInfo(TASK_ID);
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          };
+          _this.sync[TASK_TYPE] = (...arg) => {
+            var _a;
+            if (!((_a = main7.Native.native) == null ? void 0 : _a.HMC_GetSockEnvInfoSync)) {
+              return null;
+            }
+            if (arg.length >= 1) {
+              return main7.Native.native.HMC_GetSockEnvInfoSync(TASK_ID, ...arg) || null;
+            }
+            return main7.Native.native.HMC_GetSockEnvInfoSync(TASK_ID);
+          };
+          if (!_this[TASK_TYPE]) {
+            _this[TASK_TYPE] = _this.async[TASK_TYPE];
+          }
+          const KEY = "".concat(TASK_TYPE, "Sync");
+          if (!_this[KEY]) {
+            _this[KEY] = _this.sync[TASK_TYPE];
+          }
+        }
+      }
+    };
+    ((Network3) => {
+      Network3.HMC_GetSokeEnvInfo = new HMC_PromiseeEvalTask3();
+      function https_get_data(url) {
+        return new Promise((resolve, reject) => {
+          const buffList = [];
+          (() => {
+            if (url.match("https://")) {
+              return https;
+            } else {
+              return http;
+            }
+          })().get(url, (res) => {
+            if (res.statusCode !== 200) {
+              reject(new Error("get failure statusCode: ".concat(res.statusCode || 404)));
+              return;
+            }
+            res.on("data", (data) => {
+              buffList.push(data);
+            });
+            res.once("error", (err) => {
+              reject(err);
+            });
+            res.on("end", () => {
+              const buff = ref.concatBuff(buffList);
+              resolve(buff);
+              buffList.length = 0;
+            });
+          });
+        });
+      }
+      Network3.https_get_data = https_get_data;
+      function public_ip() {
+        return new Promise(async (resolve, reject) => {
+          let result_ok = false;
+          let ip_server_list = [
+            ["http://ipwho.is/", "ip"],
+            ["http://httpbin.org/ip", "origin"],
+            ["https://ipapi.co/json/", "ip"],
+            ["https://api.ipify.org/?format=json", "ip"],
+            ["https://freeipapi.com/api/json/", "ipAddress"],
+            ["https://api.ip.sb/geoip", "ip"],
+            ["https://api.myip.com/", "ip"],
+            ["http://ip-api.com/json/?lang=zh-CN", "ip"]
+          ];
+          for (const iterator of ip_server_list) {
+            try {
+              await https_get_data(iterator[0]).catch(() => Buffer.alloc(0)).then((response) => {
+                try {
+                  let data = JSON.parse(response.toString("utf-8"));
+                  if (data[iterator[1]]) {
+                    result_ok = true;
+                    resolve(data[iterator[1]]);
+                  }
+                } catch (e) {
+                }
+              });
+              if (result_ok) {
+                return;
+              }
+            } catch (e) {
+            }
+          }
+          reject();
+        });
+      }
+      Network3.public_ip = public_ip;
+      function freePort() {
+        return new Promise((resolve, reject) => {
+          let sock = net.createServer(function() {
+          });
+          sock.listen(0, () => {
+            var _a;
+            resolve(Number((_a = sock == null ? void 0 : sock.address()) == null ? void 0 : _a.port));
+            sock.close();
+          });
+          sock.once("error", reject);
+        });
+      }
+      Network3.freePort = freePort;
+      function freePortTCP() {
+        return freePort();
+      }
+      Network3.freePortTCP = freePortTCP;
+      function freePortUDP() {
+        return new Promise((resolve, reject) => {
+          let udp4 = dgram.createSocket("udp4");
+          udp4.bind(0);
+          udp4.on("listening", function() {
+            resolve && resolve(udp4.address().port);
+            udp4.close();
+          });
+          udp4.once("error", reject);
+        });
+      }
+      Network3.freePortUDP = freePortUDP;
+      function hasPortTCP(port, callBack) {
+        let resolve = null;
+        let prom;
+        let sock = net.createServer(function() {
+        });
+        sock.listen(port);
+        if (typeof callBack == "function") {
+          resolve = callBack;
+        } else {
+          prom = new Promise((Prom_resolve) => {
+            resolve = Prom_resolve;
+          });
+        }
+        sock.on("error", function(err) {
+          resolve && resolve(true);
+          sock.close();
+        });
+        sock.on("listening", function() {
+          resolve && resolve(false);
+          sock.close();
+        });
+        if (typeof callBack !== "function") {
+          return prom;
+        }
+      }
+      Network3.hasPortTCP = hasPortTCP;
+      function hasPortUDP(port, callBack) {
+        let resolve = null;
+        let prom;
+        let udp4 = dgram.createSocket("udp4");
+        udp4.bind(port);
+        if (typeof callBack == "function") {
+          resolve = callBack;
+        } else {
+          prom = new Promise((Prom_resolve) => {
+            resolve = Prom_resolve;
+          });
+        }
+        udp4.on("error", function(err) {
+          resolve && resolve(true);
+          udp4.close();
+        });
+        udp4.on("listening", function() {
+          resolve && resolve(false);
+          udp4.close();
+        });
+        if (typeof callBack !== "function") {
+          return prom;
+        }
+      }
+      Network3.hasPortUDP = hasPortUDP;
+      ({
+        isAdmin2: Network3.isAdmin2,
+        isAdmin2Sync: Network3.isAdmin2Sync,
+        getMacAddresses2: Network3.getMacAddresses2,
+        getMacAddresses2Sync: Network3.getMacAddresses2Sync,
+        getHostsPath2Sync: Network3.getHostsPath2Sync,
+        getHostsPath2: Network3.getHostsPath2,
+        getSystemProxyPac2: Network3.getSystemProxyPac2,
+        getSystemProxyPac2Sync: Network3.getSystemProxyPac2Sync,
+        getSystemProxyServer2: Network3.getSystemProxyServer2,
+        getSystemProxyServer2Sync: Network3.getSystemProxyServer2Sync
+      } = Network3.HMC_GetSokeEnvInfo);
+      async function ipv4() {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.ipv4(), []);
+      }
+      Network3.ipv4 = ipv4;
+      async function getIpaddressList() {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.getIpaddressList(), []);
+      }
+      Network3.getIpaddressList = getIpaddressList;
+      async function ip() {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.ip(), []);
+      }
+      Network3.ip = ip;
+      async function getAdapterIP2() {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.getAdapterIP2(), []);
+      }
+      Network3.getAdapterIP2 = getAdapterIP2;
+      async function getNetParams2() {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.getNetParams2(), null);
+      }
+      Network3.getNetParams2 = getNetParams2;
+      async function getDomainIPaddress2(url) {
+        return Network3.HMC_GetSokeEnvInfo.getDomainIPaddress2(ref.string(url || ""));
+      }
+      Network3.getDomainIPaddress2 = getDomainIPaddress2;
+      async function getTCPv6PortProcessID2(port) {
+        return Network3.HMC_GetSokeEnvInfo.getTCPv6PortProcessID2(ref.int(port));
+      }
+      Network3.getTCPv6PortProcessID2 = getTCPv6PortProcessID2;
+      async function getUDPv6PortProcessID2(port) {
+        return Network3.HMC_GetSokeEnvInfo.getUDPv6PortProcessID2(ref.int(port));
+      }
+      Network3.getUDPv6PortProcessID2 = getUDPv6PortProcessID2;
+      async function getUDPv4PortProcessID2(port) {
+        return Network3.HMC_GetSokeEnvInfo.getUDPv4PortProcessID2(ref.int(port));
+      }
+      Network3.getUDPv4PortProcessID2 = getUDPv4PortProcessID2;
+      async function getTCPv4PortProcessID2(port) {
+        return Network3.HMC_GetSokeEnvInfo.getTCPv4PortProcessID2(ref.int(port));
+      }
+      Network3.getTCPv4PortProcessID2 = getTCPv4PortProcessID2;
+      async function getConnectNetList2(tcp, udp, tcp6, udp6) {
+        return ref.JSONP(await Network3.HMC_GetSokeEnvInfo.getConnectNetList2(
+          typeof tcp == "boolean" ? tcp : true,
+          typeof udp == "boolean" ? udp : true,
+          typeof tcp6 == "boolean" ? tcp6 : true,
+          typeof udp6 == "boolean" ? udp6 : true
+        ), []);
+      }
+      Network3.getConnectNetList2 = getConnectNetList2;
+      function ipv4Sync() {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.ipv4Sync(), []);
+      }
+      Network3.ipv4Sync = ipv4Sync;
+      function getIpaddressListSync() {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.getIpaddressListSync(), []);
+      }
+      Network3.getIpaddressListSync = getIpaddressListSync;
+      function ipSync() {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.ipSync(), []);
+      }
+      Network3.ipSync = ipSync;
+      function getAdapterIP2Sync() {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.getAdapterIP2Sync(), []);
+      }
+      Network3.getAdapterIP2Sync = getAdapterIP2Sync;
+      function getNetParams2Sync() {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.getNetParams2Sync(), null);
+      }
+      Network3.getNetParams2Sync = getNetParams2Sync;
+      function getDomainIPaddress2Sync(url) {
+        return Network3.HMC_GetSokeEnvInfo.getDomainIPaddress2Sync(ref.string(url || ""));
+      }
+      Network3.getDomainIPaddress2Sync = getDomainIPaddress2Sync;
+      function getTCPv6PortProcessID2Sync(port) {
+        return Network3.HMC_GetSokeEnvInfo.getTCPv6PortProcessID2Sync(ref.int(port));
+      }
+      Network3.getTCPv6PortProcessID2Sync = getTCPv6PortProcessID2Sync;
+      function getUDPv6PortProcessID2Sync(port) {
+        return Network3.HMC_GetSokeEnvInfo.getUDPv6PortProcessID2Sync(ref.int(port));
+      }
+      Network3.getUDPv6PortProcessID2Sync = getUDPv6PortProcessID2Sync;
+      function getUDPv4PortProcessID2Sync(port) {
+        return Network3.HMC_GetSokeEnvInfo.getUDPv4PortProcessID2Sync(ref.int(port));
+      }
+      Network3.getUDPv4PortProcessID2Sync = getUDPv4PortProcessID2Sync;
+      function getTCPv4PortProcessID2Sync(port) {
+        return Network3.HMC_GetSokeEnvInfo.getTCPv4PortProcessID2Sync(ref.int(port));
+      }
+      Network3.getTCPv4PortProcessID2Sync = getTCPv4PortProcessID2Sync;
+      function getConnectNetList2Sync(tcp, udp, tcp6, udp6) {
+        return ref.JSONP(Network3.HMC_GetSokeEnvInfo.getConnectNetList2Sync(
+          typeof tcp == "boolean" ? tcp : true,
+          typeof udp == "boolean" ? udp : true,
+          typeof tcp6 == "boolean" ? tcp6 : true,
+          typeof udp6 == "boolean" ? udp6 : true
+        ), []);
+      }
+      Network3.getConnectNetList2Sync = getConnectNetList2Sync;
+    })(Network || (Network = {}));
+  }
+});
+
 // source/hmc-win32@2.0/source/main/index.ts
 var main_exports = {};
 __export(main_exports, {
   Auto: () => Auto,
   HMC2_MODE: () => HMC2_MODE,
   Native: () => Native,
+  Network: () => Network2,
   Process: () => Process2,
   Registr: () => Registr2,
   Shell: () => Shell2,
@@ -2711,11 +3054,13 @@ __export(main_exports, {
   Startup: () => Startup,
   Symlink: () => Symlink,
   Window: () => Window,
+  isAdmin2: () => isAdmin2,
+  isAdmin2Sync: () => isAdmin2Sync,
   ref: () => ref5,
   sleep: () => sleep
 });
 module.exports = __toCommonJS(main_exports);
-var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, RegistrMain, ShellPromiseEvalMain2, HMC2_MODE, HMC_LAZY_CLASS, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Registr2, Window, Symlink;
+var PromiseEval2, ShellMain, AutoMain, UtilMain, ProcessMain, RegistrMain, ShellPromiseEvalMain2, SokePromiseEvalMain, HMC2_MODE, HMC_LAZY_CLASS, Native, ref5, Auto, Startup, Shell2, Process2, Sleep, sleep, Registr2, Window, Symlink, Network2, isAdmin2, isAdmin2Sync;
 var init_main = __esm({
   "source/hmc-win32@2.0/source/main/index.ts"() {
     PromiseEval2 = (init_promiseEval(), __toCommonJS(promiseEval_exports));
@@ -2725,6 +3070,7 @@ var init_main = __esm({
     ProcessMain = (init_Process(), __toCommonJS(Process_exports));
     RegistrMain = (init_registr(), __toCommonJS(registr_exports));
     ShellPromiseEvalMain2 = (init_ShellPromiseEval(), __toCommonJS(ShellPromiseEval_exports));
+    SokePromiseEvalMain = (init_Sock(), __toCommonJS(Sock_exports));
     ((HMC2_MODE2) => {
       function ALL_NONE_FUN_CALLBECK(...arg) {
       }
@@ -2893,6 +3239,42 @@ var init_main = __esm({
         ENV_INFO_COMMAND2[ENV_INFO_COMMAND2["HAS_REGISTR_FOLDER_KEY"] = 725] = "HAS_REGISTR_FOLDER_KEY";
       })(ENV_INFO_COMMAND = HMC2_MODE2.ENV_INFO_COMMAND || (HMC2_MODE2.ENV_INFO_COMMAND = {}));
       ;
+      let Net;
+      ((Net2) => {
+        let network_type;
+        ((network_type2) => {
+          network_type2[network_type2["AF_UNSPEC"] = 0] = "AF_UNSPEC";
+          network_type2[network_type2["AF_UNIX"] = 1] = "AF_UNIX";
+          network_type2[network_type2["AF_INET"] = 2] = "AF_INET";
+          network_type2[network_type2["AF_IMPLINK"] = 3] = "AF_IMPLINK";
+          network_type2[network_type2["AF_PUP"] = 4] = "AF_PUP";
+          network_type2[network_type2["AF_CHAOS"] = 5] = "AF_CHAOS";
+          network_type2[network_type2["AF_NS"] = 6] = "AF_NS";
+          network_type2[network_type2["AF_IPX"] = 6] = "AF_IPX";
+          network_type2[network_type2["AF_ISO"] = 7] = "AF_ISO";
+          network_type2[network_type2["AF_OSI"] = 7] = "AF_OSI";
+          network_type2[network_type2["AF_ECMA"] = 8] = "AF_ECMA";
+          network_type2[network_type2["AF_DATAKIT"] = 9] = "AF_DATAKIT";
+          network_type2[network_type2["AF_CCITT"] = 10] = "AF_CCITT";
+          network_type2[network_type2["AF_SNA"] = 11] = "AF_SNA";
+          network_type2[network_type2["AF_DECnet"] = 12] = "AF_DECnet";
+          network_type2[network_type2["AF_DLI"] = 13] = "AF_DLI";
+          network_type2[network_type2["AF_LAT"] = 14] = "AF_LAT";
+          network_type2[network_type2["AF_HYLINK"] = 15] = "AF_HYLINK";
+          network_type2[network_type2["AF_APPLETALK"] = 16] = "AF_APPLETALK";
+          network_type2[network_type2["AF_NETBIOS"] = 17] = "AF_NETBIOS";
+          network_type2[network_type2["AF_VOICEVIEW"] = 18] = "AF_VOICEVIEW";
+          network_type2[network_type2["AF_FIREFOX"] = 19] = "AF_FIREFOX";
+          network_type2[network_type2["AF_UNKNOWN1"] = 20] = "AF_UNKNOWN1";
+          network_type2[network_type2["AF_BAN"] = 21] = "AF_BAN";
+          network_type2[network_type2["AF_ATM"] = 22] = "AF_ATM";
+          network_type2[network_type2["AF_INET6"] = 23] = "AF_INET6";
+          network_type2[network_type2["AF_CLUSTER"] = 24] = "AF_CLUSTER";
+          network_type2[network_type2["AF_12844"] = 25] = "AF_12844";
+          network_type2[network_type2["AF_IRDA"] = 26] = "AF_IRDA";
+          network_type2[network_type2["AF_NETDES"] = 28] = "AF_NETDES";
+        })(network_type = Net2.network_type || (Net2.network_type = {}));
+      })(Net = HMC2_MODE2.Net || (HMC2_MODE2.Net = {}));
     })(HMC2_MODE || (HMC2_MODE = {}));
     HMC_LAZY_CLASS = {
       ALL_LAZY_FUN_KEY: [
@@ -3006,6 +3388,8 @@ var init_main = __esm({
       Window2.readElectronHandle = readElectronHandle;
     })(Window || (Window = {}));
     Symlink = ShellMain.Shell.Symlink;
+    Network2 = SokePromiseEvalMain.Network;
+    ({ isAdmin2, isAdmin2Sync } = Network2);
   }
 });
 init_main();
@@ -3014,6 +3398,7 @@ init_main();
   Auto,
   HMC2_MODE,
   Native,
+  Network,
   Process,
   Registr,
   Shell,
@@ -3021,6 +3406,8 @@ init_main();
   Startup,
   Symlink,
   Window,
+  isAdmin2,
+  isAdmin2Sync,
   ref,
   sleep
 });

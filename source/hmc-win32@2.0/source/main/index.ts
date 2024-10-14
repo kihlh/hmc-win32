@@ -5,6 +5,7 @@ import UtilMain = require("./util");
 import ProcessMain = require("./Process");
 import RegistrMain = require("./registr");
 import ShellPromiseEvalMain = require("./ShellPromiseEval");
+import SokePromiseEvalMain = require("./Sock");
 
 interface Native {
     /**
@@ -38,6 +39,22 @@ interface Native {
      * @param command 命令
      */
     HMC_GetShellEnvInfoSync?(command: ShellPromiseEvalMain.HMC_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): unknown;
+
+    /**
+     * 执行Shell命令代码 并且按照api内容返回 异步
+     * @docs GetShellEnvInfo 是通过(hmc -> GetShellEnvInfo)生成的Promise / Sync 函数 他性能比PromiseEval更好 因为他并未使用any泛型 仅使用了精简的 数据类型
+     * @param pid 进程id
+     * @param command 命令
+     */
+    HMC_GetSockEnvInfo?(command: SokePromiseEvalMain.HMC_SOKE_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): Promise<unknown>;
+
+    /**
+     * 执行Shell命令代码 并且按照api内容返回 同步
+     * @docs GetShellEnvInfo 是通过(hmc -> GetShellEnvInfo)生成的Promise / Sync 函数 他性能比PromiseEval更好 因为他并未使用any泛型 仅使用了精简的 数据类型
+     * @param pid 进程id
+     * @param command 命令
+     */
+    HMC_GetSockEnvInfoSync?(command: SokePromiseEvalMain.HMC_SOKE_PROMISEEVAL_TASK_TYPE, ...arg: unknown[]): unknown;
 
     /**
      * 执行进程环境获取 需要配合命令代码
@@ -207,10 +224,10 @@ interface Native {
     GetRegistrEnvInfoSync?(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]): unknown;
 }
 
-export module HMC2_MODE {
+export namespace HMC2_MODE {
 
     export function ALL_NONE_FUN_CALLBECK(...arg: any[]) { }
-    
+
     // 快捷方式的信息
     export interface SHORTCUT_LINK {
         /** 工作环境文件夹**/
@@ -230,7 +247,7 @@ export module HMC2_MODE {
         /** 目标路径**/
         path: string;
     }
-    
+
     /**注册表根目录 */
     export const Hkey = {
         /**用作默认用户首选设置|也作为单个用户的首选设置 */
@@ -433,9 +450,9 @@ export module HMC2_MODE {
         // 内核驱动器名称 如 "\\Device\\HarddiskVolume6"
         device: string;
         // HarddiskVolume6
-        device_id:string;
+        device_id: string;
         // 00000000-000000-000000-0000-000000
-        volume_id:string;
+        volume_id: string;
     };
 
     enum LINK_TYPE_INFO {
@@ -549,7 +566,7 @@ export module HMC2_MODE {
         // 类型名称
         type_name: keyof typeof LINK_TYPE;
         // 是否是基于文件夹
-        isDir:boolean;
+        isDir: boolean;
     }
 
     export enum FILE_ATTRIBUTE_INFO_LIST {
@@ -1065,6 +1082,364 @@ export module HMC2_MODE {
         HAS_REGISTR_FOLDER_KEY = 725,
     };
 
+    export namespace Net {
+
+        // ? net
+        export interface ipv4Item {
+            /**
+             * @brief 广播地址，表示当前子网的广播 IP
+             * @example "192.168.1.255"
+             */
+            broadcast: string;
+
+            /**
+             * @brief 子网掩码，用于确定 IP 地址的网络部分和主机部分
+             * @example "255.255.255.0"
+             */
+            netmask: string;
+
+            /**
+             * @brief IPv4 地址的字符串表示
+             * @example "192.168.1.1"
+             */
+            ipaddress: string;
+        }
+
+
+        export enum network_type {
+            /**
+             * @brief 未指定的地址族
+             */
+            AF_UNSPEC = 0,
+
+            /**
+             * @brief Unix 本地到本地的通信协议
+             */
+            AF_UNIX = 1,
+
+            /**
+             * @brief IPv4 协议族
+             */
+            AF_INET = 2,
+
+            /**
+             * @brief ARPANET IMP 协议族
+             */
+            AF_IMPLINK = 3,
+
+            /**
+             * @brief PUP 网络协议
+             */
+            AF_PUP = 4,
+
+            /**
+             * @brief CHAOS 网络协议
+             */
+            AF_CHAOS = 5,
+
+            /**
+             * @brief Xerox NS 协议族
+             */
+            AF_NS = 6,
+
+            /**
+             * @brief IPX 协议族 (Novell 网络)
+             */
+            AF_IPX = 6,
+
+            /**
+             * @brief ISO 协议族
+             */
+            AF_ISO = 7,
+
+            /**
+             * @brief OSI 协议族
+             */
+            AF_OSI = 7,
+
+            /**
+             * @brief ECMA 标准协议族
+             */
+            AF_ECMA = 8,
+
+            /**
+             * @brief Datakit 协议族
+             */
+            AF_DATAKIT = 9,
+
+            /**
+             * @brief CCITT 协议族
+             */
+            AF_CCITT = 10,
+
+            /**
+             * @brief SNA 协议族
+             */
+            AF_SNA = 11,
+
+            /**
+             * @brief DECnet 协议族 (Digital Equipment Corporation 网络)
+             */
+            AF_DECnet = 12,
+
+            /**
+             * @brief Direct Link Interface 协议
+             */
+            AF_DLI = 13,
+
+            /**
+             * @brief LAT 协议 (Local Area Transport)
+             */
+            AF_LAT = 14,
+
+            /**
+             * @brief Hylink 协议族
+             */
+            AF_HYLINK = 15,
+
+            /**
+             * @brief AppleTalk 协议族
+             */
+            AF_APPLETALK = 16,
+
+            /**
+             * @brief NetBIOS 协议族
+             */
+            AF_NETBIOS = 17,
+
+            /**
+             * @brief VoiceView 协议
+             */
+            AF_VOICEVIEW = 18,
+
+            /**
+             * @brief Firefox 协议族
+             */
+            AF_FIREFOX = 19,
+
+            /**
+             * @brief 未知的协议类型 1
+             */
+            AF_UNKNOWN1 = 20,
+
+            /**
+             * @brief BAN 协议族
+             */
+            AF_BAN = 21,
+
+            /**
+             * @brief ATM 协议族 (异步传输模式)
+             */
+            AF_ATM = 22,
+
+            /**
+             * @brief IPv6 协议族
+             */
+            AF_INET6 = 23,
+
+            /**
+             * @brief Windows Cluster 协议族
+             */
+            AF_CLUSTER = 24,
+
+            /**
+             * @brief 12844 标准协议族
+             */
+            AF_12844 = 25,
+
+            /**
+             * @brief IrDA (红外数据协议)
+             */
+            AF_IRDA = 26,
+
+            /**
+             * @brief NetDES 协议族
+             */
+            AF_NETDES = 28
+        }
+
+        export interface hmc_addr_item {
+            /**
+             * @brief IP 地址的字符串表示
+             * - IPv4 示例: "192.168.1.1"
+             * - IPv6 示例: "fe80::1ff:fe23:4567:890a"
+             * @example "192.168.1.1"
+             */
+            ipaddress: string;
+
+            /**
+             * @brief IP 地址类型名称
+             * - "IPv4": 使用 IPv4 协议的地址
+             * - "IPv6": 使用 IPv6 协议的地址
+             * @example "IPv4"
+             */
+            typeName: "IPv4" | "IPv6";
+
+            /**
+             * @brief 网络类型 (根据具体定义，可能为枚举或其他类型)
+             */
+            type: network_type;
+        }
+
+
+        export interface hmc_net_addr_item {
+            name: string;
+            addr_item: hmc_addr_item;
+        }
+
+        export interface ConnectNet {
+            /**
+             * @brief 网络连接类型名称
+             * - "UDP": 用户数据报协议
+             * - "TCP": 传输控制协议
+             * - "TCP6": 基于 IPv6 的传输控制协议
+             * - "UDP6": 基于 IPv6 的用户数据报协议
+             * @example "TCP"
+             */
+            typeName: "UDP" | "TCP" | "TCP6" | "UDP6";
+        
+            /**
+             * @brief 网络连接类型值
+             * - 6: TCP / TCP6
+             * - 17: UDP / UDP6
+             * @example 6
+             */
+            type: number;
+        
+            /**
+             * @brief 本地 IP 地址 (DWORD 格式)
+             * @example 3232235777
+             */
+            ipAddr: number;
+        
+            /**
+             * @brief 解析后的本地 IP 地址 (字符串格式)
+             * @example "192.168.1.1"
+             */
+            ip: string;
+        
+            /**
+             * @brief 本地端口
+             * @example 8080
+             */
+            port: number;
+        
+            /**
+             * @brief 绑定端口的进程 ID
+             * @example 1234
+             */
+            pid: number;
+        
+            /**
+             * @brief 此进程是否存在
+             * @example true
+             */
+            existsProcess: boolean;
+        }
+        
+        export interface ConnectNetTCP extends ConnectNet {
+            /**
+             * @brief 远程端口
+             * @example 80
+             */
+            remotePort: number;
+        
+            /**
+             * @brief 远程 IP 地址 (DWORD 格式)
+             * @example 3232235777
+             */
+            remoteIPAddr: number;
+        
+            /**
+             * @brief 解析后的远程 IP 地址 (字符串格式)
+             * @example "8.8.8.8"
+             */
+            remoteIP: string;
+        
+            /**
+             * @brief TCP 连接状态
+             * - "CLOSED": 连接关闭
+             * - "LISTEN": 监听状态
+             * - "SYN-SENT": 同步请求已发送
+             * - "SYN-RECEIVED": 同步请求已接收
+             * - "ESTABLISHED": 连接已建立
+             * - "FIN-WAIT-1": 终止等待 1
+             * - "FIN-WAIT-2": 终止等待 2
+             * - "CLOSE-WAIT": 关闭等待
+             * - "CLOSING": 正在关闭
+             * - "LAST-ACK": 最后确认
+             * - "TIME-WAIT": 时间等待
+             * - "DELETE-TCB": 删除 TCB
+             * - "UNKNOWN": 未知状态
+             * @example "ESTABLISHED"
+             */
+            state: "CLOSED" | "LISTEN" | "SYN-SENT" | "SYN-RECEIVED" | "ESTABLISHED" | "FIN-WAIT-1" | "FIN-WAIT-2" | "CLOSE-WAIT" | "CLOSING" | "LAST-ACK" | "TIME-WAIT" | "DELETE-TCB" | "UNKNOWN";
+        }
+        
+
+        export interface hmc_NetParams {
+            /**
+             * @brief 主机名称
+             * @example "host123"
+             */
+            hostName: string;
+
+            /**
+             * @brief 域名
+             * @example "example.com"
+             */
+            domainName: string;
+
+            /**
+             * @brief DNS 服务器地址列表
+             * @example ["8.8.8.8", "8.8.4.4"]
+             */
+            dnsServers: string[];
+
+            /**
+             * @brief 节点类型
+             * - BROADCAST_NODETYPE
+             * - HYBRID_NODETYPE
+             * - MIXED_NODETYPE
+             * - PEER_TO_PEER_NODETYPE
+             * - UNKNOWN:<UINT>
+             * @example "BROADCAST_NODETYPE"
+             */
+            nodeType: `UNKNOWN:<${number}>` | "BROADCAST_NODETYPE" | "HYBRID_NODETYPE" | "MIXED_NODETYPE" | "PEER_TO_PEER_NODETYPE";
+
+            /**
+             * @brief DHCP 范围名称
+             * @example "MyScope"
+             */
+            dhcpScopeName: string;
+
+            /**
+             * @brief 是否启用路由功能
+             * @example true
+             */
+            enableRouting: boolean;
+
+            /**
+             * @brief 是否启用 ARP 代理
+             * @example false
+             */
+            enableArpProxy: boolean;
+
+            /**
+             * @brief 是否启用 DNS
+             * @example true
+             */
+            enableDns: boolean;
+        }
+
+    }
+    
+    export type ipv4Item = Net.ipv4Item;
+    export type network_type = Net.network_type;
+    export type hmc_addr_item = Net.hmc_addr_item;
+    export type hmc_net_addr_item = Net.hmc_net_addr_item;
+    export type ConnectNet = Net.ConnectNet;
+    export type hmc_NetParams = Net.hmc_NetParams;
 
 }
 
@@ -1201,7 +1576,7 @@ export const { Sleep, sleep } = Process;
 //注册表编辑合集
 export const Registr = RegistrMain.Registr;
 
-export module Window {
+export namespace Window {
 
     /**
      * 将 electron 句柄内存缓冲区转换为标准 窗口数字句柄
@@ -1236,5 +1611,8 @@ export module Window {
 }
 
 // 软硬链接相关
-export const Symlink =  ShellMain.Shell.Symlink;
+export const Symlink = ShellMain.Shell.Symlink;
 
+export const Network = SokePromiseEvalMain.Network;
+
+export const {isAdmin2,isAdmin2Sync} = Network;

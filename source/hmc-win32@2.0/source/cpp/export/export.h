@@ -1,4 +1,5 @@
 ﻿#include "hmc_napi_value_util.h"
+#include "hmc_json_util.h"
 
 #ifdef _DEBUG
 #ifdef _WIN64
@@ -85,6 +86,12 @@ namespace HMC_GetProcessFilePath
 }
 
 namespace HMC_GetProcessEnvInfo
+{
+    napi_value ExecuteSync(napi_env env, napi_callback_info info);
+    napi_value StartAsyncTask(napi_env env, napi_callback_info info);
+}
+
+namespace HMC_GetSockEnvInfo
 {
     napi_value ExecuteSync(napi_env env, napi_callback_info info);
     napi_value StartAsyncTask(napi_env env, napi_callback_info info);

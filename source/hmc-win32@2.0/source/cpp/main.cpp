@@ -80,6 +80,7 @@ static napi_value Init(napi_env env, napi_value exports)
     InitAsyncFunction(env, exports, "GetRegistrEnvInfo", HMC_GetRegistrEnvInfo::StartAsyncTask, HMC_GetRegistrEnvInfo::ExecuteSync);
     InitAsyncFunction(env, exports, "HMC_PromiseEval", HMC_PromiseEval::StartAsyncTask, HMC_PromiseEval::ExecuteSync);
     InitAsyncFunction(env, exports, "HMC_GetShellEnvInfo", HMC_GetShellEnvInfo::StartAsyncTask, HMC_GetShellEnvInfo::ExecuteSync);
+    InitAsyncFunction(env, exports, "HMC_GetSockEnvInfo", HMC_GetSockEnvInfo::StartAsyncTask, HMC_GetSockEnvInfo::ExecuteSync);
 
     //::..........................................................................................................................................................................
     //:: Promise 低调用量 低性能要求的

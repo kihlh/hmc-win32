@@ -24,7 +24,7 @@ function GetProcessEnvInfo2SyncClone(pid: number, command: HMC2_MODE.ENV_INFO_CO
 }
 
 
-export module Process {
+export namespace Process {
 
     /**
      * 获取指定进程的工作目录

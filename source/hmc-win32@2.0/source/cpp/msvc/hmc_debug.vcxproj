@@ -291,6 +291,7 @@
     <ClCompile Include="..\export\registr.cpp" />
     <ClCompile Include="..\export\screen.cpp" />
     <ClCompile Include="..\export\shell.cpp" />
+    <ClCompile Include="..\export\Sock.cpp" />
     <ClCompile Include="..\export\window.cpp" />
     <ClCompile Include="..\main.cpp" />
     <ClCompile Include="..\win_delay_load_hook.cc" />
