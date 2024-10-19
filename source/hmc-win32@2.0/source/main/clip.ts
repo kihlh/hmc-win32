@@ -1,10 +1,9 @@
-import main = require("./index");
-import util = require("./util");
+import { ref } from "./util";
 import EvalTask = require("./promiseEval");
+import { HMC } from "./HMC";
+import { Native } from "./Native";
 
-const { ref } = util;
-
-export module Clipboard {
+export namespace Clipboard {
 
 
     /**
@@ -13,9 +12,9 @@ export module Clipboard {
      */
     export function getClipboardFilePaths() {
         const result: Array<string> = [];
-        if (!main.Native.native.getClipboardFilePaths) return result;
+        if (!Native.native.getClipboardFilePaths) return result;
 
-        const temp = main.Native.native.getClipboardFilePaths().split("\0");
+        const temp = Native.native.getClipboardFilePaths().split("\0");
         if (temp.length && temp.at(-1) == "") temp.pop();
 
         return temp;
@@ -28,8 +27,8 @@ export module Clipboard {
      * @returns 
      */
     export function setClipboardText(text: string, is_html?: boolean) {
-        if (!main.Native.native.setClipboardText) return false;
-        return main.Native.native.setClipboardText(ref.string(text), is_html || false);
+        if (!Native.native.setClipboardText) return false;
+        return Native.native.setClipboardText(ref.string(text), is_html || false);
     }
 
     /**
@@ -37,8 +36,8 @@ export module Clipboard {
      * @returns 
      */
     export function getClipboardText() {
-        if (!main.Native.native.getClipboardText) return null;
-        return main.Native.native.getClipboardText();
+        if (!Native.native.getClipboardText) return null;
+        return Native.native.getClipboardText();
     }
 
     /**
@@ -46,8 +45,8 @@ export module Clipboard {
      * @returns 
      */
     export function clearClipboard() {
-        if (!main.Native.native.clearClipboard) return false;
-        return main.Native.native.clearClipboard();
+        if (!Native.native.clearClipboard) return false;
+        return Native.native.clearClipboard();
     }
 
     /**
@@ -55,8 +54,8 @@ export module Clipboard {
      * @param paths 支持以 \0 切割的路径或者单文件路径 或者数组
      */
     export function setClipboardFilePaths(paths: string | string[]) {
-        if (!main.Native.native.setClipboardFilePaths) return false;
-        return main.Native.native.setClipboardFilePaths(Array.isArray(paths) ? ref.stringArray(paths) : ref.string(paths));
+        if (!Native.native.setClipboardFilePaths) return false;
+        return Native.native.setClipboardFilePaths(Array.isArray(paths) ? ref.stringArray(paths) : ref.string(paths));
     }
 
     /**
@@ -85,19 +84,19 @@ export module Clipboard {
      * 获取剪贴板中的html
      * @returns 
      */
-    export function getClipboardHTML(): main.HMC2_MODE.CLIP_HTML_INFO | null {
-        if (!main.Native.native.getClipboardHTML) return null;
-        return main.Native.native.getClipboardHTML();
+    export function getClipboardHTML(): HMC.CLIP_HTML_INFO | null {
+        if (!Native.native.getClipboardHTML) return null;
+        return Native.native.getClipboardHTML();
     }
 
     /**
      * 枚举剪贴板包含的格式
      * @returns 
      */
-    export function enumClipboardFormats():Array<{"type":string,"type_name":string}> {
-        if (!main.Native.native.enumClipboardFormats) return [];
+    export function enumClipboardFormats(): Array<{ "type": string, "type_name": string }> {
+        if (!Native.native.enumClipboardFormats) return [];
         try {
-            return JSON.parse(main.Native.native.enumClipboardFormats());
+            return JSON.parse(Native.native.enumClipboardFormats());
         } catch (error) { }
         return [];
     }
@@ -107,8 +106,8 @@ export module Clipboard {
      * @returns 
      */
     export function getClipboardInfo() {
-        if (!main.Native.native.getClipboardInfo) return null;
-        return main.Native.native.getClipboardInfo();
+        if (!Native.native.getClipboardInfo) return null;
+        return Native.native.getClipboardInfo();
     }
 
 };

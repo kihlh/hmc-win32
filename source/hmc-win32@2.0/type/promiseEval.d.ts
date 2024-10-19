@@ -1,18 +1,22 @@
 /// <reference types="node" />
+import main = require("./index");
 export declare enum HMC_PROMISEEVAL_TASK_TYPE {
     getClipboardFilePaths2 = 1,
     captureBmp2 = 2,
     closeWindow2 = 3,
     getClipboardText2 = 5,
-    getThumbnailPng2 = 6
+    getThumbnailPng2 = 6,
+    getTrayList2 = 7
 }
 export type HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_PROMISEEVAL_TASK_TYPE;
-declare class HMC_PromiseeEvalTask {
+export declare class HMC_PromiseeEvalTask {
     async: Partial<Record<HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME, (...arg: any[]) => Promise<any>>>;
     sync: Partial<Record<HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME, (...arg: any[]) => any>>;
     constructor();
+    getTrayList2(): Promise<Array<main.HMC2_MODE.TRAY_ICON>>;
+    getTrayList2Sync(): Array<main.HMC2_MODE.TRAY_ICON>;
 }
-interface HMC_PromiseeEvalTask {
+export interface HMC_PromiseeEvalTask {
     /**
      * 获取剪贴板的文件列表
      */
@@ -227,4 +231,3 @@ interface HMC_PromiseeEvalTask {
     getThumbnailPng2Sync(filePath: string, output?: string, img_size?: number): unknown;
 }
 export declare const promiseEvalTask: HMC_PromiseeEvalTask;
-export {};

@@ -1,28 +1,4 @@
 import main = require("./index");
-declare class HMC_MOUSE_CLASS {
-    #private;
-    constructor();
-    initMouseEventHook(): boolean;
-    isValidHookMouse(): number | false;
-    getMouseEventListJson(): string | false;
-    stopHookMouse(): boolean;
-    setLimitMouseRange(ms: number, x: number, y: number, right: number, bottom: number): boolean;
-    setShakeEventTime(ms: number): boolean;
-    hasLimitMouseRangeWorker(): boolean;
-    stopLimitMouseRangeWorker(): boolean;
-}
-export declare const HmcMouseClass: HMC_MOUSE_CLASS;
-declare class HMC_KEYBOARD_CLASS {
-    #private;
-    constructor();
-    initKeyboardEventHook(): boolean;
-    isValidHookKeyboard(): number | false;
-    getAllKeyboardEventJson(): main.HMC2_MODE.KeyboardEvent[];
-    stopHookKeyboard(): boolean;
-    hasKeysBasic(): main.HMC2_MODE.BASIC_KEYS;
-    hasKeyActivate(KeysEvent: number): boolean;
-}
-export declare const HmcKeyboardClass: HMC_KEYBOARD_CLASS;
 /**
  * 限制鼠标光标可移动范围 (异步)
  * @description 可以调用 stop 提前结束

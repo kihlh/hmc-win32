@@ -1,30 +1,27 @@
-import util = require("./util");
-import main = require("./index");
-import { HMC2_MODE } from "./index";
+import { ref } from "./util";
+import { HMC } from "./HMC";
+import { Native } from "./Native";
 
 
 //注册表编辑合集
-export module Registr {
+export namespace Registr {
 
-    export type HKEY = HMC2_MODE.HKEY;
-    export type REG_VALUE = HMC2_MODE.REG_VALUE;
-    export type RegistrValueStat = HMC2_MODE.RegistrValueStat;
-    export type chQueryFolderInfo = HMC2_MODE.chQueryFolderInfo;
-    export type REG_TYPE = HMC2_MODE.REG_TYPE;
-    export type REG_VALUE_TYPE_NAME = HMC2_MODE.REG_VALUE_TYPE_NAME;
-    export type REG_VALUE_DATA_TYPE = HMC2_MODE.REG_VALUE_DATA_TYPE;
+    export type HKEY = HMC.HKEY;
+    export type REG_VALUE = HMC.REG_VALUE;
+    export type RegistrValueStat = HMC.RegistrValueStat;
+    export type chQueryFolderInfo = HMC.chQueryFolderInfo;
+    export type REG_TYPE = HMC.Registr.REG_TYPE;
+    export type REG_VALUE_TYPE_NAME = HMC.REG_VALUE_TYPE_NAME;
+    export type REG_VALUE_DATA_TYPE = HMC.REG_VALUE_DATA_TYPE;
 
-    const { ref } = util;
-
-
-    async function GetRegistrEnvInfo(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]) {
-        const _GetRegistrEnvInfo = main.Native.native?.GetRegistrEnvInfo;
+    async function GetRegistrEnvInfo(ENV_INFO_COMMAND: HMC.ENV_INFO_COMMAND, HKey: HMC.HKEY, ...aegs: any[]) {
+        const _GetRegistrEnvInfo = Native.native?.GetRegistrEnvInfo;
         if (!_GetRegistrEnvInfo) return Promise.reject("not func -> GetRegistrEnvInfo");
         return _GetRegistrEnvInfo(ENV_INFO_COMMAND, HKey, ...aegs);
     }
 
-    function GetRegistrEnvInfoSync(ENV_INFO_COMMAND: HMC2_MODE.ENV_INFO_COMMAND, HKey: HMC2_MODE.HKEY, ...aegs: any[]) {
-        const _GetRegistrEnvInfoSync = main.Native.native?.GetRegistrEnvInfoSync;
+    function GetRegistrEnvInfoSync(ENV_INFO_COMMAND: HMC.ENV_INFO_COMMAND, HKey: HMC.HKEY, ...aegs: any[]) {
+        const _GetRegistrEnvInfoSync = Native.native?.GetRegistrEnvInfoSync;
         if (!_GetRegistrEnvInfoSync) return null;
         return _GetRegistrEnvInfoSync(ENV_INFO_COMMAND, HKey, ...aegs);
     }
@@ -46,7 +43,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -76,7 +73,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -99,7 +96,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -129,7 +126,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -153,7 +150,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -179,7 +176,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -204,7 +201,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ""
@@ -227,7 +224,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -269,7 +266,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -293,7 +290,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -317,7 +314,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -341,7 +338,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -366,7 +363,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SourceSubKey),
             ref.string(Sourcekey || ""),
@@ -392,7 +389,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SourceSubKey),
             ref.string(NewSubKey || "")
@@ -420,7 +417,7 @@ export module Registr {
         const send_data = convertRegistrData(data as any, type as any);
 
         const data_2 = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -443,7 +440,7 @@ export module Registr {
      */
     export async function getRegistrValueStat2(HKey: HKEY, SubKey: string, key: string | null): Promise<RegistrValueStat | null> {
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -469,7 +466,7 @@ export module Registr {
         }
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ""
@@ -490,7 +487,7 @@ export module Registr {
      */
     export async function clearRegistrValue2(HKey: HKEY, SubKey: string, key: string | null): Promise<boolean> {
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -513,7 +510,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string("")
@@ -536,7 +533,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -558,7 +555,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -579,7 +576,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -600,7 +597,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -618,23 +615,23 @@ export module Registr {
      * @param folderPath - 要创建值键的文件夹路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export async function createRegistrValueKey2(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC2_MODE.REG_TYPE }, type?: HMC2_MODE.REG_TYPE): Promise<boolean> {
+    export async function createRegistrValueKey2(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC.Registr.REG_TYPE }, type?: HMC.Registr.REG_TYPE): Promise<boolean> {
 
-        const regVlaue: { [key: string]: HMC2_MODE.REG_TYPE } = {};
+        const regVlaue: { [key: string]: HMC.Registr.REG_TYPE } = {};
 
         if (typeof key == "string") {
 
             if (typeof type == "number") {
                 regVlaue[key] = type;
             } else {
-                regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+                regVlaue[key] = HMC.Registr.REG_TYPE.REG_NONE;
             }
 
         }
         else if (Array.isArray(key)) {
 
             for (const Ckey of key) {
-                regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+                regVlaue[Ckey] = typeof type == "number" ? type : HMC.Registr.REG_TYPE.REG_NONE;
             }
         }
         else if (key && typeof key == "object") {
@@ -647,10 +644,10 @@ export module Registr {
         const bool_list: boolean[] = [];
 
         for (const key in regVlaue) {
-            const type = regVlaue[key] || HMC2_MODE.REG_TYPE.REG_NONE;
+            const type = regVlaue[key] || HMC.Registr.REG_TYPE.REG_NONE;
             const keyname = key;
             const data = await GetRegistrEnvInfo(
-                HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+                HMC.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
                 ref.string(HKey) as HKEY,
                 ref.string(SubKey),
                 ref.string(keyname), ref.int(type)
@@ -677,7 +674,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+            HMC.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -699,7 +696,7 @@ export module Registr {
 
 
         const data = await GetRegistrEnvInfo(
-            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+            HMC.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
             ref.string(HKey) as HKEY,
             ref.string(SubKey));
         return ref.bool(data);
@@ -722,7 +719,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -752,7 +749,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_QWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -775,7 +772,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -805,7 +802,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_DWORD,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -829,7 +826,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -855,7 +852,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_STRING,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -880,7 +877,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_KEYS,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ""
@@ -903,7 +900,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -945,7 +942,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_STRING_LIST,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -969,7 +966,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -993,7 +990,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_BUFFER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -1017,7 +1014,7 @@ export module Registr {
 
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -1042,7 +1039,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.COPY_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SourceSubKey),
             ref.string(Sourcekey || ""),
@@ -1068,7 +1065,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.COPY_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SourceSubKey),
             ref.string(NewSubKey || "")
@@ -1078,8 +1075,8 @@ export module Registr {
 
     export function typename(type: REG_TYPE): REG_VALUE_TYPE_NAME | null {
         // if(typeof type =="number"){
-        for (let i in main.HMC2_MODE.REG_TYPE) {
-            const at = main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE];
+        for (let i in HMC.Registr.REG_TYPE) {
+            const at = HMC.Registr.REG_TYPE[i as keyof typeof HMC.Registr.REG_TYPE];
             if (at == type) {
                 return i as REG_VALUE_TYPE_NAME;
             }
@@ -1115,11 +1112,11 @@ export module Registr {
         return result;
     }
 
-    export function REG_VALUE(REG_VALUE: string): HMC2_MODE.REG_SZ_VALUE;
+    export function REG_VALUE(REG_VALUE: string): HMC.REG_SZ_VALUE;
     export function REG_VALUE(REG_VALUE: REG_VALUE): REG_VALUE;
-    export function REG_VALUE(REG_VALUE: number): HMC2_MODE.REG_DWORD_VALUE | HMC2_MODE.REG_QWORD_VALUE;
-    export function REG_VALUE(REG_VALUE: bigint): HMC2_MODE.REG_QWORD_VALUE;
-    export function REG_VALUE(REG_VALUE: string[]): HMC2_MODE.REG_MULTI_SZ_VALUE;
+    export function REG_VALUE(REG_VALUE: number): HMC.REG_DWORD_VALUE | HMC.REG_QWORD_VALUE;
+    export function REG_VALUE(REG_VALUE: bigint): HMC.REG_QWORD_VALUE;
+    export function REG_VALUE(REG_VALUE: string[]): HMC.REG_MULTI_SZ_VALUE;
 
     export function REG_VALUE(REG_VALUE: unknown): REG_VALUE | null {
         if (is_REG_VALUE(REG_VALUE)) return REG_VALUE;
@@ -1127,7 +1124,7 @@ export module Registr {
         if (Buffer.isBuffer(REG_VALUE)) {
             return {
                 "data": REG_VALUE,
-                "type": main.HMC2_MODE.REG_TYPE.REG_BINARY,
+                "type": HMC.Registr.REG_TYPE.REG_BINARY,
                 "size": REG_VALUE.length,
                 "typeName": "REG_BINARY"
             };
@@ -1136,7 +1133,7 @@ export module Registr {
         if (typeof REG_VALUE == "string") {
             return {
                 "data": REG_VALUE,
-                "type": main.HMC2_MODE.REG_TYPE.REG_SZ,
+                "type": HMC.Registr.REG_TYPE.REG_SZ,
                 "size": REG_VALUE.length,
                 "typeName": "REG_SZ"
             };
@@ -1145,7 +1142,7 @@ export module Registr {
         if (typeof REG_VALUE == "bigint") {
             return {
                 "data": REG_VALUE,
-                "type": main.HMC2_MODE.REG_TYPE.REG_QWORD,
+                "type": HMC.Registr.REG_TYPE.REG_QWORD,
                 "size": 8,
                 "typeName": "REG_QWORD"
             };
@@ -1155,21 +1152,21 @@ export module Registr {
             return (REG_VALUE <= 0xffffffff ?
                 ({
                     "data": REG_VALUE,
-                    "type": main.HMC2_MODE.REG_TYPE.REG_DWORD,
+                    "type": HMC.Registr.REG_TYPE.REG_DWORD,
                     "size": 4,
                     "typeName": "REG_DWORD"
-                } as HMC2_MODE.REG_DWORD_VALUE) : ({
+                } as HMC.REG_DWORD_VALUE) : ({
                     "data": BigInt(REG_VALUE),
-                    "type": main.HMC2_MODE.REG_TYPE.REG_QWORD,
+                    "type": HMC.Registr.REG_TYPE.REG_QWORD,
                     "size": 8,
                     "typeName": "REG_QWORD"
-                } as HMC2_MODE.REG_QWORD_VALUE));
+                } as HMC.REG_QWORD_VALUE));
         }
 
         if (Array.isArray(REG_VALUE)) {
             return {
                 "data": ref.is_stringArray(REG_VALUE) ? REG_VALUE : ref.stringArray(REG_VALUE),
-                "type": main.HMC2_MODE.REG_TYPE.REG_MULTI_SZ,
+                "type": HMC.Registr.REG_TYPE.REG_MULTI_SZ,
                 "size": 0,
                 "typeName": "REG_MULTI_SZ"
             }
@@ -1181,23 +1178,23 @@ export module Registr {
     export function REG_TYPE(type: any): REG_TYPE | null {
 
         if (typeof type == "string") {
-            for (let i in main.HMC2_MODE.REG_TYPE) {
+            for (let i in HMC.Registr.REG_TYPE) {
                 if (i?.toUpperCase() == type?.toUpperCase()) {
-                    return main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE];
+                    return HMC.Registr.REG_TYPE[i as keyof typeof HMC.Registr.REG_TYPE];
                 }
             }
         }
 
         if (typeof type == "number") {
-            for (let i in main.HMC2_MODE.REG_TYPE) {
-                const at = main.HMC2_MODE.REG_TYPE[i as keyof typeof HMC2_MODE.REG_TYPE];
+            for (let i in HMC.Registr.REG_TYPE) {
+                const at = HMC.Registr.REG_TYPE[i as keyof typeof HMC.Registr.REG_TYPE];
                 if (at == type) {
                     return at;
                 }
             }
         }
 
-        return main.HMC2_MODE.REG_TYPE.REG_NONE;
+        return HMC.Registr.REG_TYPE.REG_NONE;
     }
 
     export function convertRegistrData(data: REG_VALUE_DATA_TYPE, type?: REG_TYPE | REG_VALUE_TYPE_NAME): REG_DATA_SEND;
@@ -1207,7 +1204,7 @@ export module Registr {
         const type_copy = REG_TYPE(type);
 
         const send_data: REG_DATA_SEND = {
-            type: type_copy || data_copy?.type || HMC2_MODE.REG_TYPE.REG_NONE,
+            type: type_copy || data_copy?.type || HMC.Registr.REG_TYPE.REG_NONE,
             data: typeof data_copy?.data != "undefined" ? data_copy.data : Buffer.alloc(0)
         };
 
@@ -1235,7 +1232,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data_2 = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.SET_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || ""),
@@ -1259,7 +1256,7 @@ export module Registr {
     export function getRegistrValueStat2Sync(HKey: HKEY, SubKey: string, key: string | null): RegistrValueStat | null {
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_VALUE_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -1284,7 +1281,7 @@ export module Registr {
         }
 
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
+            HMC.ENV_INFO_COMMAND.GET_REGISTR_FOLDER_STAT,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ""
@@ -1307,7 +1304,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.CLEAR_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -1330,7 +1327,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.CLEAR_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string("")
@@ -1353,7 +1350,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_VALUE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -1375,7 +1372,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -1396,7 +1393,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
+            HMC.ENV_INFO_COMMAND.REMOVE_REGISTR_FOLDER_TREE,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -1417,7 +1414,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
+            HMC.ENV_INFO_COMMAND.CREATE_REGISTR_FOLDER,
             ref.string(HKey) as HKEY,
             ref.string(SubKey)
         );
@@ -1435,24 +1432,24 @@ export module Registr {
      * @param folderPath - 要创建值键的文件夹路径
      * @param key - 键名 允许 `null` or `""` 将作为默认key
      */
-    export function createRegistrValueKey2Sync(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC2_MODE.REG_TYPE }, type?: HMC2_MODE.REG_TYPE): boolean {
+    export function createRegistrValueKey2Sync(HKey: HKEY, SubKey: string, key: string | string[] | { [key: string]: HMC.Registr.REG_TYPE }, type?: HMC.Registr.REG_TYPE): boolean {
 
         if (!GetRegistrEnvInfoSync) return false;
-        const regVlaue: { [key: string]: HMC2_MODE.REG_TYPE } = {};
+        const regVlaue: { [key: string]: HMC.Registr.REG_TYPE } = {};
 
         if (typeof key == "string") {
 
             if (typeof type == "number") {
                 regVlaue[key] = type;
             } else {
-                regVlaue[key] = HMC2_MODE.REG_TYPE.REG_NONE;
+                regVlaue[key] = HMC.Registr.REG_TYPE.REG_NONE;
             }
 
         }
         else if (Array.isArray(key)) {
 
             for (const Ckey of key) {
-                regVlaue[Ckey] = typeof type == "number" ? type : HMC2_MODE.REG_TYPE.REG_NONE;
+                regVlaue[Ckey] = typeof type == "number" ? type : HMC.Registr.REG_TYPE.REG_NONE;
             }
         }
         else
@@ -1466,10 +1463,10 @@ export module Registr {
         const bool_list: boolean[] = [];
 
         for (const key in regVlaue) {
-            const type = regVlaue[key] || HMC2_MODE.REG_TYPE.REG_NONE;
+            const type = regVlaue[key] || HMC.Registr.REG_TYPE.REG_NONE;
             const keyname = key;
             const data = GetRegistrEnvInfoSync(
-                HMC2_MODE.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
+                HMC.ENV_INFO_COMMAND.CREATE_REGISTR_VALUE_KEY,
                 ref.string(HKey) as HKEY,
                 ref.string(SubKey),
                 ref.string(keyname), ref.int(type)
@@ -1496,7 +1493,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
+            HMC.ENV_INFO_COMMAND.HAS_REGISTR_KEY,
             ref.string(HKey) as HKEY,
             ref.string(SubKey),
             ref.string(key || "")
@@ -1518,7 +1515,7 @@ export module Registr {
 
         if (!GetRegistrEnvInfoSync) return false;
         const data = GetRegistrEnvInfoSync(
-            HMC2_MODE.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
+            HMC.ENV_INFO_COMMAND.HAS_REGISTR_FOLDER_KEY,
             ref.string(HKey) as HKEY,
             ref.string(SubKey));
         return ref.bool(data);

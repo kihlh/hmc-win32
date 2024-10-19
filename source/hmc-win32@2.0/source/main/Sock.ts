@@ -1,13 +1,12 @@
-import fs from "fs";
-import path = require("path");
-import os = require("os");
-import https = require('https');
-import http = require('http');
-import dgram = require('dgram');
-import net = require("net");
-import main = require("./index");
+
+import { HMC } from "./HMC";
+import https from "node:https";
+import http from "node:http";
+import dgram from "node:dgram";
+import net from "node:net";
+import { Native } from "./Native";
 import { ref } from "./util";
-import { HMC2_MODE } from "./index";
+
 
 export enum HMC_SOKE_PROMISEEVAL_TASK_TYPE {
 
@@ -45,6 +44,7 @@ export enum HMC_SOKE_PROMISEEVAL_TASK_TYPE {
     // 获取本机的mac地址
     getMacAddresses2 = 33,
 
+    isSystemFor64bit2 = 35,
 };
 
 export type HMC_SOKE_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_SOKE_PROMISEEVAL_TASK_TYPE;
@@ -56,7 +56,7 @@ class HMC_PromiseeEvalTask {
     constructor() {
 
         const TASK_TYPE_LIST = Object.keys(HMC_SOKE_PROMISEEVAL_TASK_TYPE) as Array<HMC_SOKE_PROMISEEVAL_TASK_TYPE_ALL_NAME>;
-        const _this = this;
+        const _this: HMC_PromiseeEvalTask = this;
 
         for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
             const TASK_TYPE: HMC_SOKE_PROMISEEVAL_TASK_TYPE_ALL_NAME = TASK_TYPE_LIST[index];
@@ -67,15 +67,15 @@ class HMC_PromiseeEvalTask {
             _this.async[TASK_TYPE] = (...arg: any[]) => {
                 try {
 
-                    if (!main.Native.native?.HMC_GetSockEnvInfo) {
-                        return Promise.reject(main.HMC2_MODE.HMCNotPlatform);
+                    if (!Native.native?.HMC_GetSockEnvInfo) {
+                        return Promise.reject(HMC.HMCNotPlatform);
                     }
 
                     if (arg.length >= 1) {
-                        return main.Native.native.HMC_GetSockEnvInfo(TASK_ID, ...arg);
+                        return Native.native.HMC_GetSockEnvInfo(TASK_ID, ...arg);
                     }
 
-                    return main.Native.native.HMC_GetSockEnvInfo(TASK_ID);
+                    return Native.native.HMC_GetSockEnvInfo(TASK_ID);
 
                 } catch (error) {
                     return Promise.reject(error);
@@ -83,14 +83,14 @@ class HMC_PromiseeEvalTask {
             }
 
             _this.sync[TASK_TYPE] = (...arg: any[]) => {
-                if (!main.Native.native?.HMC_GetSockEnvInfoSync) {
+                if (!Native.native?.HMC_GetSockEnvInfoSync) {
                     return null;
                 }
                 if (arg.length >= 1) {
-                    return main.Native.native.HMC_GetSockEnvInfoSync(TASK_ID, ...arg) || null;
+                    return Native.native.HMC_GetSockEnvInfoSync(TASK_ID, ...arg) || null;
                 }
 
-                return main.Native.native.HMC_GetSockEnvInfoSync(TASK_ID);
+                return Native.native.HMC_GetSockEnvInfoSync(TASK_ID);
             }
 
             if (!_this[TASK_TYPE]) {
@@ -114,15 +114,15 @@ class HMC_PromiseeEvalTask {
 interface HMC_PromiseeEvalTask {
 
     /** 获取本机局域网的ip(v4)*/
-    ipv4(): Promise<Array<HMC2_MODE.ipv4Item>>;
+    ipv4(): Promise<Array<HMC.ipv4Item>>;
     /** 获取本机局域网的ip(v4)*/
-    getIpaddressList(): Promise<Array<HMC2_MODE.ipv4Item>>;
+    getIpaddressList(): Promise<Array<HMC.ipv4Item>>;
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    ip(): Promise<Array<HMC2_MODE.hmc_net_addr_item>>;
+    ip(): Promise<Array<HMC.hmc_net_addr_item>>;
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    getAdapterIP2(): Promise<Array<HMC2_MODE.hmc_net_addr_item>>;
+    getAdapterIP2(): Promise<Array<HMC.hmc_net_addr_item>>;
     /** 获取主机网络信息*/
-    getNetParams2(): Promise<HMC2_MODE.hmc_NetParams | null>;
+    getNetParams2(): Promise<HMC.hmc_NetParams | null>;
     /** 获取系统代理链接（仅在启用系统代理时）*/
     getSystemProxyServer2(): Promise<string | null>;
     /** 获取系统代理pac脚本链接*/
@@ -146,22 +146,22 @@ interface HMC_PromiseeEvalTask {
      * @param tcp6 枚举 TCP (v6)端口
      * @param udp6 枚举 UDP (v6)端口
      */
-    getConnectNetList2(tcp: boolean, udp: boolean, tcp6: boolean, udp6: boolean): Promise<Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet>>;
+    getConnectNetList2(tcp: boolean, udp: boolean, tcp6: boolean, udp6: boolean): Promise<Array<HMC.ConnectNet | HMC.ConnectNet>>;
     /** 判断当前软件是否拥有管理员权限*/
     isAdmin2(): Promise<boolean>;
 
     // ----------------------------------------------------
 
     /** 获取本机局域网的ip(v4)*/
-    ipv4Sync(): Array<HMC2_MODE.ipv4Item>;
+    ipv4Sync(): Array<HMC.ipv4Item>;
     /** 获取本机局域网的ip(v4)*/
-    getIpaddressListSync(): Array<HMC2_MODE.ipv4Item>;
+    getIpaddressListSync(): Array<HMC.ipv4Item>;
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    ipSync(): Array<HMC2_MODE.hmc_net_addr_item>;
+    ipSync(): Array<HMC.hmc_net_addr_item>;
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    getAdapterIP2Sync(): Array<HMC2_MODE.hmc_net_addr_item>;
+    getAdapterIP2Sync(): Array<HMC.hmc_net_addr_item>;
     /** 获取主机网络信息*/
-    getNetParams2Sync(): HMC2_MODE.hmc_NetParams | null;
+    getNetParams2Sync(): HMC.hmc_NetParams | null;
     /** 获取系统代理链接（仅在启用系统代理时）*/
     getSystemProxyServer2Sync(): string | null;
     /** 获取系统代理pac脚本链接*/
@@ -185,13 +185,30 @@ interface HMC_PromiseeEvalTask {
      * @param tcp6 枚举 TCP (v6)端口
      * @param udp6 枚举 UDP (v6)端口
      */
-    getConnectNetList2Sync(tcp: boolean, udp: boolean, tcp6: boolean, udp6: boolean): Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet>;
+    getConnectNetList2Sync(tcp: boolean, udp: boolean, tcp6: boolean, udp6: boolean): Array<HMC.ConnectNet | HMC.ConnectNet>;
     /** 判断当前软件是否拥有管理员权限*/
     isAdmin2Sync(): boolean;
 
+    /**
+     * 获取mac地址列表
+     * @example 第一个是主网卡 地址
+     */
     getMacAddresses2(): Promise<string[]>;
 
+    /**
+     * 获取mac地址列表
+     * @example 第一个是主网卡 地址
+     */
     getMacAddresses2Sync(): string[];
+
+    /**
+     * 判断系统是否是64位系统
+     */
+    isSystemFor64bit2(): Promise<boolean>;
+    /**
+     * 判断系统是否是64位系统
+     */
+    isSystemFor64bit2Sync(): boolean;
 }
 
 
@@ -406,46 +423,60 @@ export namespace Network {
     }
 
     export const {
+        /**判断当前软件是否拥有管理员权限 */
         isAdmin2,
+        /**判断当前软件是否拥有管理员权限 */
         isAdmin2Sync,
+        /**获取mac地址列表 */
         getMacAddresses2,
+        /**获取mac地址列表 */
         getMacAddresses2Sync,
+        /**获取hosts文件的路径 */
         getHostsPath2Sync,
+        /**获取hosts文件的路径 */
         getHostsPath2,
+        /**获取hosts文件的路径 */
         getSystemProxyPac2,
+        /**获取hosts文件的路径 */
         getSystemProxyPac2Sync,
+        /**获取系统代理链接（仅在启用系统代理时） */
         getSystemProxyServer2,
+        /**获取系统代理链接（仅在启用系统代理时） */
         getSystemProxyServer2Sync,
+        /**判断系统是否是64位系统 */
+        isSystemFor64bit2,
+        /**判断系统是否是64位系统 */
+        isSystemFor64bit2Sync,
     } = HMC_GetSokeEnvInfo;
 
     /** 获取本机局域网的ip(v4)*/
-    export async function ipv4(): Promise<Array<HMC2_MODE.ipv4Item>> {
-        return ref.JSONP<Array<HMC2_MODE.ipv4Item>>(await HMC_GetSokeEnvInfo.ipv4(), []);
+    export async function ipv4(): Promise<Array<HMC.ipv4Item>> {
+        return ref.JSONP<Array<HMC.ipv4Item>>(await HMC_GetSokeEnvInfo.ipv4(), []);
     }
 
     /** 获取本机局域网的ip(v4)*/
-    export async function getIpaddressList(): Promise<Array<HMC2_MODE.ipv4Item>> {
-        return ref.JSONP<Array<HMC2_MODE.ipv4Item>>(await HMC_GetSokeEnvInfo.getIpaddressList(), []);
+    export async function getIpaddressList(): Promise<Array<HMC.ipv4Item>> {
+        return ref.JSONP<Array<HMC.ipv4Item>>(await HMC_GetSokeEnvInfo.getIpaddressList(), []);
     }
 
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    export async function ip(): Promise<Array<HMC2_MODE.hmc_net_addr_item>> {
-        return ref.JSONP<Array<HMC2_MODE.hmc_net_addr_item>>(await HMC_GetSokeEnvInfo.ip(), []);
+    export async function ip(): Promise<Array<HMC.hmc_net_addr_item>> {
+        return ref.JSONP<Array<HMC.hmc_net_addr_item>>(await HMC_GetSokeEnvInfo.ip(), []);
     }
 
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    export async function getAdapterIP2(): Promise<Array<HMC2_MODE.hmc_net_addr_item>> {
-        return ref.JSONP<Array<HMC2_MODE.hmc_net_addr_item>>(await HMC_GetSokeEnvInfo.getAdapterIP2(), []);
+    export async function getAdapterIP2(): Promise<Array<HMC.hmc_net_addr_item>> {
+        return ref.JSONP<Array<HMC.hmc_net_addr_item>>(await HMC_GetSokeEnvInfo.getAdapterIP2(), []);
     }
 
     /** 获取主机网络信息*/
-    export async function getNetParams2(): Promise<HMC2_MODE.hmc_NetParams | null> {
-        return ref.JSONP<HMC2_MODE.hmc_NetParams | null>(await HMC_GetSokeEnvInfo.getNetParams2(), null);
+    export async function getNetParams2(): Promise<HMC.hmc_NetParams | null> {
+        return ref.JSONP<HMC.hmc_NetParams | null>(await HMC_GetSokeEnvInfo.getNetParams2(), null);
     }
 
     /** 从默认dns(联网)解析域名主机ip*/
     export async function getDomainIPaddress2(url: string): Promise<Array<string>> {
-        return HMC_GetSokeEnvInfo.getDomainIPaddress2(ref.string(url||""));
+        return HMC_GetSokeEnvInfo.getDomainIPaddress2(ref.string(url || ""));
     }
 
     /** 获取此端口被哪个进程占用了*/
@@ -475,42 +506,42 @@ export namespace Network {
      * @param tcp6 枚举 TCP (v6)端口
      * @param udp6 枚举 UDP (v6)端口
      */
-    export async function getConnectNetList2(tcp?: boolean, udp?: boolean, tcp6?: boolean, udp6?: boolean): Promise<Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet>> {
-        return ref.JSONP<Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet>>(await HMC_GetSokeEnvInfo.getConnectNetList2(
+    export async function getConnectNetList2(tcp?: boolean, udp?: boolean, tcp6?: boolean, udp6?: boolean): Promise<Array<HMC.ConnectNet | HMC.ConnectNet>> {
+        return ref.JSONP<Array<HMC.ConnectNet | HMC.ConnectNet>>(await HMC_GetSokeEnvInfo.getConnectNetList2(
             typeof tcp == "boolean" ? tcp : true,
             typeof udp == "boolean" ? udp : true,
             typeof tcp6 == "boolean" ? tcp6 : true,
-            typeof udp6 == "boolean" ? udp6 : true),[]);
+            typeof udp6 == "boolean" ? udp6 : true), []);
     }
 
     /** 获取本机局域网的ip(v4)*/
-    export function ipv4Sync(): Array<HMC2_MODE.ipv4Item> {
-        return ref.JSONP<Array<HMC2_MODE.ipv4Item>>(HMC_GetSokeEnvInfo.ipv4Sync(), []);
+    export function ipv4Sync(): Array<HMC.ipv4Item> {
+        return ref.JSONP<Array<HMC.ipv4Item>>(HMC_GetSokeEnvInfo.ipv4Sync(), []);
     }
 
     /** 获取本机局域网的ip(v4)*/
-    export function getIpaddressListSync(): Array<HMC2_MODE.ipv4Item> {
-        return ref.JSONP<Array<HMC2_MODE.ipv4Item>>(HMC_GetSokeEnvInfo.getIpaddressListSync(), []);
+    export function getIpaddressListSync(): Array<HMC.ipv4Item> {
+        return ref.JSONP<Array<HMC.ipv4Item>>(HMC_GetSokeEnvInfo.getIpaddressListSync(), []);
     }
 
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    export function ipSync(): Array<HMC2_MODE.hmc_net_addr_item> {
-        return ref.JSONP<Array<HMC2_MODE.hmc_net_addr_item>>(HMC_GetSokeEnvInfo.ipSync(), []);
+    export function ipSync(): Array<HMC.hmc_net_addr_item> {
+        return ref.JSONP<Array<HMC.hmc_net_addr_item>>(HMC_GetSokeEnvInfo.ipSync(), []);
     }
 
     /**获取本机局域网的ip(适配器,v4,v6)*/
-    export function getAdapterIP2Sync(): Array<HMC2_MODE.hmc_net_addr_item> {
-        return ref.JSONP<Array<HMC2_MODE.hmc_net_addr_item>>(HMC_GetSokeEnvInfo.getAdapterIP2Sync(), []);
+    export function getAdapterIP2Sync(): Array<HMC.hmc_net_addr_item> {
+        return ref.JSONP<Array<HMC.hmc_net_addr_item>>(HMC_GetSokeEnvInfo.getAdapterIP2Sync(), []);
     }
 
     /** 获取主机网络信息*/
-    export function getNetParams2Sync(): HMC2_MODE.hmc_NetParams | null {
-        return ref.JSONP<HMC2_MODE.hmc_NetParams | null>(HMC_GetSokeEnvInfo.getNetParams2Sync(), null);
+    export function getNetParams2Sync(): HMC.hmc_NetParams | null {
+        return ref.JSONP<HMC.hmc_NetParams | null>(HMC_GetSokeEnvInfo.getNetParams2Sync(), null);
     }
 
     /** 从默认dns(联网)解析域名主机ip*/
     export function getDomainIPaddress2Sync(url: string): Array<string> {
-        return HMC_GetSokeEnvInfo.getDomainIPaddress2Sync(ref.string(url||""));
+        return HMC_GetSokeEnvInfo.getDomainIPaddress2Sync(ref.string(url || ""));
     }
 
     /** 获取此端口被哪个进程占用了*/
@@ -540,12 +571,12 @@ export namespace Network {
      * @param tcp6 枚举 TCP (v6)端口
      * @param udp6 枚举 UDP (v6)端口
      */
-    export function getConnectNetList2Sync(tcp?: boolean, udp?: boolean, tcp6?: boolean, udp6?: boolean): Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet> {
-        return ref.JSONP<Array<HMC2_MODE.ConnectNet | HMC2_MODE.ConnectNet>>(HMC_GetSokeEnvInfo.getConnectNetList2Sync(
+    export function getConnectNetList2Sync(tcp?: boolean, udp?: boolean, tcp6?: boolean, udp6?: boolean): Array<HMC.ConnectNet | HMC.ConnectNet> {
+        return ref.JSONP<Array<HMC.ConnectNet | HMC.ConnectNet>>(HMC_GetSokeEnvInfo.getConnectNetList2Sync(
             typeof tcp == "boolean" ? tcp : true,
             typeof udp == "boolean" ? udp : true,
             typeof tcp6 == "boolean" ? tcp6 : true,
-            typeof udp6 == "boolean" ? udp6 : true),[]);
+            typeof udp6 == "boolean" ? udp6 : true), []);
     }
 
 }

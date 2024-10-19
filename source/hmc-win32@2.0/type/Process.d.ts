@@ -1,5 +1,5 @@
 import { HMC2_MODE } from "./index";
-export declare module Process {
+export declare namespace Process {
     /**
      * 获取指定进程的工作目录
      * @dosc 由于跨进程权限问题 不保证获取得到

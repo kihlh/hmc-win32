@@ -1,42 +1,43 @@
-import { KeyboardcodeEmenList, VK_code, VK_key, VK_keyCode, VK_VirtualKey } from "../../../mian/vkKey";
-import main = require("./index");
-import util = require("./util");
-const { ref } = util;
+import type { VK_code, VK_key, VK_keyCode, VK_VirtualKey } from "./vkKey";
+import { KeyboardcodeEmenList } from "./vkKey";
+import { HMC } from "./HMC";
+import { ref } from "./util";
+import { Native } from "./Native";
 
 
 class HMC_MOUSE_CLASS {
     constructor() { }
 
     initMouseEventHook() {
-        return main.Native.HMC_MOUSE_CLASS?.initMouseEventHook() || false;
+        return Native.HMC_MOUSE_CLASS?.initMouseEventHook() || false;
     }
 
     isValidHookMouse() {
-        return main.Native.HMC_MOUSE_CLASS?.isValidHookMouse() || false;
+        return Native.HMC_MOUSE_CLASS?.isValidHookMouse() || false;
     }
 
     getMouseEventListJson() {
-        return main.Native.HMC_MOUSE_CLASS?.getMouseEventListJson() || false;
+        return Native.HMC_MOUSE_CLASS?.getMouseEventListJson() || false;
     }
 
     stopHookMouse() {
-        return main.Native.HMC_MOUSE_CLASS?.stopHookMouse() || false;
+        return Native.HMC_MOUSE_CLASS?.stopHookMouse() || false;
     }
 
     setLimitMouseRange(ms: number, x: number, y: number, right: number, bottom: number) {
-        return main.Native.HMC_MOUSE_CLASS?.setLimitMouseRange(ref.int(ms), ref.int(x), ref.int(y), ref.int(right), ref.int(bottom)) || false;
+        return Native.HMC_MOUSE_CLASS?.setLimitMouseRange(ref.int(ms), ref.int(x), ref.int(y), ref.int(right), ref.int(bottom)) || false;
     }
 
     setShakeEventTime(ms: number) {
-        return main.Native.HMC_MOUSE_CLASS?.setShakeEventTime(ref.int(ms)) || false;
+        return Native.HMC_MOUSE_CLASS?.setShakeEventTime(ref.int(ms)) || false;
     }
 
     hasLimitMouseRangeWorker() {
-        return main.Native.HMC_MOUSE_CLASS?.hasLimitMouseRangeWorker() || false;
+        return Native.HMC_MOUSE_CLASS?.hasLimitMouseRangeWorker() || false;
     }
 
     stopLimitMouseRangeWorker() {
-        return main.Native.HMC_MOUSE_CLASS?.stopLimitMouseRangeWorker() || false;
+        return Native.HMC_MOUSE_CLASS?.stopLimitMouseRangeWorker() || false;
     }
 
 }
@@ -47,23 +48,23 @@ class HMC_KEYBOARD_CLASS {
     constructor() { }
 
     initKeyboardEventHook() {
-        return main.Native.HMC_KEYBOARD_CLASS?.initKeyboardEventHook() || false;
+        return Native.HMC_KEYBOARD_CLASS?.initKeyboardEventHook() || false;
     }
 
     isValidHookKeyboard() {
-        return main.Native.HMC_KEYBOARD_CLASS?.isValidHookKeyboard() || false;
+        return Native.HMC_KEYBOARD_CLASS?.isValidHookKeyboard() || false;
     }
 
-    getAllKeyboardEventJson(): main.HMC2_MODE.KeyboardEvent[] {
-        return JSON.parse(main.Native.HMC_KEYBOARD_CLASS?.getAllKeyboardEventJson() || "[]");
+    getAllKeyboardEventJson(): HMC.KeyboardEvent[] {
+        return JSON.parse(Native.HMC_KEYBOARD_CLASS?.getAllKeyboardEventJson() || "[]");
     }
 
     stopHookKeyboard() {
-        return main.Native.HMC_KEYBOARD_CLASS?.stopHookKeyboard() || false;
+        return Native.HMC_KEYBOARD_CLASS?.stopHookKeyboard() || false;
     }
 
     hasKeysBasic() {
-        return main.Native.HMC_KEYBOARD_CLASS?.hasKeysBasic() || {
+        return Native.HMC_KEYBOARD_CLASS?.hasKeysBasic() || {
             "alt": false,
             "ctrl": false,
             "shift": false,
@@ -72,14 +73,12 @@ class HMC_KEYBOARD_CLASS {
     }
 
     hasKeyActivate(KeysEvent: number) {
-        return main.Native.HMC_KEYBOARD_CLASS?.hasKeyActivate(ref.int(KeysEvent)) || false;
+        return Native.HMC_KEYBOARD_CLASS?.hasKeyActivate(ref.int(KeysEvent)) || false;
     }
 
 }
 
 const HmcKeyboardClass = new HMC_KEYBOARD_CLASS();
-
-
 
 
 /**
@@ -202,7 +201,7 @@ class Keyboard {
     /**是否被按下 (旧版兼容) */
     readonly isDown: boolean;
 
-    constructor(env: main.HMC2_MODE.KeyboardEvent) {
+    constructor(env: HMC.KeyboardEvent) {
 
         this.id = Number(env.id);
         this.time = Number(env.time);
@@ -255,8 +254,8 @@ class Iohook_Keyboard {
     }
     once(eventName: "start" | "close", listener: () => void): this;
     once(eventName: "data", listener: (data: (`${number}|0` | `${number}|1`)[]) => void): this;
-    once(eventName: "change", listener: (KeyboardPoint: main.HMC2_MODE.KeyboardEvent) => void): this;
-    once(listener: (KeyboardPoint: main.HMC2_MODE.KeyboardEvent) => void): this;
+    once(eventName: "change", listener: (KeyboardPoint: HMC.KeyboardEvent) => void): this;
+    once(listener: (KeyboardPoint: HMC.KeyboardEvent) => void): this;
     once(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -267,9 +266,9 @@ class Iohook_Keyboard {
         return keyboardHook;
     };
     on(eventName: "start" | "close", listener: () => void): this;
-    on(eventName: "data", listener: (data: main.HMC2_MODE.KeyboardEvent[]) => void): this;
-    on(eventName: "change", listener: (KeyboardPoint: main.HMC2_MODE.KeyboardEvent) => void): this;
-    on(listener: (KeyboardPoint: main.HMC2_MODE.KeyboardEvent) => void): this;
+    on(eventName: "data", listener: (data: HMC.KeyboardEvent[]) => void): this;
+    on(eventName: "change", listener: (KeyboardPoint: HMC.KeyboardEvent) => void): this;
+    on(listener: (KeyboardPoint: HMC.KeyboardEvent) => void): this;
     on(eventName: unknown, listener?: unknown) {
         if (typeof eventName === "function") {
             listener = eventName;
@@ -342,7 +341,7 @@ class Iohook_Keyboard {
         (async () => {
             while (true) {
                 if (this._hook_Task_id != _hook_Task_id || keyboardHook._Close) return;
-                await main.Sleep(this._next_Sleep);
+                await ref.Sleep(this._next_Sleep);
                 emit_getKeyboardNextSession();
             }
         })();
@@ -404,9 +403,9 @@ class Iohook_Keyboard {
         keyboardHook._onlistenerCountList.start.length = 0;
     }
 
-    emit(eventName: "data", data: (main.HMC2_MODE.KeyboardEvent)[]): boolean;
+    emit(eventName: "data", data: (HMC.KeyboardEvent)[]): boolean;
     emit(eventName: "start" | "close"): boolean;
-    emit(eventName: "change", KeyboardPoint: main.HMC2_MODE.KeyboardEvent): boolean;
+    emit(eventName: "change", KeyboardPoint: HMC.KeyboardEvent): boolean;
     emit(eventName: unknown, ...data: unknown[]) {
         const emitFunList = keyboardHook._onlistenerCountList[eventName as "data"];
         const onceEmitFunList = keyboardHook._oncelistenerCountList[eventName as "data"];

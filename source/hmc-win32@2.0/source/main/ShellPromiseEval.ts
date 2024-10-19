@@ -1,6 +1,7 @@
-import fs from "fs";
-import main = require("./index");
+import { HMC } from "./HMC";
 import { ref } from "./util";
+import { Native } from "./Native";
+
 
 export enum HMC_PROMISEEVAL_TASK_TYPE {
     getLinkTarget2 = 1,
@@ -27,12 +28,17 @@ export enum HMC_PROMISEEVAL_TASK_TYPE {
     setFolderIcon2 = 21,
     setExtensionIcon2 = 22,
     setAppURLProtocol2 = 23,
-    getShortcutLink = 25,
+    getShortcutLink2 = 25,
+    trashFile2 = 26,
+    clearTrash2 = 27,
+    copyFile2 = 28,
+    moveFile2 = 29,
+    setShortcutLink2 = 30,
 
 };
 
 export type HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_PROMISEEVAL_TASK_TYPE;
-export type LINK_TYPE = main.HMC2_MODE.LINK_TYPE;
+export type LINK_TYPE = HMC.LINK_TYPE;
 
 class HMC_PromiseeEvalTask {
     async: Partial<Record<HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME, (...arg: any[]) => Promise<any>>> = {};
@@ -51,15 +57,15 @@ class HMC_PromiseeEvalTask {
             _this.async[TASK_TYPE] = (...arg: any[]) => {
                 try {
 
-                    if (!main.Native.native?.HMC_GetShellEnvInfo) {
-                        return Promise.reject(main.HMC2_MODE.HMCNotPlatform);
+                    if (!Native.native?.HMC_GetShellEnvInfo) {
+                        return Promise.reject(HMC.HMCNotPlatform);
                     }
 
                     if (arg.length >= 1) {
-                        return main.Native.native.HMC_GetShellEnvInfo(TASK_ID, ...arg);
+                        return Native.native.HMC_GetShellEnvInfo(TASK_ID, ...arg);
                     }
 
-                    return main.Native.native.HMC_GetShellEnvInfo(TASK_ID);
+                    return Native.native.HMC_GetShellEnvInfo(TASK_ID);
 
                 } catch (error) {
                     return Promise.reject(error);
@@ -67,14 +73,14 @@ class HMC_PromiseeEvalTask {
             }
 
             _this.sync[TASK_TYPE] = (...arg: any[]) => {
-                if (!main.Native.native?.HMC_GetShellEnvInfoSync) {
+                if (!Native.native?.HMC_GetShellEnvInfoSync) {
                     return null;
                 }
                 if (arg.length >= 1) {
-                    return main.Native.native.HMC_GetShellEnvInfoSync(TASK_ID, ...arg) || null;
+                    return Native.native.HMC_GetShellEnvInfoSync(TASK_ID, ...arg) || null;
                 }
 
-                return main.Native.native.HMC_GetShellEnvInfoSync(TASK_ID);
+                return Native.native.HMC_GetShellEnvInfoSync(TASK_ID);
             }
 
             if (!_this[TASK_TYPE]) {
@@ -92,11 +98,11 @@ class HMC_PromiseeEvalTask {
         }
     }
 
-    async getLinkTarget2(targetPath: string): Promise<main.HMC2_MODE.LINK_TARGET | null> {
-        if (!promiseEvalTask.async.getLinkTarget2) {
+    async getLinkTarget2(targetPath: string): Promise<HMC.LINK_TARGET | null> {
+        if (!ShellPromiseEval.async.getLinkTarget2) {
             return Promise.resolve(null);
         }
-        return await promiseEvalTask.async.getLinkTarget2(targetPath).then(data => {
+        return await ShellPromiseEval.async.getLinkTarget2(targetPath).then(data => {
 
             if (typeof data == "string") {
 
@@ -109,12 +115,12 @@ class HMC_PromiseeEvalTask {
         });
     }
 
-    getLinkTarget2Sync(targetPath: string): main.HMC2_MODE.LINK_TARGET | null {
-        if (!promiseEvalTask.sync.getLinkTarget2) {
+    getLinkTarget2Sync(targetPath: string): HMC.LINK_TARGET | null {
+        if (!ShellPromiseEval.sync.getLinkTarget2) {
             return null;
         }
 
-        let data = promiseEvalTask.sync.getLinkTarget2(targetPath);
+        let data = ShellPromiseEval.sync.getLinkTarget2(targetPath);
 
         if (typeof data == "string") {
 
@@ -127,47 +133,47 @@ class HMC_PromiseeEvalTask {
         return data || null;
     }
 
-    async getFileAttributes2(targetPath: string): Promise<null | main.HMC2_MODE.FileAttributesStat> {
-        if (!promiseEvalTask.async.getFileAttributes2) {
+    async getFileAttributes2(targetPath: string): Promise<null | HMC.FileAttributesStat> {
+        if (!ShellPromiseEval.async.getFileAttributes2) {
             return null;
         }
 
-        let data = await promiseEvalTask.async.getFileAttributes2(targetPath);
+        let data = await ShellPromiseEval.async.getFileAttributes2(targetPath);
 
         const attributes_list = typeof data == "string" ? ref.JSONP(data) : data as number[] | null;
         if (attributes_list?.length) {
             return {
                 "attributes": attributes_list[0],
                 "list": attributes_list.length == 1 ? attributes_list : attributes_list.slice(1)
-            } as main.HMC2_MODE.FileAttributesStat;
+            } as HMC.FileAttributesStat;
         }
 
         return null;
     }
 
-    getFileAttributes2Sync(targetPath: string): null | main.HMC2_MODE.FileAttributesStat {
-        if (!promiseEvalTask.sync.getFileAttributes2) {
+    getFileAttributes2Sync(targetPath: string): null | HMC.FileAttributesStat {
+        if (!ShellPromiseEval.sync.getFileAttributes2) {
             return null;
         }
 
-        let data = promiseEvalTask.sync.getFileAttributes2(targetPath);
+        let data = ShellPromiseEval.sync.getFileAttributes2(targetPath);
 
         const attributes_list = typeof data == "string" ? ref.JSONP(data) : data as number[] | null;
         if (attributes_list?.length) {
             return {
                 "attributes": attributes_list[0],
                 "list": attributes_list.length == 1 ? attributes_list : attributes_list.slice(1)
-            } as main.HMC2_MODE.FileAttributesStat;
+            } as HMC.FileAttributesStat;
         }
 
         return null;
     }
 
-    async getVolumeList2(): Promise<null | main.HMC2_MODE.Volume[]> {
-        if (!promiseEvalTask.async.getVolumeList2) {
+    async getVolumeList2(): Promise<null | HMC.Volume[]> {
+        if (!ShellPromiseEval.async.getVolumeList2) {
             return Promise.resolve(null);
         }
-        return await promiseEvalTask.async.getVolumeList2().then(data => {
+        return await ShellPromiseEval.async.getVolumeList2().then(data => {
 
             if (typeof data == "string") {
 
@@ -178,12 +184,12 @@ class HMC_PromiseeEvalTask {
         });
     }
 
-    getVolumeList2Sync(): null | main.HMC2_MODE.Volume[] {
-        if (!promiseEvalTask.sync.getVolumeList2) {
+    getVolumeList2Sync(): null | HMC.Volume[] {
+        if (!ShellPromiseEval.sync.getVolumeList2) {
             return null;
         }
 
-        let data = promiseEvalTask.sync.getVolumeList2();
+        let data = ShellPromiseEval.sync.getVolumeList2();
 
         if (typeof data == "string") {
 
@@ -205,8 +211,8 @@ interface HMC_PromiseeEvalTask {
     formatVolumeNtName2(Path2: string): Promise<null | string>;
     formatVolumeNtName2Sync(Path2: string): null | string;
 
-    getLinkType2(targetPath: string): Promise<main.HMC2_MODE.LINK_TYPE_EQ | null>;
-    getLinkType2Sync(targetPath: string): main.HMC2_MODE.LINK_TYPE_EQ | null;
+    getLinkType2(targetPath: string): Promise<HMC.LINK_TYPE_EQ | null>;
+    getLinkType2Sync(targetPath: string): HMC.LINK_TYPE_EQ | null;
 
     /**
      * 获取 软链接/ 硬链接 指向的路径
@@ -271,8 +277,8 @@ interface HMC_PromiseeEvalTask {
      */
     hasDirJunctionPoint2Sync(targetPath: string): boolean;
 
-    createLink(targetType: main.HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string): Promise<boolean>;
-    createLinkSync(targetType: main.HMC2_MODE.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string): boolean;
+    createLink(targetType: HMC.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string): Promise<boolean>;
+    createLinkSync(targetType: HMC.FS_MK_LINK_TARGET_TYPE, targetPath: string, sourcePath: string): boolean;
 
     createDirJunctionPoint2(targetPath: string, sourcePath: string): Promise<boolean>;
     createDirJunctionPoint2Sync(targetPath: string, sourcePath: string): boolean;
@@ -289,10 +295,21 @@ interface HMC_PromiseeEvalTask {
     setAppURLProtocol2(protocolName: string, appPath: string, command: string): Promise<boolean>;
     setAppURLProtocol2Sync(protocolName: string, appPath: string, command: string): boolean;
 
-    getShortcutLink(targetPath: string, QueryDetaile?: boolean): Promise<main.HMC2_MODE.SHORTCUT_LINK | null>;
-    getShortcutLinkSync(targetPath: string, QueryDetaile?: boolean): main.HMC2_MODE.SHORTCUT_LINK | null;
+    getShortcutLink2(targetPath: string, QueryDetaile?: boolean): Promise<HMC.SHORTCUT_LINK | null>;
+    getShortcutLink2Sync(targetPath: string, QueryDetaile?: boolean): HMC.SHORTCUT_LINK | null;
+
+    setShortcutLink2(targetPath: string, FilePath: string, work_dir: string, desc: string, args: string, iShowCmd: number, icon: string, iconIndex: number): Promise<boolean>;
+    trashFile2(trash_path: string, is_Recycle: boolean, isShow: boolean): Promise<boolean>;
+    clearTrash2(root_path: string, isShow: boolean): Promise<boolean>;
+    copyFile2(filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean): Promise<boolean>;
+    moveFile2(filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean): Promise<boolean>;
+
+    setShortcutLink2Sync(targetPath: string, FilePath: string, work_dir: string, desc: string, args: string, iShowCmd: number, icon: string, iconIndex: number): boolean;
+    trashFile2Sync(trash_path: string, is_Recycle: boolean, isShow: boolean): boolean;
+    clearTrash2Sync(root_path: string, isShow: boolean): boolean;
+    copyFile2Sync(filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean): boolean;
+    moveFile2Sync(filePath: string, newFilePath: string, isShowConfirm: boolean, isShow: boolean, isShowProgress: boolean): boolean;
 
 }
 
-export const promiseEvalTask = new HMC_PromiseeEvalTask();
-
+export const ShellPromiseEval = new HMC_PromiseeEvalTask();

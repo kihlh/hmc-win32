@@ -828,8 +828,8 @@ namespace HMC_GetShellEnvInfo
 
         {GET_SHELL_ENV_INFO_ID::trashFile, {{0, js_string}, {1, js_boolean}, {2, js_boolean}}},
         {GET_SHELL_ENV_INFO_ID::clearTrash, {{0, js_string}, {1, js_boolean}}},
-        {GET_SHELL_ENV_INFO_ID::copyFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}, {5, js_boolean}}},
-        {GET_SHELL_ENV_INFO_ID::moveFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}, {5, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::copyFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}}},
+        {GET_SHELL_ENV_INFO_ID::moveFile, {{0, js_string}, {1, js_string}, {2, js_boolean}, {3, js_boolean}, {4, js_boolean}}},
         {GET_SHELL_ENV_INFO_ID::setShortcutLink, {{0, js_string}, {1, js_string}, {2, js_string}, {3, js_string}, {4, js_string}, {5, js_number}, {6, js_string}, {7, js_number}}},
     };
 
@@ -881,7 +881,12 @@ namespace HMC_GetShellEnvInfo
                 if (GET_SHELL_FUNC.first == work->TAKE_TYPE)
                 {
                     auto fun = GET_SHELL_FUNC.second;
-                    fun(work);
+                    
+                    if (fun != nullptr)
+                    {
+                        fun(work);
+                    }
+
                     return;
                 }
             }
@@ -1161,8 +1166,17 @@ void HMC_GetShellEnvInfo::ExplorerShell(EnvNextWorkData *work)
         bool isShowConfirm = work->get<bool>(2, true);
         bool isShow = work->get<bool>(3, true);
         bool isShowProgress = work->get<bool>(4, true);
+        bool trash_ok = false;
 
-        bool trash_ok = hmc_shell_util::moveFile(sourcePath, targetPath, isShowConfirm, isShow, isShowProgress);
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::moveFile)
+        {
+            trash_ok = hmc_shell_util::moveFile(sourcePath, targetPath, isShowConfirm, isShow, isShowProgress);
+        }
+
+        if (TAKE_TYPE == GET_SHELL_ENV_INFO_ID::copyFile)
+        {
+            trash_ok = hmc_shell_util::copyFile(sourcePath, targetPath, isShowConfirm, isShow, isShowProgress);
+        }
 
         (*work->Result) = trash_ok;
     }

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-export declare module ref {
+export declare namespace ref {
     /**
     * 将内容格式化为文本路径
     * @param Str
@@ -42,6 +42,7 @@ export declare module ref {
      * @returns
      */
     function stringArray(array: Set<any> | Array<any>): string[];
+    function is_stringArray(array: Array<any>): array is Array<string>;
     function convertMultiStringArray(input: string): string[];
     function convertMultiStringArray(input: Array<string | number>): string;
     function convertMultiStringArray(input: Set<string | number>): string;

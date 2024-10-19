@@ -1,26 +1,23 @@
-import main = require("./index");
-import util = require("./util");
-import { HMC2_MODE } from "./index";
+import { ref } from "./util";
+import { HMC } from "./HMC";
+import { Native } from "./Native";
 
-const { ref } = util;
+function GetProcessEnvInfo2Clone(pid: number, command: HMC.ENV_INFO_COMMAND) {
 
-
-function GetProcessEnvInfo2Clone(pid: number, command: HMC2_MODE.ENV_INFO_COMMAND) {
-
-    if (!main.Native.native?.["getProcessEnvInfo2"]) {
+    if (!Native.native?.["getProcessEnvInfo2"]) {
         return Promise.resolve(null);
     }
 
-    return main.Native.native["getProcessEnvInfo2"](pid, command);
+    return Native.native["getProcessEnvInfo2"](pid, command);
 }
 
-function GetProcessEnvInfo2SyncClone(pid: number, command: HMC2_MODE.ENV_INFO_COMMAND) {
+function GetProcessEnvInfo2SyncClone(pid: number, command: HMC.ENV_INFO_COMMAND) {
 
-    if (!main.Native.native?.["getProcessEnvInfo2Sync"]) {
+    if (!Native.native?.["getProcessEnvInfo2Sync"]) {
         return null;
     }
 
-    return main.Native.native["getProcessEnvInfo2Sync"](pid, command);
+    return Native.native["getProcessEnvInfo2Sync"](pid, command);
 }
 
 
@@ -34,7 +31,7 @@ export namespace Process {
      * @returns 
      */
     export async function getProcessCwdPath2(ProcessID: number): Promise<null | string> {
-        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_CWD)
+        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_CWD)
             .then(data => {
                 return data || ref.string(data);
             })
@@ -52,7 +49,7 @@ export namespace Process {
      * @returns 
      */
     export function getProcessCwdPath2Sync(ProcessID: number): null | string {
-        return GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_CWD);
+        return GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_CWD);
     }
 
     /**
@@ -64,7 +61,7 @@ export namespace Process {
      * @returns 
      */
     export async function getProcessCommandLine2(ProcessID: number): Promise<null | string> {
-        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_COMMAND)
+        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_COMMAND)
             .then(data => {
                 return data || ref.string(data);
             })
@@ -83,7 +80,7 @@ export namespace Process {
      * @returns 
      */
     export function getProcessCommandLine2Sync(ProcessID: number): null | string {
-        return GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_COMMAND);
+        return GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_COMMAND);
     }
 
     /**
@@ -93,7 +90,7 @@ export namespace Process {
      * @returns 
      */
     export async function getProcessCpuUsage2(ProcessID: number): Promise<number> {
-        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_PROCESS_CPU_USAGE)
+        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_PROCESS_CPU_USAGE)
             .then(data => {
                 return ref.float(data);
             })
@@ -109,7 +106,7 @@ export namespace Process {
      * @time >= 1000ms
      */
     export function getProcessCpuUsage2Sync(ProcessID: number): number {
-        return ref.float(GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_PROCESS_CPU_USAGE));
+        return ref.float(GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_PROCESS_CPU_USAGE));
     }
 
     /**
@@ -118,7 +115,7 @@ export namespace Process {
      * @time >= 1000ms
      */
     export async function getProcessStartTime2(ProcessID: number): Promise<number> {
-        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_PROCESS_START_TIME)
+        return GetProcessEnvInfo2Clone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_PROCESS_START_TIME)
             .then(data => {
                 return ref.int(data);
             })
@@ -133,18 +130,18 @@ export namespace Process {
      * @param ProcessID 进程id
      */
     export function getProcessStartTime2Sync(ProcessID: number): number {
-        return ref.int(GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC2_MODE.ENV_INFO_COMMAND.GET_PROCESS_START_TIME));
+        return ref.int(GetProcessEnvInfo2SyncClone(ref.int(ProcessID), HMC.ENV_INFO_COMMAND.GET_PROCESS_START_TIME));
     }
 
-    export function getAllProcessList2(): Promise<HMC2_MODE.PROCESSENTRY_DEFAULT[]>;
-    export function getAllProcessList2(is_execPath: false): Promise<HMC2_MODE.PROCESSENTRY_NONE_NAME[]>;
-    export function getAllProcessList2(is_execPath: true): Promise<HMC2_MODE.PROCESSENTRY_DEFAULT[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST): Promise<number[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS): Promise<HMC2_MODE.PROCESSENTRY_DEFAULT[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP): Promise<HMC2_MODE.PROCESSENTRY[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT): Promise<HMC2_MODE.PSYSTEM_PROCESS_INFORMATION[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME): Promise<HMC2_MODE.PROCESSENTRY_NONE_NAME[]>;
-    export function getAllProcessList2(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME): Promise<HMC2_MODE.PROCESSENTRY_DEFAULT[]>;
+    export function getAllProcessList2(): Promise<HMC.PROCESSENTRY_DEFAULT[]>;
+    export function getAllProcessList2(is_execPath: false): Promise<HMC.PROCESSENTRY_NONE_NAME[]>;
+    export function getAllProcessList2(is_execPath: true): Promise<HMC.PROCESSENTRY_DEFAULT[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST): Promise<number[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS): Promise<HMC.PROCESSENTRY_DEFAULT[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP): Promise<HMC.PROCESSENTRY[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT): Promise<HMC.PSYSTEM_PROCESS_INFORMATION[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME): Promise<HMC.PROCESSENTRY_NONE_NAME[]>;
+    export function getAllProcessList2(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME): Promise<HMC.PROCESSENTRY_DEFAULT[]>;
 
     /**
      * 获取所有进程的进程列表
@@ -155,15 +152,15 @@ export namespace Process {
      * @default false
      * - true {name:string,path:string,pid:number}
      * - false { name:'' (wow64) | string , path:'' , pid:number }
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME
+     * - HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME
      * @returns 
      */
-    export async function getAllProcessList2(is_execPath?: boolean | HMC2_MODE.GET_PROCESS_LIST_COMMAND): Promise<unknown> {
+    export async function getAllProcessList2(is_execPath?: boolean | HMC.GET_PROCESS_LIST_COMMAND): Promise<unknown> {
         const {
 
             GET_ALL_PROCESS_LIST_NT,
@@ -176,7 +173,7 @@ export namespace Process {
             // sup 列表
             GET_ALL_PROCESS_LIST_SNP,
             GET_ENUM_PROCESSES_LIST
-        } = HMC2_MODE.ENV_INFO_COMMAND;
+        } = HMC.ENV_INFO_COMMAND;
 
 
         let SEND_TYPE = typeof is_execPath == "boolean" ? is_execPath ? GET_ALL_PROCESS_LIST_DETAILS : GET_ALL_PROCESS_LIST_NONE_NAME : GET_ALL_PROCESS_LIST_NONE_NAME;
@@ -217,15 +214,15 @@ export namespace Process {
         }
     }
 
-    export function getAllProcessList2Sync(): HMC2_MODE.PROCESSENTRY_DEFAULT[];
-    export function getAllProcessList2Sync(is_execPath: false): HMC2_MODE.PROCESSENTRY_NONE_NAME[];
-    export function getAllProcessList2Sync(is_execPath: true): HMC2_MODE.PROCESSENTRY_DEFAULT[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST): number[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS): HMC2_MODE.PROCESSENTRY_DEFAULT[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP): HMC2_MODE.PROCESSENTRY[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT): HMC2_MODE.PSYSTEM_PROCESS_INFORMATION[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME): HMC2_MODE.PROCESSENTRY_NONE_NAME[];
-    export function getAllProcessList2Sync(is_execPath: HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME): HMC2_MODE.PROCESSENTRY_DEFAULT[];
+    export function getAllProcessList2Sync(): HMC.PROCESSENTRY_DEFAULT[];
+    export function getAllProcessList2Sync(is_execPath: false): HMC.PROCESSENTRY_NONE_NAME[];
+    export function getAllProcessList2Sync(is_execPath: true): HMC.PROCESSENTRY_DEFAULT[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST): number[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS): HMC.PROCESSENTRY_DEFAULT[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP): HMC.PROCESSENTRY[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT): HMC.PSYSTEM_PROCESS_INFORMATION[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME): HMC.PROCESSENTRY_NONE_NAME[];
+    export function getAllProcessList2Sync(is_execPath: HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME): HMC.PROCESSENTRY_DEFAULT[];
 
     /**
      * 获取所有进程的进程列表
@@ -236,15 +233,15 @@ export namespace Process {
      * @default false
      * - true {name:string,path:string,pid:number}
      * - false { name:'' (wow64) | string , path:'' , pid:number }
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME
-     * - HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME
+     * - HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_PID_NAME
+     * - HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NONE_NAME
      * @returns 
      */
-    export function getAllProcessList2Sync(is_execPath?: boolean | HMC2_MODE.ENV_INFO_COMMAND): unknown {
+    export function getAllProcessList2Sync(is_execPath?: boolean | HMC.ENV_INFO_COMMAND): unknown {
         const {
 
             GET_ALL_PROCESS_LIST_NT,
@@ -257,7 +254,7 @@ export namespace Process {
             // sup 列表
             GET_ALL_PROCESS_LIST_SNP,
             GET_ENUM_PROCESSES_LIST
-        } = HMC2_MODE.ENV_INFO_COMMAND;
+        } = HMC.ENV_INFO_COMMAND;
 
 
         let SEND_TYPE = typeof is_execPath == "boolean" ? is_execPath ? GET_ALL_PROCESS_LIST_DETAILS : GET_ALL_PROCESS_LIST_NONE_NAME : GET_ALL_PROCESS_LIST_NONE_NAME;
@@ -300,48 +297,48 @@ export namespace Process {
      * 获取内核进程快照
      * @returns 
      */
-    export function getAllProcessListNt2(): Promise<HMC2_MODE.PSYSTEM_PROCESS_INFORMATION[]> {
-        return getAllProcessList2(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT);
+    export function getAllProcessListNt2(): Promise<HMC.PSYSTEM_PROCESS_INFORMATION[]> {
+        return getAllProcessList2(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT);
     }
 
     /**
      * 获取内核进程快照
      * @returns 
      */
-    export function getAllProcessListNt2Sync(): HMC2_MODE.PSYSTEM_PROCESS_INFORMATION[] {
-        return getAllProcessList2Sync(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT);
+    export function getAllProcessListNt2Sync(): HMC.PSYSTEM_PROCESS_INFORMATION[] {
+        return getAllProcessList2Sync(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_NT);
     }
 
     /**
      * 获取进程快照
      * @returns 
      */
-    export function getAllProcessListSnp2(): Promise<HMC2_MODE.PROCESSENTRY[]> {
-        return getAllProcessList2(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP);
+    export function getAllProcessListSnp2(): Promise<HMC.PROCESSENTRY[]> {
+        return getAllProcessList2(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP);
     }
 
     /**
      * 获取进程快照
      * @returns 
      */
-    export function getAllProcessListSnp2Sync(): HMC2_MODE.PROCESSENTRY[] {
-        return getAllProcessList2Sync(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP);
+    export function getAllProcessListSnp2Sync(): HMC.PROCESSENTRY[] {
+        return getAllProcessList2Sync(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_SNP);
     }
 
     /**
      * 获取带有文件路径的进程列表
      * @returns 
      */
-    export function getDetailsProcessList2(): Promise<HMC2_MODE.PROCESSENTRY_DEFAULT[]> {
-        return getAllProcessList2(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS);
+    export function getDetailsProcessList2(): Promise<HMC.PROCESSENTRY_DEFAULT[]> {
+        return getAllProcessList2(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS);
     }
 
     /**
      * 获取带有文件路径的进程列表
      * @returns 
      */
-    export function getDetailsProcessList2Sync(): HMC2_MODE.PROCESSENTRY_DEFAULT[] {
-        return getAllProcessList2Sync(HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS);
+    export function getDetailsProcessList2Sync(): HMC.PROCESSENTRY_DEFAULT[] {
+        return getAllProcessList2Sync(HMC.ENV_INFO_COMMAND.GET_ALL_PROCESS_LIST_DETAILS);
     }
 
     /**
@@ -349,7 +346,7 @@ export namespace Process {
      * @returns 
      */
     export function enumAllProcess2(): Promise<number[]> {
-        return getAllProcessList2(HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST);
+        return getAllProcessList2(HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST);
     }
 
     /**
@@ -357,7 +354,7 @@ export namespace Process {
      * @returns 
      */
     export function enumAllProcess2Sync(): number[] {
-        return getAllProcessList2Sync(HMC2_MODE.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST);
+        return getAllProcessList2Sync(HMC.ENV_INFO_COMMAND.GET_ENUM_PROCESSES_LIST);
     }
 
     /**
@@ -369,7 +366,7 @@ export namespace Process {
      */
     export async function isProcessWow64(ProcessID?: number): Promise<boolean> {
         const bool = await GetProcessEnvInfo2Clone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_IS_PROCESS_WOW64);
+            HMC.ENV_INFO_COMMAND.GET_IS_PROCESS_WOW64);
         return !!ref.int(bool);
     }
 
@@ -382,7 +379,7 @@ export namespace Process {
      */
     export function isProcessWow64Sync(ProcessID?: number): boolean {
         const bool = GetProcessEnvInfo2SyncClone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_IS_PROCESS_WOW64);
+            HMC.ENV_INFO_COMMAND.GET_IS_PROCESS_WOW64);
         return !!ref.int(bool);
     }
 
@@ -395,7 +392,7 @@ export namespace Process {
      */
     export async function existProcess2(ProcessID?: number): Promise<boolean> {
         const bool = await GetProcessEnvInfo2Clone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_EXIST_PROCESS);
+            HMC.ENV_INFO_COMMAND.GET_EXIST_PROCESS);
         return !!ref.int(bool);
     }
 
@@ -408,7 +405,7 @@ export namespace Process {
      */
     export function existProcess2Sync(ProcessID?: number): boolean {
         const bool = GetProcessEnvInfo2SyncClone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_EXIST_PROCESS);
+            HMC.ENV_INFO_COMMAND.GET_EXIST_PROCESS);
         return !!ref.int(bool);
     }
 
@@ -420,7 +417,7 @@ export namespace Process {
      */
     export async function getParentProcess2(ProcessID?: number): Promise<number | null> {
         const long = await GetProcessEnvInfo2Clone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_PARENT_PROCESS_ID);
+            HMC.ENV_INFO_COMMAND.GET_PARENT_PROCESS_ID);
         return ref.int(long || 0) || null;
         ;
     }
@@ -433,7 +430,7 @@ export namespace Process {
      */
     export function getParentProcess2Sync(ProcessID?: number): number | null {
         return ref.int(GetProcessEnvInfo2SyncClone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_PARENT_PROCESS_ID) || 0) || null;
+            HMC.ENV_INFO_COMMAND.GET_PARENT_PROCESS_ID) || 0) || null;
     }
 
     /**
@@ -444,7 +441,7 @@ export namespace Process {
      */
     export async function getSubProcess2(ProcessID: number): Promise<number[]> {
         const anyJSON = await GetProcessEnvInfo2Clone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_SUB_PROCESS);
+            HMC.ENV_INFO_COMMAND.GET_SUB_PROCESS);
         return JSON.parse(anyJSON || "[]") as number[];
         ;
     }
@@ -457,7 +454,7 @@ export namespace Process {
      */
     export function getSubProcess2Sync(ProcessID?: number): number[] {
         return JSON.parse((GetProcessEnvInfo2SyncClone(ref.int(ProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_SUB_PROCESS) || "[]"));
+            HMC.ENV_INFO_COMMAND.GET_SUB_PROCESS) || "[]"));
     }
 
     /**
@@ -466,9 +463,9 @@ export namespace Process {
      * @default all
      * @returns 
      */
-    export async function getProcessThreadList2(FindProcessID?: number): Promise<HMC2_MODE.THREADENTRY32[]> {
+    export async function getProcessThreadList2(FindProcessID?: number): Promise<HMC.THREADENTRY32[]> {
         const anyJSON = await GetProcessEnvInfo2Clone(ref.int(FindProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_THREAD_LIST);
+            HMC.ENV_INFO_COMMAND.GET_ALL_THREAD_LIST);
         return JSON.parse(anyJSON || "[]");
 
     }
@@ -479,9 +476,9 @@ export namespace Process {
      * @default all
      * @returns 
      */
-    export function getProcessThreadList2Sync(FindProcessID?: number): HMC2_MODE.THREADENTRY32[] {
+    export function getProcessThreadList2Sync(FindProcessID?: number): HMC.THREADENTRY32[] {
         return JSON.parse((GetProcessEnvInfo2SyncClone(ref.int(FindProcessID || -1),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_ALL_THREAD_LIST) || "[]"));
+            HMC.ENV_INFO_COMMAND.GET_ALL_THREAD_LIST) || "[]"));
     }
 
     /**
@@ -492,7 +489,7 @@ export namespace Process {
      */
     export async function getExecutableCwdList2(FindProcessID?: number): Promise<string[]> {
         const anyJSON = await GetProcessEnvInfo2Clone(ref.int(FindProcessID || process.pid),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_EXECUTABLE_CWD_LIST);
+            HMC.ENV_INFO_COMMAND.GET_EXECUTABLE_CWD_LIST);
         return JSON.parse(anyJSON || "[]");
 
     }
@@ -505,7 +502,7 @@ export namespace Process {
      */
     export function getExecutableCwdList2Sync(FindProcessID?: number): string[] {
         return JSON.parse((GetProcessEnvInfo2SyncClone(ref.int(FindProcessID || process.pid),
-            HMC2_MODE.ENV_INFO_COMMAND.GET_EXECUTABLE_CWD_LIST) || "[]"));
+            HMC.ENV_INFO_COMMAND.GET_EXECUTABLE_CWD_LIST) || "[]"));
     }
 
     /**
@@ -521,20 +518,20 @@ export namespace Process {
      * @returns 
      */
     export function getProcessName2(pid: number): Promise<string | null>;
-    export function getProcessName2(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII): Promise<string[]>;
-    export function getProcessName2(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE): Promise<string | null>;
+    export function getProcessName2(pid: number, type: HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII): Promise<string[]>;
+    export function getProcessName2(pid: number, type: HMC.Process.GET_PROCESS_NAME_TYPE): Promise<string | null>;
     export async function getProcessName2(pid: number, type?: unknown): Promise<unknown> {
 
-        if (!main.Native.native.getProcessName2) {
-            if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
+        if (!Native.native.getProcessName2) {
+            if (type == HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII) {
                 return Promise.resolve([]);
             }
             return Promise.resolve(null);
         }
 
-        const data: string | null | string[] = await main.Native.native.getProcessName2(ref.int(pid), type ? ref.int(type) : undefined) as string | null | string[];
+        const data: string | null | string[] = await Native.native.getProcessName2(ref.int(pid), type ? ref.int(type) : undefined) as string | null | string[];
 
-        if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
+        if (type == HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII) {
             const data_list = data ? Array.isArray(data) ? data : data?.split("\0") : [];
             return data_list.filter(item => item);
         }
@@ -554,19 +551,19 @@ export namespace Process {
      * @returns 
      */
     export function getProcessName2Sync(pid: number): string | null;
-    export function getProcessName2Sync(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII): string[];
-    export function getProcessName2Sync(pid: number, type: HMC2_MODE.GET_PROCESS_NAME_TYPE): string | null;
+    export function getProcessName2Sync(pid: number, type: HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII): string[];
+    export function getProcessName2Sync(pid: number, type: HMC.Process.GET_PROCESS_NAME_TYPE): string | null;
     export function getProcessName2Sync(pid: number, type?: unknown): unknown {
-        if (!main.Native.native.getProcessName2Sync) {
-            if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
+        if (!Native.native.getProcessName2Sync) {
+            if (type == HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII) {
                 return [];
             }
             return null;
         }
 
-        const data: string | null | string[] = main.Native.native.getProcessName2Sync(ref.int(pid), type ? ref.int(type) : undefined) as string | null | string[];
+        const data: string | null | string[] = Native.native.getProcessName2Sync(ref.int(pid), type ? ref.int(type) : undefined) as string | null | string[];
 
-        if (type == HMC2_MODE.GET_PROCESS_NAME_TYPE.GET_AII) {
+        if (type == HMC.Process.GET_PROCESS_NAME_TYPE.GET_AII) {
             const data_list = data ? Array.isArray(data) ? data : data?.split("\0") : [];
             return data_list.filter(item => item);
         }
@@ -584,8 +581,8 @@ export namespace Process {
      */
     export function getProcessFilePath2(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): Promise<string | null> {
 
-        return main.Native.native.getProcessFilePath2 ?
-            main.Native.native.getProcessFilePath2(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
+        return Native.native.getProcessFilePath2 ?
+            Native.native.getProcessFilePath2(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
             : Promise.resolve(null);
     }
 
@@ -599,8 +596,8 @@ export namespace Process {
      */
     export function getProcessFilePath2Sync(pid: number, isEnumListExists?: boolean, isSnapshotName?: boolean): string | null {
 
-        return main.Native.native.getProcessFilePath2Sync ?
-            main.Native.native.getProcessFilePath2Sync(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
+        return Native.native.getProcessFilePath2Sync ?
+            Native.native.getProcessFilePath2Sync(ref.int(pid), ...[...(isEnumListExists ? [true] : []), ...(isSnapshotName ? [true] : [])])
             : null
     }
 
@@ -609,11 +606,11 @@ export namespace Process {
      * @param Process 需要被搜索的子进程 名称/pid/正则名称
      * @returns 
      */
-    export function getProcessParentProcessMatch2(Process: string | RegExp): Promise<Array<HMC2_MODE.PROCESSENTRY>>;
-    export function getProcessParentProcessMatch2(Process: number): Promise<HMC2_MODE.PROCESSENTRY>;
+    export function getProcessParentProcessMatch2(Process: string | RegExp): Promise<Array<HMC.PROCESSENTRY>>;
+    export function getProcessParentProcessMatch2(Process: number): Promise<HMC.PROCESSENTRY>;
     export function getProcessParentProcessMatch2(Process: unknown): unknown {
         return new Promise((resolve, reject) => {
-            const data_list: Array<HMC2_MODE.PROCESSENTRY> = [];
+            const data_list: Array<HMC.PROCESSENTRY> = [];
             getAllProcessListSnp2().then(process_list => {
                 for (let index = 0; index < process_list.length; index++) {
                     const for_process_item = process_list[index];
@@ -644,11 +641,11 @@ export namespace Process {
      * @param Process 需要被搜索的子进程 名称/pid/正则名称
      * @returns 
      */
-    export function getProcessParentProcessMatch2Sync(Process: string | RegExp): Array<HMC2_MODE.PROCESSENTRY>;
-    export function getProcessParentProcessMatch2Sync(Process: number): HMC2_MODE.PROCESSENTRY | null;
+    export function getProcessParentProcessMatch2Sync(Process: string | RegExp): Array<HMC.PROCESSENTRY>;
+    export function getProcessParentProcessMatch2Sync(Process: number): HMC.PROCESSENTRY | null;
     export function getProcessParentProcessMatch2Sync(Process: unknown): unknown {
 
-        const data_list: Array<HMC2_MODE.PROCESSENTRY> = [];
+        const data_list: Array<HMC.PROCESSENTRY> = [];
         const process_list = getAllProcessListSnp2Sync();
         for (let index = 0; index < process_list.length; index++) {
             const for_process_item = process_list[index];
@@ -756,7 +753,7 @@ export namespace Process {
     * @returns
     */
     export function sleep(awaitTime: number) {
-        return GetProcessEnvInfo2SyncClone(ref.int(awaitTime), HMC2_MODE.ENV_INFO_COMMAND.SEND_SLEEP);
+        return GetProcessEnvInfo2SyncClone(ref.int(awaitTime), HMC.ENV_INFO_COMMAND.SEND_SLEEP);
     }
 
     /**

@@ -1,14 +1,14 @@
-import path = require("path");
-import os = require("os");
-import fs = require("fs");
-import https = require('https');
-import dgram = require('dgram');
 import { chcpList } from "./chcpList";
 import { KeyboardcodeComparisonTable, KeyboardcodeEmenList, VK_VirtualKey, VK_code, VK_key, VK_keyCode, vkKey } from "./vkKey";
-import child_process = require("child_process");
-import net = require("net");
+import child_process from "child_process";
+import net from "net";
+import path from "path";
+import dgram from "dgram";
+import https from "https";
+import fs from "fs";
+
 import { HMCC, captureBmp2, captureBmp2Sync, captureBmpToBuff, captureBmpToFile, closeWindow2, closeWindow2Sync, getThumbnailPng, native2, readElectronHandle, showContextMenu } from "./hmc2";
-import beta = require('./hmc2');
+import *as beta from "./hmc2";
 
 const argvSplit: (str: string) => string[] = require("argv-split");
 let $_thenConsole: HWND | null = null;

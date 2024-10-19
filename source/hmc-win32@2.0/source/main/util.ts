@@ -1,7 +1,7 @@
 
-import _path = require('path');
+import Path = require('path');
 
-export module ref {
+export namespace ref {
 
     /**
     * 将内容格式化为文本路径
@@ -9,7 +9,7 @@ export module ref {
     * @returns
     */
     export function path(Str: any) {
-        return _path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
+        return Path.resolve(String(Str || "")).replace(/([\0\n\r]+)?$/, '\0');
     }
 
     /**
@@ -368,5 +368,15 @@ export module ref {
         return null;
     }
 
-};
+    /**
+     * `async` 异步阻塞(进程)
+     * @param awaitTime
+     * @returns
+     */
+    export async function Sleep(awaitTime: number) {
+        return new Promise((resolve) =>
+            setTimeout(resolve, ref.int(awaitTime))
+        );
+    }
 
+};

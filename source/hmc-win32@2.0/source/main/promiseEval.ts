@@ -1,5 +1,6 @@
-import main = require("./index");
+import { HMC } from "./HMC";
 import { ref } from "./util";
+import { Native } from "./Native";
 
 
 export enum HMC_PROMISEEVAL_TASK_TYPE {
@@ -11,9 +12,10 @@ export enum HMC_PROMISEEVAL_TASK_TYPE {
     getTrayList2 = 7,
 };
 
+
 export type HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = keyof typeof HMC_PROMISEEVAL_TASK_TYPE;
 
-class HMC_PromiseeEvalTask {
+export class HMC_PromiseeEvalTask {
     async: Partial<Record<HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME, (...arg: any[]) => Promise<any>>> = {};
     sync: Partial<Record<HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME, (...arg: any[]) => any>> = {};
     constructor() {
@@ -22,21 +24,21 @@ class HMC_PromiseeEvalTask {
 
         for (let index = 0; index < TASK_TYPE_LIST.length; index++) {
             const TASK_TYPE: HMC_PROMISEEVAL_TASK_TYPE_ALL_NAME = TASK_TYPE_LIST[index];
-            if(!TASK_TYPE||TASK_TYPE?.match(/^\d+/)) continue;
+            if (!TASK_TYPE || TASK_TYPE?.match(/^\d+/)) continue;
             const TASK_ID = HMC_PROMISEEVAL_TASK_TYPE[TASK_TYPE];
 
             this.async[TASK_TYPE] = (...arg: any[]) => {
                 try {
 
-                    if (!main.Native.native?.HMC_PromiseEval) {
-                        return Promise.reject(main.HMC2_MODE.HMCNotPlatform);
+                    if (!Native.native?.HMC_PromiseEval) {
+                        return Promise.reject(HMC.HMCNotPlatform);
                     }
 
                     if (arg.length >= 1) {
-                        return main.Native.native.HMC_PromiseEval(TASK_ID, ...arg);
+                        return Native.native.HMC_PromiseEval(TASK_ID, ...arg);
                     }
 
-                    return main.Native.native.HMC_PromiseEval(TASK_ID);
+                    return Native.native.HMC_PromiseEval(TASK_ID);
 
                 } catch (error) {
                     return Promise.reject(error);
@@ -44,14 +46,14 @@ class HMC_PromiseeEvalTask {
             }
 
             this.sync[TASK_TYPE] = (...arg: any[]) => {
-                if (!main.Native.native?.HMC_PromiseEvalSync) {
+                if (!Native.native?.HMC_PromiseEvalSync) {
                     return null;
                 }
                 if (arg.length >= 1) {
-                    return main.Native.native.HMC_PromiseEvalSync(TASK_ID, ...arg) || null;
+                    return Native.native.HMC_PromiseEvalSync(TASK_ID, ...arg) || null;
                 }
 
-                return main.Native.native.HMC_PromiseEvalSync(TASK_ID);
+                return Native.native.HMC_PromiseEvalSync(TASK_ID);
             }
 
             if (!this[TASK_TYPE]) {
@@ -100,29 +102,29 @@ class HMC_PromiseeEvalTask {
         return data || [];
     }
 
-    async getTrayList2(): Promise<Array<main.HMC2_MODE.TRAY_ICON>> {
+    async getTrayList2(): Promise<Array<HMC.TRAY_ICON>> {
         if (!promiseEvalTask?.async?.getTrayList2) {
             return Promise.resolve([]);
         }
 
-        let data: string | Array<main.HMC2_MODE.TRAY_ICON> = await (promiseEvalTask?.async?.getTrayList2() || null);
+        let data: string | Array<HMC.TRAY_ICON> = await (promiseEvalTask?.async?.getTrayList2() || null);
 
         if (typeof data == "string") {
-            return ref.JSONP(data) as Array<main.HMC2_MODE.TRAY_ICON> || [];
+            return ref.JSONP(data) as Array<HMC.TRAY_ICON> || [];
         }
 
         return [];
     }
 
-    getTrayList2Sync(): Array<main.HMC2_MODE.TRAY_ICON> {
+    getTrayList2Sync(): Array<HMC.TRAY_ICON> {
         if (!promiseEvalTask?.sync?.getTrayList2) {
             return [];
         }
 
-        let data: string | Array<main.HMC2_MODE.TRAY_ICON> = (promiseEvalTask?.sync?.getTrayList2() || null);
+        let data: string | Array<HMC.TRAY_ICON> = (promiseEvalTask?.sync?.getTrayList2() || null);
 
         if (typeof data == "string") {
-            return ref.JSONP(data) as Array<main.HMC2_MODE.TRAY_ICON> || [];
+            return ref.JSONP(data) as Array<HMC.TRAY_ICON> || [];
         }
 
         return data || [];
@@ -130,7 +132,7 @@ class HMC_PromiseeEvalTask {
 
 }
 
-interface HMC_PromiseeEvalTask {
+export interface HMC_PromiseeEvalTask {
 
     /**
      * 获取剪贴板的文件列表

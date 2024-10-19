@@ -5,6 +5,7 @@
 #include "hmc_process_util.h"
 #include "hmc_path_util.h"
 #include "hmc_sock_util.h"
+#include "hmc_shell_util.h"
 
 #include "hmc_util.h"
 
@@ -48,6 +49,8 @@ namespace HMC_GetSockEnvInfo
         /** 判断当前软件是否拥有管理员权限*/
         isAdmin = 32,
         getMacAddresses = 33,
+
+        isSystemFor64bit=35,
     };
 
     const std::map<HMC_GET_SOCK_ENV_INFO_ID, std::vector<std::tuple<size_t, js_valuetype>>> GET_SOCK_EQ_TYPE_LIST = {
@@ -96,7 +99,14 @@ namespace HMC_GetSockEnvInfo
         if (ENV_ID::isAdmin == TAKE_TYPE)
         {
 
-            (*work->Result) = ::IsUserAnAdmin();
+            (*work->Result) = static_cast<bool>(::IsUserAnAdmin());
+            return;
+        }
+
+        if (TAKE_TYPE == ENV_ID::isSystemFor64bit)
+        {
+            auto temp = hmc_shell_util::isSystemFor64bit();
+            (*work->Result) = temp;
             return;
         }
 
